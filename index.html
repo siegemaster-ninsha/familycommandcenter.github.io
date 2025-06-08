@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
     <link
@@ -8,217 +9,961 @@
       href="https://fonts.googleapis.com/css2?display=swap&amp;family=Inter%3Awght%40400%3B500%3B700%3B900&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900"
     />
 
-    <title>Stitch Design</title>
+    <title>Family Command Center</title>
     <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+      /* Confetti Animation Styles */
+      .confetti-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1000;
+      }
+      
+      .confetti-piece {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background: #607afb;
+        animation: confetti-fall 3s linear forwards;
+      }
+      
+      .confetti-piece:nth-child(1) { background: #607afb; animation-delay: 0s; }
+      .confetti-piece:nth-child(2) { background: #34d399; animation-delay: 0.1s; }
+      .confetti-piece:nth-child(3) { background: #fbbf24; animation-delay: 0.2s; }
+      .confetti-piece:nth-child(4) { background: #f87171; animation-delay: 0.3s; }
+      .confetti-piece:nth-child(5) { background: #a78bfa; animation-delay: 0.4s; }
+      .confetti-piece:nth-child(6) { background: #fb7185; animation-delay: 0.5s; }
+      .confetti-piece:nth-child(7) { background: #60a5fa; animation-delay: 0.6s; }
+      .confetti-piece:nth-child(8) { background: #4ade80; animation-delay: 0.7s; }
+      .confetti-piece:nth-child(9) { background: #facc15; animation-delay: 0.8s; }
+      .confetti-piece:nth-child(10) { background: #f472b6; animation-delay: 0.9s; }
+      
+      @keyframes confetti-explode {
+        0% {
+          transform: translateY(0) translateX(0) rotate(0deg) scale(0);
+          opacity: 1;
+        }
+        15% {
+          transform: translateY(-60vh) translateX(0) rotate(180deg) scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(120vh) translateX(0) rotate(720deg) scale(0.8);
+          opacity: 0;
+        }
+      }
+      
+      .confetti-piece.left {
+        animation: confetti-explode-left 4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+      }
+      
+      .confetti-piece.right {
+        animation: confetti-explode-right 4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+      }
+      
+      .confetti-piece.center {
+        animation: confetti-explode-center 4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+      }
+      
+      @keyframes confetti-explode-left {
+        0% {
+          transform: translateY(0) translateX(0) rotate(0deg) scale(0);
+          opacity: 1;
+        }
+        15% {
+          transform: translateY(-80vh) translateX(-150px) rotate(270deg) scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(120vh) translateX(-300px) rotate(900deg) scale(0.6);
+          opacity: 0;
+        }
+      }
+      
+      @keyframes confetti-explode-right {
+        0% {
+          transform: translateY(0) translateX(0) rotate(0deg) scale(0);
+          opacity: 1;
+        }
+        15% {
+          transform: translateY(-80vh) translateX(150px) rotate(270deg) scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(120vh) translateX(300px) rotate(900deg) scale(0.6);
+          opacity: 0;
+        }
+      }
+      
+      @keyframes confetti-explode-center {
+        0% {
+          transform: translateY(0) translateX(0) rotate(0deg) scale(0);
+          opacity: 1;
+        }
+        15% {
+          transform: translateY(-70vh) translateX(0) rotate(360deg) scale(1.2);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(120vh) translateX(0) rotate(1080deg) scale(0.4);
+          opacity: 0;
+        }
+      }
+      
+      /* Success message animation */
+      .success-message {
+        animation: success-bounce 0.6s ease-out;
+      }
+      
+      @keyframes success-bounce {
+        0% {
+          transform: scale(0) rotate(-5deg);
+          opacity: 0;
+        }
+        50% {
+          transform: scale(1.1) rotate(2deg);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1) rotate(0deg);
+          opacity: 1;
+        }
+      }
+    </style>
   </head>
   <body>
-    <div
-      class="relative flex size-full min-h-screen flex-col bg-[#f8f9fc] group/design-root overflow-x-hidden"
-      style="--checkbox-tick-svg: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(248,249,252)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z%27/%3e%3c/svg%3e'); font-family: Inter, &quot;Noto Sans&quot;, sans-serif;"
-    >
-      <div class="layout-container flex h-full grow flex-col">
-        <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e6e9f4] px-10 py-3">
-          <div class="flex items-center gap-4 text-[#0d0f1c]">
-            <div class="size-4">
-              <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M42.4379 44C42.4379 44 36.0744 33.9038 41.1692 24C46.8624 12.9336 42.2078 4 42.2078 4L7.01134 4C7.01134 4 11.6577 12.932 5.96912 23.9969C0.876273 33.9029 7.27094 44 7.27094 44L42.4379 44Z"
-                  fill="currentColor"
-                ></path>
-              </svg>
+    <div id="app">
+      <div
+        class="relative flex size-full min-h-screen flex-col bg-[#f8f9fc] group/design-root overflow-x-hidden"
+        style="--checkbox-tick-svg: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(248,249,252)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z%27/%3e%3c/svg%3e'); font-family: Inter, 'Noto Sans', sans-serif;"
+      >
+        <div class="layout-container flex h-full grow flex-col">
+          <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e6e9f4] px-10 py-3">
+            <div class="flex items-center gap-4 text-[#0d0f1c]">
+              <div class="size-4">
+                <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M42.4379 44C42.4379 44 36.0744 33.9038 41.1692 24C46.8624 12.9336 42.2078 4 42.2078 4L7.01134 4C7.01134 4 11.6577 12.932 5.96912 23.9969C0.876273 33.9029 7.27094 44 7.27094 44L42.4379 44Z"
+                    fill="currentColor"
+                  ></path>
+                </svg>
+              </div>
+              <h2 class="text-[#0d0f1c] text-lg font-bold leading-tight tracking-[-0.015em]">Family Hub</h2>
             </div>
-            <h2 class="text-[#0d0f1c] text-lg font-bold leading-tight tracking-[-0.015em]">Family Hub</h2>
+            <div class="flex flex-1 justify-end gap-8">
+              <div class="flex items-center gap-9">
+                <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">Dashboard</a>
+                <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">Calendar</a>
+                <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">To-Do</a>
+                <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">Shopping List</a>
+                <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">Meal Planner</a>
+                <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">Chores</a>
+              </div>
+              <div
+                class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
+                style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBUzlNfNl7L_8wnCHrzYQfMA8NVRgCSzVAydeCf3HlLaAL_vdWpal4OtU4jLaEcauyhqPPPlOx_V-XDx5M8AfsOAz3U5lVO9-mzfw9YkYiarC34Jk_QykDg-s2P0hr_8jOnV--xaBTBxMSVuqVDwGtySrz0nLSv-WYTlNKDqfy8id15ix7uF1WAkYP2ap6LzOlLOko0Tcxraf2Ssjh3F8Q5Wj5mMCFm1VjtaK_989mQYoIYcSyBByDZpOyS4qqNYhAoId2T-Bq77vTB");'
+              ></div>
+            </div>
+          </header>
+          <div class="px-40 flex flex-1 justify-center py-5">
+            <div class="layout-content-container flex flex-col max-w-[960px] flex-1">
+              <div class="flex flex-wrap justify-between gap-3 p-4">
+                <p class="text-[#0d0f1c] tracking-light text-[32px] font-bold leading-tight min-w-72">Chores</p>
+              </div>
+
+              <!-- Quicklist Section -->
+              <div class="mb-8">
+                <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">⚡ Quicklist</h2>
+                <div class="bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-dashed border-purple-300 rounded-lg mx-4 p-4">
+                  <p class="text-[#47569e] text-sm mb-3 text-center">Drag these common chores to assign them quickly</p>
+                  
+                  <div class="flex flex-wrap gap-2 justify-center">
+                    <div 
+                      v-for="quickChore in quicklistChores" 
+                      :key="quickChore.id"
+                      class="relative group flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm cursor-move border-l-4 border-purple-500 hover:shadow-md transition-all duration-200 hover:scale-105"
+                      draggable="true"
+                      @dragstart="handleQuicklistDragStart($event, quickChore)"
+                    >
+                      <!-- Remove button -->
+                      <button
+                        @click="removeFromQuicklist(quickChore.id)"
+                        class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600"
+                        title="Remove from quicklist"
+                      >
+                        ×
+                      </button>
+                      
+                      <div
+                        class="flex items-center justify-center rounded-lg bg-purple-100 shrink-0 size-8 text-purple-600"
+                        v-html="getCategoryIcon(quickChore.category)"
+                      >
+                      </div>
+                      <div class="flex flex-col">
+                        <p class="text-[#0d0f1c] text-sm font-medium leading-tight">{{ quickChore.name }}</p>
+                        <p v-if="quickChore.amount > 0" class="text-[#47569e] text-xs">${{ quickChore.amount.toFixed(2) }}</p>
+                      </div>
+                      <span class="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-800">
+                        {{ getCategoryLabel(quickChore.category) }}
+                      </span>
+                    </div>
+                    
+                    <!-- Add to Quicklist button -->
+                    <div class="flex items-center justify-center">
+                      <button
+                        @click="showAddToQuicklistModal = true"
+                        class="flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-2 rounded-lg border-2 border-dashed border-purple-300 transition-colors duration-200"
+                        title="Add new chore to quicklist"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                          <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
+                        </svg>
+                        <span class="text-sm font-medium">Add</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Unassigned Chores Section -->
+              <div class="mb-8">
+                <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Unassigned Chores</h2>
+                <div 
+                  class="min-h-[100px] bg-[#f0f2f8] border-2 border-dashed border-[#ced2e9] rounded-lg mx-4 p-4"
+                  @drop="handleDrop($event, 'unassigned')"
+                  @dragover.prevent
+                  @dragenter.prevent
+                >
+                  <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-[#47569e] py-8">
+                    <p class="text-sm">All chores have been assigned!</p>
+                    <p class="text-xs mt-1">Drag completed chores here to unassign them.</p>
+                  </div>
+                  
+                  <div 
+                    v-for="chore in choresByPerson.unassigned" 
+                    :key="chore.id"
+                    class="flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between mb-2 rounded-lg shadow-sm cursor-move border-l-4"
+                    :class="getCategoryStyle(chore.category).background"
+                    draggable="true"
+                    @dragstart="handleDragStart($event, chore)"
+                  >
+                    <div class="flex items-center gap-4">
+                      <div
+                        class="flex items-center justify-center rounded-lg bg-white shrink-0 size-12"
+                        :class="getCategoryStyle(chore.category).icon"
+                        v-html="getCategoryIcon(chore.category)"
+                      >
+                      </div>
+                                              <div class="flex flex-col justify-center">
+                          <div class="flex items-center gap-2 mb-1">
+                            <p class="text-[#0d0f1c] text-base font-medium leading-normal line-clamp-1">{{ chore.name }}</p>
+                            <span class="text-xs px-2 py-1 rounded-full" :class="getCategoryStyle(chore.category).badge">
+                              {{ getCategoryLabel(chore.category) }}
+                            </span>
+                          </div>
+                          <p v-if="chore.amount > 0" class="text-[#47569e] text-sm font-normal leading-normal line-clamp-2">${{ chore.amount.toFixed(2) }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs text-[#47569e] bg-white px-2 py-1 rounded">Drag to assign</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Add new chore button for unassigned -->
+                <div class="flex px-4 py-3 justify-start">
+                  <button
+                    @click="showAddChoreModal = true"
+                    class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#607afb] text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#4f68d8] transition-colors"
+                  >
+                    <span class="truncate">Add New Chore</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Family Members' Chores - Side by Side -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <!-- Ben's Chores -->
+                <div 
+                  class="bg-white rounded-lg shadow-sm border"
+                  @drop="handleDrop($event, 'Ben')"
+                  @dragover.prevent
+                  @dragenter.prevent
+                >
+                  <div class="flex items-center justify-between px-4 pb-3 pt-5">
+                    <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em]">Ben</h2>
+                    <div class="text-sm px-3 py-1 rounded-full" 
+                         :class="getElectronicsStatus('Ben').status === 'allowed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                      {{ getElectronicsStatus('Ben').message }}
+                    </div>
+                  </div>
+                  <div class="min-h-[100px] px-4 pb-4">
+                    <div 
+                      v-for="chore in choresByPerson.Ben" 
+                      :key="chore.id"
+                      class="flex items-center gap-4 px-3 min-h-[72px] py-2 justify-between cursor-move transition-colors border-l-4 mb-2 rounded-r-lg"
+                      :class="getCategoryStyle(chore.category).background + ' hover:opacity-90'"
+                      draggable="true"
+                      @dragstart="handleDragStart($event, chore)"
+                    >
+                      <div class="flex items-center gap-3">
+                        <div
+                          class="flex items-center justify-center rounded-lg bg-white shrink-0 size-10"
+                          :class="getCategoryStyle(chore.category).icon"
+                          v-html="getCategoryIcon(chore.category)"
+                        >
+                        </div>
+                        <div class="flex flex-col justify-center">
+                          <div class="flex items-center gap-2 mb-1">
+                            <p class="text-[#0d0f1c] text-sm font-medium leading-normal line-clamp-1">{{ chore.name }}</p>
+                            <span class="text-xs px-2 py-1 rounded-full" :class="getCategoryStyle(chore.category).badge">
+                              {{ getCategoryLabel(chore.category) }}
+                            </span>
+                          </div>
+                          <p v-if="chore.amount > 0" class="text-[#47569e] text-xs font-normal leading-normal">${{ chore.amount.toFixed(2) }}</p>
+                        </div>
+                      </div>
+                      <div class="shrink-0">
+                        <div class="flex size-6 items-center justify-center">
+                          <input
+                            type="checkbox"
+                            v-model="chore.completed"
+                            @change="handleChoreCompletion(chore)"
+                            class="h-4 w-4 rounded border-[#ced2e9] border-2 bg-transparent text-[#607afb] checked:bg-[#607afb] checked:border-[#607afb] checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:border-[#ced2e9] focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Drop zone indicator for Ben -->
+                    <div v-if="choresByPerson.Ben.length === 0" class="text-center text-[#47569e] py-8 border-2 border-dashed border-[#ced2e9] rounded-lg bg-[#f8f9fc]">
+                      <p class="text-sm">Drag chores here to assign to Ben</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Theo's Chores -->
+                <div 
+                  class="bg-white rounded-lg shadow-sm border"
+                  @drop="handleDrop($event, 'Theo')"
+                  @dragover.prevent
+                  @dragenter.prevent
+                >
+                  <div class="flex items-center justify-between px-4 pb-3 pt-5">
+                    <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em]">Theo</h2>
+                    <div class="text-sm px-3 py-1 rounded-full" 
+                         :class="getElectronicsStatus('Theo').status === 'allowed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                      {{ getElectronicsStatus('Theo').message }}
+                    </div>
+                  </div>
+                  <div class="min-h-[100px] px-4 pb-4">
+                    <div 
+                      v-for="chore in choresByPerson.Theo" 
+                      :key="chore.id"
+                      class="flex items-center gap-4 px-3 min-h-[72px] py-2 justify-between cursor-move transition-colors border-l-4 mb-2 rounded-r-lg"
+                      :class="getCategoryStyle(chore.category).background + ' hover:opacity-90'"
+                      draggable="true"
+                      @dragstart="handleDragStart($event, chore)"
+                    >
+                      <div class="flex items-center gap-3">
+                        <div
+                          class="flex items-center justify-center rounded-lg bg-white shrink-0 size-10"
+                          :class="getCategoryStyle(chore.category).icon"
+                          v-html="getCategoryIcon(chore.category)"
+                        >
+                        </div>
+                        <div class="flex flex-col justify-center">
+                          <div class="flex items-center gap-2 mb-1">
+                            <p class="text-[#0d0f1c] text-sm font-medium leading-normal line-clamp-1">{{ chore.name }}</p>
+                            <span class="text-xs px-2 py-1 rounded-full" :class="getCategoryStyle(chore.category).badge">
+                              {{ getCategoryLabel(chore.category) }}
+                            </span>
+                          </div>
+                          <p v-if="chore.amount > 0" class="text-[#47569e] text-xs font-normal leading-normal">${{ chore.amount.toFixed(2) }}</p>
+                        </div>
+                      </div>
+                      <div class="shrink-0">
+                        <div class="flex size-6 items-center justify-center">
+                          <input
+                            type="checkbox"
+                            v-model="chore.completed"
+                            @change="handleChoreCompletion(chore)"
+                            class="h-4 w-4 rounded border-[#ced2e9] border-2 bg-transparent text-[#607afb] checked:bg-[#607afb] checked:border-[#607afb] checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:border-[#ced2e9] focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Drop zone indicator for Theo -->
+                    <div v-if="choresByPerson.Theo.length === 0" class="text-center text-[#47569e] py-8 border-2 border-dashed border-[#ced2e9] rounded-lg bg-[#f8f9fc]">
+                      <p class="text-sm">Drag chores here to assign to Theo</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Earnings Section -->
+              <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Earnings</h2>
+              <div class="p-4">
+                <div class="flex justify-between gap-x-6 py-2">
+                  <p class="text-[#47569e] text-sm font-normal leading-normal">Ben</p>
+                  <p class="text-[#0d0f1c] text-sm font-normal leading-normal text-right">${{ earnings.Ben.toFixed(2) }}</p>
+                </div>
+                <div class="flex justify-between gap-x-6 py-2">
+                  <p class="text-[#47569e] text-sm font-normal leading-normal">Theo</p>
+                  <p class="text-[#0d0f1c] text-sm font-normal leading-normal text-right">${{ earnings.Theo.toFixed(2) }}</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="flex flex-1 justify-end gap-8">
-            <div class="flex items-center gap-9">
-              <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">Dashboard</a>
-              <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">Calendar</a>
-              <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">To-Do</a>
-              <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">Shopping List</a>
-              <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">Meal Planner</a>
-              <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">Chores</a>
-            </div>
-            <div
-              class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
-              style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBUzlNfNl7L_8wnCHrzYQfMA8NVRgCSzVAydeCf3HlLaAL_vdWpal4OtU4jLaEcauyhqPPPlOx_V-XDx5M8AfsOAz3U5lVO9-mzfw9YkYiarC34Jk_QykDg-s2P0hr_8jOnV--xaBTBxMSVuqVDwGtySrz0nLSv-WYTlNKDqfy8id15ix7uF1WAkYP2ap6LzOlLOko0Tcxraf2Ssjh3F8Q5Wj5mMCFm1VjtaK_989mQYoIYcSyBByDZpOyS4qqNYhAoId2T-Bq77vTB");'
-            ></div>
+        </div>
+
+        <!-- Trash Can -->
+        <div 
+          class="fixed bottom-8 right-8 z-40"
+          :class="{ 'scale-110 animate-pulse': isDragOverTrash }"
+        >
+          <div 
+            @drop="handleTrashDrop($event)"
+            @dragover.prevent="isDragOverTrash = true"
+            @dragenter.prevent="isDragOverTrash = true"
+            @dragleave.prevent="isDragOverTrash = false"
+            class="bg-red-500 hover:bg-red-600 text-white rounded-full p-4 shadow-lg cursor-pointer transition-all duration-200 flex items-center justify-center size-16"
+            :class="{ 'bg-red-600 scale-110': isDragOverTrash }"
+            title="Drag chores here to delete them"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 256 256">
+              <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
+            </svg>
           </div>
-        </header>
-        <div class="px-40 flex flex-1 justify-center py-5">
-          <div class="layout-content-container flex flex-col max-w-[960px] flex-1">
-            <div class="flex flex-wrap justify-between gap-3 p-4"><p class="text-[#0d0f1c] tracking-light text-[32px] font-bold leading-tight min-w-72">Chores</p></div>
-            <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Ben</h2>
-            <div class="flex items-center gap-4 bg-[#f8f9fc] px-4 min-h-[72px] py-2 justify-between">
-              <div class="flex items-center gap-4">
-                <div
-                  class="text-[#0d0f1c] flex items-center justify-center rounded-lg bg-[#e6e9f4] shrink-0 size-12"
-                  data-icon="CheckSquare"
-                  data-size="24px"
-                  data-weight="regular"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                    <path
-                      d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM224,48V208a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V48A16,16,0,0,1,48,32H208A16,16,0,0,1,224,48ZM208,208V48H48V208H208Z"
-                    ></path>
-                  </svg>
-                </div>
-                <div class="flex flex-col justify-center">
-                  <p class="text-[#0d0f1c] text-base font-medium leading-normal line-clamp-1">Clean your room</p>
-                  <p class="text-[#47569e] text-sm font-normal leading-normal line-clamp-2">$5.00</p>
-                </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="bg-red-100 p-2 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-red-600" viewBox="0 0 256 256">
+                  <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
+                </svg>
               </div>
-              <div class="shrink-0">
-                <div class="flex size-7 items-center justify-center">
-                  <input
-                    type="checkbox"
-                    class="h-5 w-5 rounded border-[#ced2e9] border-2 bg-transparent text-[#607afb] checked:bg-[#607afb] checked:border-[#607afb] checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:border-[#ced2e9] focus:outline-none"
-                  />
-                </div>
-              </div>
+              <h3 class="text-lg font-bold text-[#0d0f1c]">Delete Chore</h3>
             </div>
-            <div class="flex items-center gap-4 bg-[#f8f9fc] px-4 min-h-[72px] py-2 justify-between">
-              <div class="flex items-center gap-4">
-                <div
-                  class="text-[#0d0f1c] flex items-center justify-center rounded-lg bg-[#e6e9f4] shrink-0 size-12"
-                  data-icon="CheckSquare"
-                  data-size="24px"
-                  data-weight="regular"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                    <path
-                      d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM224,48V208a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V48A16,16,0,0,1,48,32H208A16,16,0,0,1,224,48ZM208,208V48H48V208H208Z"
-                    ></path>
-                  </svg>
-                </div>
-                <div class="flex flex-col justify-center">
-                  <p class="text-[#0d0f1c] text-base font-medium leading-normal line-clamp-1">Take out the trash</p>
-                  <p class="text-[#47569e] text-sm font-normal leading-normal line-clamp-2">$2.00</p>
-                </div>
-              </div>
-              <div class="shrink-0">
-                <div class="flex size-7 items-center justify-center">
-                  <input
-                    type="checkbox"
-                    class="h-5 w-5 rounded border-[#ced2e9] border-2 bg-transparent text-[#607afb] checked:bg-[#607afb] checked:border-[#607afb] checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:border-[#ced2e9] focus:outline-none"
-                  />
-                </div>
-              </div>
-            </div>
-            <div class="flex items-center gap-4 bg-[#f8f9fc] px-4 min-h-[72px] py-2 justify-between">
-              <div class="flex items-center gap-4">
-                <div
-                  class="text-[#0d0f1c] flex items-center justify-center rounded-lg bg-[#e6e9f4] shrink-0 size-12"
-                  data-icon="CheckSquare"
-                  data-size="24px"
-                  data-weight="regular"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                    <path
-                      d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM224,48V208a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V48A16,16,0,0,1,48,32H208A16,16,0,0,1,224,48ZM208,208V48H48V208H208Z"
-                    ></path>
-                  </svg>
-                </div>
-                <div class="flex flex-col justify-center">
-                  <p class="text-[#0d0f1c] text-base font-medium leading-normal line-clamp-1">Do the dishes</p>
-                  <p class="text-[#47569e] text-sm font-normal leading-normal line-clamp-2">$3.00</p>
-                </div>
-              </div>
-              <div class="shrink-0">
-                <div class="flex size-7 items-center justify-center">
-                  <input
-                    type="checkbox"
-                    class="h-5 w-5 rounded border-[#ced2e9] border-2 bg-transparent text-[#607afb] checked:bg-[#607afb] checked:border-[#607afb] checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:border-[#ced2e9] focus:outline-none"
-                  />
-                </div>
-              </div>
-            </div>
-            <div class="flex px-4 py-3 justify-start">
-              <button
-                class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#e6e9f4] text-[#0d0f1c] text-sm font-bold leading-normal tracking-[0.015em]"
+            <p class="text-[#47569e] mb-6">
+              Are you sure you want to delete "<span class="font-medium text-[#0d0f1c]">{{ choreToDelete?.name }}</span>"? This action cannot be undone.
+            </p>
+            <div class="flex gap-3">
+              <button 
+                @click="confirmDelete"
+                class="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors"
               >
-                <span class="truncate">Add Chore</span>
+                Delete
+              </button>
+              <button 
+                @click="cancelDelete"
+                class="flex-1 bg-[#e6e9f4] text-[#0d0f1c] py-2 px-4 rounded-lg hover:bg-[#d0d4e8] transition-colors"
+              >
+                Cancel
               </button>
             </div>
-            <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Theo</h2>
-            <div class="flex items-center gap-4 bg-[#f8f9fc] px-4 min-h-[72px] py-2 justify-between">
-              <div class="flex items-center gap-4">
-                <div
-                  class="text-[#0d0f1c] flex items-center justify-center rounded-lg bg-[#e6e9f4] shrink-0 size-12"
-                  data-icon="CheckSquare"
-                  data-size="24px"
-                  data-weight="regular"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                    <path
-                      d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM224,48V208a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V48A16,16,0,0,1,48,32H208A16,16,0,0,1,224,48ZM208,208V48H48V208H208Z"
-                    ></path>
-                  </svg>
-                </div>
-                <div class="flex flex-col justify-center">
-                  <p class="text-[#0d0f1c] text-base font-medium leading-normal line-clamp-1">Mow the lawn</p>
-                  <p class="text-[#47569e] text-sm font-normal leading-normal line-clamp-2">$4.00</p>
-                </div>
+          </div>
+        </div>
+
+        <!-- Confetti Container -->
+        <div v-if="showConfetti" class="confetti-container">
+          <div 
+            v-for="piece in confettiPieces" 
+            :key="piece.id"
+            class="confetti-piece"
+            :class="piece.direction"
+            :style="{ 
+              left: piece.left + 'px', 
+              bottom: '0px', 
+              animationDelay: piece.delay + 's',
+              backgroundColor: piece.color
+            }"
+          ></div>
+        </div>
+
+        <!-- Success Message -->
+        <div v-if="showSuccessMessage" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50">
+          <div class="success-message bg-green-500 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256">
+              <path d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM224,48V208a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V48A16,16,0,0,1,48,32H208A16,16,0,0,1,224,48ZM208,208V48H48V208H208Z"></path>
+            </svg>
+            <span class="font-medium">Great job! {{ completedChoreMessage }}</span>
+          </div>
+        </div>
+
+        <!-- Add to Quicklist Modal -->
+        <div v-if="showAddToQuicklistModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="bg-purple-100 p-2 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-purple-600" viewBox="0 0 256 256">
+                  <path d="M200,32H163.74a47.92,47.92,0,0,0-71.48,0H56A16,16,0,0,0,40,48V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V48A16,16,0,0,0,200,32Zm-72,0a32,32,0,0,1,32,32H96A32,32,0,0,1,128,32Zm72,184H56V48H72V64a8,8,0,0,0,8,8H176a8,8,0,0,0,8-8V48h16V216Z"></path>
+                </svg>
               </div>
-              <div class="shrink-0">
-                <div class="flex size-7 items-center justify-center">
-                  <input
-                    type="checkbox"
-                    class="h-5 w-5 rounded border-[#ced2e9] border-2 bg-transparent text-[#607afb] checked:bg-[#607afb] checked:border-[#607afb] checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:border-[#ced2e9] focus:outline-none"
-                  />
-                </div>
+              <h3 class="text-lg font-bold text-[#0d0f1c]">Add to Quicklist</h3>
+            </div>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Chore Name</label>
+                <input 
+                  v-model="newQuicklistChore.name"
+                  type="text" 
+                  class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Enter chore name"
+                >
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Amount ($)</label>
+                <input 
+                  v-model.number="newQuicklistChore.amount"
+                  type="number" 
+                  step="0.25"
+                  min="0"
+                  class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="0.00"
+                >
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Chore Type</label>
+                <select 
+                  v-model="newQuicklistChore.category"
+                  class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="regular">🏠 Regular Chore</option>
+                  <option value="school">📚 School Chore</option>
+                  <option value="game">🎮 Electronics Requirement</option>
+                </select>
               </div>
             </div>
-            <div class="flex items-center gap-4 bg-[#f8f9fc] px-4 min-h-[72px] py-2 justify-between">
-              <div class="flex items-center gap-4">
-                <div
-                  class="text-[#0d0f1c] flex items-center justify-center rounded-lg bg-[#e6e9f4] shrink-0 size-12"
-                  data-icon="CheckSquare"
-                  data-size="24px"
-                  data-weight="regular"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                    <path
-                      d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM224,48V208a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V48A16,16,0,0,1,48,32H208A16,16,0,0,1,224,48ZM208,208V48H48V208H208Z"
-                    ></path>
-                  </svg>
-                </div>
-                <div class="flex flex-col justify-center">
-                  <p class="text-[#0d0f1c] text-base font-medium leading-normal line-clamp-1">Walk the dog</p>
-                  <p class="text-[#47569e] text-sm font-normal leading-normal line-clamp-2">$1.00</p>
-                </div>
-              </div>
-              <div class="shrink-0">
-                <div class="flex size-7 items-center justify-center">
-                  <input
-                    type="checkbox"
-                    class="h-5 w-5 rounded border-[#ced2e9] border-2 bg-transparent text-[#607afb] checked:bg-[#607afb] checked:border-[#607afb] checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:border-[#ced2e9] focus:outline-none"
-                  />
-                </div>
-              </div>
-            </div>
-            <div class="flex px-4 py-3 justify-start">
-              <button
-                class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#e6e9f4] text-[#0d0f1c] text-sm font-bold leading-normal tracking-[0.015em]"
+            <div class="flex gap-3 mt-6">
+              <button 
+                @click="addToQuicklist"
+                class="flex-1 bg-purple-500 text-white py-2 px-4 rounded-lg hover:bg-purple-600 transition-colors"
               >
-                <span class="truncate">Add Chore</span>
+                Add to Quicklist
+              </button>
+              <button 
+                @click="cancelAddToQuicklist"
+                class="flex-1 bg-[#e6e9f4] text-[#0d0f1c] py-2 px-4 rounded-lg hover:bg-[#d0d4e8] transition-colors"
+              >
+                Cancel
               </button>
             </div>
-            <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Earnings</h2>
-            <div class="p-4">
-              <div class="flex justify-between gap-x-6 py-2">
-                <p class="text-[#47569e] text-sm font-normal leading-normal">Ben</p>
-                <p class="text-[#0d0f1c] text-sm font-normal leading-normal text-right">$10.00</p>
+          </div>
+        </div>
+
+        <!-- Add Chore Modal -->
+        <div v-if="showAddChoreModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+            <h3 class="text-lg font-bold text-[#0d0f1c] mb-4">Add New Chore</h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Chore Name</label>
+                <input 
+                  v-model="newChore.name"
+                  type="text" 
+                  class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+                  placeholder="Enter chore name"
+                >
               </div>
-              <div class="flex justify-between gap-x-6 py-2">
-                <p class="text-[#47569e] text-sm font-normal leading-normal">Theo</p>
-                <p class="text-[#0d0f1c] text-sm font-normal leading-normal text-right">$5.00</p>
+              <div>
+                <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Amount ($)</label>
+                <input 
+                  v-model.number="newChore.amount"
+                  type="number" 
+                  step="0.50"
+                  min="0"
+                  class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+                  placeholder="0.00"
+                >
               </div>
+              <div>
+                <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Chore Type</label>
+                <select 
+                  v-model="newChore.category"
+                  class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+                >
+                  <option value="regular">🏠 Regular Chore</option>
+                  <option value="school">📚 School Chore</option>
+                  <option value="game">🎮 Electronics Requirement</option>
+                </select>
+                <p class="text-xs text-[#47569e] mt-1">
+                  <span v-if="newChore.category === 'school'">School chores help with learning habits</span>
+                  <span v-else-if="newChore.category === 'game'">Must be completed to earn electronics time</span>
+                  <span v-else>Regular household chore</span>
+                </p>
+              </div>
+              <div>
+                <label class="flex items-center gap-2">
+                  <input 
+                    type="checkbox" 
+                    v-model="newChore.addToQuicklist"
+                    class="h-4 w-4 rounded border-[#ced2e9] border-2 bg-transparent text-[#607afb] checked:bg-[#607afb] checked:border-[#607afb] focus:ring-0 focus:ring-offset-0"
+                  >
+                  <span class="text-sm text-[#0d0f1c]">⚡ Also add to Quicklist</span>
+                </label>
+                <p class="text-xs text-[#47569e] mt-1 ml-6">Make this chore available for quick assignment in the future</p>
+              </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+              <button 
+                @click="addChore"
+                class="flex-1 bg-[#607afb] text-white py-2 px-4 rounded-lg hover:bg-[#4f68d8] transition-colors"
+              >
+                Add Chore
+              </button>
+              <button 
+                @click="cancelAddChore"
+                class="flex-1 bg-[#e6e9f4] text-[#0d0f1c] py-2 px-4 rounded-lg hover:bg-[#d0d4e8] transition-colors"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+    <script>
+      const { createApp } = Vue;
+
+      createApp({
+        data() {
+          return {
+            showAddChoreModal: false,
+            newChore: {
+              name: '',
+              amount: 0,
+              category: 'regular',
+              addToQuicklist: false
+            },
+            showAddToQuicklistModal: false,
+            newQuicklistChore: {
+              name: '',
+              amount: 0,
+              category: 'regular'
+            },
+            nextId: 6,
+            chores: [
+              { id: 1, name: 'Clean your room', amount: 5.00, assignedTo: 'Ben', completed: false, category: 'regular' },
+              { id: 2, name: 'Take out the trash', amount: 2.00, assignedTo: 'Ben', completed: false, category: 'game' },
+              { id: 3, name: 'Do the dishes', amount: 3.00, assignedTo: 'Ben', completed: false, category: 'regular' },
+              { id: 4, name: 'Complete homework', amount: 0.00, assignedTo: 'Theo', completed: false, category: 'school' },
+              { id: 5, name: 'Feed the pets', amount: 1.50, assignedTo: 'Theo', completed: false, category: 'game' },
+              { id: 6, name: 'Study for math test', amount: 0.00, assignedTo: 'unassigned', completed: false, category: 'school' },
+              { id: 7, name: 'Make bed', amount: 1.00, assignedTo: 'unassigned', completed: false, category: 'game' }
+            ],
+            draggedChore: null,
+            earnings: {
+              Ben: 0,
+              Theo: 0
+            },
+            isDragOverTrash: false,
+            choreToDelete: null,
+            showDeleteModal: false,
+            showConfetti: false,
+            confettiPieces: [],
+            showSuccessMessage: false,
+            completedChoreMessage: '',
+            quicklistChores: [
+              { id: 'q1', name: 'Dishes', amount: 0.50, category: 'regular' },
+              { id: 'q2', name: 'Take out trash', amount: 1.00, category: 'game' },
+              { id: 'q3', name: 'Make bed', amount: 0.75, category: 'game' },
+              { id: 'q4', name: 'Homework', amount: 0.00, category: 'school' },
+              { id: 'q5', name: 'Clean room', amount: 2.00, category: 'regular' },
+              { id: 'q6', name: 'Feed pets', amount: 1.00, category: 'game' },
+              { id: 'q7', name: 'Study', amount: 0.00, category: 'school' },
+              { id: 'q8', name: 'Vacuum', amount: 3.00, category: 'regular' }
+            ]
+          }
+        },
+        computed: {
+          choresByPerson() {
+            const grouped = {
+              unassigned: [],
+              Ben: [],
+              Theo: []
+            };
+            
+            this.chores.forEach(chore => {
+              if (grouped[chore.assignedTo]) {
+                grouped[chore.assignedTo].push(chore);
+              }
+            });
+            
+            return grouped;
+          }
+        },
+        methods: {
+          getCategoryStyle(category) {
+            switch(category) {
+              case 'school':
+                return {
+                  background: 'bg-blue-50 border-l-blue-500',
+                  icon: 'text-blue-600',
+                  badge: 'bg-blue-100 text-blue-800'
+                };
+              case 'game':
+                return {
+                  background: 'bg-green-50 border-l-green-500',
+                  icon: 'text-green-600',
+                  badge: 'bg-green-100 text-green-800'
+                };
+              default:
+                return {
+                  background: 'bg-[#f8f9fc] border-l-gray-300',
+                  icon: 'text-[#0d0f1c]',
+                  badge: 'bg-gray-100 text-gray-800'
+                };
+            }
+          },
+          
+          getCategoryIcon(category) {
+            switch(category) {
+              case 'school':
+                return `<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                  <path d="M208,24H72A32,32,0,0,0,40,56V224a8,8,0,0,0,8,8H192a8,8,0,0,0,0-16H56a16,16,0,0,1,16-16H208a8,8,0,0,0,8-8V32A8,8,0,0,0,208,24ZM72,40H200V184H72a31.82,31.82,0,0,0-16,4.29V56A16,16,0,0,1,72,40Z"></path>
+                </svg>`;
+              case 'game':
+                return `<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                  <path d="M192,88h16a8,8,0,0,1,0,16H192a8,8,0,0,1,0-16ZM48,104H64a8,8,0,0,0,0-16H48a8,8,0,0,0,0,16ZM208,40H48A24,24,0,0,0,24,64V192a24,24,0,0,0,24,24H208a24,24,0,0,0,24-24V64A24,24,0,0,0,208,40ZM216,192a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V64a8,8,0,0,1,8-8H208a8,8,0,0,1,8,8V192ZM152,72a8,8,0,1,1-8,8A8,8,0,0,1,152,72Zm0,32a8,8,0,1,1-8,8A8,8,0,0,1,152,104Zm32-32a8,8,0,1,1-8,8A8,8,0,0,1,184,72Zm0,32a8,8,0,1,1-8,8A8,8,0,0,1,184,104ZM120,72a8,8,0,1,1-8,8A8,8,0,0,1,120,72Zm0,32a8,8,0,1,1-8,8A8,8,0,0,1,120,104ZM88,72a8,8,0,1,1-8,8A8,8,0,0,1,88,72Zm0,32a8,8,0,1,1-8,8A8,8,0,0,1,88,104Zm80,56H88a8,8,0,0,0,0,16h80a8,8,0,0,0,0-16Zm0,32H88a8,8,0,0,0,0,16h80a8,8,0,0,0,0-16Z"></path>
+                </svg>`;
+              default:
+                return `<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                  <path d="M218.83,103.77l-80-75.48a1.14,1.14,0,0,1-.11-.11,16,16,0,0,0-21.53,0l-.11.11L37.17,103.77A8,8,0,0,0,32,110.62V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V110.62A8,8,0,0,0,218.83,103.77ZM208,208H48V115.54L128,44.77,208,115.54V208ZM112,176V136a8,8,0,0,1,8-8h16a8,8,0,0,1,8,8v40a8,8,0,0,1-16,0V144H120v32a8,8,0,0,1-16,0Z"></path>
+                </svg>`;
+            }
+          },
+          
+          getCategoryLabel(category) {
+            switch(category) {
+              case 'school': return '📚 School';
+              case 'game': return '⚡ Electronics';
+              default: return '🏠 Regular';
+            }
+          },
+          
+          getElectronicsStatus(person) {
+            const gameChores = this.chores.filter(chore => 
+              chore.assignedTo === person && chore.category === 'game'
+            );
+            
+            if (gameChores.length === 0) return { status: 'allowed', message: 'Electronics allowed' };
+            
+            const completedGameChores = gameChores.filter(chore => chore.completed);
+            
+            if (completedGameChores.length === gameChores.length) {
+              return { status: 'allowed', message: '🎮 Electronics earned!' };
+            } else {
+              const remaining = gameChores.length - completedGameChores.length;
+              return { 
+                status: 'blocked', 
+                message: `🚫 ${remaining} electronics chore${remaining > 1 ? 's' : ''} remaining` 
+              };
+            }
+          },
+          
+          handleQuicklistDragStart(event, quickChore) {
+            // Create a new chore instance from the quicklist template
+            const newChore = {
+              id: ++this.nextId,
+              name: quickChore.name,
+              amount: quickChore.amount,
+              category: quickChore.category,
+              assignedTo: 'unassigned',
+              completed: false
+            };
+            this.draggedChore = newChore;
+            event.dataTransfer.effectAllowed = 'copy';
+          },
+          
+          handleDragStart(event, chore) {
+            this.draggedChore = chore;
+            event.dataTransfer.effectAllowed = 'move';
+          },
+          
+          handleDrop(event, assignTo) {
+            event.preventDefault();
+            this.isDragOverTrash = false;
+            if (this.draggedChore) {
+              // Check if this is a new chore from quicklist (doesn't exist in chores array yet)
+              const existingChore = this.chores.find(c => c.id === this.draggedChore.id);
+              
+              if (!existingChore) {
+                // This is a new chore from quicklist, add it to the array
+                this.draggedChore.assignedTo = assignTo;
+                this.chores.push(this.draggedChore);
+              } else {
+                // This is an existing chore being moved
+                this.draggedChore.assignedTo = assignTo;
+              }
+              
+              this.draggedChore = null;
+              this.updateEarnings();
+            }
+          },
+          
+          updateEarnings() {
+            this.earnings.Ben = this.chores
+              .filter(chore => chore.assignedTo === 'Ben' && chore.completed)
+              .reduce((sum, chore) => sum + chore.amount, 0);
+              
+            this.earnings.Theo = this.chores
+              .filter(chore => chore.assignedTo === 'Theo' && chore.completed)
+              .reduce((sum, chore) => sum + chore.amount, 0);
+          },
+          
+          addChore() {
+            if (this.newChore.name.trim() && this.newChore.amount >= 0) {
+              this.chores.push({
+                id: ++this.nextId,
+                name: this.newChore.name.trim(),
+                amount: this.newChore.amount,
+                assignedTo: 'unassigned',
+                completed: false,
+                category: this.newChore.category
+              });
+              
+              // Also add to quicklist if requested
+              if (this.newChore.addToQuicklist) {
+                this.quicklistChores.push({
+                  id: 'q' + (this.quicklistChores.length + 1),
+                  name: this.newChore.name.trim(),
+                  amount: this.newChore.amount,
+                  category: this.newChore.category
+                });
+              }
+              
+              this.cancelAddChore();
+            }
+          },
+          
+          cancelAddChore() {
+            this.showAddChoreModal = false;
+            this.newChore = { name: '', amount: 0, category: 'regular', addToQuicklist: false };
+          },
+          
+          addToQuicklist() {
+            if (this.newQuicklistChore.name.trim() && this.newQuicklistChore.amount >= 0) {
+              this.quicklistChores.push({
+                id: 'q' + Date.now(), // Use timestamp for unique ID
+                name: this.newQuicklistChore.name.trim(),
+                amount: this.newQuicklistChore.amount,
+                category: this.newQuicklistChore.category
+              });
+              this.cancelAddToQuicklist();
+            }
+          },
+          
+          cancelAddToQuicklist() {
+            this.showAddToQuicklistModal = false;
+            this.newQuicklistChore = { name: '', amount: 0, category: 'regular' };
+          },
+          
+          removeFromQuicklist(quicklistId) {
+            this.quicklistChores = this.quicklistChores.filter(chore => chore.id !== quicklistId);
+          },
+          
+          handleTrashDrop(event) {
+            event.preventDefault();
+            this.isDragOverTrash = false;
+            if (this.draggedChore) {
+              // Only delete if it's an existing chore (not a new one from quicklist)
+              const existingChore = this.chores.find(c => c.id === this.draggedChore.id);
+              if (existingChore) {
+                this.chores = this.chores.filter(chore => chore.id !== this.draggedChore.id);
+                this.updateEarnings();
+              }
+              this.draggedChore = null;
+            }
+          },
+          
+          confirmDelete() {
+            this.chores = this.chores.filter(chore => chore.id !== this.choreToDelete.id);
+            this.choreToDelete = null;
+            this.showDeleteModal = false;
+            this.updateEarnings();
+          },
+          
+          cancelDelete() {
+            this.choreToDelete = null;
+            this.showDeleteModal = false;
+          },
+          
+          handleChoreCompletion(chore) {
+            if (chore.completed) {
+              this.triggerConfetti();
+              this.showSuccessMessage = true;
+              this.completedChoreMessage = `${chore.name} completed!`;
+              
+              setTimeout(() => {
+                this.showSuccessMessage = false;
+              }, 3000);
+            }
+            this.updateEarnings();
+          },
+          
+          triggerConfetti() {
+            this.confettiPieces = [];
+            this.showConfetti = true;
+            
+            // Confetti colors for variety
+            const colors = [
+              '#607afb', '#34d399', '#fbbf24', '#f87171', '#a78bfa', 
+              '#fb7185', '#60a5fa', '#4ade80', '#facc15', '#f472b6',
+              '#06b6d4', '#8b5cf6', '#ef4444', '#10b981', '#f59e0b'
+            ];
+            
+            // Create explosive confetti pieces - 10x the celebration! 🎉
+            for (let i = 0; i < 300; i++) {
+              // Create explosion from bottom center, spreading outward
+              const centerX = window.innerWidth / 2;
+              const spreadRange = window.innerWidth * 0.3; // 30% of screen width
+              const startX = centerX + (Math.random() - 0.5) * spreadRange;
+              
+              // Determine direction based on position relative to center
+              let direction;
+              const randomFactor = Math.random();
+              if (randomFactor < 0.33) {
+                direction = 'left';
+              } else if (randomFactor < 0.66) {
+                direction = 'right';
+              } else {
+                direction = 'center';
+              }
+              
+              this.confettiPieces.push({
+                id: i,
+                left: startX,
+                delay: Math.random() * 1.5, // Spread the explosion over 1.5 seconds
+                direction: direction,
+                color: colors[Math.floor(Math.random() * colors.length)]
+              });
+            }
+            
+            // Hide confetti after animation (longer duration for the new animation)
+            setTimeout(() => {
+              this.showConfetti = false;
+              this.confettiPieces = [];
+            }, 4500);
+          }
+        },
+        
+        mounted() {
+          this.updateEarnings();
+        }
+      }).mount('#app');
+    </script>
   </body>
 </html>
