@@ -5,7 +5,7 @@ const CONFIG = {
   // API Configuration
   // Replace these URLs with your actual API Gateway endpoints after deployment
   API: {
-    BASE_URL: 'https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com/dev',
+    BASE_URL: 'https://ogfq4bq65c.execute-api.us-east-1.amazonaws.com',
     
     // API Endpoints
     ENDPOINTS: {
