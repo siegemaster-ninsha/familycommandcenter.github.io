@@ -906,7 +906,7 @@
           async loadEarnings() {
             try {
               const data = await this.apiCall(CONFIG.API.ENDPOINTS.EARNINGS);
-              // Update each person's earnings
+              // Update each person's earnings, defaulting to 0 if not found
               this.people.forEach(person => {
                 person.earnings = data.earnings?.[person.name] || 0;
               });
@@ -921,16 +921,25 @@
 
           async loadElectronicsStatus() {
             try {
-              // Load electronics status for each person
-              const statusPromises = this.people.map(person => 
-                this.apiCall(`${CONFIG.API.ENDPOINTS.ELECTRONICS_STATUS}/${person.name}`)
-                  .catch(() => ({ status: 'allowed', message: 'Electronics allowed' }))
-              );
+              // Load electronics status for each person, with individual error handling
+              const statusPromises = this.people.map(async person => {
+                try {
+                  const status = await this.apiCall(`${CONFIG.API.ENDPOINTS.ELECTRONICS_STATUS}/${person.name}`);
+                  return { person, status };
+                } catch (error) {
+                  console.warn(`Failed to load electronics status for ${person.name}:`, error);
+                  // Return default status for this person
+                  return { 
+                    person, 
+                    status: { status: 'allowed', message: 'Electronics allowed' } 
+                  };
+                }
+              });
               
-              const statuses = await Promise.all(statusPromises);
+              const results = await Promise.all(statusPromises);
               
-              this.people.forEach((person, index) => {
-                person.electronicsStatus = statuses[index];
+              results.forEach(({ person, status }) => {
+                person.electronicsStatus = status;
               });
             } catch (error) {
               console.error('Failed to load electronics status:', error);
