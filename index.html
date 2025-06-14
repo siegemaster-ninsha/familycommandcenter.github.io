@@ -776,24 +776,31 @@
             try {
               const data = await this.apiCall(CONFIG.API.ENDPOINTS.EARNINGS);
               this.earnings = {
-                Ben: data.Ben || 0,
-                Theo: data.Theo || 0
+                Ben: data.earnings?.Ben || 0,
+                Theo: data.earnings?.Theo || 0
               };
             } catch (error) {
               console.error('Failed to load earnings:', error);
+              // Set default values on error
+              this.earnings = { Ben: 0, Theo: 0 };
             }
           },
 
           async loadElectronicsStatus() {
             try {
               const [benStatus, theoStatus] = await Promise.all([
-                this.apiCall(`${CONFIG.API.ENDPOINTS.ELECTRONICS_STATUS}/Ben`),
-                this.apiCall(`${CONFIG.API.ENDPOINTS.ELECTRONICS_STATUS}/Theo`)
+                this.apiCall(`${CONFIG.API.ENDPOINTS.ELECTRONICS_STATUS}/Ben`).catch(() => ({ status: 'allowed', message: 'Electronics allowed' })),
+                this.apiCall(`${CONFIG.API.ENDPOINTS.ELECTRONICS_STATUS}/Theo`).catch(() => ({ status: 'allowed', message: 'Electronics allowed' }))
               ]);
               this.electronicsStatus.Ben = benStatus;
               this.electronicsStatus.Theo = theoStatus;
             } catch (error) {
               console.error('Failed to load electronics status:', error);
+              // Set default values on error
+              this.electronicsStatus = {
+                Ben: { status: 'allowed', message: 'Electronics allowed' },
+                Theo: { status: 'allowed', message: 'Electronics allowed' }
+              };
             }
           },
 
@@ -812,7 +819,8 @@
             this.loading = true;
             this.error = null;
             try {
-              await Promise.all([
+              // Load data independently - don't fail if one fails
+              await Promise.allSettled([
                 this.loadQuicklistChores(),
                 this.loadChores(),
                 this.loadEarnings(),
@@ -820,6 +828,7 @@
               ]);
             } catch (error) {
               console.error('Failed to load data:', error);
+              this.error = 'Failed to load some data. Please try again.';
             } finally {
               this.loading = false;
             }
