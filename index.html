@@ -821,6 +821,9 @@
         },
         computed: {
           choresByPerson() {
+            console.log('choresByPerson computed property recalculating...');
+            console.log('Current selectedChoreId:', this.selectedChoreId);
+            
             const grouped = {
               unassigned: []
             };
@@ -858,11 +861,17 @@
           
           // Get the selected chore object from the ID
           selectedChore() {
+            console.log('selectedChore computed property recalculating...');
+            console.log('selectedChoreId:', this.selectedChoreId);
+            console.log('selectedQuicklistChore:', this.selectedQuicklistChore);
+            
             if (this.selectedQuicklistChore) {
               return this.selectedQuicklistChore;
             }
             if (this.selectedChoreId) {
-              return this.chores.find(chore => chore.id === this.selectedChoreId) || null;
+              const found = this.chores.find(chore => chore.id === this.selectedChoreId) || null;
+              console.log('Found chore for selection:', found?.name || 'null');
+              return found;
             }
             return null;
           }
@@ -908,20 +917,52 @@
 
           async loadChores() {
             try {
+              console.log('loadChores() called, current selection:', this.selectedChoreId);
+              console.trace('loadChores() call stack:');
+              
               // Store the currently selected chore ID to restore selection after reload
               const selectedChoreId = this.selectedChoreId;
               
               const data = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES);
-              this.chores = data.chores || [];
+              const newChores = data.chores || [];
+              
+              // Instead of replacing the entire array, update existing chores in place
+              // This preserves object references and prevents v-model binding issues
+              const existingChoreMap = new Map(this.chores.map(chore => [chore.id, chore]));
+              
+              // Update existing chores and collect new ones
+              const updatedChores = [];
+              newChores.forEach(newChore => {
+                const existingChore = existingChoreMap.get(newChore.id);
+                if (existingChore) {
+                  // Update existing chore properties in place
+                  Object.assign(existingChore, newChore);
+                  updatedChores.push(existingChore);
+                } else {
+                  // Add new chore
+                  updatedChores.push(newChore);
+                }
+              });
+              
+              // Replace the array only once with the updated chores
+              this.chores = updatedChores;
+              
+              // Use nextTick to ensure Vue has processed the data changes before restoring selection
+              await this.$nextTick();
               
               // Restore selection if we had a selected chore
               if (selectedChoreId) {
                 const restoredChore = this.chores.find(chore => chore.id === selectedChoreId);
                 if (restoredChore) {
-                  this.selectedChoreId = restoredChore.id;
+                  // Only reassign if it's actually different (avoid unnecessary reactivity triggers)
+                  if (this.selectedChoreId !== selectedChoreId) {
+                    this.selectedChoreId = selectedChoreId;
+                  }
+                  console.log('Selection restored for chore:', restoredChore.name);
                 } else {
                   // Chore was deleted, clear selection
                   this.selectedChoreId = null;
+                  console.log('Selected chore no longer exists, clearing selection');
                 }
               }
             } catch (error) {
@@ -1175,11 +1216,14 @@
 
           // Touch-friendly click-to-select functionality
           selectChore(chore, event) {
+            console.log('selectChore called for:', chore.name, 'Current selectedChoreId:', this.selectedChoreId);
+            
             // If we have a selected chore and we're clicking on a chore in a person's section,
             // assign the selected chore instead of selecting the clicked chore
             if (this.selectedChore && event && event.target.closest('[data-person]')) {
               const personName = event.target.closest('[data-person]').dataset.person;
               if (this.getPersonByName(personName)) {
+                console.log('Assigning selected chore to:', personName);
                 event.preventDefault();
                 event.stopPropagation();
                 this.assignSelectedChore(personName);
@@ -1189,10 +1233,12 @@
             
             if (this.selectedChoreId === chore.id) {
               // Clicking the same chore deselects it
+              console.log('Deselecting chore:', chore.name);
               this.selectedChoreId = null;
               this.selectedQuicklistChore = null;
             } else {
               // Select the chore
+              console.log('Selecting chore:', chore.name, 'ID:', chore.id);
               this.selectedChoreId = chore.id;
               this.selectedQuicklistChore = null;
             }
@@ -1208,7 +1254,10 @@
               completed: false,
               isNewFromQuicklist: true
             };
+            // Clear any existing regular chore selection
+            this.selectedChoreId = null;
             this.selectedQuicklistChore = newChore;
+            console.log('Quicklist chore selected:', newChore.name);
           },
 
           async assignSelectedChore(assignTo) {
