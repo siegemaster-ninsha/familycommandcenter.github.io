@@ -104,6 +104,8 @@ const app = createApp({
     async apiCall(endpoint, options = {}) {
       try {
         const url = CONFIG.getApiUrl(endpoint);
+        console.log(`🌐 Making API call to: ${url}`);
+        
         const response = await fetch(url, {
           headers: {
             'Content-Type': 'application/json',
@@ -112,14 +114,18 @@ const app = createApp({
           ...options
         });
         
+        console.log(`📡 Response status: ${response.status} for ${endpoint}`);
+        
         if (!response.ok) {
-          throw new Error(`API call failed: ${response.status}`);
+          throw new Error(`API call failed: ${response.status} ${response.statusText} for ${endpoint}`);
         }
         
-        return await response.json();
+        const data = await response.json();
+        console.log(`✅ API call successful for ${endpoint}:`, data);
+        return data;
       } catch (error) {
-        console.error('API Error:', error);
-        this.error = error.message;
+        console.error(`❌ API Error for ${endpoint}:`, error);
+        // Don't set this.error here as it will be handled by individual methods
         throw error;
       }
     },
@@ -129,17 +135,22 @@ const app = createApp({
       try {
         this.loading = true;
         this.error = null;
+        console.log('🔄 Starting to load data...');
+        console.log('🌐 API Base URL:', CONFIG.API.BASE_URL);
+        
         await Promise.all([
           this.loadChores(),
           this.loadEarnings(),
           this.loadElectronicsStatus(),
           this.loadQuicklistChores()
         ]);
+        console.log('✅ All data loaded successfully');
       } catch (error) {
-        console.error('Failed to load data:', error);
-        this.error = 'Failed to load data. Please check your connection.';
+        console.error('❌ Failed to load data:', error);
+        this.error = `Failed to load data: ${error.message}. Please check your connection and API configuration.`;
       } finally {
         this.loading = false;
+        console.log('🏁 Loading complete. Loading state:', this.loading);
       }
     },
     
