@@ -340,7 +340,7 @@
                     :class="getChoreClasses(chore)"
                     draggable="true"
                     @dragstart="handleDragStart($event, chore)"
-                    @click="selectChore(chore)"
+                    @click="selectChore(chore, $event)"
                   >
                     <div class="flex items-center gap-4">
                       <div
@@ -385,6 +385,7 @@
                   @dragover.prevent
                   @dragenter.prevent
                   @click="assignSelectedChore('Ben')"
+                  data-person="Ben"
                 >
                   <div class="flex items-center justify-between px-4 pb-3 pt-5">
                     <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em]">Ben</h2>
@@ -400,7 +401,7 @@
                       :class="getChoreClasses(chore)"
                       draggable="true"
                       @dragstart="handleDragStart($event, chore)"
-                      @click.stop="selectChore(chore)"
+                      @click="selectChore(chore, $event)"
                     >
                       <div class="flex items-center gap-3">
                         <div
@@ -446,6 +447,7 @@
                   @dragover.prevent
                   @dragenter.prevent
                   @click="assignSelectedChore('Theo')"
+                  data-person="Theo"
                 >
                   <div class="flex items-center justify-between px-4 pb-3 pt-5">
                     <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em]">Theo</h2>
@@ -461,7 +463,7 @@
                       :class="getChoreClasses(chore)"
                       draggable="true"
                       @dragstart="handleDragStart($event, chore)"
-                      @click.stop="selectChore(chore)"
+                      @click="selectChore(chore, $event)"
                     >
                       <div class="flex items-center gap-3">
                         <div
@@ -1013,7 +1015,19 @@
           },
 
           // Touch-friendly click-to-select functionality
-          selectChore(chore) {
+          selectChore(chore, event) {
+            // If we have a selected chore and we're clicking on a chore in Ben/Theo's sections,
+            // assign the selected chore instead of selecting the clicked chore
+            if (this.selectedChore && event && event.target.closest('[data-person]')) {
+              const person = event.target.closest('[data-person]').dataset.person;
+              if (person === 'Ben' || person === 'Theo') {
+                event.preventDefault();
+                event.stopPropagation();
+                this.assignSelectedChore(person);
+                return;
+              }
+            }
+            
             if (this.selectedChore && this.selectedChore.id === chore.id) {
               // Clicking the same chore deselects it
               this.selectedChore = null;
