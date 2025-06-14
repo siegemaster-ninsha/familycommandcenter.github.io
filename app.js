@@ -168,13 +168,17 @@ createApp({
     
     async loadElectronicsStatus() {
       try {
-        const response = await this.apiCall(CONFIG.API.ENDPOINTS.ELECTRONICS_STATUS);
-        
-        // Update electronics status for each person
-        this.people.forEach(person => {
-          person.electronicsStatus = response.electronicsStatus[person.name] || 
-            { status: 'allowed', message: 'Electronics allowed' };
-        });
+        // Load electronics status for each person individually
+        for (const person of this.people) {
+          try {
+            const response = await this.apiCall(`${CONFIG.API.ENDPOINTS.ELECTRONICS_STATUS}/${person.name}`);
+            person.electronicsStatus = response.electronicsStatus || 
+              { status: 'allowed', message: 'Electronics allowed' };
+          } catch (error) {
+            console.error(`Failed to load electronics status for ${person.name}:`, error);
+            person.electronicsStatus = { status: 'allowed', message: 'Electronics allowed' };
+          }
+        }
       } catch (error) {
         console.error('Failed to load electronics status:', error);
       }
@@ -306,16 +310,16 @@ createApp({
     async addPerson() {
       if (this.newPerson.name.trim()) {
         try {
-          const personData = {
-            name: this.newPerson.name.trim()
-          };
+          // TODO: Add PEOPLE endpoint to backend API
+          // const personData = {
+          //   name: this.newPerson.name.trim()
+          // };
+          // await this.apiCall(CONFIG.API.ENDPOINTS.PEOPLE, {
+          //   method: 'POST',
+          //   body: JSON.stringify(personData)
+          // });
           
-          await this.apiCall(CONFIG.API.ENDPOINTS.PEOPLE, {
-            method: 'POST',
-            body: JSON.stringify(personData)
-          });
-          
-          // Add person to local array
+          // Add person to local array (frontend-only for now)
           this.people.push({
             id: this.newPerson.name.trim().toLowerCase(),
             name: this.newPerson.name.trim(),
@@ -343,11 +347,12 @@ createApp({
     async deletePerson() {
       if (this.personToDelete) {
         try {
-          await this.apiCall(`${CONFIG.API.ENDPOINTS.PEOPLE}/${this.personToDelete.id}`, {
-            method: 'DELETE'
-          });
+          // TODO: Add PEOPLE endpoint to backend API
+          // await this.apiCall(`${CONFIG.API.ENDPOINTS.PEOPLE}/${this.personToDelete.id}`, {
+          //   method: 'DELETE'
+          // });
           
-          // Remove person from local array
+          // Remove person from local array (frontend-only for now)
           this.people = this.people.filter(p => p.id !== this.personToDelete.id);
           
           // Reload data to update any affected chores
