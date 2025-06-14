@@ -137,6 +137,40 @@
           opacity: 1;
         }
       }
+
+      /* Touch-friendly improvements */
+      @media (hover: none) and (pointer: coarse) {
+        /* Touch device styles */
+        .cursor-pointer {
+          cursor: default;
+        }
+        
+        /* Larger touch targets */
+        .touch-target {
+          min-height: 48px;
+          min-width: 48px;
+        }
+        
+        /* Remove hover effects on touch devices */
+        .hover\:shadow-md:hover {
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+      }
+
+      /* Improve visual feedback for selected items */
+      .selected-chore {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5);
+        z-index: 10;
+        position: relative;
+      }
+
+      /* Highlight drop zones when item is selected */
+      .drop-zone-highlight {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05));
+        border: 2px solid rgba(34, 197, 94, 0.3);
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+      }
     </style>
   </head>
   <body>
@@ -204,6 +238,31 @@
                 </button>
               </div>
 
+              <!-- Touch Instructions -->
+              <div v-if="!loading && !error && selectedChore" class="mx-4 mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2 text-blue-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256">
+                      <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-40a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176ZM112,84a12,12,0,1,1,12,12A12,12,0,0,1,112,84Z"></path>
+                    </svg>
+                    <span class="font-medium text-sm">
+                      "{{ selectedChore.name }}" selected. 
+                      <span v-if="selectedChore.isNewFromQuicklist">Click on Ben or Theo to assign.</span>
+                      <span v-else>Click on Ben, Theo, or the trash can to move/delete.</span>
+                    </span>
+                  </div>
+                  <button 
+                    @click="selectedChore = null"
+                    class="text-blue-600 hover:text-blue-800 p-1 rounded-full hover:bg-blue-100 transition-colors"
+                    title="Clear selection"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                      <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
               <!-- Main Content -->
               <div v-if="!loading && !error">
                 <!-- Quicklist Section -->
@@ -216,9 +275,10 @@
                     <div 
                       v-for="quickChore in quicklistChores" 
                       :key="quickChore.id"
-                      class="relative group flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm cursor-move border-l-4 border-purple-500 hover:shadow-md transition-all duration-200 hover:scale-105"
+                      :class="getQuicklistChoreClasses(quickChore)"
                       draggable="true"
                       @dragstart="handleQuicklistDragStart($event, quickChore)"
+                      @click="selectQuicklistChore(quickChore)"
                     >
                       <!-- Remove button -->
                       <button
@@ -277,10 +337,10 @@
                   <div 
                     v-for="chore in choresByPerson.unassigned" 
                     :key="chore.id"
-                    class="flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between mb-2 rounded-lg shadow-sm cursor-move border-l-4"
-                    :class="getCategoryStyle(chore.category).background"
+                    :class="getChoreClasses(chore)"
                     draggable="true"
                     @dragstart="handleDragStart($event, chore)"
+                    @click="selectChore(chore)"
                   >
                     <div class="flex items-center gap-4">
                       <div
@@ -320,10 +380,11 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <!-- Ben's Chores -->
                 <div 
-                  class="bg-white rounded-lg shadow-sm border"
+                  :class="getDropZoneClasses('Ben')"
                   @drop="handleDrop($event, 'Ben')"
                   @dragover.prevent
                   @dragenter.prevent
+                  @click="assignSelectedChore('Ben')"
                 >
                   <div class="flex items-center justify-between px-4 pb-3 pt-5">
                     <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em]">Ben</h2>
@@ -336,10 +397,10 @@
                     <div 
                       v-for="chore in choresByPerson.Ben" 
                       :key="chore.id"
-                      class="flex items-center gap-4 px-3 min-h-[72px] py-2 justify-between cursor-move transition-colors border-l-4 mb-2 rounded-r-lg"
-                      :class="getCategoryStyle(chore.category).background + ' hover:opacity-90'"
+                      :class="getChoreClasses(chore)"
                       draggable="true"
                       @dragstart="handleDragStart($event, chore)"
+                      @click.stop="selectChore(chore)"
                     >
                       <div class="flex items-center gap-3">
                         <div
@@ -373,16 +434,18 @@
                     <!-- Drop zone indicator for Ben -->
                     <div v-if="choresByPerson.Ben.length === 0" class="text-center text-[#47569e] py-8 border-2 border-dashed border-[#ced2e9] rounded-lg bg-[#f8f9fc]">
                       <p class="text-sm">Drag chores here to assign to Ben</p>
+                      <p v-if="selectedChore" class="text-xs mt-1 text-blue-600">Or click here to assign selected chore</p>
                     </div>
                   </div>
                 </div>
 
                 <!-- Theo's Chores -->
                 <div 
-                  class="bg-white rounded-lg shadow-sm border"
+                  :class="getDropZoneClasses('Theo')"
                   @drop="handleDrop($event, 'Theo')"
                   @dragover.prevent
                   @dragenter.prevent
+                  @click="assignSelectedChore('Theo')"
                 >
                   <div class="flex items-center justify-between px-4 pb-3 pt-5">
                     <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em]">Theo</h2>
@@ -395,10 +458,10 @@
                     <div 
                       v-for="chore in choresByPerson.Theo" 
                       :key="chore.id"
-                      class="flex items-center gap-4 px-3 min-h-[72px] py-2 justify-between cursor-move transition-colors border-l-4 mb-2 rounded-r-lg"
-                      :class="getCategoryStyle(chore.category).background + ' hover:opacity-90'"
+                      :class="getChoreClasses(chore)"
                       draggable="true"
                       @dragstart="handleDragStart($event, chore)"
+                      @click.stop="selectChore(chore)"
                     >
                       <div class="flex items-center gap-3">
                         <div
@@ -432,6 +495,7 @@
                     <!-- Drop zone indicator for Theo -->
                     <div v-if="choresByPerson.Theo.length === 0" class="text-center text-[#47569e] py-8 border-2 border-dashed border-[#ced2e9] rounded-lg bg-[#f8f9fc]">
                       <p class="text-sm">Drag chores here to assign to Theo</p>
+                      <p v-if="selectedChore" class="text-xs mt-1 text-blue-600">Or click here to assign selected chore</p>
                     </div>
                   </div>
                 </div>
@@ -466,9 +530,13 @@
             @dragover.prevent="isDragOverTrash = true"
             @dragenter.prevent="isDragOverTrash = true"
             @dragleave.prevent="isDragOverTrash = false"
+            @click="deleteSelectedChore"
             class="bg-red-500 hover:bg-red-600 text-white rounded-full p-4 shadow-lg cursor-pointer transition-all duration-200 flex items-center justify-center size-16"
-            :class="{ 'bg-red-600 scale-110': isDragOverTrash }"
-            title="Drag chores here to delete them"
+            :class="{ 
+              'bg-red-600 scale-110': isDragOverTrash,
+              'ring-4 ring-red-300 ring-opacity-75': selectedChore && !selectedChore.isNewFromQuicklist
+            }"
+            :title="selectedChore && !selectedChore.isNewFromQuicklist ? 'Click to delete selected chore' : 'Drag chores here to delete them'"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 256 256">
               <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
@@ -687,6 +755,7 @@
             },
             chores: [],
             draggedChore: null,
+            selectedChore: null,
             earnings: {
               Ben: 0,
               Theo: 0
@@ -885,6 +954,44 @@
           getElectronicsStatus(person) {
             return this.electronicsStatus[person] || { status: 'allowed', message: 'Electronics allowed' };
           },
+
+          // Visual feedback for touch interface
+          isChoreSelected(chore) {
+            return this.selectedChore && 
+                   ((chore.id && this.selectedChore.id === chore.id) || 
+                    (chore.name === this.selectedChore.name && this.selectedChore.isNewFromQuicklist));
+          },
+
+          getChoreClasses(chore) {
+            const baseClasses = "flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between mb-2 rounded-lg shadow-sm cursor-pointer border-l-4 transition-all duration-200";
+            const categoryClasses = this.getCategoryStyle(chore.category).background;
+            const selectedClasses = this.isChoreSelected(chore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : "hover:shadow-md hover:scale-102";
+            
+            return `${baseClasses} ${categoryClasses} ${selectedClasses}`;
+          },
+
+          getQuicklistChoreClasses(quickChore) {
+            const baseClasses = "relative group flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm cursor-pointer border-l-4 border-purple-500 transition-all duration-200";
+            const selectedClasses = this.isChoreSelected(quickChore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : "hover:shadow-md hover:scale-105";
+            
+            return `${baseClasses} ${selectedClasses}`;
+          },
+
+          getDropZoneClasses(person) {
+            const baseClasses = "bg-white rounded-lg shadow-sm border transition-all duration-200";
+            const highlightClasses = this.selectedChore ? "ring-2 ring-green-400 ring-opacity-50 bg-green-50" : "";
+            
+            return `${baseClasses} ${highlightClasses}`;
+          },
+
+          getTrashClasses() {
+            const baseClasses = "flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 cursor-pointer";
+            const normalClasses = "bg-red-100 text-red-600 hover:bg-red-200";
+            const highlightClasses = this.selectedChore && !this.selectedChore.isNewFromQuicklist ? "ring-4 ring-red-400 ring-opacity-75 bg-red-200" : "";
+            const dragOverClasses = this.isDragOverTrash ? "bg-red-300 scale-110" : "";
+            
+            return `${baseClasses} ${normalClasses} ${highlightClasses} ${dragOverClasses}`;
+          },
           
           handleQuicklistDragStart(event, quickChore) {
             // Create a new chore instance from the quicklist template
@@ -903,6 +1010,87 @@
           handleDragStart(event, chore) {
             this.draggedChore = chore;
             event.dataTransfer.effectAllowed = 'move';
+          },
+
+          // Touch-friendly click-to-select functionality
+          selectChore(chore) {
+            if (this.selectedChore && this.selectedChore.id === chore.id) {
+              // Clicking the same chore deselects it
+              this.selectedChore = null;
+            } else {
+              // Select the chore
+              this.selectedChore = chore;
+            }
+          },
+
+          selectQuicklistChore(quickChore) {
+            // Create a new chore instance from the quicklist template
+            const newChore = {
+              name: quickChore.name,
+              amount: quickChore.amount,
+              category: quickChore.category,
+              assignedTo: 'unassigned',
+              completed: false,
+              isNewFromQuicklist: true
+            };
+            this.selectedChore = newChore;
+          },
+
+          async assignSelectedChore(assignTo) {
+            if (!this.selectedChore) return;
+            
+            try {
+              if (this.selectedChore.isNewFromQuicklist) {
+                // This is a new chore from quicklist
+                const choreData = {
+                  name: this.selectedChore.name,
+                  amount: this.selectedChore.amount,
+                  category: this.selectedChore.category,
+                  assignedTo: assignTo
+                };
+                await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
+                  method: 'POST',
+                  body: JSON.stringify(choreData)
+                });
+              } else {
+                // This is an existing chore being moved
+                await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.selectedChore.id}/assign`, {
+                  method: 'PUT',
+                  body: JSON.stringify({ assignedTo: assignTo })
+                });
+              }
+              
+              // Reload data to get updated state
+              await this.loadChores();
+              await this.loadEarnings();
+              await this.loadElectronicsStatus();
+              
+              // Clear selection
+              this.selectedChore = null;
+            } catch (error) {
+              console.error('Failed to assign chore:', error);
+            }
+          },
+
+          async deleteSelectedChore() {
+            if (!this.selectedChore || this.selectedChore.isNewFromQuicklist || !this.selectedChore.id) {
+              this.selectedChore = null;
+              return;
+            }
+            
+            try {
+              await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.selectedChore.id}`, {
+                method: 'DELETE'
+              });
+              await this.loadChores();
+              await this.loadEarnings();
+              await this.loadElectronicsStatus();
+              
+              // Clear selection
+              this.selectedChore = null;
+            } catch (error) {
+              console.error('Failed to delete chore:', error);
+            }
           },
           
           async handleDrop(event, assignTo) {
