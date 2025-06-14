@@ -1,6 +1,6 @@
 const { createApp } = Vue;
 
-createApp({
+const app = createApp({
   data() {
     return {
       showAddChoreModal: false,
@@ -310,16 +310,16 @@ createApp({
     async addPerson() {
       if (this.newPerson.name.trim()) {
         try {
-          // TODO: Add PEOPLE endpoint to backend API
-          // const personData = {
-          //   name: this.newPerson.name.trim()
-          // };
-          // await this.apiCall(CONFIG.API.ENDPOINTS.PEOPLE, {
-          //   method: 'POST',
-          //   body: JSON.stringify(personData)
-          // });
+          const personData = {
+            name: this.newPerson.name.trim()
+          };
           
-          // Add person to local array (frontend-only for now)
+          await this.apiCall(CONFIG.API.ENDPOINTS.PEOPLE, {
+            method: 'POST',
+            body: JSON.stringify(personData)
+          });
+          
+          // Add person to local array
           this.people.push({
             id: this.newPerson.name.trim().toLowerCase(),
             name: this.newPerson.name.trim(),
@@ -347,12 +347,11 @@ createApp({
     async deletePerson() {
       if (this.personToDelete) {
         try {
-          // TODO: Add PEOPLE endpoint to backend API
-          // await this.apiCall(`${CONFIG.API.ENDPOINTS.PEOPLE}/${this.personToDelete.id}`, {
-          //   method: 'DELETE'
-          // });
+          await this.apiCall(`${CONFIG.API.ENDPOINTS.PEOPLE}/${this.personToDelete.id}`, {
+            method: 'DELETE'
+          });
           
-          // Remove person from local array (frontend-only for now)
+          // Remove person from local array
           this.people = this.people.filter(p => p.id !== this.personToDelete.id);
           
           // Reload data to update any affected chores
@@ -582,5 +581,101 @@ createApp({
   
   async mounted() {
     await this.loadAllData();
+  },
+
+  // Add method for click-to-assign functionality
+  async assignSelectedChore(assignTo) {
+    if (!this.selectedChore) return;
+    
+    try {
+      if (this.selectedChore.isNewFromQuicklist) {
+        // This is a new chore from quicklist
+        const choreData = {
+          name: this.selectedChore.name,
+          amount: this.selectedChore.amount,
+          category: this.selectedChore.category,
+          assignedTo: assignTo
+        };
+        await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
+          method: 'POST',
+          body: JSON.stringify(choreData)
+        });
+      } else {
+        // This is an existing chore being moved
+        await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.selectedChore.id}/assign`, {
+          method: 'PUT',
+          body: JSON.stringify({ assignedTo: assignTo })
+        });
+      }
+      
+      // Reload data to get updated state
+      await this.loadChores();
+      await this.loadEarnings();
+      await this.loadElectronicsStatus();
+      
+      // Clear selection
+      this.selectedChoreId = null;
+      this.selectedQuicklistChore = null;
+    } catch (error) {
+      console.error('Failed to assign chore:', error);
+    }
+  },
+
+  provide() {
+    return {
+      // Provide reactive data to child components
+      loading: Vue.computed(() => this.loading),
+      error: Vue.computed(() => this.error),
+      selectedChore: Vue.computed(() => this.selectedChore),
+      showSuccessMessage: Vue.computed(() => this.showSuccessMessage),
+      completedChoreMessage: Vue.computed(() => this.completedChoreMessage),
+      showConfetti: Vue.computed(() => this.showConfetti),
+      confettiPieces: Vue.computed(() => this.confettiPieces),
+      quicklistChores: Vue.computed(() => this.quicklistChores),
+      showAddToQuicklistModal: Vue.computed(() => this.showAddToQuicklistModal),
+      choresByPerson: Vue.computed(() => this.choresByPerson),
+      showAddChoreModal: Vue.computed(() => this.showAddChoreModal),
+      people: Vue.computed(() => this.people),
+      showAddPersonModal: Vue.computed(() => this.showAddPersonModal),
+      isDragOverTrash: Vue.computed(() => this.isDragOverTrash),
+      showDeleteModal: Vue.computed(() => this.showDeleteModal),
+      choreToDelete: Vue.computed(() => this.choreToDelete),
+      newQuicklistChore: Vue.computed(() => this.newQuicklistChore),
+      newPerson: Vue.computed(() => this.newPerson),
+      showDeletePersonModal: Vue.computed(() => this.showDeletePersonModal),
+      personToDelete: Vue.computed(() => this.personToDelete),
+      newChore: Vue.computed(() => this.newChore),
+      loadAllData: this.loadAllData
+    };
   }
-}).mount('#app'); 
+});
+
+// Register all components
+if (window.UIComponents) {
+  Object.entries(window.UIComponents).forEach(([name, component]) => {
+    app.component(name, component);
+  });
+}
+
+if (window.QuicklistSectionComponent) {
+  app.component('QuicklistSection', window.QuicklistSectionComponent);
+}
+
+if (window.UnassignedSectionComponent) {
+  app.component('UnassignedSection', window.UnassignedSectionComponent);
+}
+
+if (window.FamilyMembersSectionComponent) {
+  app.component('FamilyMembersSection', window.FamilyMembersSectionComponent);
+}
+
+if (window.TrashSectionComponent) {
+  app.component('TrashSection', window.TrashSectionComponent);
+}
+
+if (window.AppModalsComponent) {
+  app.component('AppModals', window.AppModalsComponent);
+}
+
+// Mount the app
+app.mount('#app'); 

@@ -111,12 +111,11 @@ const AppConfetti = defineComponent({
   inject: ['showConfetti', 'confettiPieces']
 });
 
-// Register all components globally
-const app = Vue.getCurrentInstance()?.appContext?.app;
-if (app) {
-  app.component('AppLoadingState', AppLoadingState);
-  app.component('AppErrorState', AppErrorState);
-  app.component('AppSelectionInfo', AppSelectionInfo);
-  app.component('AppSuccessMessage', AppSuccessMessage);
-  app.component('AppConfetti', AppConfetti);
-} 
+// Export components for manual registration
+window.UIComponents = {
+  AppLoadingState,
+  AppErrorState,
+  AppSelectionInfo,
+  AppSuccessMessage,
+  AppConfetti
+}; 
