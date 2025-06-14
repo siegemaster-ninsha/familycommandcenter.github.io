@@ -26,9 +26,6 @@ const CONFIG = {
     NAME: 'Family Command Center',
     VERSION: '1.0.0',
     
-    // Family Members (safe to be public)
-    FAMILY_MEMBERS: ['Ben', 'Theo'],
-    
     // Chore Categories (safe to be public)
     CATEGORIES: {
       REGULAR: 'regular',
