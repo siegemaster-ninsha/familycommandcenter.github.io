@@ -340,7 +340,7 @@
                     :class="getChoreClasses(chore)"
                     draggable="true"
                     @dragstart="handleDragStart($event, chore)"
-                    @click="selectChore(chore, $event)"
+                    @click.stop="selectChore(chore, $event)"
                   >
                     <div class="flex items-center gap-4">
                       <div
@@ -428,7 +428,7 @@
                         :class="getChoreClasses(chore)"
                         draggable="true"
                         @dragstart="handleDragStart($event, chore)"
-                        @click="selectChore(chore, $event)"
+                        @click.stop="selectChore(chore, $event)"
                       >
                         <div class="flex items-center gap-3">
                           <div
@@ -1218,17 +1218,15 @@
           selectChore(chore, event) {
             console.log('selectChore called for:', chore.name, 'Current selectedChoreId:', this.selectedChoreId);
             
-            // If we have a selected chore and we're clicking on a chore in a person's section,
-            // assign the selected chore instead of selecting the clicked chore
-            if (this.selectedChore && event && event.target.closest('[data-person]')) {
-              const personName = event.target.closest('[data-person]').dataset.person;
-              if (this.getPersonByName(personName)) {
-                console.log('Assigning selected chore to:', personName);
-                event.preventDefault();
-                event.stopPropagation();
-                this.assignSelectedChore(personName);
-                return;
-              }
+            // Special case: If we have a different chore selected and we click on a chore that's assigned to someone,
+            // assign the selected chore to that person
+            if (this.selectedChore && 
+                this.selectedChoreId !== chore.id && 
+                chore.assignedTo && 
+                chore.assignedTo !== 'unassigned') {
+              console.log('Assigning selected chore to:', chore.assignedTo);
+              this.assignSelectedChore(chore.assignedTo);
+              return;
             }
             
             if (this.selectedChoreId === chore.id) {
