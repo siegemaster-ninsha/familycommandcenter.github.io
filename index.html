@@ -14,6 +14,7 @@
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="config.js"></script>
     <style>
       /* Confetti Animation Styles */
       .confetti-container {
@@ -178,9 +179,36 @@
                 <p class="text-[#0d0f1c] tracking-light text-[32px] font-bold leading-tight min-w-72">Chores</p>
               </div>
 
-              <!-- Quicklist Section -->
-              <div class="mb-8">
-                <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">⚡ Quicklist</h2>
+              <!-- Loading State -->
+              <div v-if="loading" class="flex items-center justify-center py-20">
+                <div class="text-center">
+                  <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#607afb]"></div>
+                  <p class="text-[#47569e] mt-2">Loading Family Command Center...</p>
+                </div>
+              </div>
+
+              <!-- Error State -->
+              <div v-if="error" class="mx-4 mb-8 bg-red-50 border border-red-200 rounded-lg p-4">
+                <div class="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="text-red-600" viewBox="0 0 256 256">
+                    <path d="M236.8,188.09,149.35,36.22h0a24.76,24.76,0,0,0-42.7,0L19.2,188.09a23.51,23.51,0,0,0,0,23.72A24.35,24.35,0,0,0,40.55,224h174.9a24.35,24.35,0,0,0,21.33-12.19A23.51,23.51,0,0,0,236.8,188.09ZM128,184a12,12,0,1,1,12-12A12,12,0,0,1,128,184Zm12-32a8,8,0,0,1-16,0V120a8,8,0,0,1,16,0Z"></path>
+                  </svg>
+                  <p class="text-red-800 font-medium">Failed to load data</p>
+                </div>
+                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                <button 
+                  @click="loadAllData" 
+                  class="mt-3 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm"
+                >
+                  Retry
+                </button>
+              </div>
+
+              <!-- Main Content -->
+              <div v-if="!loading && !error">
+                <!-- Quicklist Section -->
+                <div class="mb-8">
+                  <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">⚡ Quicklist</h2>
                 <div class="bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-dashed border-purple-300 rounded-lg mx-4 p-4">
                   <p class="text-[#47569e] text-sm mb-3 text-center">Drag these common chores to assign them quickly</p>
                   
@@ -425,6 +453,9 @@
           </div>
         </div>
 
+        <!-- Close the main content wrapper -->
+        </div>
+
         <!-- Trash Can -->
         <div 
           class="fixed bottom-8 right-8 z-40"
@@ -654,16 +685,7 @@
               amount: 0,
               category: 'regular'
             },
-            nextId: 6,
-            chores: [
-              { id: 1, name: 'Clean your room', amount: 5.00, assignedTo: 'Ben', completed: false, category: 'regular' },
-              { id: 2, name: 'Take out the trash', amount: 2.00, assignedTo: 'Ben', completed: false, category: 'game' },
-              { id: 3, name: 'Do the dishes', amount: 3.00, assignedTo: 'Ben', completed: false, category: 'regular' },
-              { id: 4, name: 'Complete homework', amount: 0.00, assignedTo: 'Theo', completed: false, category: 'school' },
-              { id: 5, name: 'Feed the pets', amount: 1.50, assignedTo: 'Theo', completed: false, category: 'game' },
-              { id: 6, name: 'Study for math test', amount: 0.00, assignedTo: 'unassigned', completed: false, category: 'school' },
-              { id: 7, name: 'Make bed', amount: 1.00, assignedTo: 'unassigned', completed: false, category: 'game' }
-            ],
+            chores: [],
             draggedChore: null,
             earnings: {
               Ben: 0,
@@ -676,16 +698,13 @@
             confettiPieces: [],
             showSuccessMessage: false,
             completedChoreMessage: '',
-            quicklistChores: [
-              { id: 'q1', name: 'Dishes', amount: 0.50, category: 'regular' },
-              { id: 'q2', name: 'Take out trash', amount: 1.00, category: 'game' },
-              { id: 'q3', name: 'Make bed', amount: 0.75, category: 'game' },
-              { id: 'q4', name: 'Homework', amount: 0.00, category: 'school' },
-              { id: 'q5', name: 'Clean room', amount: 2.00, category: 'regular' },
-              { id: 'q6', name: 'Feed pets', amount: 1.00, category: 'game' },
-              { id: 'q7', name: 'Study', amount: 0.00, category: 'school' },
-              { id: 'q8', name: 'Vacuum', amount: 3.00, category: 'regular' }
-            ]
+            quicklistChores: [],
+            loading: true,
+            error: null,
+            electronicsStatus: {
+              Ben: { status: 'allowed', message: 'Electronics allowed' },
+              Theo: { status: 'allowed', message: 'Electronics allowed' }
+            }
           }
         },
         computed: {
@@ -706,6 +725,106 @@
           }
         },
         methods: {
+          // API helper methods
+          async apiCall(endpoint, options = {}) {
+            try {
+              const url = CONFIG.getApiUrl(endpoint);
+              const response = await fetch(url, {
+                headers: {
+                  'Content-Type': 'application/json',
+                  ...options.headers
+                },
+                ...options
+              });
+              
+              if (!response.ok) {
+                throw new Error(`API call failed: ${response.status}`);
+              }
+              
+              return await response.json();
+            } catch (error) {
+              console.error('API Error:', error);
+              this.error = error.message;
+              throw error;
+            }
+          },
+
+          // Data loading methods
+          async loadQuicklistChores() {
+            try {
+              const data = await this.apiCall(CONFIG.API.ENDPOINTS.QUICKLIST);
+              this.quicklistChores = data.quicklistChores || [];
+            } catch (error) {
+              console.error('Failed to load quicklist:', error);
+              // Try to initialize default quicklist if empty
+              if (this.quicklistChores.length === 0) {
+                await this.initializeQuicklist();
+              }
+            }
+          },
+
+          async loadChores() {
+            try {
+              const data = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES);
+              this.chores = data.chores || [];
+            } catch (error) {
+              console.error('Failed to load chores:', error);
+            }
+          },
+
+          async loadEarnings() {
+            try {
+              const data = await this.apiCall(CONFIG.API.ENDPOINTS.EARNINGS);
+              this.earnings = {
+                Ben: data.Ben || 0,
+                Theo: data.Theo || 0
+              };
+            } catch (error) {
+              console.error('Failed to load earnings:', error);
+            }
+          },
+
+          async loadElectronicsStatus() {
+            try {
+              const [benStatus, theoStatus] = await Promise.all([
+                this.apiCall(`${CONFIG.API.ENDPOINTS.ELECTRONICS_STATUS}/Ben`),
+                this.apiCall(`${CONFIG.API.ENDPOINTS.ELECTRONICS_STATUS}/Theo`)
+              ]);
+              this.electronicsStatus.Ben = benStatus;
+              this.electronicsStatus.Theo = theoStatus;
+            } catch (error) {
+              console.error('Failed to load electronics status:', error);
+            }
+          },
+
+          async initializeQuicklist() {
+            try {
+              await this.apiCall(`${CONFIG.API.ENDPOINTS.QUICKLIST}/initialize`, {
+                method: 'POST'
+              });
+              await this.loadQuicklistChores();
+            } catch (error) {
+              console.error('Failed to initialize quicklist:', error);
+            }
+          },
+
+          async loadAllData() {
+            this.loading = true;
+            this.error = null;
+            try {
+              await Promise.all([
+                this.loadQuicklistChores(),
+                this.loadChores(),
+                this.loadEarnings(),
+                this.loadElectronicsStatus()
+              ]);
+            } catch (error) {
+              console.error('Failed to load data:', error);
+            } finally {
+              this.loading = false;
+            }
+          },
+
           getCategoryStyle(category) {
             switch(category) {
               case 'school':
@@ -755,34 +874,18 @@
           },
           
           getElectronicsStatus(person) {
-            const gameChores = this.chores.filter(chore => 
-              chore.assignedTo === person && chore.category === 'game'
-            );
-            
-            if (gameChores.length === 0) return { status: 'allowed', message: 'Electronics allowed' };
-            
-            const completedGameChores = gameChores.filter(chore => chore.completed);
-            
-            if (completedGameChores.length === gameChores.length) {
-              return { status: 'allowed', message: '🎮 Electronics earned!' };
-            } else {
-              const remaining = gameChores.length - completedGameChores.length;
-              return { 
-                status: 'blocked', 
-                message: `🚫 ${remaining} electronics chore${remaining > 1 ? 's' : ''} remaining` 
-              };
-            }
+            return this.electronicsStatus[person] || { status: 'allowed', message: 'Electronics allowed' };
           },
           
           handleQuicklistDragStart(event, quickChore) {
             // Create a new chore instance from the quicklist template
             const newChore = {
-              id: ++this.nextId,
               name: quickChore.name,
               amount: quickChore.amount,
               category: quickChore.category,
               assignedTo: 'unassigned',
-              completed: false
+              completed: false,
+              isNewFromQuicklist: true
             };
             this.draggedChore = newChore;
             event.dataTransfer.effectAllowed = 'copy';
@@ -793,59 +896,79 @@
             event.dataTransfer.effectAllowed = 'move';
           },
           
-          handleDrop(event, assignTo) {
+          async handleDrop(event, assignTo) {
             event.preventDefault();
             this.isDragOverTrash = false;
             if (this.draggedChore) {
-              // Check if this is a new chore from quicklist (doesn't exist in chores array yet)
-              const existingChore = this.chores.find(c => c.id === this.draggedChore.id);
-              
-              if (!existingChore) {
-                // This is a new chore from quicklist, add it to the array
-                this.draggedChore.assignedTo = assignTo;
-                this.chores.push(this.draggedChore);
-              } else {
-                // This is an existing chore being moved
-                this.draggedChore.assignedTo = assignTo;
+              try {
+                if (this.draggedChore.isNewFromQuicklist) {
+                  // This is a new chore from quicklist
+                  const choreData = {
+                    name: this.draggedChore.name,
+                    amount: this.draggedChore.amount,
+                    category: this.draggedChore.category,
+                    assignedTo: assignTo
+                  };
+                  await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
+                    method: 'POST',
+                    body: JSON.stringify(choreData)
+                  });
+                } else {
+                  // This is an existing chore being moved
+                  await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.draggedChore.id}/assign`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ assignedTo: assignTo })
+                  });
+                }
+                
+                // Reload data to get updated state
+                await this.loadChores();
+                await this.loadEarnings();
+                await this.loadElectronicsStatus();
+              } catch (error) {
+                console.error('Failed to assign chore:', error);
               }
               
               this.draggedChore = null;
-              this.updateEarnings();
             }
           },
           
-          updateEarnings() {
-            this.earnings.Ben = this.chores
-              .filter(chore => chore.assignedTo === 'Ben' && chore.completed)
-              .reduce((sum, chore) => sum + chore.amount, 0);
-              
-            this.earnings.Theo = this.chores
-              .filter(chore => chore.assignedTo === 'Theo' && chore.completed)
-              .reduce((sum, chore) => sum + chore.amount, 0);
-          },
-          
-          addChore() {
+          async addChore() {
             if (this.newChore.name.trim() && this.newChore.amount >= 0) {
-              this.chores.push({
-                id: ++this.nextId,
-                name: this.newChore.name.trim(),
-                amount: this.newChore.amount,
-                assignedTo: 'unassigned',
-                completed: false,
-                category: this.newChore.category
-              });
-              
-              // Also add to quicklist if requested
-              if (this.newChore.addToQuicklist) {
-                this.quicklistChores.push({
-                  id: 'q' + (this.quicklistChores.length + 1),
+              try {
+                const choreData = {
                   name: this.newChore.name.trim(),
                   amount: this.newChore.amount,
-                  category: this.newChore.category
+                  category: this.newChore.category,
+                  assignedTo: 'unassigned'
+                };
+                
+                await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
+                  method: 'POST',
+                  body: JSON.stringify(choreData)
                 });
+                
+                // Also add to quicklist if requested
+                if (this.newChore.addToQuicklist) {
+                  const quicklistData = {
+                    name: this.newChore.name.trim(),
+                    amount: this.newChore.amount,
+                    category: this.newChore.category
+                  };
+                  
+                  await this.apiCall(CONFIG.API.ENDPOINTS.QUICKLIST, {
+                    method: 'POST',
+                    body: JSON.stringify(quicklistData)
+                  });
+                  
+                  await this.loadQuicklistChores();
+                }
+                
+                await this.loadChores();
+                this.cancelAddChore();
+              } catch (error) {
+                console.error('Failed to add chore:', error);
               }
-              
-              this.cancelAddChore();
             }
           },
           
@@ -854,15 +977,25 @@
             this.newChore = { name: '', amount: 0, category: 'regular', addToQuicklist: false };
           },
           
-          addToQuicklist() {
+          async addToQuicklist() {
             if (this.newQuicklistChore.name.trim() && this.newQuicklistChore.amount >= 0) {
-              this.quicklistChores.push({
-                id: 'q' + Date.now(), // Use timestamp for unique ID
-                name: this.newQuicklistChore.name.trim(),
-                amount: this.newQuicklistChore.amount,
-                category: this.newQuicklistChore.category
-              });
-              this.cancelAddToQuicklist();
+              try {
+                const quicklistData = {
+                  name: this.newQuicklistChore.name.trim(),
+                  amount: this.newQuicklistChore.amount,
+                  category: this.newQuicklistChore.category
+                };
+                
+                await this.apiCall(CONFIG.API.ENDPOINTS.QUICKLIST, {
+                  method: 'POST',
+                  body: JSON.stringify(quicklistData)
+                });
+                
+                await this.loadQuicklistChores();
+                this.cancelAddToQuicklist();
+              } catch (error) {
+                console.error('Failed to add to quicklist:', error);
+              }
             }
           },
           
@@ -871,29 +1004,52 @@
             this.newQuicklistChore = { name: '', amount: 0, category: 'regular' };
           },
           
-          removeFromQuicklist(quicklistId) {
-            this.quicklistChores = this.quicklistChores.filter(chore => chore.id !== quicklistId);
+          async removeFromQuicklist(quicklistId) {
+            try {
+              await this.apiCall(`${CONFIG.API.ENDPOINTS.QUICKLIST}/${quicklistId}`, {
+                method: 'DELETE'
+              });
+              await this.loadQuicklistChores();
+            } catch (error) {
+              console.error('Failed to remove from quicklist:', error);
+            }
           },
           
-          handleTrashDrop(event) {
+          async handleTrashDrop(event) {
             event.preventDefault();
             this.isDragOverTrash = false;
             if (this.draggedChore) {
               // Only delete if it's an existing chore (not a new one from quicklist)
-              const existingChore = this.chores.find(c => c.id === this.draggedChore.id);
-              if (existingChore) {
-                this.chores = this.chores.filter(chore => chore.id !== this.draggedChore.id);
-                this.updateEarnings();
+              if (!this.draggedChore.isNewFromQuicklist && this.draggedChore.id) {
+                try {
+                  await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.draggedChore.id}`, {
+                    method: 'DELETE'
+                  });
+                  await this.loadChores();
+                  await this.loadEarnings();
+                  await this.loadElectronicsStatus();
+                } catch (error) {
+                  console.error('Failed to delete chore:', error);
+                }
               }
               this.draggedChore = null;
             }
           },
           
-          confirmDelete() {
-            this.chores = this.chores.filter(chore => chore.id !== this.choreToDelete.id);
+          async confirmDelete() {
+            try {
+              await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.choreToDelete.id}`, {
+                method: 'DELETE'
+              });
+              await this.loadChores();
+              await this.loadEarnings();
+              await this.loadElectronicsStatus();
+            } catch (error) {
+              console.error('Failed to delete chore:', error);
+            }
+            
             this.choreToDelete = null;
             this.showDeleteModal = false;
-            this.updateEarnings();
           },
           
           cancelDelete() {
@@ -901,17 +1057,30 @@
             this.showDeleteModal = false;
           },
           
-          handleChoreCompletion(chore) {
-            if (chore.completed) {
-              this.triggerConfetti();
-              this.showSuccessMessage = true;
-              this.completedChoreMessage = `${chore.name} completed!`;
+          async handleChoreCompletion(chore) {
+            try {
+              await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/complete`, {
+                method: 'PUT',
+                body: JSON.stringify({ completed: chore.completed })
+              });
               
-              setTimeout(() => {
-                this.showSuccessMessage = false;
-              }, 3000);
+              if (chore.completed) {
+                this.triggerConfetti();
+                this.showSuccessMessage = true;
+                this.completedChoreMessage = `${chore.name} completed!`;
+                
+                setTimeout(() => {
+                  this.showSuccessMessage = false;
+                }, 3000);
+              }
+              
+              await this.loadEarnings();
+              await this.loadElectronicsStatus();
+            } catch (error) {
+              console.error('Failed to update chore completion:', error);
+              // Revert the checkbox if API call failed
+              chore.completed = !chore.completed;
             }
-            this.updateEarnings();
           },
           
           triggerConfetti() {
@@ -960,8 +1129,8 @@
           }
         },
         
-        mounted() {
-          this.updateEarnings();
+        async mounted() {
+          await this.loadAllData();
         }
       }).mount('#app');
     </script>
