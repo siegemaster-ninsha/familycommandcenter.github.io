@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link
+      rel="stylesheet"
+      as="style"
+      onload="this.rel='stylesheet'"
+      href="https://fonts.googleapis.com/css2?display=swap&amp;family=Inter%3Awght%40400%3B500%3B700%3B900&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900"
+    />
+
+    <title>Family Command Center</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="config.js"></script>
+    <style>
+      /* Confetti Animation Styles */
+      .confetti-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1000;
+      }
+      
+      .confetti-piece {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background: #607afb;
+        animation: confetti-fall 3s linear forwards;
+      }
+      
+      .confetti-piece:nth-child(1) { background: #607afb; animation-delay: 0s; }
+      .confetti-piece:nth-child(2) { background: #34d399; animation-delay: 0.1s; }
+      .confetti-piece:nth-child(3) { background: #fbbf24; animation-delay: 0.2s; }
+      .confetti-piece:nth-child(4) { background: #f87171; animation-delay: 0.3s; }
+      .confetti-piece:nth-child(5) { background: #a78bfa; animation-delay: 0.4s; }
+      .confetti-piece:nth-child(6) { background: #fb7185; animation-delay: 0.5s; }
+      .confetti-piece:nth-child(7) { background: #60a5fa; animation-delay: 0.6s; }
+      .confetti-piece:nth-child(8) { background: #4ade80; animation-delay: 0.7s; }
+      .confetti-piece:nth-child(9) { background: #facc15; animation-delay: 0.8s; }
+      .confetti-piece:nth-child(10) { background: #f472b6; animation-delay: 0.9s; }
+      
+      @keyframes confetti-explode {
+        0% {
+          transform: translateY(0) translateX(0) rotate(0deg) scale(0);
+          opacity: 1;
+        }
+        15% {
+          transform: translateY(-60vh) translateX(0) rotate(180deg) scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(120vh) translateX(0) rotate(720deg) scale(0.8);
+          opacity: 0;
+        }
+      }
+      
+      .confetti-piece.left {
+        animation: confetti-explode-left 4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+      }
+      
+      .confetti-piece.right {
+        animation: confetti-explode-right 4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+      }
+      
+      .confetti-piece.center {
+        animation: confetti-explode-center 4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+      }
+      
+      @keyframes confetti-explode-left {
+        0% {
+          transform: translateY(0) translateX(0) rotate(0deg) scale(0);
+          opacity: 1;
+        }
+        15% {
+          transform: translateY(-80vh) translateX(-150px) rotate(270deg) scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(120vh) translateX(-300px) rotate(900deg) scale(0.6);
+          opacity: 0;
+        }
+      }
+      
+      @keyframes confetti-explode-right {
+        0% {
+          transform: translateY(0) translateX(0) rotate(0deg) scale(0);
+          opacity: 1;
+        }
+        15% {
+          transform: translateY(-80vh) translateX(150px) rotate(270deg) scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(120vh) translateX(300px) rotate(900deg) scale(0.6);
+          opacity: 0;
+        }
+      }
+      
+      @keyframes confetti-explode-center {
+        0% {
+          transform: translateY(0) translateX(0) rotate(0deg) scale(0);
+          opacity: 1;
+        }
+        15% {
+          transform: translateY(-70vh) translateX(0) rotate(360deg) scale(1.2);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(120vh) translateX(0) rotate(1080deg) scale(0.4);
+          opacity: 0;
+        }
+      }
+      
+      /* Success message animation */
+      .success-message {
+        animation: success-bounce 0.6s ease-out;
+      }
+      
+      @keyframes success-bounce {
+        0% {
+          transform: scale(0) rotate(-5deg);
+          opacity: 0;
+        }
+        50% {
+          transform: scale(1.1) rotate(2deg);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1) rotate(0deg);
+          opacity: 1;
+        }
+      }
+
+      /* Touch-friendly improvements */
+      @media (hover: none) and (pointer: coarse) {
+        /* Touch device styles */
+        .cursor-pointer {
+          cursor: default;
+        }
+        
+        /* Larger touch targets */
+        .touch-target {
+          min-height: 48px;
+          min-width: 48px;
+        }
+        
+        /* Remove hover effects on touch devices */
+        .hover\:shadow-md:hover {
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+      }
+
+      /* Improve visual feedback for selected items */
+      .selected-chore {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5);
+        z-index: 10;
+        position: relative;
+      }
+
+      /* Highlight drop zones when item is selected */
+      .drop-zone-highlight {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05));
+        border: 2px solid rgba(34, 197, 94, 0.3);
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div
+        class="relative flex size-full min-h-screen flex-col bg-[#f8f9fc] group/design-root overflow-x-hidden"
+        style="--checkbox-tick-svg: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(248,249,252)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z%27/%3e%3c/svg%3e'); font-family: Inter, 'Noto Sans', sans-serif;"
+      >
+        <div class="layout-container flex h-full grow flex-col">
+          <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e6e9f4] px-10 py-3">
+            <div class="flex items-center gap-4 text-[#0d0f1c]">
+              <div class="size-4">
+                <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M42.4379 44C42.4379 44 36.0744 33.9038 41.1692 24C46.8624 12.9336 42.2078 4 42.2078 4L7.01134 4C7.01134 4 11.6577 12.932 5.96912 23.9969C0.876273 33.9029 7.27094 44 7.27094 44L42.4379 44Z"
+                    fill="currentColor"
+                  ></path>
+                </svg>
+              </div>
+              <h2 class="text-[#0d0f1c] text-lg font-bold leading-tight tracking-[-0.015em]">Family Hub</h2>
+            </div>
+            <div class="flex flex-1 justify-end gap-8">
+              <div class="flex items-center gap-9">
+                <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">Dashboard</a>
+                <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">Calendar</a>
+                <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">To-Do</a>
+                <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">Shopping List</a>
+                <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">Meal Planner</a>
+                <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">Chores</a>
+              </div>
+              <div
+                class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
+                style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBUzlNfNl7L_8wnCHrzYQfMA8NVRgCSzVAydeCf3HlLaAL_vdWpal4OtU4jLaEcauyhqPPPlOx_V-XDx5M8AfsOAz3U5lVO9-mzfw9YkYiarC34Jk_QykDg-s2P0hr_8jOnV--xaBTBxMSVuqVDwGtySrz0nLSv-WYTlNKDqfy8id15ix7uF1WAkYP2ap6LzOlLOko0Tcxraf2Ssjh3F8Q5Wj5mMCFm1VjtaK_989mQYoIYcSyBByDZpOyS4qqNYhAoId2T-Bq77vTB");'
+              ></div>
+            </div>
+          </header>
+          <div class="px-40 flex flex-1 justify-center py-5">
+            <div class="layout-content-container flex flex-col max-w-[960px] flex-1">
+              <div class="flex flex-wrap justify-between gap-3 p-4">
+                <p class="text-[#0d0f1c] tracking-light text-[32px] font-bold leading-tight min-w-72">Chores</p>
+              </div>
+
+              <!-- Loading State -->
+              <div v-if="loading" class="flex items-center justify-center py-20">
+                <div class="text-center">
+                  <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#607afb]"></div>
+                  <p class="text-[#47569e] mt-2">Loading Family Command Center...</p>
+                </div>
+              </div>
+
+              <!-- Error State -->
+              <div v-if="error" class="mx-4 mb-8 bg-red-50 border border-red-200 rounded-lg p-4">
+                <div class="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="text-red-600" viewBox="0 0 256 256">
+                    <path d="M236.8,188.09,149.35,36.22h0a24.76,24.76,0,0,0-42.7,0L19.2,188.09a23.51,23.51,0,0,0,0,23.72A24.35,24.35,0,0,0,40.55,224h174.9a24.35,24.35,0,0,0,21.33-12.19A23.51,23.51,0,0,0,236.8,188.09ZM128,184a12,12,0,1,1,12-12A12,12,0,0,1,128,184Zm12-32a8,8,0,0,1-16,0V120a8,8,0,0,1,16,0Z"></path>
+                  </svg>
+                  <p class="text-red-800 font-medium">Failed to load data</p>
+                </div>
+                <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+                <button 
+                  @click="loadAllData" 
+                  class="mt-3 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm"
+                >
+                  Retry
+                </button>
+              </div>
+
+              <!-- Touch Instructions -->
+              <div v-if="!loading && !error && selectedChore" class="mx-4 mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2 text-blue-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256">
+                      <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-40a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176ZM112,84a12,12,0,1,1,12,12A12,12,0,0,1,112,84Z"></path>
+                    </svg>
+                    <span class="text-sm font-medium">
+                      Selected: <strong>{{ selectedChore.name }}</strong> - 
+                      <span v-if="selectedChore.isNewFromQuicklist">Click on a family member to assign.</span>
+                      <span v-else>Click on a family member or the trash can to move/delete.</span>
+                    </span>
+                  </div>
+                  <button 
+                    @click="selectedChoreId = null; selectedQuicklistChore = null"
+                    class="text-blue-600 hover:text-blue-800 p-1 rounded-full hover:bg-blue-100 transition-colors"
+                    title="Clear selection"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                      <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Main Content -->
+              <div v-if="!loading && !error">
+                <!-- Quicklist Section -->
+                <div class="mb-8">
+                  <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">⚡ Quicklist</h2>
+                <div class="bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-dashed border-purple-300 rounded-lg mx-4 p-4">
+                  <p class="text-[#47569e] text-sm mb-3 text-center">Drag these common chores to assign them quickly</p>
+                  
+                  <div class="flex flex-wrap gap-2 justify-center">
+                    <div 
+                      v-for="quickChore in quicklistChores" 
+                      :key="quickChore.id"
+                      :class="getQuicklistChoreClasses(quickChore)"
+                      draggable="true"
+                      @dragstart="handleQuicklistDragStart($event, quickChore)"
+                      @click="selectQuicklistChore(quickChore)"
+                    >
+                      <!-- Remove button -->
+                      <button
+                        @click="removeFromQuicklist(quickChore.id)"
+                        class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600"
+                        title="Remove from quicklist"
+                      >
+                        ×
+                      </button>
+                      
+                      <div
+                        class="flex items-center justify-center rounded-lg bg-purple-100 shrink-0 size-8 text-purple-600"
+                        v-html="getCategoryIcon(quickChore.category)"
+                      >
+                      </div>
+                      <div class="flex flex-col">
+                        <p class="text-[#0d0f1c] text-sm font-medium leading-tight">{{ quickChore.name }}</p>
+                        <p v-if="quickChore.amount > 0" class="text-[#47569e] text-xs">${{ quickChore.amount.toFixed(2) }}</p>
+                      </div>
+                      <span class="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-800">
+                        {{ getCategoryLabel(quickChore.category) }}
+                      </span>
+                    </div>
+                    
+                    <!-- Add to Quicklist button -->
+                    <div class="flex items-center justify-center">
+                      <button
+                        @click="showAddToQuicklistModal = true"
+                        class="flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-2 rounded-lg border-2 border-dashed border-purple-300 transition-colors duration-200"
+                        title="Add new chore to quicklist"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                          <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
+                        </svg>
+                        <span class="text-sm font-medium">Add</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Unassigned Chores Section -->
+              <div class="mb-8">
+                <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Unassigned Chores</h2>
+                <div 
+                  class="min-h-[100px] bg-[#f0f2f8] border-2 border-dashed border-[#ced2e9] rounded-lg mx-4 p-4"
+                  @drop="handleDrop($event, 'unassigned')"
+                  @dragover.prevent
+                  @dragenter.prevent
+                >
+                  <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-[#47569e] py-8">
+                    <p class="text-sm">All chores have been assigned!</p>
+                    <p class="text-xs mt-1">Drag completed chores here to unassign them.</p>
+                  </div>
+                  
+                  <div 
+                    v-for="chore in choresByPerson.unassigned" 
+                    :key="chore.id"
+                    :class="getChoreClasses(chore)"
+                    draggable="true"
+                    @dragstart="handleDragStart($event, chore)"
+                    @click.stop="selectChore(chore, $event)"
+                  >
+                    <div class="flex items-center gap-4">
+                      <div
+                        class="flex items-center justify-center rounded-lg bg-white shrink-0 size-12"
+                        :class="getCategoryStyle(chore.category).icon"
+                        v-html="getCategoryIcon(chore.category)"
+                      >
+                      </div>
+                                              <div class="flex flex-col justify-center">
+                          <div class="flex items-center gap-2 mb-1">
+                            <p class="text-[#0d0f1c] text-base font-medium leading-normal line-clamp-1">{{ chore.name }}</p>
+                            <span class="text-xs px-2 py-1 rounded-full" :class="getCategoryStyle(chore.category).badge">
+                              {{ getCategoryLabel(chore.category) }}
+                            </span>
+                          </div>
+                          <p v-if="chore.amount > 0" class="text-[#47569e] text-sm font-normal leading-normal line-clamp-2">${{ chore.amount.toFixed(2) }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs text-[#47569e] bg-white px-2 py-1 rounded">Drag to assign</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Add new chore button for unassigned -->
+                <div class="flex px-4 py-3 justify-start">
+                  <button
+                    @click="showAddChoreModal = true"
+                    class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#607afb] text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#4f68d8] transition-colors"
+                  >
+                    <span class="truncate">Add New Chore</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Family Members' Chores - Dynamic Grid -->
+              <div class="mb-6">
+                <div class="flex items-center justify-between px-4 pb-3 pt-5">
+                  <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em]">Family Members</h2>
+                  <button
+                    @click="showAddPersonModal = true"
+                    class="flex items-center gap-2 bg-[#607afb] hover:bg-[#4f68d8] text-white px-3 py-2 rounded-lg transition-colors text-sm font-medium"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                      <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
+                    </svg>
+                    Add Person
+                  </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <!-- Dynamic Person Sections -->
+                  <div 
+                    v-for="person in people"
+                    :key="person.id"
+                    :class="getDropZoneClasses(person.name)"
+                    @drop="handleDrop($event, person.name)"
+                    @dragover.prevent
+                    @dragenter.prevent
+                    @click="assignSelectedChore(person.name)"
+                    :data-person="person.name"
+                  >
+                    <div class="flex items-center justify-between px-4 pb-3 pt-5">
+                      <h3 class="text-[#0d0f1c] text-[20px] font-bold leading-tight tracking-[-0.015em]">{{ person.name }}</h3>
+                      <div class="flex items-center gap-2">
+                        <div class="text-xs px-2 py-1 rounded-full" 
+                             :class="person.electronicsStatus.status === 'allowed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                          {{ person.electronicsStatus.message }}
+                        </div>
+                        <button
+                          @click.stop="personToDelete = person; showDeletePersonModal = true"
+                          class="text-red-500 hover:text-red-700 p-1 rounded transition-colors"
+                          :title="`Remove ${person.name}`"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                            <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="min-h-[100px] px-4 pb-4">
+                      <div 
+                        v-for="chore in choresByPerson[person.name]" 
+                        :key="chore.id"
+                        :class="getChoreClasses(chore)"
+                        draggable="true"
+                        @dragstart="handleDragStart($event, chore)"
+                        @click.stop="selectChore(chore, $event)"
+                      >
+                        <div class="flex items-center gap-3">
+                          <div
+                            class="flex items-center justify-center rounded-lg bg-white shrink-0 size-10"
+                            :class="getCategoryStyle(chore.category).icon"
+                            v-html="getCategoryIcon(chore.category)"
+                          >
+                          </div>
+                          <div class="flex flex-col justify-center">
+                            <div class="flex items-center gap-2 mb-1">
+                              <p class="text-[#0d0f1c] text-sm font-medium leading-normal line-clamp-1">{{ chore.name }}</p>
+                              <span class="text-xs px-2 py-1 rounded-full" :class="getCategoryStyle(chore.category).badge">
+                                {{ getCategoryLabel(chore.category) }}
+                              </span>
+                            </div>
+                            <p v-if="chore.amount > 0" class="text-[#47569e] text-xs font-normal leading-normal">${{ chore.amount.toFixed(2) }}</p>
+                          </div>
+                        </div>
+                        <div class="shrink-0">
+                          <div class="flex size-6 items-center justify-center">
+                            <input
+                              type="checkbox"
+                              v-model="chore.completed"
+                              @change="handleChoreCompletion(chore)"
+                              class="h-4 w-4 rounded border-[#ced2e9] border-2 bg-transparent text-[#607afb] checked:bg-[#607afb] checked:border-[#607afb] checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:border-[#ced2e9] focus:outline-none"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <!-- Drop zone indicator -->
+                      <div v-if="choresByPerson[person.name].length === 0" class="text-center text-[#47569e] py-8 border-2 border-dashed border-[#ced2e9] rounded-lg bg-[#f8f9fc]">
+                        <p class="text-sm">Drag chores here to assign to {{ person.name }}</p>
+                        <p v-if="selectedChore" class="text-xs mt-1 text-blue-600">Or click here to assign selected chore</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Earnings Section -->
+              <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Earnings</h2>
+              <div class="p-4">
+                <div 
+                  v-for="person in people" 
+                  :key="person.id"
+                  class="flex justify-between gap-x-6 py-2"
+                >
+                  <p class="text-[#47569e] text-sm font-normal leading-normal">{{ person.name }}</p>
+                  <p class="text-[#0d0f1c] text-sm font-normal leading-normal text-right">${{ person.earnings.toFixed(2) }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Close the main content wrapper -->
+        </div>
+
+        <!-- Trash Can -->
+        <div 
+          class="fixed bottom-8 right-8 z-40"
+          :class="{ 'scale-110 animate-pulse': isDragOverTrash }"
+        >
+          <div 
+            @drop="handleTrashDrop($event)"
+            @dragover.prevent="isDragOverTrash = true"
+            @dragenter.prevent="isDragOverTrash = true"
+            @dragleave.prevent="isDragOverTrash = false"
+            @click="deleteSelectedChore"
+            class="bg-red-500 hover:bg-red-600 text-white rounded-full p-4 shadow-lg cursor-pointer transition-all duration-200 flex items-center justify-center size-16"
+            :class="{ 
+              'bg-red-600 scale-110': isDragOverTrash,
+              'ring-4 ring-red-300 ring-opacity-75': selectedChore && !selectedChore.isNewFromQuicklist
+            }"
+            :title="selectedChore && !selectedChore.isNewFromQuicklist ? 'Click to delete selected chore' : 'Drag chores here to delete them'"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 256 256">
+              <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="bg-red-100 p-2 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-red-600" viewBox="0 0 256 256">
+                  <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
+                </svg>
+              </div>
+              <h3 class="text-lg font-bold text-[#0d0f1c]">Delete Chore</h3>
+            </div>
+            <p class="text-[#47569e] mb-6">
+              Are you sure you want to delete "<span class="font-medium text-[#0d0f1c]">{{ choreToDelete?.name }}</span>"? This action cannot be undone.
+            </p>
+            <div class="flex gap-3">
+              <button 
+                @click="confirmDelete"
+                class="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Delete
+              </button>
+              <button 
+                @click="cancelDelete"
+                class="flex-1 bg-[#e6e9f4] text-[#0d0f1c] py-2 px-4 rounded-lg hover:bg-[#d0d4e8] transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Confetti Container -->
+        <div v-if="showConfetti" class="confetti-container">
+          <div 
+            v-for="piece in confettiPieces" 
+            :key="piece.id"
+            class="confetti-piece"
+            :class="piece.direction"
+            :style="{ 
+              left: piece.left + 'px', 
+              bottom: '0px', 
+              animationDelay: piece.delay + 's',
+              backgroundColor: piece.color
+            }"
+          ></div>
+        </div>
+
+        <!-- Success Message -->
+        <div v-if="showSuccessMessage" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50">
+          <div class="success-message bg-green-500 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256">
+              <path d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM224,48V208a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V48A16,16,0,0,1,48,32H208A16,16,0,0,1,224,48ZM208,208V48H48V208H208Z"></path>
+            </svg>
+            <span class="font-medium">Great job! {{ completedChoreMessage }}</span>
+          </div>
+        </div>
+
+        <!-- Add to Quicklist Modal -->
+        <div v-if="showAddToQuicklistModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="bg-purple-100 p-2 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-purple-600" viewBox="0 0 256 256">
+                  <path d="M200,32H163.74a47.92,47.92,0,0,0-71.48,0H56A16,16,0,0,0,40,48V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V48A16,16,0,0,0,200,32Zm-72,0a32,32,0,0,1,32,32H96A32,32,0,0,1,128,32Zm72,184H56V48H72V64a8,8,0,0,0,8,8H176a8,8,0,0,0,8-8V48h16V216Z"></path>
+                </svg>
+              </div>
+              <h3 class="text-lg font-bold text-[#0d0f1c]">Add to Quicklist</h3>
+            </div>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Chore Name</label>
+                <input 
+                  v-model="newQuicklistChore.name"
+                  type="text" 
+                  class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Enter chore name"
+                >
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Amount ($)</label>
+                <input 
+                  v-model.number="newQuicklistChore.amount"
+                  type="number" 
+                  step="0.25"
+                  min="0"
+                  class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="0.00"
+                >
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Chore Type</label>
+                <select 
+                  v-model="newQuicklistChore.category"
+                  class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="regular">🏠 Regular Chore</option>
+                  <option value="school">📚 School Chore</option>
+                  <option value="game">🎮 Electronics Requirement</option>
+                </select>
+              </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+              <button 
+                @click="addToQuicklist"
+                class="flex-1 bg-purple-500 text-white py-2 px-4 rounded-lg hover:bg-purple-600 transition-colors"
+              >
+                Add to Quicklist
+              </button>
+              <button 
+                @click="cancelAddToQuicklist"
+                class="flex-1 bg-[#e6e9f4] text-[#0d0f1c] py-2 px-4 rounded-lg hover:bg-[#d0d4e8] transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Person Modal -->
+        <div v-if="showAddPersonModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="bg-blue-100 p-2 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-blue-600" viewBox="0 0 256 256">
+                  <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
+                </svg>
+              </div>
+              <h3 class="text-lg font-bold text-[#0d0f1c]">Add Family Member</h3>
+            </div>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Name</label>
+                <input 
+                  v-model="newPerson.name"
+                  type="text" 
+                  class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+                  placeholder="Enter person's name"
+                  @keyup.enter="addPerson"
+                >
+              </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+              <button 
+                @click="addPerson"
+                class="flex-1 bg-[#607afb] text-white py-2 px-4 rounded-lg hover:bg-[#4f68d8] transition-colors"
+              >
+                Add Person
+              </button>
+              <button 
+                @click="cancelAddPerson"
+                class="flex-1 bg-[#e6e9f4] text-[#0d0f1c] py-2 px-4 rounded-lg hover:bg-[#d0d4e8] transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Delete Person Confirmation Modal -->
+        <div v-if="showDeletePersonModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="bg-red-100 p-2 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-red-600" viewBox="0 0 256 256">
+                  <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
+                </svg>
+              </div>
+              <h3 class="text-lg font-bold text-[#0d0f1c]">Remove Family Member</h3>
+            </div>
+            <p class="text-[#47569e] mb-6">
+              Are you sure you want to remove "<span class="font-medium text-[#0d0f1c]">{{ personToDelete?.name }}</span>" from the family? 
+              All their assigned chores will be moved to unassigned. This action cannot be undone.
+            </p>
+            <div class="flex gap-3">
+              <button 
+                @click="confirmDeletePerson"
+                class="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Remove Person
+              </button>
+              <button 
+                @click="cancelDeletePerson"
+                class="flex-1 bg-[#e6e9f4] text-[#0d0f1c] py-2 px-4 rounded-lg hover:bg-[#d0d4e8] transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Chore Modal -->
+        <div v-if="showAddChoreModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+            <h3 class="text-lg font-bold text-[#0d0f1c] mb-4">Add New Chore</h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Chore Name</label>
+                <input 
+                  v-model="newChore.name"
+                  type="text" 
+                  class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+                  placeholder="Enter chore name"
+                >
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Amount ($)</label>
+                <input 
+                  v-model.number="newChore.amount"
+                  type="number" 
+                  step="0.50"
+                  min="0"
+                  class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+                  placeholder="0.00"
+                >
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Chore Type</label>
+                <select 
+                  v-model="newChore.category"
+                  class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+                >
+                  <option value="regular">🏠 Regular Chore</option>
+                  <option value="school">📚 School Chore</option>
+                  <option value="game">🎮 Electronics Requirement</option>
+                </select>
+                <p class="text-xs text-[#47569e] mt-1">
+                  <span v-if="newChore.category === 'school'">School chores help with learning habits</span>
+                  <span v-else-if="newChore.category === 'game'">Must be completed to earn electronics time</span>
+                  <span v-else>Regular household chore</span>
+                </p>
+              </div>
+              <div>
+                <label class="flex items-center gap-2">
+                  <input 
+                    type="checkbox" 
+                    v-model="newChore.addToQuicklist"
+                    class="h-4 w-4 rounded border-[#ced2e9] border-2 bg-transparent text-[#607afb] checked:bg-[#607afb] checked:border-[#607afb] focus:ring-0 focus:ring-offset-0"
+                  >
+                  <span class="text-sm text-[#0d0f1c]">⚡ Also add to Quicklist</span>
+                </label>
+                <p class="text-xs text-[#47569e] mt-1 ml-6">Make this chore available for quick assignment in the future</p>
+              </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+              <button 
+                @click="addChore"
+                class="flex-1 bg-[#607afb] text-white py-2 px-4 rounded-lg hover:bg-[#4f68d8] transition-colors"
+              >
+                Add Chore
+              </button>
+              <button 
+                @click="cancelAddChore"
+                class="flex-1 bg-[#e6e9f4] text-[#0d0f1c] py-2 px-4 rounded-lg hover:bg-[#d0d4e8] transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const { createApp } = Vue;
+
+      createApp({
+        data() {
+          return {
+            showAddChoreModal: false,
+            newChore: {
+              name: '',
+              amount: 0,
+              category: 'regular',
+              addToQuicklist: false
+            },
+            showAddToQuicklistModal: false,
+            newQuicklistChore: {
+              name: '',
+              amount: 0,
+              category: 'regular'
+            },
+            // Person management
+            people: [
+              { id: 'ben', name: 'Ben', earnings: 0, electronicsStatus: { status: 'allowed', message: 'Electronics allowed' } },
+              { id: 'theo', name: 'Theo', earnings: 0, electronicsStatus: { status: 'allowed', message: 'Electronics allowed' } }
+            ],
+            showAddPersonModal: false,
+            newPerson: { name: '' },
+            showDeletePersonModal: false,
+            personToDelete: null,
+            // Existing data
+            chores: [],
+            draggedChore: null,
+            selectedChoreId: null, // Changed from selectedChore to selectedChoreId
+            selectedQuicklistChore: null, // For quicklist selections
+            isDragOverTrash: false,
+            choreToDelete: null,
+            showDeleteModal: false,
+            showConfetti: false,
+            confettiPieces: [],
+            showSuccessMessage: false,
+            completedChoreMessage: '',
+            quicklistChores: [],
+            loading: true,
+            error: null
+          }
+        },
+        computed: {
+          choresByPerson() {
+            console.log('choresByPerson computed property recalculating...');
+            console.log('Current selectedChoreId:', this.selectedChoreId);
+            
+            const grouped = {
+              unassigned: []
+            };
+            
+            // Add each person to the grouped object
+            this.people.forEach(person => {
+              grouped[person.name] = [];
+            });
+            
+            this.chores.forEach(chore => {
+              if (grouped[chore.assignedTo]) {
+                grouped[chore.assignedTo].push(chore);
+              }
+            });
+            
+            return grouped;
+          },
+          
+          // Legacy computed properties for backward compatibility with API calls
+          earnings() {
+            const earningsObj = {};
+            this.people.forEach(person => {
+              earningsObj[person.name] = person.earnings;
+            });
+            return earningsObj;
+          },
+          
+          electronicsStatus() {
+            const statusObj = {};
+            this.people.forEach(person => {
+              statusObj[person.name] = person.electronicsStatus;
+            });
+            return statusObj;
+          },
+          
+          // Get the selected chore object from the ID
+          selectedChore() {
+            console.log('selectedChore computed property recalculating...');
+            console.log('selectedChoreId:', this.selectedChoreId);
+            console.log('selectedQuicklistChore:', this.selectedQuicklistChore);
+            
+            if (this.selectedQuicklistChore) {
+              return this.selectedQuicklistChore;
+            }
+            if (this.selectedChoreId) {
+              const found = this.chores.find(chore => chore.id === this.selectedChoreId) || null;
+              console.log('Found chore for selection:', found?.name || 'null');
+              return found;
+            }
+            return null;
+          }
+        },
+        methods: {
+          // API helper methods
+          async apiCall(endpoint, options = {}) {
+            try {
+              const url = CONFIG.getApiUrl(endpoint);
+              const response = await fetch(url, {
+                headers: {
+                  'Content-Type': 'application/json',
+                  ...options.headers
+                },
+                ...options
+              });
+              
+              if (!response.ok) {
+                throw new Error(`API call failed: ${response.status}`);
+              }
+              
+              return await response.json();
+            } catch (error) {
+              console.error('API Error:', error);
+              this.error = error.message;
+              throw error;
+            }
+          },
+
+          // Data loading methods
+          async loadQuicklistChores() {
+            try {
+              const data = await this.apiCall(CONFIG.API.ENDPOINTS.QUICKLIST);
+              this.quicklistChores = data.quicklistChores || [];
+            } catch (error) {
+              console.error('Failed to load quicklist:', error);
+              // Try to initialize default quicklist if empty
+              if (this.quicklistChores.length === 0) {
+                await this.initializeQuicklist();
+              }
+            }
+          },
+
+          async loadChores() {
+            try {
+              console.log('loadChores() called, current selection:', this.selectedChoreId);
+              console.trace('loadChores() call stack:');
+              
+              // Store the currently selected chore ID to restore selection after reload
+              const selectedChoreId = this.selectedChoreId;
+              
+              const data = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES);
+              const newChores = data.chores || [];
+              
+              // Instead of replacing the entire array, update existing chores in place
+              // This preserves object references and prevents v-model binding issues
+              const existingChoreMap = new Map(this.chores.map(chore => [chore.id, chore]));
+              
+              // Update existing chores and collect new ones
+              const updatedChores = [];
+              newChores.forEach(newChore => {
+                const existingChore = existingChoreMap.get(newChore.id);
+                if (existingChore) {
+                  // Update existing chore properties in place
+                  Object.assign(existingChore, newChore);
+                  updatedChores.push(existingChore);
+                } else {
+                  // Add new chore
+                  updatedChores.push(newChore);
+                }
+              });
+              
+              // Replace the array only once with the updated chores
+              this.chores = updatedChores;
+              
+              // Use nextTick to ensure Vue has processed the data changes before restoring selection
+              await this.$nextTick();
+              
+              // Restore selection if we had a selected chore
+              if (selectedChoreId) {
+                const restoredChore = this.chores.find(chore => chore.id === selectedChoreId);
+                if (restoredChore) {
+                  // Only reassign if it's actually different (avoid unnecessary reactivity triggers)
+                  if (this.selectedChoreId !== selectedChoreId) {
+                    this.selectedChoreId = selectedChoreId;
+                  }
+                  console.log('Selection restored for chore:', restoredChore.name);
+                } else {
+                  // Chore was deleted, clear selection
+                  this.selectedChoreId = null;
+                  console.log('Selected chore no longer exists, clearing selection');
+                }
+              }
+            } catch (error) {
+              console.error('Failed to load chores:', error);
+            }
+          },
+
+          async loadEarnings() {
+            try {
+              const data = await this.apiCall(CONFIG.API.ENDPOINTS.EARNINGS);
+              // Update each person's earnings, defaulting to 0 if not found
+              this.people.forEach(person => {
+                person.earnings = data.earnings?.[person.name] || 0;
+              });
+            } catch (error) {
+              console.error('Failed to load earnings:', error);
+              // Set default values on error
+              this.people.forEach(person => {
+                person.earnings = 0;
+              });
+            }
+          },
+
+          async loadElectronicsStatus() {
+            try {
+              // Load electronics status for each person, with individual error handling
+              const statusPromises = this.people.map(async person => {
+                try {
+                  const status = await this.apiCall(`${CONFIG.API.ENDPOINTS.ELECTRONICS_STATUS}/${person.name}`);
+                  return { person, status };
+                } catch (error) {
+                  console.warn(`Failed to load electronics status for ${person.name}:`, error);
+                  // Return default status for this person
+                  return { 
+                    person, 
+                    status: { status: 'allowed', message: 'Electronics allowed' } 
+                  };
+                }
+              });
+              
+              const results = await Promise.all(statusPromises);
+              
+              results.forEach(({ person, status }) => {
+                person.electronicsStatus = status;
+              });
+            } catch (error) {
+              console.error('Failed to load electronics status:', error);
+              // Set default values on error
+              this.people.forEach(person => {
+                person.electronicsStatus = { status: 'allowed', message: 'Electronics allowed' };
+              });
+            }
+          },
+
+          async initializeQuicklist() {
+            try {
+              await this.apiCall(`${CONFIG.API.ENDPOINTS.QUICKLIST}/initialize`, {
+                method: 'POST'
+              });
+              await this.loadQuicklistChores();
+            } catch (error) {
+              console.error('Failed to initialize quicklist:', error);
+            }
+          },
+
+          async loadAllData() {
+            this.loading = true;
+            this.error = null;
+            try {
+              // Load data independently - don't fail if one fails
+              await Promise.allSettled([
+                this.loadQuicklistChores(),
+                this.loadChores(),
+                this.loadEarnings(),
+                this.loadElectronicsStatus()
+              ]);
+            } catch (error) {
+              console.error('Failed to load data:', error);
+              this.error = 'Failed to load some data. Please try again.';
+            } finally {
+              this.loading = false;
+            }
+          },
+
+          getCategoryStyle(category) {
+            switch(category) {
+              case 'school':
+                return {
+                  background: 'bg-blue-50 border-l-blue-500',
+                  icon: 'text-blue-600',
+                  badge: 'bg-blue-100 text-blue-800'
+                };
+              case 'game':
+                return {
+                  background: 'bg-green-50 border-l-green-500',
+                  icon: 'text-green-600',
+                  badge: 'bg-green-100 text-green-800'
+                };
+              default:
+                return {
+                  background: 'bg-[#f8f9fc] border-l-gray-300',
+                  icon: 'text-[#0d0f1c]',
+                  badge: 'bg-gray-100 text-gray-800'
+                };
+            }
+          },
+          
+          getCategoryIcon(category) {
+            switch(category) {
+              case 'school':
+                return `<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                  <path d="M208,24H72A32,32,0,0,0,40,56V224a8,8,0,0,0,8,8H192a8,8,0,0,0,0-16H56a16,16,0,0,1,16-16H208a8,8,0,0,0,8-8V32A8,8,0,0,0,208,24ZM72,40H200V184H72a31.82,31.82,0,0,0-16,4.29V56A16,16,0,0,1,72,40Z"></path>
+                </svg>`;
+              case 'game':
+                return `<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                  <path d="M192,88h16a8,8,0,0,1,0,16H192a8,8,0,0,1,0-16ZM48,104H64a8,8,0,0,0,0-16H48a8,8,0,0,0,0,16ZM208,40H48A24,24,0,0,0,24,64V192a24,24,0,0,0,24,24H208a24,24,0,0,0,24-24V64A24,24,0,0,0,208,40ZM216,192a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V64a8,8,0,0,1,8-8H208a8,8,0,0,1,8,8V192ZM152,72a8,8,0,1,1-8,8A8,8,0,0,1,152,72Zm0,32a8,8,0,1,1-8,8A8,8,0,0,1,152,104Zm32-32a8,8,0,1,1-8,8A8,8,0,0,1,184,72Zm0,32a8,8,0,1,1-8,8A8,8,0,0,1,184,104ZM120,72a8,8,0,1,1-8,8A8,8,0,0,1,120,72Zm0,32a8,8,0,1,1-8,8A8,8,0,0,1,120,104ZM88,72a8,8,0,1,1-8,8A8,8,0,0,1,88,72Zm0,32a8,8,0,1,1-8,8A8,8,0,0,1,88,104Zm80,56H88a8,8,0,0,0,0,16h80a8,8,0,0,0,0-16Zm0,32H88a8,8,0,0,0,0,16h80a8,8,0,0,0,0-16Z"></path>
+                </svg>`;
+              default:
+                return `<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                  <path d="M218.83,103.77l-80-75.48a1.14,1.14,0,0,1-.11-.11,16,16,0,0,0-21.53,0l-.11.11L37.17,103.77A8,8,0,0,0,32,110.62V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V110.62A8,8,0,0,0,218.83,103.77ZM208,208H48V115.54L128,44.77,208,115.54V208ZM112,176V136a8,8,0,0,1,8-8h16a8,8,0,0,1,8,8v40a8,8,0,0,1-16,0V144H120v32a8,8,0,0,1-16,0Z"></path>
+                </svg>`;
+            }
+          },
+          
+          getCategoryLabel(category) {
+            switch(category) {
+              case 'school': return '📚 School';
+              case 'game': return '⚡ Electronics';
+              default: return '🏠 Regular';
+            }
+          },
+          
+          getElectronicsStatus(person) {
+            return this.electronicsStatus[person] || { status: 'allowed', message: 'Electronics allowed' };
+          },
+
+          // Visual feedback for touch interface
+          isChoreSelected(chore) {
+            if (this.selectedQuicklistChore && chore.name === this.selectedQuicklistChore.name) {
+              return true;
+            }
+            return this.selectedChoreId && chore.id === this.selectedChoreId;
+          },
+
+          getChoreClasses(chore) {
+            const baseClasses = "flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between mb-2 rounded-lg shadow-sm cursor-pointer border-l-4 transition-all duration-200";
+            const categoryClasses = this.getCategoryStyle(chore.category).background;
+            const selectedClasses = this.isChoreSelected(chore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : "hover:shadow-md hover:scale-102";
+            
+            return `${baseClasses} ${categoryClasses} ${selectedClasses}`;
+          },
+
+          getQuicklistChoreClasses(quickChore) {
+            const baseClasses = "relative group flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm cursor-pointer border-l-4 border-purple-500 transition-all duration-200";
+            const selectedClasses = this.isChoreSelected(quickChore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : "hover:shadow-md hover:scale-105";
+            
+            return `${baseClasses} ${selectedClasses}`;
+          },
+
+          getDropZoneClasses(person) {
+            const baseClasses = "bg-white rounded-lg shadow-sm border transition-all duration-200";
+            const highlightClasses = this.selectedChore ? "ring-2 ring-green-400 ring-opacity-50 bg-green-50" : "";
+            
+            return `${baseClasses} ${highlightClasses}`;
+          },
+
+          getTrashClasses() {
+            const baseClasses = "flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 cursor-pointer";
+            const normalClasses = "bg-red-100 text-red-600 hover:bg-red-200";
+            const highlightClasses = this.selectedChore && !this.selectedChore.isNewFromQuicklist ? "ring-4 ring-red-400 ring-opacity-75 bg-red-200" : "";
+            const dragOverClasses = this.isDragOverTrash ? "bg-red-300 scale-110" : "";
+            
+            return `${baseClasses} ${normalClasses} ${highlightClasses} ${dragOverClasses}`;
+          },
+          
+          handleQuicklistDragStart(event, quickChore) {
+            // Create a new chore instance from the quicklist template
+            const newChore = {
+              name: quickChore.name,
+              amount: quickChore.amount,
+              category: quickChore.category,
+              assignedTo: 'unassigned',
+              completed: false,
+              isNewFromQuicklist: true
+            };
+            this.draggedChore = newChore;
+            event.dataTransfer.effectAllowed = 'copy';
+          },
+          
+          handleDragStart(event, chore) {
+            this.draggedChore = chore;
+            event.dataTransfer.effectAllowed = 'move';
+          },
+
+          // Person management methods
+          addPerson() {
+            if (this.newPerson.name.trim()) {
+              const personId = this.newPerson.name.toLowerCase().replace(/\s+/g, '');
+              const newPerson = {
+                id: personId,
+                name: this.newPerson.name.trim(),
+                earnings: 0,
+                electronicsStatus: { status: 'allowed', message: 'Electronics allowed' }
+              };
+              this.people.push(newPerson);
+              this.cancelAddPerson();
+            }
+          },
+          
+          cancelAddPerson() {
+            this.showAddPersonModal = false;
+            this.newPerson = { name: '' };
+          },
+          
+          confirmDeletePerson() {
+            if (this.personToDelete) {
+              // First, unassign all chores from this person
+              this.chores.forEach(chore => {
+                if (chore.assignedTo === this.personToDelete.name) {
+                  chore.assignedTo = 'unassigned';
+                  // Update the chore in the backend
+                  this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/assign`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ assignedTo: 'unassigned' })
+                  }).catch(error => console.error('Failed to unassign chore:', error));
+                }
+              });
+              
+              // Remove the person from the array
+              const index = this.people.findIndex(p => p.id === this.personToDelete.id);
+              if (index > -1) {
+                this.people.splice(index, 1);
+              }
+            }
+            this.cancelDeletePerson();
+          },
+          
+          cancelDeletePerson() {
+            this.showDeletePersonModal = false;
+            this.personToDelete = null;
+          },
+          
+          getPersonByName(name) {
+            return this.people.find(person => person.name === name);
+          },
+          
+          getElectronicsStatus(personName) {
+            const person = this.getPersonByName(personName);
+            return person ? person.electronicsStatus : { status: 'allowed', message: 'Electronics allowed' };
+          },
+
+          // Touch-friendly click-to-select functionality
+          selectChore(chore, event) {
+            console.log('selectChore called for:', chore.name, 'Current selectedChoreId:', this.selectedChoreId);
+            
+            // Special case: If we have a different chore selected and we click on a chore that's assigned to someone,
+            // assign the selected chore to that person
+            if (this.selectedChore && 
+                this.selectedChoreId !== chore.id && 
+                chore.assignedTo && 
+                chore.assignedTo !== 'unassigned') {
+              console.log('Assigning selected chore to:', chore.assignedTo);
+              this.assignSelectedChore(chore.assignedTo);
+              return;
+            }
+            
+            if (this.selectedChoreId === chore.id) {
+              // Clicking the same chore deselects it
+              console.log('Deselecting chore:', chore.name);
+              this.selectedChoreId = null;
+              this.selectedQuicklistChore = null;
+            } else {
+              // Select the chore
+              console.log('Selecting chore:', chore.name, 'ID:', chore.id);
+              this.selectedChoreId = chore.id;
+              this.selectedQuicklistChore = null;
+            }
+          },
+
+          selectQuicklistChore(quickChore) {
+            // Create a new chore instance from the quicklist template
+            const newChore = {
+              name: quickChore.name,
+              amount: quickChore.amount,
+              category: quickChore.category,
+              assignedTo: 'unassigned',
+              completed: false,
+              isNewFromQuicklist: true
+            };
+            // Clear any existing regular chore selection
+            this.selectedChoreId = null;
+            this.selectedQuicklistChore = newChore;
+            console.log('Quicklist chore selected:', newChore.name);
+          },
+
+          async assignSelectedChore(assignTo) {
+            if (!this.selectedChore) return;
+            
+            try {
+              if (this.selectedChore.isNewFromQuicklist) {
+                // This is a new chore from quicklist
+                const choreData = {
+                  name: this.selectedChore.name,
+                  amount: this.selectedChore.amount,
+                  category: this.selectedChore.category,
+                  assignedTo: assignTo
+                };
+                await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
+                  method: 'POST',
+                  body: JSON.stringify(choreData)
+                });
+              } else {
+                // This is an existing chore being moved
+                await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.selectedChore.id}/assign`, {
+                  method: 'PUT',
+                  body: JSON.stringify({ assignedTo: assignTo })
+                });
+              }
+              
+              // Reload data to get updated state
+              await this.loadChores();
+              await this.loadEarnings();
+              await this.loadElectronicsStatus();
+              
+              // Clear selection
+              this.selectedChoreId = null;
+              this.selectedQuicklistChore = null;
+            } catch (error) {
+              console.error('Failed to assign chore:', error);
+            }
+          },
+
+          async deleteSelectedChore() {
+            if (!this.selectedChore || this.selectedChore.isNewFromQuicklist) {
+              this.selectedChoreId = null;
+              this.selectedQuicklistChore = null;
+              return;
+            }
+            
+            try {
+              await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.selectedChore.id}`, {
+                method: 'DELETE'
+              });
+              await this.loadChores();
+              await this.loadEarnings();
+              await this.loadElectronicsStatus();
+              
+              // Clear selection
+              this.selectedChoreId = null;
+              this.selectedQuicklistChore = null;
+            } catch (error) {
+              console.error('Failed to delete chore:', error);
+            }
+          },
+          
+          async handleDrop(event, assignTo) {
+            event.preventDefault();
+            this.isDragOverTrash = false;
+            if (this.draggedChore) {
+              try {
+                if (this.draggedChore.isNewFromQuicklist) {
+                  // This is a new chore from quicklist
+                  const choreData = {
+                    name: this.draggedChore.name,
+                    amount: this.draggedChore.amount,
+                    category: this.draggedChore.category,
+                    assignedTo: assignTo
+                  };
+                  await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
+                    method: 'POST',
+                    body: JSON.stringify(choreData)
+                  });
+                } else {
+                  // This is an existing chore being moved
+                  await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.draggedChore.id}/assign`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ assignedTo: assignTo })
+                  });
+                }
+                
+                // Reload data to get updated state
+                await this.loadChores();
+                await this.loadEarnings();
+                await this.loadElectronicsStatus();
+              } catch (error) {
+                console.error('Failed to assign chore:', error);
+              }
+              
+              this.draggedChore = null;
+            }
+          },
+          
+          async addChore() {
+            if (this.newChore.name.trim() && this.newChore.amount >= 0) {
+              try {
+                const choreData = {
+                  name: this.newChore.name.trim(),
+                  amount: this.newChore.amount,
+                  category: this.newChore.category,
+                  assignedTo: 'unassigned'
+                };
+                
+                await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
+                  method: 'POST',
+                  body: JSON.stringify(choreData)
+                });
+                
+                // Also add to quicklist if requested
+                if (this.newChore.addToQuicklist) {
+                  const quicklistData = {
+                    name: this.newChore.name.trim(),
+                    amount: this.newChore.amount,
+                    category: this.newChore.category
+                  };
+                  
+                  await this.apiCall(CONFIG.API.ENDPOINTS.QUICKLIST, {
+                    method: 'POST',
+                    body: JSON.stringify(quicklistData)
+                  });
+                  
+                  await this.loadQuicklistChores();
+                }
+                
+                await this.loadChores();
+                this.cancelAddChore();
+              } catch (error) {
+                console.error('Failed to add chore:', error);
+              }
+            }
+          },
+          
+          cancelAddChore() {
+            this.showAddChoreModal = false;
+            this.newChore = { name: '', amount: 0, category: 'regular', addToQuicklist: false };
+          },
+          
+          async addToQuicklist() {
+            if (this.newQuicklistChore.name.trim() && this.newQuicklistChore.amount >= 0) {
+              try {
+                const quicklistData = {
+                  name: this.newQuicklistChore.name.trim(),
+                  amount: this.newQuicklistChore.amount,
+                  category: this.newQuicklistChore.category
+                };
+                
+                await this.apiCall(CONFIG.API.ENDPOINTS.QUICKLIST, {
+                  method: 'POST',
+                  body: JSON.stringify(quicklistData)
+                });
+                
+                await this.loadQuicklistChores();
+                this.cancelAddToQuicklist();
+              } catch (error) {
+                console.error('Failed to add to quicklist:', error);
+              }
+            }
+          },
+          
+          cancelAddToQuicklist() {
+            this.showAddToQuicklistModal = false;
+            this.newQuicklistChore = { name: '', amount: 0, category: 'regular' };
+          },
+          
+          async removeFromQuicklist(quicklistId) {
+            try {
+              await this.apiCall(`${CONFIG.API.ENDPOINTS.QUICKLIST}/${quicklistId}`, {
+                method: 'DELETE'
+              });
+              await this.loadQuicklistChores();
+            } catch (error) {
+              console.error('Failed to remove from quicklist:', error);
+            }
+          },
+          
+          async handleTrashDrop(event) {
+            event.preventDefault();
+            this.isDragOverTrash = false;
+            if (this.draggedChore) {
+              // Only delete if it's an existing chore (not a new one from quicklist)
+              if (!this.draggedChore.isNewFromQuicklist && this.draggedChore.id) {
+                try {
+                  await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.draggedChore.id}`, {
+                    method: 'DELETE'
+                  });
+                  await this.loadChores();
+                  await this.loadEarnings();
+                  await this.loadElectronicsStatus();
+                } catch (error) {
+                  console.error('Failed to delete chore:', error);
+                }
+              }
+              this.draggedChore = null;
+            }
+          },
+          
+          async confirmDelete() {
+            try {
+              await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.choreToDelete.id}`, {
+                method: 'DELETE'
+              });
+              await this.loadChores();
+              await this.loadEarnings();
+              await this.loadElectronicsStatus();
+            } catch (error) {
+              console.error('Failed to delete chore:', error);
+            }
+            
+            this.choreToDelete = null;
+            this.showDeleteModal = false;
+          },
+          
+          cancelDelete() {
+            this.choreToDelete = null;
+            this.showDeleteModal = false;
+          },
+          
+          async handleChoreCompletion(chore) {
+            try {
+              await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/complete`, {
+                method: 'PUT',
+                body: JSON.stringify({ completed: chore.completed })
+              });
+              
+              if (chore.completed) {
+                this.triggerConfetti();
+                this.showSuccessMessage = true;
+                this.completedChoreMessage = `${chore.name} completed!`;
+                
+                setTimeout(() => {
+                  this.showSuccessMessage = false;
+                }, 3000);
+              }
+              
+              await this.loadEarnings();
+              await this.loadElectronicsStatus();
+            } catch (error) {
+              console.error('Failed to update chore completion:', error);
+              // Revert the checkbox if API call failed
+              chore.completed = !chore.completed;
+            }
+          },
+          
+          triggerConfetti() {
+            this.confettiPieces = [];
+            this.showConfetti = true;
+            
+            // Confetti colors for variety
+            const colors = [
+              '#607afb', '#34d399', '#fbbf24', '#f87171', '#a78bfa', 
+              '#fb7185', '#60a5fa', '#4ade80', '#facc15', '#f472b6',
+              '#06b6d4', '#8b5cf6', '#ef4444', '#10b981', '#f59e0b'
+            ];
+            
+            // Create explosive confetti pieces - 10x the celebration! 🎉
+            for (let i = 0; i < 300; i++) {
+              // Create explosion from bottom center, spreading outward
+              const centerX = window.innerWidth / 2;
+              const spreadRange = window.innerWidth * 0.3; // 30% of screen width
+              const startX = centerX + (Math.random() - 0.5) * spreadRange;
+              
+              // Determine direction based on position relative to center
+              let direction;
+              const randomFactor = Math.random();
+              if (randomFactor < 0.33) {
+                direction = 'left';
+              } else if (randomFactor < 0.66) {
+                direction = 'right';
+              } else {
+                direction = 'center';
+              }
+              
+              this.confettiPieces.push({
+                id: i,
+                left: startX,
+                delay: Math.random() * 1.5, // Spread the explosion over 1.5 seconds
+                direction: direction,
+                color: colors[Math.floor(Math.random() * colors.length)]
+              });
+            }
+            
+            // Hide confetti after animation (longer duration for the new animation)
+            setTimeout(() => {
+              this.showConfetti = false;
+              this.confettiPieces = [];
+            }, 4500);
+          }
+        },
+        
+        watch: {
+          selectedChoreId(newVal, oldVal) {
+            if (oldVal && !newVal) {
+              console.log('Selection cleared! Previous chore:', oldVal);
+              console.trace('Selection cleared from:');
+            } else if (newVal) {
+              console.log('Chore selected:', newVal);
+            }
+          }
+        },
+        
+        async mounted() {
+          await this.loadAllData();
+        }
+      }).mount('#app');
+    </script>
+  </body>
+</html>

@@ -1,0 +1,155 @@
+/* Confetti Animation Styles */
+.confetti-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.confetti-piece {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #607afb;
+  animation: confetti-fall 3s linear forwards;
+}
+
+.confetti-piece:nth-child(1) { background: #607afb; animation-delay: 0s; }
+.confetti-piece:nth-child(2) { background: #34d399; animation-delay: 0.1s; }
+.confetti-piece:nth-child(3) { background: #fbbf24; animation-delay: 0.2s; }
+.confetti-piece:nth-child(4) { background: #f87171; animation-delay: 0.3s; }
+.confetti-piece:nth-child(5) { background: #a78bfa; animation-delay: 0.4s; }
+.confetti-piece:nth-child(6) { background: #fb7185; animation-delay: 0.5s; }
+.confetti-piece:nth-child(7) { background: #60a5fa; animation-delay: 0.6s; }
+.confetti-piece:nth-child(8) { background: #4ade80; animation-delay: 0.7s; }
+.confetti-piece:nth-child(9) { background: #facc15; animation-delay: 0.8s; }
+.confetti-piece:nth-child(10) { background: #f472b6; animation-delay: 0.9s; }
+
+@keyframes confetti-explode {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg) scale(0);
+    opacity: 1;
+  }
+  15% {
+    transform: translateY(-60vh) translateX(0) rotate(180deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(120vh) translateX(0) rotate(720deg) scale(0.8);
+    opacity: 0;
+  }
+}
+
+.confetti-piece.left {
+  animation: confetti-explode-left 4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.confetti-piece.right {
+  animation: confetti-explode-right 4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.confetti-piece.center {
+  animation: confetti-explode-center 4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes confetti-explode-left {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg) scale(0);
+    opacity: 1;
+  }
+  15% {
+    transform: translateY(-80vh) translateX(-150px) rotate(270deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(120vh) translateX(-300px) rotate(900deg) scale(0.6);
+    opacity: 0;
+  }
+}
+
+@keyframes confetti-explode-right {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg) scale(0);
+    opacity: 1;
+  }
+  15% {
+    transform: translateY(-80vh) translateX(150px) rotate(270deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(120vh) translateX(300px) rotate(900deg) scale(0.6);
+    opacity: 0;
+  }
+}
+
+@keyframes confetti-explode-center {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg) scale(0);
+    opacity: 1;
+  }
+  15% {
+    transform: translateY(-70vh) translateX(0) rotate(360deg) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(120vh) translateX(0) rotate(1080deg) scale(0.4);
+    opacity: 0;
+  }
+}
+
+/* Success message animation */
+.success-message {
+  animation: success-bounce 0.6s ease-out;
+}
+
+@keyframes success-bounce {
+  0% {
+    transform: scale(0) rotate(-5deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1) rotate(2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+  /* Touch device styles */
+  .cursor-pointer {
+    cursor: default;
+  }
+  
+  /* Larger touch targets */
+  .touch-target {
+    min-height: 48px;
+    min-width: 48px;
+  }
+  
+  /* Remove hover effects on touch devices */
+  .hover\:shadow-md:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+}
+
+/* Improve visual feedback for selected items */
+.selected-chore {
+  transform: scale(1.05);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5);
+  z-index: 10;
+  position: relative;
+}
+
+/* Highlight drop zones when item is selected */
+.drop-zone-highlight {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05));
+  border: 2px solid rgba(34, 197, 94, 0.3);
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+} 
