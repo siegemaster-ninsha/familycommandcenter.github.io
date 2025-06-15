@@ -21,7 +21,17 @@ const CONFIG = {
       
       // Quicklist  
       QUICKLIST: '/quicklist',
-      QUICKLIST_INITIALIZE: '/quicklist/initialize'
+      QUICKLIST_INITIALIZE: '/quicklist/initialize',
+      
+      // Shopping Items
+      SHOPPING_ITEMS: '/shopping-items',
+      SHOPPING_ITEMS_CLEAR_COMPLETED: '/shopping-items/clear-completed',
+      SHOPPING_ITEMS_MARK_ALL_COMPLETE: '/shopping-items/mark-all-complete',
+      SHOPPING_ITEMS_CLEAR_ALL: '/shopping-items/clear-all',
+      
+      // Shopping Quick Items
+      SHOPPING_QUICK_ITEMS: '/shopping-quick-items',
+      SHOPPING_QUICK_ITEMS_INITIALIZE: '/shopping-quick-items/initialize'
     }
   },
 
