@@ -661,32 +661,46 @@ const app = createApp({
   }
 });
 
-// Register all components
-if (window.UIComponents) {
-  Object.entries(window.UIComponents).forEach(([name, component]) => {
-    app.component(name, component);
-  });
-}
+// Wait for all scripts to load, then register components
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🔧 Registering Vue components...');
+  
+  // Register UI components
+  if (window.UIComponents) {
+    Object.entries(window.UIComponents).forEach(([name, component]) => {
+      console.log(`📦 Registering ${name}`);
+      app.component(name, component);
+    });
+  }
 
-if (window.QuicklistSectionComponent) {
-  app.component('QuicklistSection', window.QuicklistSectionComponent);
-}
+  // Register section components with kebab-case names to match HTML
+  if (window.QuicklistSectionComponent) {
+    console.log('📦 Registering quicklist-section');
+    app.component('quicklist-section', window.QuicklistSectionComponent);
+  }
 
-if (window.UnassignedSectionComponent) {
-  app.component('UnassignedSection', window.UnassignedSectionComponent);
-}
+  if (window.UnassignedSectionComponent) {
+    console.log('📦 Registering unassigned-section');
+    app.component('unassigned-section', window.UnassignedSectionComponent);
+  }
 
-if (window.FamilyMembersSectionComponent) {
-  app.component('FamilyMembersSection', window.FamilyMembersSectionComponent);
-}
+  if (window.FamilyMembersSectionComponent) {
+    console.log('📦 Registering family-members-section');
+    app.component('family-members-section', window.FamilyMembersSectionComponent);
+  }
 
-if (window.TrashSectionComponent) {
-  app.component('TrashSection', window.TrashSectionComponent);
-}
+  if (window.TrashSectionComponent) {
+    console.log('📦 Registering trash-section');
+    app.component('trash-section', window.TrashSectionComponent);
+  }
 
-if (window.AppModalsComponent) {
-  app.component('AppModals', window.AppModalsComponent);
-}
+  if (window.AppModalsComponent) {
+    console.log('📦 Registering app-modals');
+    app.component('app-modals', window.AppModalsComponent);
+  }
 
-// Mount the app
-app.mount('#app'); 
+  console.log('✅ All components registered, mounting app...');
+  
+  // Mount the app
+  app.mount('#app');
+}); 
