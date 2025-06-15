@@ -1,7 +1,5 @@
-// Family Members Section Component
-const { defineComponent } = Vue;
-
-const FamilyMembersSection = defineComponent({
+// Family Members Section Component  
+const FamilyMembersSection = Vue.defineComponent({
   template: `
     <div class="mb-6">
       <div class="flex items-center justify-between px-4 pb-3 pt-5">

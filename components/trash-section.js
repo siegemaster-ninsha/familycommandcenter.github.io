@@ -1,7 +1,5 @@
 // Trash Section Component
-const { defineComponent } = Vue;
-
-const TrashSection = defineComponent({
+const TrashSection = Vue.defineComponent({
   template: `
     <!-- Trash Can -->
     <div 

@@ -1,7 +1,5 @@
 // Quicklist Section Component
-const { defineComponent } = Vue;
-
-const QuicklistSection = defineComponent({
+const QuicklistSection = Vue.defineComponent({
   template: `
     <div class="mb-8">
       <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">⚡ Quicklist</h2>

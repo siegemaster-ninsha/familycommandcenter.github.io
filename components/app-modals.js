@@ -1,7 +1,5 @@
 // App Modals Component
-const { defineComponent } = Vue;
-
-const AppModals = defineComponent({
+const AppModals = Vue.defineComponent({
   template: `
     <!-- Delete Confirmation Modal -->
     <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

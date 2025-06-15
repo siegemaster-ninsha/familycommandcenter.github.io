@@ -1,10 +1,8 @@
 // UI Components for the Family Command Center
 // These are reusable components that handle common UI patterns
 
-const { defineComponent } = Vue;
-
 // Loading State Component
-const AppLoadingState = defineComponent({
+const AppLoadingState = Vue.defineComponent({
   template: `
     <div v-if="loading" class="flex items-center justify-center py-20">
       <div class="text-center">
@@ -17,7 +15,7 @@ const AppLoadingState = defineComponent({
 });
 
 // Error State Component
-const AppErrorState = defineComponent({
+const AppErrorState = Vue.defineComponent({
   template: `
     <div v-if="error" class="mx-4 mb-8 bg-red-50 border border-red-200 rounded-lg p-4">
       <div class="flex items-center gap-2">
@@ -39,7 +37,7 @@ const AppErrorState = defineComponent({
 });
 
 // Selection Info Component
-const AppSelectionInfo = defineComponent({
+const AppSelectionInfo = Vue.defineComponent({
   template: `
     <div v-if="!loading && !error && selectedChore" class="mx-4 mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
       <div class="flex items-center justify-between">
@@ -75,7 +73,7 @@ const AppSelectionInfo = defineComponent({
 });
 
 // Success Message Component
-const AppSuccessMessage = defineComponent({
+const AppSuccessMessage = Vue.defineComponent({
   template: `
     <div v-if="showSuccessMessage" class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
       <div class="success-message bg-green-500 text-white px-8 py-4 rounded-lg shadow-lg text-center">
@@ -92,7 +90,7 @@ const AppSuccessMessage = defineComponent({
 });
 
 // Confetti Component
-const AppConfetti = defineComponent({
+const AppConfetti = Vue.defineComponent({
   template: `
     <div v-if="showConfetti" class="confetti-container">
       <div 
