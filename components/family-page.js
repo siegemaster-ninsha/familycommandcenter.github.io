@@ -46,11 +46,6 @@ const FamilyPage = Vue.defineComponent({
             
             <div class="space-y-2">
               <div class="flex justify-between items-center">
-                <span class="text-sm text-[#47569e]">Total Earnings:</span>
-                <span class="font-bold text-green-600">\${{ person.earnings.toFixed(2) }}</span>
-              </div>
-              
-              <div class="flex justify-between items-center">
                 <span class="text-sm text-[#47569e]">Electronics Status:</span>
                 <span 
                   :class="person.electronicsStatus.status === 'allowed' ? 'text-green-600' : 'text-red-600'"
