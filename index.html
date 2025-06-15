@@ -62,6 +62,18 @@
               <!-- Page Title -->
               <div class="flex flex-wrap justify-between gap-3 p-4">
                 <p class="text-[#0d0f1c] tracking-light text-[32px] font-bold leading-tight min-w-72">Chores</p>
+                <div class="flex items-center gap-3">
+                  <button
+                    @click="showNewDayModal = true"
+                    class="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-4 py-2 rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105"
+                    title="Start a new day - clears all chores while preserving earnings"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256">
+                      <path d="M128,40a88,88,0,1,0,88,88A88.1,88.1,0,0,0,128,40Zm0,160a72,72,0,1,1,72-72A72.08,72.08,0,0,1,128,200ZM164.49,99.51a8,8,0,0,1,0,11.31L137.66,138.34a8,8,0,0,1-11.32,0L99.51,111.51a8,8,0,0,1,11.31-11.31L128,117.37l21.18-21.18A8,8,0,0,1,164.49,99.51Z"></path>
+                    </svg>
+                    <span class="font-medium">New Day</span>
+                  </button>
+                </div>
               </div>
 
               <!-- Loading/Error States -->

@@ -25,6 +25,8 @@ const app = createApp({
       newPerson: { name: '' },
       showDeletePersonModal: false,
       personToDelete: null,
+      // New Day functionality
+      showNewDayModal: false,
       // Existing data
       chores: [],
       draggedChore: null,
@@ -492,6 +494,46 @@ const app = createApp({
       this.showAddToQuicklistModal = false;
       this.newQuicklistChore = { name: '', amount: 0, category: 'regular' };
     },
+
+    // New Day functionality
+    async startNewDay() {
+      try {
+        this.loading = true;
+        console.log('🌅 Starting new day...');
+        
+        const response = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES_NEW_DAY, {
+          method: 'POST',
+          body: JSON.stringify({
+            dailyChores: [] // Could be extended later to include predefined daily chores
+          })
+        });
+        
+        console.log('✅ New day started:', response);
+        
+        // Reload all data to reflect changes
+        await this.loadAllData();
+        
+        // Show success message
+        this.showSuccessMessage = true;
+        this.completedChoreMessage = `🌅 New day started! ${response.choresCleared} chores cleared, earnings preserved.`;
+        
+        // Hide success message after delay
+        setTimeout(() => {
+          this.showSuccessMessage = false;
+        }, CONFIG.APP.SUCCESS_MESSAGE_DURATION);
+        
+        this.showNewDayModal = false;
+      } catch (error) {
+        console.error('❌ Failed to start new day:', error);
+        this.error = `Failed to start new day: ${error.message}`;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    cancelNewDay() {
+      this.showNewDayModal = false;
+    },
     
     async removeFromQuicklist(quicklistId) {
       try {
@@ -720,6 +762,7 @@ const app = createApp({
       showDeletePersonModal: Vue.computed(() => this.showDeletePersonModal),
       personToDelete: Vue.computed(() => this.personToDelete),
       newChore: Vue.computed(() => this.newChore || { name: '', amount: 0, category: 'regular', addToQuicklist: false }),
+      showNewDayModal: Vue.computed(() => this.showNewDayModal),
       loadAllData: this.loadAllData,
       // Provide methods that child components need
       assignSelectedChore: this.assignSelectedChore

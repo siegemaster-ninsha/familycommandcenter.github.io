@@ -234,11 +234,52 @@ const AppModals = Vue.defineComponent({
         </div>
       </div>
     </div>
+
+    <!-- New Day Confirmation Modal -->
+    <div v-if="showNewDayModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="bg-orange-100 p-2 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-orange-600" viewBox="0 0 256 256">
+              <path d="M128,40a88,88,0,1,0,88,88A88.1,88.1,0,0,0,128,40Zm0,160a72,72,0,1,1,72-72A72.08,72.08,0,0,1,128,200ZM164.49,99.51a8,8,0,0,1,0,11.31L137.66,138.34a8,8,0,0,1-11.32,0L99.51,111.51a8,8,0,0,1,11.31-11.31L128,117.37l21.18-21.18A8,8,0,0,1,164.49,99.51Z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-[#0d0f1c]">Start New Day</h3>
+        </div>
+        <div class="space-y-4 mb-6">
+          <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <h4 class="font-medium text-orange-800 mb-2">🌅 What happens when you start a new day:</h4>
+            <ul class="text-sm text-orange-700 space-y-1">
+              <li>• All current chores will be deleted</li>
+              <li>• Family members' earnings will be <strong>preserved</strong></li>
+              <li>• The board will be cleared for fresh daily chores</li>
+            </ul>
+          </div>
+          <p class="text-[#47569e] text-sm">
+            This action cannot be undone. Are you sure you want to start a new day?
+          </p>
+        </div>
+        <div class="flex gap-3">
+          <button 
+            @click="startNewDay"
+            class="flex-1 bg-gradient-to-r from-orange-500 to-red-500 text-white py-2 px-4 rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-200"
+          >
+            Start New Day
+          </button>
+          <button 
+            @click="cancelNewDay"
+            class="flex-1 bg-[#e6e9f4] text-[#0d0f1c] py-2 px-4 rounded-lg hover:bg-[#d0d4e8] transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
   `,
   inject: [
     'showDeleteModal', 'choreToDelete', 'showAddToQuicklistModal', 'newQuicklistChore',
     'showAddPersonModal', 'newPerson', 'showDeletePersonModal', 'personToDelete',
-    'showAddChoreModal', 'newChore'
+    'showAddChoreModal', 'newChore', 'showNewDayModal'
   ],
   methods: {
     async confirmDelete() {
@@ -378,6 +419,14 @@ const AppModals = Vue.defineComponent({
     cancelAddChore() {
       this.$parent.showAddChoreModal = false;
       this.$parent.newChore = { name: '', amount: 0, category: 'regular', addToQuicklist: false };
+    },
+
+    async startNewDay() {
+      await this.$parent.startNewDay();
+    },
+
+    cancelNewDay() {
+      this.$parent.cancelNewDay();
     }
   }
 });
