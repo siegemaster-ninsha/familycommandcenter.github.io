@@ -661,9 +661,29 @@ const app = createApp({
   }
 });
 
-// Wait for all scripts to load, then register components
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('🔧 Registering Vue components...');
+// Function to check if all components are loaded
+function checkAndRegisterComponents() {
+  console.log('🔧 Checking component availability...');
+  
+  // Check if all components are available
+  const requiredComponents = [
+    'UIComponents',
+    'QuicklistSectionComponent', 
+    'UnassignedSectionComponent',
+    'FamilyMembersSectionComponent',
+    'TrashSectionComponent',
+    'AppModalsComponent'
+  ];
+  
+  const missingComponents = requiredComponents.filter(comp => !window[comp]);
+  
+  if (missingComponents.length > 0) {
+    console.log('⏳ Waiting for components:', missingComponents);
+    setTimeout(checkAndRegisterComponents, 100); // Check again in 100ms
+    return;
+  }
+  
+  console.log('🔧 All components available, registering...');
   
   // Register UI components
   if (window.UIComponents) {
@@ -674,33 +694,28 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Register section components with kebab-case names to match HTML
-  if (window.QuicklistSectionComponent) {
-    console.log('📦 Registering quicklist-section');
-    app.component('quicklist-section', window.QuicklistSectionComponent);
-  }
-
-  if (window.UnassignedSectionComponent) {
-    console.log('📦 Registering unassigned-section');
-    app.component('unassigned-section', window.UnassignedSectionComponent);
-  }
-
-  if (window.FamilyMembersSectionComponent) {
-    console.log('📦 Registering family-members-section');
-    app.component('family-members-section', window.FamilyMembersSectionComponent);
-  }
-
-  if (window.TrashSectionComponent) {
-    console.log('📦 Registering trash-section');
-    app.component('trash-section', window.TrashSectionComponent);
-  }
-
-  if (window.AppModalsComponent) {
-    console.log('📦 Registering app-modals');
-    app.component('app-modals', window.AppModalsComponent);
-  }
+  console.log('📦 Registering quicklist-section');
+  app.component('quicklist-section', window.QuicklistSectionComponent);
+  
+  console.log('📦 Registering unassigned-section');
+  app.component('unassigned-section', window.UnassignedSectionComponent);
+  
+  console.log('📦 Registering family-members-section');
+  app.component('family-members-section', window.FamilyMembersSectionComponent);
+  
+  console.log('📦 Registering trash-section');
+  app.component('trash-section', window.TrashSectionComponent);
+  
+  console.log('📦 Registering app-modals');
+  app.component('app-modals', window.AppModalsComponent);
 
   console.log('✅ All components registered, mounting app...');
   
   // Mount the app
   app.mount('#app');
+}
+
+// Wait for DOM to be ready, then start checking for components
+document.addEventListener('DOMContentLoaded', function() {
+  checkAndRegisterComponents();
 }); 
