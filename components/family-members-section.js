@@ -77,6 +77,7 @@ const FamilyMembersSection = Vue.defineComponent({
                     type="checkbox"
                     v-model="chore.completed"
                     @change="handleChoreCompletion(chore)"
+                    @click.stop
                     class="h-4 w-4 rounded border-[#ced2e9] border-2 bg-transparent text-[#607afb] checked:bg-[#607afb] checked:border-[#607afb] checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:border-[#ced2e9] focus:outline-none"
                   />
                 </div>
