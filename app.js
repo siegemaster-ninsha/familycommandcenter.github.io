@@ -771,9 +771,12 @@ const app = createApp({
       personToDelete: Vue.computed(() => this.personToDelete),
       newChore: Vue.computed(() => this.newChore || { name: '', amount: 0, category: 'regular', addToQuicklist: false }),
       showNewDayModal: Vue.computed(() => this.showNewDayModal),
+      currentPage: Vue.computed(() => this.currentPage),
       loadAllData: this.loadAllData,
       // Provide methods that child components need
-      assignSelectedChore: this.assignSelectedChore
+      assignSelectedChore: this.assignSelectedChore,
+      setCurrentPage: this.setCurrentPage,
+      confirmDeletePerson: this.confirmDeletePerson
     };
   }
 });
