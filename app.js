@@ -52,15 +52,30 @@ const app = createApp({
       };
       
       // Add each person to the grouped object
-      this.people.forEach(person => {
-        grouped[person.name] = [];
-      });
+      if (Array.isArray(this.people)) {
+        this.people.forEach(person => {
+          if (person && person.name) {
+            grouped[person.name] = [];
+          }
+        });
+      }
       
-      this.chores.forEach(chore => {
-        if (grouped[chore.assignedTo]) {
-          grouped[chore.assignedTo].push(chore);
-        }
-      });
+      // Group chores by assigned person
+      if (Array.isArray(this.chores)) {
+        this.chores.forEach(chore => {
+          if (chore && chore.assignedTo) {
+            if (grouped[chore.assignedTo]) {
+              grouped[chore.assignedTo].push(chore);
+            } else {
+              // If assignedTo person doesn't exist, put it in unassigned
+              grouped.unassigned.push(chore);
+            }
+          } else {
+            // If chore doesn't have assignedTo, put it in unassigned
+            grouped.unassigned.push(chore);
+          }
+        });
+      }
       
       return grouped;
     },
@@ -91,11 +106,18 @@ const app = createApp({
       if (this.selectedQuicklistChore) {
         return this.selectedQuicklistChore;
       }
+      
       if (this.selectedChoreId) {
-        const found = this.chores.find(chore => chore.id === this.selectedChoreId) || null;
+        if (!Array.isArray(this.chores)) {
+          console.warn('Chores is not an array:', this.chores);
+          return null;
+        }
+        
+        const found = this.chores.find(chore => chore && chore.id === this.selectedChoreId) || null;
         console.log('Found chore for selection:', found?.name || 'null');
         return found;
       }
+      
       return null;
     }
   },
@@ -117,7 +139,19 @@ const app = createApp({
         console.log(`📡 Response status: ${response.status} for ${endpoint}`);
         
         if (!response.ok) {
-          throw new Error(`API call failed: ${response.status} ${response.statusText} for ${endpoint}`);
+          let errorMessage = `API call failed: ${response.status} ${response.statusText}`;
+          
+          // Try to get more detailed error from response body
+          try {
+            const errorData = await response.json();
+            if (errorData.error) {
+              errorMessage += ` - ${errorData.error}`;
+            }
+          } catch (e) {
+            // Ignore parsing errors for error responses
+          }
+          
+          throw new Error(`${errorMessage} for ${endpoint}`);
         }
         
         const data = await response.json();
@@ -125,7 +159,12 @@ const app = createApp({
         return data;
       } catch (error) {
         console.error(`❌ API Error for ${endpoint}:`, error);
-        // Don't set this.error here as it will be handled by individual methods
+        
+        // Add more specific error handling
+        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+          throw new Error(`Network error: Unable to connect to the API. Please check your internet connection and API configuration.`);
+        }
+        
         throw error;
       }
     },
@@ -596,27 +635,48 @@ const app = createApp({
 
   // Add method for click-to-assign functionality
   async assignSelectedChore(assignTo) {
-    if (!this.selectedChore) return;
+    if (!this.selectedChore) {
+      console.warn('No chore selected for assignment');
+      return;
+    }
+    
+    if (!assignTo) {
+      console.warn('No assignee specified');
+      return;
+    }
     
     try {
+      console.log('Assigning chore:', this.selectedChore.name, 'to:', assignTo);
+      
       if (this.selectedChore.isNewFromQuicklist) {
         // This is a new chore from quicklist
         const choreData = {
           name: this.selectedChore.name,
-          amount: this.selectedChore.amount,
-          category: this.selectedChore.category,
-          assignedTo: assignTo
+          amount: this.selectedChore.amount || 0,
+          category: this.selectedChore.category || 'regular',
+          assignedTo: assignTo,
+          completed: false
         };
-        await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
+        
+        const response = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
           method: 'POST',
           body: JSON.stringify(choreData)
         });
+        
+        console.log('Created new chore from quicklist:', response);
       } else {
         // This is an existing chore being moved
-        await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.selectedChore.id}/assign`, {
+        if (!this.selectedChore.id) {
+          console.error('Selected chore missing ID:', this.selectedChore);
+          return;
+        }
+        
+        const response = await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.selectedChore.id}/assign`, {
           method: 'PUT',
           body: JSON.stringify({ assignedTo: assignTo })
         });
+        
+        console.log('Updated chore assignment:', response);
       }
       
       // Reload data to get updated state
@@ -627,8 +687,12 @@ const app = createApp({
       // Clear selection
       this.selectedChoreId = null;
       this.selectedQuicklistChore = null;
+      
+      console.log('Chore assignment completed successfully');
     } catch (error) {
       console.error('Failed to assign chore:', error);
+      // Show user-friendly error message
+      alert('Failed to assign chore. Please try again.');
     }
   },
 
@@ -642,20 +706,20 @@ const app = createApp({
       completedChoreMessage: Vue.computed(() => this.completedChoreMessage),
       showConfetti: Vue.computed(() => this.showConfetti),
       confettiPieces: Vue.computed(() => this.confettiPieces),
-      quicklistChores: Vue.computed(() => this.quicklistChores),
+      quicklistChores: Vue.computed(() => this.quicklistChores || []),
       showAddToQuicklistModal: Vue.computed(() => this.showAddToQuicklistModal),
-      choresByPerson: Vue.computed(() => this.choresByPerson),
+      choresByPerson: Vue.computed(() => this.choresByPerson || {}),
       showAddChoreModal: Vue.computed(() => this.showAddChoreModal),
-      people: Vue.computed(() => this.people),
+      people: Vue.computed(() => this.people || []),
       showAddPersonModal: Vue.computed(() => this.showAddPersonModal),
       isDragOverTrash: Vue.computed(() => this.isDragOverTrash),
       showDeleteModal: Vue.computed(() => this.showDeleteModal),
       choreToDelete: Vue.computed(() => this.choreToDelete),
-      newQuicklistChore: Vue.computed(() => this.newQuicklistChore),
-      newPerson: Vue.computed(() => this.newPerson),
+      newQuicklistChore: Vue.computed(() => this.newQuicklistChore || { name: '', amount: 0, category: 'regular' }),
+      newPerson: Vue.computed(() => this.newPerson || { name: '' }),
       showDeletePersonModal: Vue.computed(() => this.showDeletePersonModal),
       personToDelete: Vue.computed(() => this.personToDelete),
-      newChore: Vue.computed(() => this.newChore),
+      newChore: Vue.computed(() => this.newChore || { name: '', amount: 0, category: 'regular', addToQuicklist: false }),
       loadAllData: this.loadAllData
     };
   }

@@ -207,43 +207,6 @@ const FamilyMembersSection = Vue.defineComponent({
       }
     },
 
-    async assignSelectedChore(assignTo) {
-      if (!this.$parent.selectedChore) return;
-      
-      try {
-        if (this.$parent.selectedChore.isNewFromQuicklist) {
-          // This is a new chore from quicklist
-          const choreData = {
-            name: this.$parent.selectedChore.name,
-            amount: this.$parent.selectedChore.amount,
-            category: this.$parent.selectedChore.category,
-            assignedTo: assignTo
-          };
-          await this.$parent.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
-            method: 'POST',
-            body: JSON.stringify(choreData)
-          });
-        } else {
-          // This is an existing chore being moved
-          await this.$parent.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.$parent.selectedChore.id}/assign`, {
-            method: 'PUT',
-            body: JSON.stringify({ assignedTo: assignTo })
-          });
-        }
-        
-        // Reload data to get updated state
-        await this.$parent.loadChores();
-        await this.$parent.loadEarnings();
-        await this.$parent.loadElectronicsStatus();
-        
-        // Clear selection
-        this.$parent.selectedChoreId = null;
-        this.$parent.selectedQuicklistChore = null;
-      } catch (error) {
-        console.error('Failed to assign chore:', error);
-      }
-    },
-
     async handleDrop(event, assignTo) {
       event.preventDefault();
       if (this.$parent.draggedChore) {
