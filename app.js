@@ -615,6 +615,69 @@ const app = createApp({
         this.showConfetti = false;
         this.confettiPieces = [];
       }, 4500);
+    },
+
+    // Add method for click-to-assign functionality
+    async assignSelectedChore(assignTo) {
+      if (!this.selectedChore) {
+        console.warn('No chore selected for assignment');
+        return;
+      }
+      
+      if (!assignTo) {
+        console.warn('No assignee specified');
+        return;
+      }
+      
+      try {
+        console.log('Assigning chore:', this.selectedChore.name, 'to:', assignTo);
+        
+        if (this.selectedChore.isNewFromQuicklist) {
+          // This is a new chore from quicklist
+          const choreData = {
+            name: this.selectedChore.name,
+            amount: this.selectedChore.amount || 0,
+            category: this.selectedChore.category || 'regular',
+            assignedTo: assignTo,
+            completed: false
+          };
+          
+          const response = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
+            method: 'POST',
+            body: JSON.stringify(choreData)
+          });
+          
+          console.log('Created new chore from quicklist:', response);
+        } else {
+          // This is an existing chore being moved
+          if (!this.selectedChore.id) {
+            console.error('Selected chore missing ID:', this.selectedChore);
+            return;
+          }
+          
+          const response = await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.selectedChore.id}/assign`, {
+            method: 'PUT',
+            body: JSON.stringify({ assignedTo: assignTo })
+          });
+          
+          console.log('Updated chore assignment:', response);
+        }
+        
+        // Reload data to get updated state
+        await this.loadChores();
+        await this.loadEarnings();
+        await this.loadElectronicsStatus();
+        
+        // Clear selection
+        this.selectedChoreId = null;
+        this.selectedQuicklistChore = null;
+        
+        console.log('Chore assignment completed successfully');
+      } catch (error) {
+        console.error('Failed to assign chore:', error);
+        // Show user-friendly error message
+        alert('Failed to assign chore. Please try again.');
+      }
     }
   },
   
@@ -631,69 +694,6 @@ const app = createApp({
   
   async mounted() {
     await this.loadAllData();
-  },
-
-  // Add method for click-to-assign functionality
-  async assignSelectedChore(assignTo) {
-    if (!this.selectedChore) {
-      console.warn('No chore selected for assignment');
-      return;
-    }
-    
-    if (!assignTo) {
-      console.warn('No assignee specified');
-      return;
-    }
-    
-    try {
-      console.log('Assigning chore:', this.selectedChore.name, 'to:', assignTo);
-      
-      if (this.selectedChore.isNewFromQuicklist) {
-        // This is a new chore from quicklist
-        const choreData = {
-          name: this.selectedChore.name,
-          amount: this.selectedChore.amount || 0,
-          category: this.selectedChore.category || 'regular',
-          assignedTo: assignTo,
-          completed: false
-        };
-        
-        const response = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
-          method: 'POST',
-          body: JSON.stringify(choreData)
-        });
-        
-        console.log('Created new chore from quicklist:', response);
-      } else {
-        // This is an existing chore being moved
-        if (!this.selectedChore.id) {
-          console.error('Selected chore missing ID:', this.selectedChore);
-          return;
-        }
-        
-        const response = await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.selectedChore.id}/assign`, {
-          method: 'PUT',
-          body: JSON.stringify({ assignedTo: assignTo })
-        });
-        
-        console.log('Updated chore assignment:', response);
-      }
-      
-      // Reload data to get updated state
-      await this.loadChores();
-      await this.loadEarnings();
-      await this.loadElectronicsStatus();
-      
-      // Clear selection
-      this.selectedChoreId = null;
-      this.selectedQuicklistChore = null;
-      
-      console.log('Chore assignment completed successfully');
-    } catch (error) {
-      console.error('Failed to assign chore:', error);
-      // Show user-friendly error message
-      alert('Failed to assign chore. Please try again.');
-    }
   },
 
   provide() {
@@ -720,7 +720,9 @@ const app = createApp({
       showDeletePersonModal: Vue.computed(() => this.showDeletePersonModal),
       personToDelete: Vue.computed(() => this.personToDelete),
       newChore: Vue.computed(() => this.newChore || { name: '', amount: 0, category: 'regular', addToQuicklist: false }),
-      loadAllData: this.loadAllData
+      loadAllData: this.loadAllData,
+      // Provide methods that child components need
+      assignSelectedChore: this.assignSelectedChore
     };
   }
 });

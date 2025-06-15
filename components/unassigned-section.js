@@ -56,7 +56,7 @@ const UnassignedSection = Vue.defineComponent({
       </div>
     </div>
   `,
-  inject: ['choresByPerson', 'showAddChoreModal'],
+  inject: ['choresByPerson', 'showAddChoreModal', 'assignSelectedChore'],
   methods: {
     getChoreClasses(chore) {
       const baseClasses = "flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between mb-2 rounded-lg shadow-sm cursor-pointer border-l-4 transition-all duration-200";
@@ -133,7 +133,7 @@ const UnassignedSection = Vue.defineComponent({
           chore.assignedTo && 
           chore.assignedTo !== 'unassigned') {
         console.log('Assigning selected chore to:', chore.assignedTo);
-        this.$parent.assignSelectedChore(chore.assignedTo);
+        this.assignSelectedChore(chore.assignedTo);
         return;
       }
       

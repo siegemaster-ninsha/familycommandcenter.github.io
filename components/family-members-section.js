@@ -106,7 +106,10 @@ const FamilyMembersSection = Vue.defineComponent({
       </div>
     </div>
   `,
-  inject: ['people', 'choresByPerson', 'selectedChore', 'showAddPersonModal'],
+  inject: [
+    'choresByPerson', 'people', 'showDeletePersonModal', 'personToDelete', 
+    'showAddPersonModal', 'newPerson', 'isDragOverTrash', 'assignSelectedChore'
+  ],
   methods: {
     getDropZoneClasses(person) {
       const baseClasses = "bg-white rounded-lg shadow-sm border transition-all duration-200";
@@ -190,7 +193,7 @@ const FamilyMembersSection = Vue.defineComponent({
           chore.assignedTo && 
           chore.assignedTo !== 'unassigned') {
         console.log('Assigning selected chore to:', chore.assignedTo);
-        this.$parent.assignSelectedChore(chore.assignedTo);
+        this.assignSelectedChore(chore.assignedTo);
         return;
       }
       
