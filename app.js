@@ -749,6 +749,7 @@ const app = createApp({
   provide() {
     return {
       // Provide reactive data to child components
+      // Readonly computed values for display data
       loading: Vue.computed(() => this.loading),
       error: Vue.computed(() => this.error),
       selectedChore: Vue.computed(() => this.selectedChore),
@@ -757,23 +758,26 @@ const app = createApp({
       showConfetti: Vue.computed(() => this.showConfetti),
       confettiPieces: Vue.computed(() => this.confettiPieces),
       quicklistChores: Vue.computed(() => this.quicklistChores || []),
-      showAddToQuicklistModal: Vue.computed(() => this.showAddToQuicklistModal),
       choresByPerson: Vue.computed(() => this.choresByPerson || {}),
-      showAddChoreModal: Vue.computed(() => this.showAddChoreModal),
       people: Vue.computed(() => this.people || []),
-      showAddPersonModal: Vue.computed(() => this.showAddPersonModal),
       isDragOverTrash: Vue.computed(() => this.isDragOverTrash),
-      showDeleteModal: Vue.computed(() => this.showDeleteModal),
       choreToDelete: Vue.computed(() => this.choreToDelete),
-      newQuicklistChore: Vue.computed(() => this.newQuicklistChore || { name: '', amount: 0, category: 'regular' }),
-      newPerson: Vue.computed(() => this.newPerson || { name: '' }),
-      showDeletePersonModal: Vue.computed(() => this.showDeletePersonModal),
       personToDelete: Vue.computed(() => this.personToDelete),
-      newChore: Vue.computed(() => this.newChore || { name: '', amount: 0, category: 'regular', addToQuicklist: false }),
-      showNewDayModal: Vue.computed(() => this.showNewDayModal),
-      currentPage: Vue.computed(() => this.currentPage),
-      loadAllData: this.loadAllData,
+      
+      // Writable reactive refs for modal states and form data
+      showAddToQuicklistModal: Vue.toRef(this, 'showAddToQuicklistModal'),
+      showAddChoreModal: Vue.toRef(this, 'showAddChoreModal'),
+      showAddPersonModal: Vue.toRef(this, 'showAddPersonModal'),
+      showDeleteModal: Vue.toRef(this, 'showDeleteModal'),
+      showDeletePersonModal: Vue.toRef(this, 'showDeletePersonModal'),
+      showNewDayModal: Vue.toRef(this, 'showNewDayModal'),
+      currentPage: Vue.toRef(this, 'currentPage'),
+      newQuicklistChore: Vue.toRef(this, 'newQuicklistChore'),
+      newPerson: Vue.toRef(this, 'newPerson'),
+      newChore: Vue.toRef(this, 'newChore'),
+      
       // Provide methods that child components need
+      loadAllData: this.loadAllData,
       assignSelectedChore: this.assignSelectedChore,
       setCurrentPage: this.setCurrentPage,
       confirmDeletePerson: this.confirmDeletePerson
