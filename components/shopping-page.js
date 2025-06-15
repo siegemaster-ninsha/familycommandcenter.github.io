@@ -407,6 +407,19 @@ const ShoppingPage = Vue.defineComponent({
                   placeholder="Any default notes"
                 >
               </div>
+              
+              <div>
+                <label class="block text-sm font-medium mb-1">Default Store</label>
+                <select
+                  v-model="newQuickItem.defaultStore"
+                  class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">No Store Selected</option>
+                  <option v-for="store in stores" :key="store.id" :value="store.name">
+                    {{ store.name }}
+                  </option>
+                </select>
+              </div>
             </div>
             
             <div class="flex gap-3 mt-6">
@@ -502,7 +515,8 @@ const ShoppingPage = Vue.defineComponent({
         name: '',
         category: 'General',
         defaultQuantity: '',
-        defaultNotes: ''
+        defaultNotes: '',
+        defaultStore: ''
       },
       newStore: {
         name: ''
@@ -747,7 +761,7 @@ const ShoppingPage = Vue.defineComponent({
         this.quickItems.push(data.item);
         
         // Reset form and close modal
-        this.newQuickItem = { name: '', category: 'General', defaultQuantity: '', defaultNotes: '' };
+        this.newQuickItem = { name: '', category: 'General', defaultQuantity: '', defaultNotes: '', defaultStore: '' };
         this.showAddQuickItemModal = false;
         this.showSuccessMessage('Quick item added successfully!');
       } catch (error) {
