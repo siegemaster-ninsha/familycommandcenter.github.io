@@ -419,9 +419,45 @@ const app = createApp({
       }
     },
     
+    async confirmDeletePerson() {
+      if (this.personToDelete) {
+        try {
+          // First, unassign all chores from this person
+          this.chores.forEach(chore => {
+            if (chore.assignedTo === this.personToDelete.name) {
+              chore.assignedTo = 'unassigned';
+              // Update the chore in the backend
+              this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/assign`, {
+                method: 'PUT',
+                body: JSON.stringify({ assignedTo: 'unassigned' })
+              }).catch(error => console.error('Failed to unassign chore:', error));
+            }
+          });
+          
+          // Remove the person from the array
+          const index = this.people.findIndex(p => p.id === this.personToDelete.id);
+          if (index > -1) {
+            this.people.splice(index, 1);
+          }
+          
+          // Reload data to ensure consistency
+          await this.loadAllData();
+        } catch (error) {
+          console.error('Failed to delete person:', error);
+        }
+        
+        this.cancelDeletePerson();
+      }
+    },
+    
     cancelDeletePerson() {
       this.personToDelete = null;
       this.showDeletePersonModal = false;
+    },
+    
+    deletePerson(person) {
+      this.personToDelete = person;
+      this.showDeletePersonModal = true;
     },
     
     // Chore management methods
@@ -764,14 +800,16 @@ const app = createApp({
       choreToDelete: Vue.computed(() => this.choreToDelete),
       personToDelete: Vue.computed(() => this.personToDelete),
       
-      // Writable reactive refs for modal states and form data
-      showAddToQuicklistModal: Vue.toRef(this, 'showAddToQuicklistModal'),
-      showAddChoreModal: Vue.toRef(this, 'showAddChoreModal'),
-      showAddPersonModal: Vue.toRef(this, 'showAddPersonModal'),
-      showDeleteModal: Vue.toRef(this, 'showDeleteModal'),
-      showDeletePersonModal: Vue.toRef(this, 'showDeletePersonModal'),
-      showNewDayModal: Vue.toRef(this, 'showNewDayModal'),
-      currentPage: Vue.toRef(this, 'currentPage'),
+      // Modal state computed values (readonly)
+      showAddToQuicklistModal: Vue.computed(() => this.showAddToQuicklistModal),
+      showAddChoreModal: Vue.computed(() => this.showAddChoreModal),
+      showAddPersonModal: Vue.computed(() => this.showAddPersonModal),
+      showDeleteModal: Vue.computed(() => this.showDeleteModal),
+      showDeletePersonModal: Vue.computed(() => this.showDeletePersonModal),
+      showNewDayModal: Vue.computed(() => this.showNewDayModal),
+      currentPage: Vue.computed(() => this.currentPage),
+      
+      // Form data as reactive refs
       newQuicklistChore: Vue.toRef(this, 'newQuicklistChore'),
       newPerson: Vue.toRef(this, 'newPerson'),
       newChore: Vue.toRef(this, 'newChore'),
@@ -780,7 +818,20 @@ const app = createApp({
       loadAllData: this.loadAllData,
       assignSelectedChore: this.assignSelectedChore,
       setCurrentPage: this.setCurrentPage,
-      confirmDeletePerson: this.confirmDeletePerson
+      confirmDeletePerson: this.confirmDeletePerson,
+      addChore: this.addChore,
+      cancelAddChore: this.cancelAddChore,
+      addPerson: this.addPerson,
+      cancelAddPerson: this.cancelAddPerson,
+      addToQuicklist: this.addToQuicklist,
+      cancelAddToQuicklist: this.cancelAddToQuicklist,
+      startNewDay: this.startNewDay,
+      cancelNewDay: this.cancelNewDay,
+      confirmDelete: this.confirmDelete,
+      cancelDelete: this.cancelDelete,
+      deletePerson: this.deletePerson,
+      confirmDeletePerson: this.confirmDeletePerson,
+      cancelDeletePerson: this.cancelDeletePerson
     };
   }
 });

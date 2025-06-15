@@ -5,7 +5,7 @@ const FamilyMembersSection = Vue.defineComponent({
       <div class="flex items-center justify-between px-4 pb-3 pt-5">
         <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em]">Family Members</h2>
         <button
-          @click="showAddPersonModal = true"
+          @click="$parent.showAddPersonModal = true"
           class="flex items-center gap-2 bg-[#607afb] hover:bg-[#4f68d8] text-white px-3 py-2 rounded-lg transition-colors text-sm font-medium"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
@@ -35,7 +35,7 @@ const FamilyMembersSection = Vue.defineComponent({
                 {{ person.electronicsStatus.message }}
               </div>
               <button
-                @click.stop="deletePerson(person)"
+                @click.stop="$parent.confirmDeletePerson(person)"
                 class="text-red-500 hover:text-red-700 p-1 rounded transition-colors"
                 :title="'Remove ' + person.name"
               >

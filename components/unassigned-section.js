@@ -48,7 +48,7 @@ const UnassignedSection = Vue.defineComponent({
       <!-- Add new chore button for unassigned -->
       <div class="flex px-4 py-3 justify-start">
         <button
-          @click="showAddChoreModal = true"
+          @click="$parent.showAddChoreModal = true"
           class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#607afb] text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#4f68d8] transition-colors"
         >
           <span class="truncate">Add New Chore</span>

@@ -41,7 +41,7 @@ const QuicklistSection = Vue.defineComponent({
           <!-- Add to Quicklist button -->
           <div class="flex items-center justify-center">
             <button
-              @click="showAddToQuicklistModal = true"
+              @click="$parent.showAddToQuicklistModal = true"
               class="flex items-center gap-2 bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-2 rounded-lg border-2 border-dashed border-purple-300 transition-colors duration-200"
               title="Add new chore to quicklist"
             >
