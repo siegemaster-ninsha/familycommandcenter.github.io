@@ -27,6 +27,8 @@ const app = createApp({
       personToDelete: null,
       // New Day functionality
       showNewDayModal: false,
+      // Page navigation
+      currentPage: 'chores', // Default to chores page
       // Existing data
       chores: [],
       draggedChore: null,
@@ -534,6 +536,12 @@ const app = createApp({
     cancelNewDay() {
       this.showNewDayModal = false;
     },
+
+    // Page navigation
+    setCurrentPage(page) {
+      this.currentPage = page;
+      console.log('📄 Switched to page:', page);
+    },
     
     async removeFromQuicklist(quicklistId) {
       try {
@@ -781,7 +789,9 @@ function checkAndRegisterComponents() {
     'UnassignedSectionComponent',
     'FamilyMembersSectionComponent',
     'TrashSectionComponent',
-    'AppModalsComponent'
+    'AppModalsComponent',
+    'FamilyPageComponent',
+    'ShoppingPageComponent'
   ];
   
   const missingComponents = requiredComponents.filter(comp => !window[comp]);
@@ -817,6 +827,12 @@ function checkAndRegisterComponents() {
   
   console.log('📦 Registering app-modals');
   app.component('app-modals', window.AppModalsComponent);
+  
+  console.log('📦 Registering family-page');
+  app.component('family-page', window.FamilyPageComponent);
+  
+  console.log('📦 Registering shopping-page');
+  app.component('shopping-page', window.ShoppingPageComponent);
 
   console.log('✅ All components registered, mounting app...');
   

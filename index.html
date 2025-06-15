@@ -42,12 +42,27 @@
             </div>
             <div class="flex flex-1 justify-end gap-8">
               <div class="flex items-center gap-9">
-                <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">Dashboard</a>
-                <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">Calendar</a>
-                <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">To-Do</a>
-                <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">Shopping List</a>
-                <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">Meal Planner</a>
-                <a class="text-[#0d0f1c] text-sm font-medium leading-normal" href="#">Chores</a>
+                <a 
+                  :class="currentPage === 'chores' ? 'text-[#607afb] font-bold border-b-2 border-[#607afb] pb-1' : 'text-[#0d0f1c] hover:text-[#607afb]'"
+                  class="text-sm font-medium leading-normal transition-colors cursor-pointer"
+                  @click="setCurrentPage('chores')"
+                >
+                  Chores
+                </a>
+                <a 
+                  :class="currentPage === 'family' ? 'text-[#607afb] font-bold border-b-2 border-[#607afb] pb-1' : 'text-[#0d0f1c] hover:text-[#607afb]'"
+                  class="text-sm font-medium leading-normal transition-colors cursor-pointer"
+                  @click="setCurrentPage('family')"
+                >
+                  Family
+                </a>
+                <a 
+                  :class="currentPage === 'shopping' ? 'text-[#607afb] font-bold border-b-2 border-[#607afb] pb-1' : 'text-[#0d0f1c] hover:text-[#607afb]'"
+                  class="text-sm font-medium leading-normal transition-colors cursor-pointer"
+                  @click="setCurrentPage('shopping')"
+                >
+                  Shopping List
+                </a>
               </div>
               <div
                 class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
@@ -59,10 +74,12 @@
           <!-- Main Content Area -->
           <div class="px-40 flex flex-1 justify-center py-5">
             <div class="layout-content-container flex flex-col max-w-[960px] flex-1">
-              <!-- Page Title -->
+              <!-- Dynamic Page Title -->
               <div class="flex flex-wrap justify-between gap-3 p-4">
-                <p class="text-[#0d0f1c] tracking-light text-[32px] font-bold leading-tight min-w-72">Chores</p>
-                <div class="flex items-center gap-3">
+                <p class="text-[#0d0f1c] tracking-light text-[32px] font-bold leading-tight min-w-72">
+                  {{ currentPage === 'chores' ? 'Chores' : currentPage === 'family' ? 'Family Members' : 'Shopping List' }}
+                </p>
+                <div class="flex items-center gap-3" v-if="currentPage === 'chores'">
                   <button
                     @click="showNewDayModal = true"
                     class="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-4 py-2 rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105"
@@ -83,12 +100,25 @@
               <app-success-message></app-success-message>
               <app-confetti></app-confetti>
 
-              <!-- Main Content Components -->
+              <!-- Page Content -->
               <div v-if="!loading && !error">
-                <quicklist-section></quicklist-section>
-                <unassigned-section></unassigned-section>
-                <family-members-section></family-members-section>
-                <trash-section></trash-section>
+                <!-- Chores Page -->
+                <div v-if="currentPage === 'chores'">
+                  <quicklist-section></quicklist-section>
+                  <unassigned-section></unassigned-section>
+                  <family-members-section></family-members-section>
+                  <trash-section></trash-section>
+                </div>
+
+                <!-- Family Page -->
+                <div v-else-if="currentPage === 'family'">
+                  <family-page></family-page>
+                </div>
+
+                <!-- Shopping List Page -->
+                <div v-else-if="currentPage === 'shopping'">
+                  <shopping-page></shopping-page>
+                </div>
               </div>
             </div>
           </div>
@@ -106,6 +136,8 @@
     <script src="components/family-members-section.js"></script>
     <script src="components/trash-section.js"></script>
     <script src="components/app-modals.js"></script>
+    <script src="components/family-page.js"></script>
+    <script src="components/shopping-page.js"></script>
     
     <!-- Load main application -->
     <script src="app.js"></script>
