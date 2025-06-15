@@ -848,6 +848,7 @@ function checkAndRegisterComponents() {
     'FamilyMembersSectionComponent',
     'TrashSectionComponent',
     'AppModalsComponent',
+    'EarningsWidgetComponent',
     'FamilyPageComponent',
     'ShoppingPageComponent'
   ];
@@ -885,6 +886,9 @@ function checkAndRegisterComponents() {
   
   console.log('📦 Registering app-modals');
   app.component('app-modals', window.AppModalsComponent);
+  
+  console.log('📦 Registering earnings-widget');
+  app.component('earnings-widget', window.EarningsWidgetComponent);
   
   console.log('📦 Registering family-page');
   app.component('family-page', window.FamilyPageComponent);

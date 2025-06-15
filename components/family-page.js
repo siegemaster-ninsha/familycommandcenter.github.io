@@ -76,56 +76,11 @@ const FamilyPage = Vue.defineComponent({
         </div>
       </div>
 
-      <!-- Earnings Summary -->
-      <div class="bg-white rounded-lg border border-[#e6e9f4] p-6">
-        <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">📊 Earnings Summary</h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-            <div class="text-2xl font-bold text-green-600 mb-1">
-              \${{ totalEarnings.toFixed(2) }}
-            </div>
-            <div class="text-sm text-green-700">Total Family Earnings</div>
-          </div>
-          
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-            <div class="text-2xl font-bold text-blue-600 mb-1">
-              {{ people.length }}
-            </div>
-            <div class="text-sm text-blue-700">Family Members</div>
-          </div>
-          
-          <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
-            <div class="text-2xl font-bold text-purple-600 mb-1">
-              {{ activeMembers }}
-            </div>
-            <div class="text-sm text-purple-700">Members with Earnings</div>
-          </div>
-          
-          <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
-            <div class="text-2xl font-bold text-orange-600 mb-1">
-              {{ Math.round(averageEarnings * 100) / 100 }}
-            </div>
-            <div class="text-sm text-orange-700">Average Earnings</div>
-          </div>
-        </div>
-      </div>
+      <!-- Earnings Widget -->
+      <earnings-widget></earnings-widget>
     </div>
   `,
   inject: ['people', 'showAddPersonModal'],
-  computed: {
-    totalEarnings() {
-      return this.people.reduce((total, person) => total + person.earnings, 0);
-    },
-    
-    activeMembers() {
-      return this.people.filter(person => person.earnings > 0).length;
-    },
-    
-    averageEarnings() {
-      return this.people.length > 0 ? this.totalEarnings / this.people.length : 0;
-    }
-  },
   methods: {
     confirmDeletePerson(person) {
       this.$parent.confirmDeletePerson(person);
