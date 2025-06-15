@@ -71,13 +71,15 @@ const FamilyMembersSection = Vue.defineComponent({
                   <p v-if="chore.amount > 0" class="text-[#47569e] text-xs font-normal leading-normal">\${{ chore.amount.toFixed(2) }}</p>
                 </div>
               </div>
-              <div class="shrink-0">
+              <div class="shrink-0" @click.stop @change.stop @mousedown.stop @mouseup.stop>
                 <div class="flex size-6 items-center justify-center">
                   <input
                     type="checkbox"
-                    v-model="chore.completed"
-                    @change="handleChoreCompletion(chore)"
+                    :checked="chore.completed"
+                    @change.stop="handleChoreCompletionChange(chore, $event)"
                     @click.stop
+                    @mousedown.stop
+                    @mouseup.stop
                     class="h-4 w-4 rounded border-[#ced2e9] border-2 bg-transparent text-[#607afb] checked:bg-[#607afb] checked:border-[#607afb] checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:border-[#ced2e9] focus:outline-none"
                   />
                 </div>
@@ -185,7 +187,9 @@ const FamilyMembersSection = Vue.defineComponent({
     },
 
     selectChore(chore, event) {
-      console.log('selectChore called for:', chore.name, 'Current selectedChoreId:', this.$parent.selectedChoreId);
+      console.log('🎯 selectChore called for:', chore.name, 'Current selectedChoreId:', this.$parent.selectedChoreId);
+      console.log('🎯 Event type:', event.type, 'Event target:', event.target.tagName);
+      console.trace('🎯 selectChore call stack');
       
       // Special case: If we have a different chore selected and we click on a chore that's assigned to someone,
       // assign the selected chore to that person
@@ -244,6 +248,43 @@ const FamilyMembersSection = Vue.defineComponent({
         }
         
         this.$parent.draggedChore = null;
+      }
+    },
+
+    async handleChoreCompletionChange(chore, event) {
+      console.log('🔲 Checkbox changed for chore:', chore.name, 'to:', event.target.checked);
+      console.log('🔲 Current selectedChoreId before:', this.$parent.selectedChoreId);
+      
+      // Update the chore's completed status first
+      chore.completed = event.target.checked;
+      
+      try {
+        await this.$parent.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/complete`, {
+          method: 'PUT',
+          body: JSON.stringify({ completed: chore.completed })
+        });
+        
+        console.log('🔲 Current selectedChoreId after API call:', this.$parent.selectedChoreId);
+        
+        if (chore.completed) {
+          this.$parent.triggerConfetti();
+          this.$parent.showSuccessMessage = true;
+          this.$parent.completedChoreMessage = `${chore.name} completed!`;
+          
+          setTimeout(() => {
+            this.$parent.showSuccessMessage = false;
+          }, 3000);
+        }
+        
+        console.log('🔲 Current selectedChoreId before loadEarnings:', this.$parent.selectedChoreId);
+        await this.$parent.loadEarnings();
+        console.log('🔲 Current selectedChoreId after loadEarnings:', this.$parent.selectedChoreId);
+        await this.$parent.loadElectronicsStatus();
+        console.log('🔲 Current selectedChoreId after loadElectronicsStatus:', this.$parent.selectedChoreId);
+      } catch (error) {
+        console.error('Failed to update chore completion:', error);
+        // Revert the checkbox if API call failed
+        chore.completed = !chore.completed;
       }
     },
 
