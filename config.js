@@ -31,7 +31,10 @@ const CONFIG = {
       
       // Shopping Quick Items
       SHOPPING_QUICK_ITEMS: '/shopping-quick-items',
-      SHOPPING_QUICK_ITEMS_INITIALIZE: '/shopping-quick-items/initialize'
+      SHOPPING_QUICK_ITEMS_INITIALIZE: '/shopping-quick-items/initialize',
+      
+      // Stores
+      STORES: '/stores'
     }
   },
 

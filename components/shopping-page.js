@@ -39,41 +39,53 @@ const ShoppingPage = Vue.defineComponent({
           </button>
         </div>
         
-        <!-- Shopping items list -->
-        <div v-else class="space-y-3">
-          <div 
-            v-for="item in shoppingItems" 
-            :key="item.id"
-            class="flex items-center gap-3 p-3 border border-[#e6e9f4] rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <input 
-              type="checkbox" 
-              :checked="item.completed"
-              @change="toggleItem(item.id)"
-              class="w-5 h-5 text-green-600 rounded focus:ring-green-500"
-            >
-            <div class="flex-1">
-              <span 
-                :class="item.completed ? 'line-through text-gray-500' : 'text-[#0d0f1c]'"
-                class="font-medium"
+        <!-- Shopping items grouped by store -->
+        <div v-else class="space-y-6">
+          <!-- Items grouped by store -->
+          <div v-for="(items, storeName) in itemsByStore" :key="storeName" class="space-y-3">
+            <div class="flex items-center justify-between border-b border-[#e6e9f4] pb-2">
+              <h3 class="text-lg font-bold text-[#0d0f1c] flex items-center gap-2">
+                🏪 {{ storeName || 'No Store Selected' }}
+                <span class="text-sm font-normal text-[#47569e]">({{ items.length }} items)</span>
+              </h3>
+            </div>
+            
+            <div class="space-y-2">
+              <div 
+                v-for="item in items" 
+                :key="item.id"
+                class="flex items-center gap-3 p-3 border border-[#e6e9f4] rounded-lg hover:bg-gray-50 transition-colors"
               >
-                {{ item.name }}
-              </span>
-              <div class="text-sm text-[#47569e] flex items-center gap-2 mt-1">
-                <span>{{ getCategoryIcon(item.category) }} {{ item.category }}</span>
-                <span v-if="item.quantity">• Qty: {{ item.quantity }}</span>
-                <span v-if="item.notes">• {{ item.notes }}</span>
+                <input 
+                  type="checkbox" 
+                  :checked="item.completed"
+                  @change="toggleItem(item.id)"
+                  class="w-5 h-5 text-green-600 rounded focus:ring-green-500"
+                >
+                <div class="flex-1">
+                  <span 
+                    :class="item.completed ? 'line-through text-gray-500' : 'text-[#0d0f1c]'"
+                    class="font-medium"
+                  >
+                    {{ item.name }}
+                  </span>
+                  <div class="text-sm text-[#47569e] flex items-center gap-2 mt-1">
+                    <span>{{ getCategoryIcon(item.category) }} {{ item.category }}</span>
+                    <span v-if="item.quantity">• Qty: {{ item.quantity }}</span>
+                    <span v-if="item.notes">• {{ item.notes }}</span>
+                  </div>
+                </div>
+                <button
+                  @click="removeItem(item.id)"
+                  class="text-red-500 hover:text-red-700 p-1 rounded transition-colors"
+                  title="Remove item"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                    <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
+                  </svg>
+                </button>
               </div>
             </div>
-            <button
-              @click="removeItem(item.id)"
-              class="text-red-500 hover:text-red-700 p-1 rounded transition-colors"
-              title="Remove item"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-                <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
-              </svg>
-            </button>
           </div>
           
           <div v-if="shoppingItems.length === 0" class="text-center py-8 text-[#47569e]">
@@ -86,37 +98,53 @@ const ShoppingPage = Vue.defineComponent({
         </div>
       </div>
 
-      <!-- Shopping Stats -->
+      <!-- Store Management -->
       <div class="bg-white rounded-lg border border-[#e6e9f4] p-6">
-        <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">📊 Shopping Stats</h2>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em]">🏪 Store Management</h2>
+          <button
+            @click="showAddStoreModal = true"
+            class="flex items-center gap-2 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
+            :disabled="storeLoading"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+              <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
+            </svg>
+            Add Store
+          </button>
+        </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-            <div class="text-2xl font-bold text-blue-600 mb-1">
-              {{ shoppingItems.length }}
+        <!-- Store loading state -->
+        <div v-if="storeLoading" class="text-center py-4">
+          <div class="spinner-border animate-spin inline-block w-6 h-6 border-4 rounded-full border-purple-600 border-t-transparent"></div>
+          <p class="text-[#47569e] mt-2 text-sm">Loading stores...</p>
+        </div>
+        
+        <!-- Stores list -->
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div 
+            v-for="store in stores" 
+            :key="store.id"
+            class="flex items-center justify-between p-3 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors"
+          >
+            <div class="flex items-center gap-2">
+              <span class="text-purple-600">🏪</span>
+              <span class="font-medium text-[#0d0f1c]">{{ store.name }}</span>
             </div>
-            <div class="text-sm text-blue-700">Total Items</div>
+            <button
+              @click="removeStore(store.id)"
+              class="text-red-500 hover:text-red-700 p-1 rounded transition-colors"
+              title="Remove store"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256">
+                <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+              </svg>
+            </button>
           </div>
           
-          <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-            <div class="text-2xl font-bold text-green-600 mb-1">
-              {{ completedItems }}
-            </div>
-            <div class="text-sm text-green-700">Completed</div>
-          </div>
-          
-          <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
-            <div class="text-2xl font-bold text-orange-600 mb-1">
-              {{ pendingItems }}
-            </div>
-            <div class="text-sm text-orange-700">Pending</div>
-          </div>
-          
-          <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
-            <div class="text-2xl font-bold text-purple-600 mb-1">
-              {{ completionPercentage }}%
-            </div>
-            <div class="text-sm text-purple-700">Complete</div>
+          <div v-if="stores.length === 0" class="col-span-full text-center py-4 text-[#47569e]">
+            <p>No stores added yet.</p>
+            <p class="text-sm mt-1">Click "Add Store" to get started!</p>
           </div>
         </div>
       </div>
@@ -273,6 +301,17 @@ const ShoppingPage = Vue.defineComponent({
               </div>
               
               <div>
+                <label class="block text-sm font-medium mb-1">Store</label>
+                <select
+                  v-model="newItem.store"
+                  class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">No Store Selected</option>
+                  <option v-for="store in stores" :key="store.id" :value="store.name">{{ store.name }}</option>
+                </select>
+              </div>
+              
+              <div>
                 <label class="block text-sm font-medium mb-1">Quantity</label>
                 <input
                   v-model="newItem.quantity"
@@ -390,6 +429,45 @@ const ShoppingPage = Vue.defineComponent({
         </div>
       </div>
 
+      <!-- Add Store Modal -->
+      <div v-if="showAddStoreModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+          <h3 class="text-lg font-bold mb-4">Add Store</h3>
+          
+          <form @submit.prevent="addStore">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-1">Store Name *</label>
+                <input
+                  v-model="newStore.name"
+                  type="text"
+                  class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="Enter store name"
+                  required
+                >
+              </div>
+            </div>
+            
+            <div class="flex gap-3 mt-6">
+              <button
+                type="button"
+                @click="showAddStoreModal = false"
+                class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+                :disabled="!newStore.name || storeLoading"
+              >
+                Add Store
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
       <!-- Success Message -->
       <div v-if="showSuccess" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
         {{ successMessage }}
@@ -400,27 +478,34 @@ const ShoppingPage = Vue.defineComponent({
     return {
       shoppingItems: [],
       quickItems: [],
+      stores: [],
       loading: false,
       quickLoading: false,
+      storeLoading: false,
       actionLoading: false,
       quickActionLoading: false,
       error: null,
       quickError: null,
       showAddItemModal: false,
       showAddQuickItemModal: false,
+      showAddStoreModal: false,
       showSuccess: false,
       successMessage: '',
       newItem: {
         name: '',
         category: 'General',
         quantity: '',
-        notes: ''
+        notes: '',
+        store: ''
       },
       newQuickItem: {
         name: '',
         category: 'General',
         defaultQuantity: '',
         defaultNotes: ''
+      },
+      newStore: {
+        name: ''
       }
     };
   },
@@ -435,11 +520,24 @@ const ShoppingPage = Vue.defineComponent({
     
     completionPercentage() {
       return this.shoppingItems.length > 0 ? Math.round((this.completedItems / this.shoppingItems.length) * 100) : 0;
+    },
+
+    itemsByStore() {
+      const grouped = {};
+      this.shoppingItems.forEach(item => {
+        const storeName = item.store || 'No Store Selected';
+        if (!grouped[storeName]) {
+          grouped[storeName] = [];
+        }
+        grouped[storeName].push(item);
+      });
+      return grouped;
     }
   },
   async mounted() {
     await this.loadShoppingItems();
     await this.loadQuickItems();
+    await this.loadStores();
   },
   methods: {
     // === API Methods ===
@@ -505,7 +603,7 @@ const ShoppingPage = Vue.defineComponent({
         this.shoppingItems.push(data.item);
         
         // Reset form and close modal
-        this.newItem = { name: '', category: 'General', quantity: '', notes: '' };
+        this.newItem = { name: '', category: 'General', quantity: '', notes: '', store: '' };
         this.showAddItemModal = false;
         this.showSuccessMessage('Item added successfully!');
       } catch (error) {
@@ -703,6 +801,80 @@ const ShoppingPage = Vue.defineComponent({
         alert('Error loading default items: ' + error.message);
       } finally {
         this.quickLoading = false;
+      }
+    },
+
+    // === Store Management Methods ===
+    async loadStores() {
+      this.storeLoading = true;
+      
+      try {
+        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.STORES));
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        this.stores = data.stores || [];
+      } catch (error) {
+        console.error('Error loading stores:', error);
+        // Don't show error for stores as it's not critical
+      } finally {
+        this.storeLoading = false;
+      }
+    },
+
+    async addStore() {
+      this.storeLoading = true;
+      
+      try {
+        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.STORES), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(this.newStore)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        this.stores.push(data.store);
+        
+        // Reset form and close modal
+        this.newStore = { name: '' };
+        this.showAddStoreModal = false;
+        this.showSuccessMessage('Store added successfully!');
+      } catch (error) {
+        console.error('Error adding store:', error);
+        alert('Error adding store: ' + error.message);
+      } finally {
+        this.storeLoading = false;
+      }
+    },
+
+    async removeStore(storeId) {
+      if (!confirm('Are you sure you want to remove this store?')) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.STORES + '/' + storeId), {
+          method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        this.stores = this.stores.filter(store => store.id !== storeId);
+        this.showSuccessMessage('Store removed successfully!');
+      } catch (error) {
+        console.error('Error removing store:', error);
+        alert('Error removing store: ' + error.message);
       }
     },
 
