@@ -12,8 +12,12 @@ const CONFIG = {
       // Chores
       CHORES: '/chores',
       CHORES_BY_PERSON: '/chores/person',
+      CHORES_NEW_DAY: '/chores/new-day',
       EARNINGS: '/earnings',
       ELECTRONICS_STATUS: '/electronics-status',
+      
+      // Family Members
+      FAMILY_MEMBERS: '/family-members',
       
       // Quicklist  
       QUICKLIST: '/quicklist',
