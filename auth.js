@@ -7,8 +7,8 @@ class AuthService {
     this.idToken = null;
     this.cognitoUser = null;
     
-    // initialize on load
-    this.initializeAuth();
+    // Don't auto-initialize in constructor to avoid race conditions
+    // initializeAuth() will be called explicitly by the app
   }
 
   /**

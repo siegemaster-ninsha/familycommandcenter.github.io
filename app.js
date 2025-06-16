@@ -721,17 +721,21 @@ const app = createApp({
     },
 
     showLoginForm() {
+      console.log('🔐 showLoginForm() called');
       this.showSignupModal = false;
       this.showConfirmModal = false;
       this.showLoginModal = true;
       this.clearAuthForm();
+      console.log('🔐 Login modal should now be visible:', this.showLoginModal);
     },
 
     showSignupForm() {
+      console.log('📝 showSignupForm() called');
       this.showLoginModal = false;
       this.showConfirmModal = false;
       this.showSignupModal = true;
       this.clearAuthForm();
+      console.log('📝 Signup modal should now be visible:', this.showSignupModal);
     },
 
     closeAuthModals() {
@@ -951,23 +955,36 @@ const app = createApp({
   },
   
   async mounted() {
-    // check authentication first
-    console.log('🚀 App starting - checking authentication...');
-    
-    // wait a moment for authService to initialize
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    const isAuthenticated = await authService.initializeAuth();
-    
-    if (isAuthenticated) {
-      this.isAuthenticated = true;
-      this.currentUser = authService.currentUser;
-      console.log('✅ User is authenticated:', this.currentUser);
-      await this.loadAllData();
-    } else {
-      console.log('❌ User not authenticated - showing login');
+    try {
+      // check authentication first
+      console.log('🚀 App starting - checking authentication...');
+      
+      // check if authService exists
+      if (typeof authService === 'undefined') {
+        console.error('❌ authService not found! Check if auth.js loaded properly.');
+        this.isAuthenticated = false;
+        this.loading = false;
+        return;
+      }
+      
+      // wait a moment for authService to initialize
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const isAuthenticated = await authService.initializeAuth();
+      
+      if (isAuthenticated) {
+        this.isAuthenticated = true;
+        this.currentUser = authService.currentUser;
+        console.log('✅ User is authenticated:', this.currentUser);
+        await this.loadAllData();
+      } else {
+        console.log('❌ User not authenticated - ready for login');
+        this.isAuthenticated = false;
+        this.loading = false;
+      }
+    } catch (error) {
+      console.error('❌ Error during app initialization:', error);
       this.isAuthenticated = false;
-      this.showLoginModal = true;
       this.loading = false;
     }
   },
@@ -999,10 +1016,18 @@ const app = createApp({
       showNewDayModal: Vue.computed(() => this.showNewDayModal),
       currentPage: Vue.computed(() => this.currentPage),
       
+      // Authentication modal state
+      showLoginModal: Vue.computed(() => this.showLoginModal),
+      showSignupModal: Vue.computed(() => this.showSignupModal),
+      showConfirmModal: Vue.computed(() => this.showConfirmModal),
+      authError: Vue.computed(() => this.authError),
+      authLoading: Vue.computed(() => this.authLoading),
+      
       // Form data as reactive refs
       newQuicklistChore: Vue.toRef(this, 'newQuicklistChore'),
       newPerson: Vue.toRef(this, 'newPerson'),
       newChore: Vue.toRef(this, 'newChore'),
+      authForm: Vue.toRef(this, 'authForm'),
       
       // Provide methods that child components need
       loadAllData: this.loadAllData,
@@ -1024,7 +1049,15 @@ const app = createApp({
       executeDeletePerson: this.executeDeletePerson,
       cancelDeletePerson: this.cancelDeletePerson,
       triggerConfetti: this.triggerConfetti,
-      loadEarnings: this.loadEarnings
+      loadEarnings: this.loadEarnings,
+      
+      // Authentication methods
+      handleLogin: this.handleLogin,
+      handleSignup: this.handleSignup,
+      handleConfirmSignup: this.handleConfirmSignup,
+      showLoginForm: this.showLoginForm,
+      showSignupForm: this.showSignupForm,
+      closeAuthModals: this.closeAuthModals
     };
   }
 });
