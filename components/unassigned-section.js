@@ -9,51 +9,59 @@ const UnassignedSection = Vue.defineComponent({
         @dragover.prevent
         @dragenter.prevent
       >
-        <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-[#47569e] py-8 sm:py-8 flex flex-col items-center justify-center">
-          <p class="text-sm px-2">All chores have been assigned!</p>
-          <p class="text-xs mt-2 px-2">Drag completed chores here to unassign them.</p>
+        <!-- Empty state when no chores -->
+        <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-[#47569e] py-6 sm:py-6 flex flex-col items-center justify-center">
+          <p class="text-sm px-2">No unassigned chores</p>
+          <p class="text-xs mt-2 px-2">Create a new chore or drag completed chores here to unassign them</p>
         </div>
         
-        <div 
-          v-for="chore in choresByPerson.unassigned" 
-          :key="chore.id"
-          :class="getChoreClasses(chore)"
-          draggable="true"
-          @dragstart="handleDragStart($event, chore)"
-          @click.stop="selectChore(chore, $event)"
-        >
-          <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-            <div
-              class="flex items-center justify-center rounded-lg bg-white shrink-0 size-14 sm:size-12"
-              :class="getCategoryStyle(chore.category).icon"
-              v-html="getCategoryIcon(chore.category)"
-            >
-            </div>
-            <div class="flex flex-col justify-center min-w-0 flex-1">
-              <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
-                <p class="text-[#0d0f1c] text-base sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1">{{ chore.name }}</p>
-                <span class="text-xs px-2 py-1 rounded-full self-start sm:self-center shrink-0" :class="getCategoryStyle(chore.category).badge">
-                  {{ getCategoryLabel(chore.category) }}
-                </span>
+        <!-- Container for chores and add button -->
+        <div v-else class="space-y-3 sm:space-y-2 mb-4">
+          <div 
+            v-for="chore in choresByPerson.unassigned" 
+            :key="chore.id"
+            :class="getChoreClasses(chore)"
+            draggable="true"
+            @dragstart="handleDragStart($event, chore)"
+            @click.stop="selectChore(chore, $event)"
+          >
+            <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+              <div
+                class="flex items-center justify-center rounded-lg bg-white shrink-0 size-14 sm:size-12"
+                :class="getCategoryStyle(chore.category).icon"
+                v-html="getCategoryIcon(chore.category)"
+              >
               </div>
-              <p v-if="chore.amount > 0" class="text-[#47569e] text-sm font-normal leading-normal line-clamp-2">\${{ chore.amount.toFixed(2) }}</p>
+              <div class="flex flex-col justify-center min-w-0 flex-1">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                  <p class="text-[#0d0f1c] text-base sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1">{{ chore.name }}</p>
+                  <span class="text-xs px-2 py-1 rounded-full self-start sm:self-center shrink-0" :class="getCategoryStyle(chore.category).badge">
+                    {{ getCategoryLabel(chore.category) }}
+                  </span>
+                </div>
+                <p v-if="chore.amount > 0" class="text-[#47569e] text-sm font-normal leading-normal line-clamp-2">\${{ chore.amount.toFixed(2) }}</p>
+              </div>
             </div>
-          </div>
-          <div class="flex items-center gap-2 shrink-0">
-            <span class="text-xs text-[#47569e] bg-white px-2 py-1 rounded hidden sm:inline">Drag to assign</span>
-            <span class="text-xs text-[#47569e] bg-white px-2 py-1 rounded sm:hidden">Tap to select</span>
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="text-xs text-[#47569e] bg-white px-2 py-1 rounded hidden sm:inline">Drag to assign</span>
+              <span class="text-xs text-[#47569e] bg-white px-2 py-1 rounded sm:hidden">Tap to select</span>
+            </div>
           </div>
         </div>
-      </div>
-      
-      <!-- Add new chore button for unassigned -->
-      <div class="flex px-2 sm:px-4 py-3 justify-start">
-        <button
-          @click="$parent.showAddChoreModal = true"
-          class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 sm:h-10 px-6 sm:px-4 bg-[#607afb] text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#4f68d8] transition-colors touch-target min-h-[48px]"
-        >
-          <span class="truncate">Add New Chore</span>
-        </button>
+        
+        <!-- Add new chore button - always visible inside container -->
+        <div class="flex items-center justify-center" :class="choresByPerson.unassigned.length === 0 ? 'mt-4' : ''">
+          <button
+            @click="$parent.showAddChoreModal = true"
+            class="flex items-center gap-2 bg-[#607afb] hover:bg-[#4f68d8] active:bg-[#3f58c7] text-white px-4 py-3 sm:px-4 sm:py-2 rounded-lg border-2 border-dashed border-[#4f68d8] transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center shadow-sm"
+            title="Add new chore to unassigned"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+              <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
+            </svg>
+            <span class="text-sm font-medium">Add New Chore</span>
+          </button>
+        </div>
       </div>
     </div>
   `,
