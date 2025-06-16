@@ -66,8 +66,8 @@
                   <span class="sm:hidden">Shop</span>
                 </a>
               </div>
-              <!-- Debug Info (temporary) -->
-              <div class="text-xs text-gray-500 hidden sm:block">
+              <!-- Debug Info (temporary) - only show when authenticated -->
+              <div v-if="isAuthenticated" class="text-xs text-gray-500 hidden sm:block">
                 Auth: {{ isAuthenticated ? 'Yes' : 'No' }} | User: {{ currentUser ? 'Yes' : 'No' }}
               </div>
               
