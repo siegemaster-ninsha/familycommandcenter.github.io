@@ -1100,7 +1100,8 @@ function checkAndRegisterComponents() {
     'AppModalsComponent',
     'EarningsWidgetComponent',
     'FamilyPageComponent',
-    'ShoppingPageComponent'
+    'ShoppingPageComponent',
+    'ChorePageComponent'
   ];
   
   const missingComponents = requiredComponents.filter(comp => !window[comp]);
@@ -1145,6 +1146,9 @@ function checkAndRegisterComponents() {
   
   console.log('📦 Registering shopping-page');
   app.component('shopping-page', window.ShoppingPageComponent);
+  
+  console.log('📦 Registering chore-page');
+  app.component('chore-page', window.ChorePageComponent);
 
   console.log('✅ All components registered, mounting app...');
   

@@ -167,11 +167,7 @@
                 <div v-if="!loading && !error">
                   <!-- Chores Page -->
                   <div v-if="currentPage === 'chores'">
-                    <quicklist-section></quicklist-section>
-                    <unassigned-section></unassigned-section>
-                    <family-members-section></family-members-section>
-                    <trash-section></trash-section>
-                    <earnings-widget :individuals-only="true"></earnings-widget>
+                    <chore-page></chore-page>
                   </div>
 
                   <!-- Family Page -->
@@ -204,6 +200,7 @@
     <script src="components/earnings-widget.js"></script>
     <script src="components/family-page.js"></script>
     <script src="components/shopping-page.js"></script>
+    <script src="components/chore-page.js"></script>
     
     <!-- Load main application -->
     <script src="app.js"></script>
