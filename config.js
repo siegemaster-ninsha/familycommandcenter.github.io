@@ -5,7 +5,7 @@ const CONFIG = {
   // API Configuration
   // Replace these URLs with your actual API Gateway endpoints after deployment
   API: {
-    BASE_URL: 'https://ogfq4bq65c.execute-api.us-east-1.amazonaws.com',
+    BASE_URL: 'https://cq5lvrvppd.execute-api.us-east-1.amazonaws.com',
     
     // API Endpoints
     ENDPOINTS: {
@@ -45,9 +45,9 @@ const CONFIG = {
   // Updated with actual deployed Cognito values
   AUTH: {
     REGION: 'us-east-1',
-    USER_POOL_ID: 'us-east-1_tyyXdrTGe',
-    CLIENT_ID: '6hd0om6pf7sj2b56ui7hniba6c',
-    IDENTITY_POOL_ID: 'us-east-1:078efc79-7dd6-4a18-910e-258630151b99'
+    USER_POOL_ID: 'us-east-1_gufFo8nak',
+    CLIENT_ID: '4qas7585dis9bg7i1ihampav99',
+    IDENTITY_POOL_ID: 'us-east-1:5e1cfec5-10da-46c5-a015-5f328f0b7748'
   },
 
   // Application Settings
