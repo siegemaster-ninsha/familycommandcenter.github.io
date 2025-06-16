@@ -167,13 +167,21 @@ const ChorePage = Vue.defineComponent({
           <div 
             v-for="person in people" 
             :key="person.id"
-            class="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4"
+            :class="[
+              'bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 transition-all duration-200',
+              selectedChore ? 'cursor-pointer hover:border-blue-400 hover:shadow-md' : ''
+            ]"
             @drop="handleDrop($event, person.name)"
             @dragover.prevent
             @dragenter.prevent
+            @click="selectedChore ? assignSelectedChore(person.name) : null"
           >
             <!-- Person header -->
             <div class="flex items-center justify-between mb-4">
+              <!-- Selected chore indicator -->
+              <div v-if="selectedChore" class="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full opacity-75">
+                Tap to assign
+              </div>
               <div class="flex items-center gap-3">
                 <div class="avatar bg-gradient-to-br from-[#607afb] to-[#a855f7] text-white">
                   {{ person.name.charAt(0) }}
@@ -194,20 +202,7 @@ const ChorePage = Vue.defineComponent({
               </div>
             </div>
             
-            <!-- Click-to-assign hint -->
-            <div v-if="selectedChore" class="mb-3 text-center">
-              <button
-                @click="assignSelectedChore(person.name)"
-                class="w-full bg-blue-100 hover:bg-blue-200 text-blue-700 px-4 py-2 rounded-lg border-2 border-dashed border-blue-300 transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="inline mr-2" viewBox="0 0 256 256">
-                  <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
-                </svg>
-                Assign "{{ selectedChore.name }}" to {{ person.name }}
-              </button>
-              <p v-if="selectedChore.isNewFromQuicklist" class="text-xs mt-2 text-blue-600">Or tap here to assign selected chore</p>
-              <p v-else class="text-xs mt-2 text-blue-600">Or tap here to assign selected chore</p>
-            </div>
+
             
             <!-- Person's chores -->
             <div class="space-y-2 min-h-[60px]">
