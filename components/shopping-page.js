@@ -45,7 +45,15 @@ const ShoppingPage = Vue.defineComponent({
           <div v-for="(items, storeName) in itemsByStore" :key="storeName" class="space-y-3">
             <div class="flex items-center justify-between border-b border-[#e6e9f4] pb-2">
               <h3 class="text-lg font-bold text-[#0d0f1c] flex items-center gap-2">
-                🏪 {{ storeName || 'No Store Selected' }}
+                <div 
+                  v-if="storeName !== 'No Store Selected'"
+                  class="flex items-center justify-center w-6 h-6 rounded-full text-sm font-bold text-white"
+                  :style="{ backgroundColor: getStoreColor(storeName) }"
+                >
+                  {{ getStoreInitial(storeName) }}
+                </div>
+                <span v-else>🏪</span>
+                {{ storeName || 'No Store Selected' }}
                 <span class="text-sm font-normal text-[#47569e]">({{ items.length }} items)</span>
               </h3>
             </div>
@@ -95,100 +103,6 @@ const ShoppingPage = Vue.defineComponent({
             <p>Your shopping list is empty.</p>
             <p class="text-sm mt-1">Click "Add Item" to get started or use the quick list below!</p>
           </div>
-        </div>
-      </div>
-
-      <!-- Store Management -->
-      <div class="bg-white rounded-lg border border-[#e6e9f4] p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em]">🏪 Store Management</h2>
-          <button
-            @click="showAddStoreModal = true"
-            class="flex items-center gap-2 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
-            :disabled="storeLoading"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-              <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
-            </svg>
-            Add Store
-          </button>
-        </div>
-        
-        <!-- Store loading state -->
-        <div v-if="storeLoading" class="text-center py-4">
-          <div class="spinner-border animate-spin inline-block w-6 h-6 border-4 rounded-full border-purple-600 border-t-transparent"></div>
-          <p class="text-[#47569e] mt-2 text-sm">Loading stores...</p>
-        </div>
-        
-        <!-- Stores list -->
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          <div 
-            v-for="store in stores" 
-            :key="store.id"
-            class="flex items-center justify-between p-3 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors"
-          >
-            <div class="flex items-center gap-2">
-              <span class="text-purple-600">🏪</span>
-              <span class="font-medium text-[#0d0f1c]">{{ store.name }}</span>
-            </div>
-            <button
-              @click="removeStore(store.id)"
-              class="text-red-500 hover:text-red-700 p-1 rounded transition-colors"
-              title="Remove store"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256">
-                <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
-              </svg>
-            </button>
-          </div>
-          
-          <div v-if="stores.length === 0" class="col-span-full text-center py-4 text-[#47569e]">
-            <p>No stores added yet.</p>
-            <p class="text-sm mt-1">Click "Add Store" to get started!</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quick Actions -->
-      <div class="bg-white rounded-lg border border-[#e6e9f4] p-6">
-        <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">⚡ Quick Actions</h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button
-            @click="clearCompleted"
-            class="flex items-center justify-center gap-2 bg-red-100 text-red-700 px-4 py-3 rounded-lg hover:bg-red-200 transition-colors"
-            :disabled="completedItems === 0 || actionLoading"
-            :class="completedItems === 0 || actionLoading ? 'opacity-50 cursor-not-allowed' : ''"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-              <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
-            </svg>
-            Clear Completed
-          </button>
-          
-          <button
-            @click="markAllComplete"
-            class="flex items-center justify-center gap-2 bg-green-100 text-green-700 px-4 py-3 rounded-lg hover:bg-green-200 transition-colors"
-            :disabled="pendingItems === 0 || actionLoading"
-            :class="pendingItems === 0 || actionLoading ? 'opacity-50 cursor-not-allowed' : ''"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-              <path d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34Z"></path>
-            </svg>
-            Mark All Complete
-          </button>
-          
-          <button
-            @click="clearAll"
-            class="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-200 transition-colors"
-            :disabled="shoppingItems.length === 0 || actionLoading"
-            :class="shoppingItems.length === 0 || actionLoading ? 'opacity-50 cursor-not-allowed' : ''"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-              <path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128Z"></path>
-            </svg>
-            Clear All
-          </button>
         </div>
       </div>
 
@@ -278,6 +192,105 @@ const ShoppingPage = Vue.defineComponent({
             </svg>
             <p class="text-sm">No quick items available.</p>
             <p class="text-xs mt-1">Click "Load Defaults" to get started!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="bg-white rounded-lg border border-[#e6e9f4] p-6">
+        <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">⚡ Quick Actions</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <button
+            @click="clearCompleted"
+            class="flex items-center justify-center gap-2 bg-red-100 text-red-700 px-4 py-3 rounded-lg hover:bg-red-200 transition-colors"
+            :disabled="completedItems === 0 || actionLoading"
+            :class="completedItems === 0 || actionLoading ? 'opacity-50 cursor-not-allowed' : ''"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+              <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
+            </svg>
+            Clear Completed
+          </button>
+          
+          <button
+            @click="markAllComplete"
+            class="flex items-center justify-center gap-2 bg-green-100 text-green-700 px-4 py-3 rounded-lg hover:bg-green-200 transition-colors"
+            :disabled="pendingItems === 0 || actionLoading"
+            :class="pendingItems === 0 || actionLoading ? 'opacity-50 cursor-not-allowed' : ''"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+              <path d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34Z"></path>
+            </svg>
+            Mark All Complete
+          </button>
+          
+          <button
+            @click="clearAll"
+            class="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-200 transition-colors"
+            :disabled="shoppingItems.length === 0 || actionLoading"
+            :class="shoppingItems.length === 0 || actionLoading ? 'opacity-50 cursor-not-allowed' : ''"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+              <path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128Z"></path>
+            </svg>
+            Clear All
+          </button>
+        </div>
+      </div>
+
+      <!-- Store Management -->
+      <div class="bg-white rounded-lg border border-[#e6e9f4] p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em]">🏪 Store Management</h2>
+          <button
+            @click="showAddStoreModal = true"
+            class="flex items-center gap-2 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
+            :disabled="storeLoading"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+              <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
+            </svg>
+            Add Store
+          </button>
+        </div>
+        
+        <!-- Store loading state -->
+        <div v-if="storeLoading" class="text-center py-4">
+          <div class="spinner-border animate-spin inline-block w-6 h-6 border-4 rounded-full border-purple-600 border-t-transparent"></div>
+          <p class="text-[#47569e] mt-2 text-sm">Loading stores...</p>
+        </div>
+        
+        <!-- Stores list -->
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div 
+            v-for="store in stores" 
+            :key="store.id"
+            class="flex items-center justify-between p-3 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors"
+          >
+            <div class="flex items-center gap-2">
+              <div 
+                class="flex items-center justify-center w-6 h-6 rounded-full text-sm font-bold text-white"
+                :style="{ backgroundColor: getStoreColor(store.name) }"
+              >
+                {{ getStoreInitial(store.name) }}
+              </div>
+              <span class="font-medium text-[#0d0f1c]">{{ store.name }}</span>
+            </div>
+            <button
+              @click="removeStore(store.id)"
+              class="text-red-500 hover:text-red-700 p-1 rounded transition-colors"
+              title="Remove store"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256">
+                <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <div v-if="stores.length === 0" class="col-span-full text-center py-4 text-[#47569e]">
+            <p>No stores added yet.</p>
+            <p class="text-sm mt-1">Click "Add Store" to get started!</p>
           </div>
         </div>
       </div>

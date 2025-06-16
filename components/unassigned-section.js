@@ -1,17 +1,17 @@
 // Unassigned Section Component
 const UnassignedSection = Vue.defineComponent({
   template: `
-    <div class="mb-8">
-      <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Unassigned Chores</h2>
+    <div class="mb-6 sm:mb-8">
+      <h2 class="text-[#0d0f1c] text-lg sm:text-[22px] font-bold leading-tight tracking-[-0.015em] px-2 sm:px-4 pb-3 pt-5">Unassigned Chores</h2>
       <div 
-        class="min-h-[100px] bg-[#f0f2f8] border-2 border-dashed border-[#ced2e9] rounded-lg mx-4 p-4"
+        class="min-h-[120px] sm:min-h-[100px] bg-[#f0f2f8] border-2 border-dashed border-[#ced2e9] rounded-lg mx-2 sm:mx-4 p-3 sm:p-4"
         @drop="handleDrop($event, 'unassigned')"
         @dragover.prevent
         @dragenter.prevent
       >
-        <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-[#47569e] py-8">
-          <p class="text-sm">All chores have been assigned!</p>
-          <p class="text-xs mt-1">Drag completed chores here to unassign them.</p>
+        <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-[#47569e] py-8 sm:py-8 flex flex-col items-center justify-center">
+          <p class="text-sm px-2">All chores have been assigned!</p>
+          <p class="text-xs mt-2 px-2">Drag completed chores here to unassign them.</p>
         </div>
         
         <div 
@@ -22,34 +22,35 @@ const UnassignedSection = Vue.defineComponent({
           @dragstart="handleDragStart($event, chore)"
           @click.stop="selectChore(chore, $event)"
         >
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
             <div
-              class="flex items-center justify-center rounded-lg bg-white shrink-0 size-12"
+              class="flex items-center justify-center rounded-lg bg-white shrink-0 size-14 sm:size-12"
               :class="getCategoryStyle(chore.category).icon"
               v-html="getCategoryIcon(chore.category)"
             >
             </div>
-            <div class="flex flex-col justify-center">
-              <div class="flex items-center gap-2 mb-1">
-                <p class="text-[#0d0f1c] text-base font-medium leading-normal line-clamp-1">{{ chore.name }}</p>
-                <span class="text-xs px-2 py-1 rounded-full" :class="getCategoryStyle(chore.category).badge">
+            <div class="flex flex-col justify-center min-w-0 flex-1">
+              <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                <p class="text-[#0d0f1c] text-base sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1">{{ chore.name }}</p>
+                <span class="text-xs px-2 py-1 rounded-full self-start sm:self-center shrink-0" :class="getCategoryStyle(chore.category).badge">
                   {{ getCategoryLabel(chore.category) }}
                 </span>
               </div>
               <p v-if="chore.amount > 0" class="text-[#47569e] text-sm font-normal leading-normal line-clamp-2">\${{ chore.amount.toFixed(2) }}</p>
             </div>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-[#47569e] bg-white px-2 py-1 rounded">Drag to assign</span>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="text-xs text-[#47569e] bg-white px-2 py-1 rounded hidden sm:inline">Drag to assign</span>
+            <span class="text-xs text-[#47569e] bg-white px-2 py-1 rounded sm:hidden">Tap to select</span>
           </div>
         </div>
       </div>
       
       <!-- Add new chore button for unassigned -->
-      <div class="flex px-4 py-3 justify-start">
+      <div class="flex px-2 sm:px-4 py-3 justify-start">
         <button
           @click="$parent.showAddChoreModal = true"
-          class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#607afb] text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#4f68d8] transition-colors"
+          class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 sm:h-10 px-6 sm:px-4 bg-[#607afb] text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#4f68d8] transition-colors touch-target min-h-[48px]"
         >
           <span class="truncate">Add New Chore</span>
         </button>
@@ -59,9 +60,9 @@ const UnassignedSection = Vue.defineComponent({
   inject: ['choresByPerson', 'showAddChoreModal', 'assignSelectedChore'],
   methods: {
     getChoreClasses(chore) {
-      const baseClasses = "flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between mb-2 rounded-lg shadow-sm cursor-pointer border-l-4 transition-all duration-200";
+      const baseClasses = "flex items-center gap-3 sm:gap-4 px-3 sm:px-4 min-h-[96px] sm:min-h-[72px] py-4 sm:py-2 justify-between mb-3 sm:mb-2 rounded-lg shadow-sm cursor-pointer border-l-4 transition-all duration-200 touch-target";
       const categoryClasses = this.getCategoryStyle(chore.category).background;
-      const selectedClasses = this.isChoreSelected(chore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : "hover:shadow-md hover:scale-102";
+      const selectedClasses = this.isChoreSelected(chore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : "hover:shadow-md hover:scale-102 active:scale-95";
       
       return `${baseClasses} ${categoryClasses} ${selectedClasses}`;
     },

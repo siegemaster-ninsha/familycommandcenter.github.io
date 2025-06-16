@@ -2,11 +2,11 @@
 const FamilyMembersSection = Vue.defineComponent({
   template: `
     <div class="mb-6">
-      <div class="flex items-center justify-between px-4 pb-3 pt-5">
-        <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em]">Family Members</h2>
+      <div class="flex items-center justify-between px-2 sm:px-4 pb-3 pt-5">
+        <h2 class="text-[#0d0f1c] text-lg sm:text-[22px] font-bold leading-tight tracking-[-0.015em]">Family Members</h2>
       </div>
       
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
         <!-- Dynamic Person Sections -->
         <div 
           v-for="person in people"
@@ -18,8 +18,8 @@ const FamilyMembersSection = Vue.defineComponent({
           @click="assignSelectedChore(person.name)"
           :data-person="person.name"
         >
-          <div class="flex items-center justify-between px-4 pb-3 pt-5">
-            <h3 class="text-[#0d0f1c] text-[20px] font-bold leading-tight tracking-[-0.015em]">{{ person.name }}</h3>
+          <div class="flex items-center justify-between px-3 sm:px-4 pb-3 pt-4 sm:pt-5">
+            <h3 class="text-[#0d0f1c] text-lg sm:text-[20px] font-bold leading-tight tracking-[-0.015em]">{{ person.name }}</h3>
             <div class="flex items-center gap-2">
               <div class="text-xs px-2 py-1 rounded-full" 
                    :class="person.electronicsStatus.status === 'allowed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
@@ -27,7 +27,7 @@ const FamilyMembersSection = Vue.defineComponent({
               </div>
             </div>
           </div>
-          <div class="min-h-[100px] px-4 pb-4">
+          <div class="min-h-[120px] px-3 sm:px-4 pb-4">
             <div 
               v-for="chore in choresByPerson[person.name]" 
               :key="chore.id"
@@ -36,25 +36,25 @@ const FamilyMembersSection = Vue.defineComponent({
               @dragstart="handleDragStart($event, chore)"
               @click.stop="selectChore(chore, $event)"
             >
-              <div class="flex items-center gap-3">
+              <div class="flex items-center gap-3 flex-1 min-w-0">
                 <div
-                  class="flex items-center justify-center rounded-lg bg-white shrink-0 size-10"
+                  class="flex items-center justify-center rounded-lg bg-white shrink-0 size-12 sm:size-10"
                   :class="getCategoryStyle(chore.category).icon"
                   v-html="getCategoryIcon(chore.category)"
                 >
                 </div>
-                <div class="flex flex-col justify-center">
-                  <div class="flex items-center gap-2 mb-1">
-                    <p class="text-[#0d0f1c] text-sm font-medium leading-normal line-clamp-1">{{ chore.name }}</p>
-                    <span class="text-xs px-2 py-1 rounded-full" :class="getCategoryStyle(chore.category).badge">
+                <div class="flex flex-col justify-center min-w-0 flex-1">
+                  <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                    <p class="text-[#0d0f1c] text-sm sm:text-sm font-medium leading-normal line-clamp-2 sm:line-clamp-1">{{ chore.name }}</p>
+                    <span class="text-xs px-2 py-1 rounded-full self-start sm:self-center shrink-0" :class="getCategoryStyle(chore.category).badge">
                       {{ getCategoryLabel(chore.category) }}
                     </span>
                   </div>
                   <p v-if="chore.amount > 0" class="text-[#47569e] text-xs font-normal leading-normal">\${{ chore.amount.toFixed(2) }}</p>
                 </div>
               </div>
-              <div class="shrink-0" @click.stop @change.stop @mousedown.stop @mouseup.stop>
-                <div class="flex size-6 items-center justify-center">
+              <div class="shrink-0 flex items-center" @click.stop @change.stop @mousedown.stop @mouseup.stop>
+                <div class="flex size-10 sm:size-6 items-center justify-center p-2 sm:p-0">
                   <input
                     type="checkbox"
                     :checked="chore.completed"
@@ -62,16 +62,16 @@ const FamilyMembersSection = Vue.defineComponent({
                     @click.stop
                     @mousedown.stop
                     @mouseup.stop
-                    class="h-4 w-4 rounded border-[#ced2e9] border-2 bg-transparent text-[#607afb] checked:bg-[#607afb] checked:border-[#607afb] checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:border-[#ced2e9] focus:outline-none"
+                    class="h-5 w-5 sm:h-4 sm:w-4 rounded border-[#ced2e9] border-2 bg-transparent text-[#607afb] checked:bg-[#607afb] checked:border-[#607afb] checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:border-[#ced2e9] focus:outline-none touch-target"
                   />
                 </div>
               </div>
             </div>
             
             <!-- Drop zone indicator -->
-            <div v-if="choresByPerson[person.name].length === 0" class="text-center text-[#47569e] py-8 border-2 border-dashed border-[#ced2e9] rounded-lg bg-[#f8f9fc]">
-              <p class="text-sm">Drag chores here to assign to {{ person.name }}</p>
-              <p v-if="selectedChore" class="text-xs mt-1 text-blue-600">Or click here to assign selected chore</p>
+            <div v-if="choresByPerson[person.name].length === 0" class="text-center text-[#47569e] py-8 sm:py-8 border-2 border-dashed border-[#ced2e9] rounded-lg bg-[#f8f9fc] min-h-[80px] flex flex-col items-center justify-center">
+              <p class="text-sm px-2">Drag chores here to assign to {{ person.name }}</p>
+              <p v-if="selectedChore" class="text-xs mt-2 text-blue-600 px-2">Or tap here to assign selected chore</p>
             </div>
           </div>
         </div>
@@ -91,9 +91,9 @@ const FamilyMembersSection = Vue.defineComponent({
     },
 
     getChoreClasses(chore) {
-      const baseClasses = "flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between mb-2 rounded-lg shadow-sm cursor-pointer border-l-4 transition-all duration-200";
+      const baseClasses = "flex items-center gap-3 sm:gap-4 px-3 sm:px-4 min-h-[88px] sm:min-h-[72px] py-3 sm:py-2 justify-between mb-3 sm:mb-2 rounded-lg shadow-sm cursor-pointer border-l-4 transition-all duration-200 touch-target";
       const categoryClasses = this.getCategoryStyle(chore.category).background;
-      const selectedClasses = this.isChoreSelected(chore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : "hover:shadow-md hover:scale-102";
+      const selectedClasses = this.isChoreSelected(chore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : "hover:shadow-md hover:scale-102 active:scale-95";
       
       return `${baseClasses} ${categoryClasses} ${selectedClasses}`;
     },

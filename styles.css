@@ -139,6 +139,105 @@
   }
 }
 
+/* Mobile-specific improvements */
+@media (max-width: 640px) {
+  /* Ensure minimum touch target size */
+  .touch-target {
+    min-height: 48px;
+    min-width: 48px;
+    padding: 12px;
+  }
+  
+  /* Improve spacing on mobile */
+  .mobile-spacing {
+    padding: 16px 12px;
+    margin-bottom: 16px;
+  }
+  
+  /* Better text wrapping on mobile */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  /* Larger interactive elements */
+  input[type="checkbox"] {
+    min-height: 20px;
+    min-width: 20px;
+  }
+  
+  /* Better button sizing */
+  button {
+    min-height: 48px;
+    padding: 12px 16px;
+  }
+  
+  /* Improved focus states for accessibility */
+  button:focus,
+  input:focus,
+  .touch-target:focus {
+    outline: 2px solid #607afb;
+    outline-offset: 2px;
+  }
+  
+  /* Better visual feedback for taps */
+  .touch-target:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+  }
+  
+  /* Prevent text selection on interactive elements */
+  .touch-target {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* Improve drag and drop visual feedback */
+  .drag-over {
+    background-color: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.5);
+    transform: scale(1.02);
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Improved accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .border-dashed {
+    border-width: 3px;
+  }
+  
+  .shadow-sm {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+  
+  .ring-4 {
+    --tw-ring-width: 6px;
+  }
+}
+
 /* Improve visual feedback for selected items */
 .selected-chore {
   transform: scale(1.05);
@@ -147,9 +246,25 @@
   position: relative;
 }
 
+/* Enhanced mobile selected state */
+@media (max-width: 640px) {
+  .selected-chore {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.6);
+  }
+}
+
 /* Highlight drop zones when item is selected */
 .drop-zone-highlight {
   background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05));
   border: 2px solid rgba(34, 197, 94, 0.3);
   box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+}
+
+/* Mobile drop zone improvements */
+@media (max-width: 640px) {
+  .drop-zone-highlight {
+    border: 3px solid rgba(34, 197, 94, 0.5);
+    box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.15);
+  }
 } 
