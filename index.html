@@ -66,6 +66,11 @@
                   <span class="sm:hidden">Shop</span>
                 </a>
               </div>
+              <!-- Debug Info (temporary) -->
+              <div class="text-xs text-gray-500 hidden sm:block">
+                Auth: {{ isAuthenticated ? 'Yes' : 'No' }} | User: {{ currentUser ? 'Yes' : 'No' }}
+              </div>
+              
               <!-- User Info and Settings -->
               <div v-if="isAuthenticated && currentUser" class="flex items-center gap-2 sm:gap-4">
                 <!-- User Avatar/Info -->

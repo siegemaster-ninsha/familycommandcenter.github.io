@@ -16,22 +16,34 @@ class AuthService {
    */
   async initializeAuth() {
     try {
+      console.log('🔧 Initializing authentication...');
+      
       // check if we have stored tokens
       const storedTokens = this.getStoredTokens();
+      console.log('🔧 Stored tokens:', storedTokens ? 'Found' : 'None');
+      
       if (storedTokens && storedTokens.accessToken) {
+        console.log('🔧 Setting tokens from storage...');
         this.setTokens(storedTokens);
         
         // validate token and get user info
+        console.log('🔧 Getting current user info...');
         const userInfo = await this.getCurrentUser();
+        console.log('🔧 User info result:', userInfo);
+        
         if (userInfo) {
           this.currentUser = userInfo;
+          console.log('✅ Authentication initialized successfully with user:', userInfo);
           return true;
+        } else {
+          console.log('❌ No user info returned, clearing auth');
         }
       }
     } catch (error) {
-      console.error('Failed to initialize auth:', error);
+      console.error('❌ Failed to initialize auth:', error);
       this.clearAuth();
     }
+    console.log('❌ Authentication initialization failed');
     return false;
   }
 
