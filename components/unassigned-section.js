@@ -53,7 +53,7 @@ const UnassignedSection = Vue.defineComponent({
         <div class="flex items-center justify-center" :class="choresByPerson.unassigned.length === 0 ? 'mt-4' : ''">
           <button
             @click="$parent.showAddChoreModal = true"
-            class="flex items-center gap-2 bg-[#607afb] hover:bg-[#4f68d8] active:bg-[#3f58c7] text-white px-4 py-3 sm:px-4 sm:py-2 rounded-lg border-2 border-dashed border-[#4f68d8] transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center shadow-sm"
+            class="flex items-center gap-2 bg-blue-100 hover:bg-blue-200 active:bg-blue-300 text-blue-700 px-4 py-3 sm:px-4 sm:py-2 rounded-lg border-2 border-dashed border-blue-300 transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center"
             title="Add new chore to unassigned"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
