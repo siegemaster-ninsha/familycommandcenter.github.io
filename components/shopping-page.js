@@ -155,22 +155,31 @@ const ShoppingPage = Vue.defineComponent({
         
         <!-- Quick items grid -->
         <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-          <button
+          <div
             v-for="quickItem in quickItems"
             :key="quickItem.id"
+            class="relative flex flex-col items-center gap-2 p-3 border border-[#e6e9f4] rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors group cursor-pointer"
             @click="addQuickItemToList(quickItem.id)"
-            class="relative flex flex-col items-center gap-2 p-3 border border-[#e6e9f4] rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors group"
-            :disabled="quickActionLoading"
           >
-            <!-- Store badge (top-right corner) -->
+            <!-- Store badge (top-left corner) -->
             <div 
               v-if="quickItem.defaultStore" 
-              class="absolute -top-1 -right-1 flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold text-white shadow-sm"
+              class="absolute -top-1 -left-1 flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold text-white shadow-sm"
               :style="{ backgroundColor: getStoreColor(quickItem.defaultStore) }"
               :title="quickItem.defaultStore"
             >
               {{ getStoreInitial(quickItem.defaultStore) }}
             </div>
+            
+            <!-- Delete button (top-right corner) -->
+            <button
+              @click.stop="removeQuickItem(quickItem.id)"
+              class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-6 h-6 sm:w-5 sm:h-5 flex items-center justify-center text-sm sm:text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600 touch-target"
+              title="Remove quick item"
+              :disabled="quickActionLoading"
+            >
+              ×
+            </button>
             
             <div class="text-2xl">{{ getCategoryIcon(quickItem.category) }}</div>
             <div class="text-sm font-medium text-[#0d0f1c] text-center">{{ quickItem.name }}</div>
@@ -184,7 +193,7 @@ const ShoppingPage = Vue.defineComponent({
             >
               🏪 {{ quickItem.defaultStore }}
             </div>
-          </button>
+          </div>
           
           <div v-if="quickItems.length === 0" class="col-span-full text-center py-8 text-[#47569e]">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="mx-auto mb-2 opacity-50" viewBox="0 0 256 256">
@@ -909,6 +918,38 @@ const ShoppingPage = Vue.defineComponent({
         alert('Error adding item to list: ' + error.message);
       } finally {
         this.quickActionLoading = false;
+      }
+    },
+
+    async removeQuickItem(quickItemId) {
+      if (!confirm('Are you sure you want to remove this quick item?')) {
+        return;
+      }
+      
+      try {
+        const authHeader = authService.getAuthHeader();
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        
+        if (authHeader) {
+          headers.Authorization = authHeader;
+        }
+        
+        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS + '/' + quickItemId), {
+          method: 'DELETE',
+          headers
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        this.quickItems = this.quickItems.filter(item => item.id !== quickItemId);
+        this.showSuccessMessage('Quick item removed successfully!');
+      } catch (error) {
+        console.error('Error removing quick item:', error);
+        alert('Error removing quick item: ' + error.message);
       }
     },
 
