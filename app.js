@@ -392,6 +392,10 @@ const app = createApp({
       this.showAddPersonModal = false;
       this.newPerson = { name: '' };
     },
+
+    openAddPersonModal() {
+      this.showAddPersonModal = true;
+    },
     
     confirmDeletePerson(person) {
       this.personToDelete = person;
@@ -823,6 +827,7 @@ const app = createApp({
       cancelAddChore: this.cancelAddChore,
       addPerson: this.addPerson,
       cancelAddPerson: this.cancelAddPerson,
+      openAddPersonModal: this.openAddPersonModal,
       addToQuicklist: this.addToQuicklist,
       cancelAddToQuicklist: this.cancelAddToQuicklist,
       startNewDay: this.startNewDay,

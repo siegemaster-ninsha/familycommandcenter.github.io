@@ -4,15 +4,6 @@ const FamilyMembersSection = Vue.defineComponent({
     <div class="mb-6">
       <div class="flex items-center justify-between px-4 pb-3 pt-5">
         <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em]">Family Members</h2>
-        <button
-          @click="$parent.showAddPersonModal = true"
-          class="flex items-center gap-2 bg-[#607afb] hover:bg-[#4f68d8] text-white px-3 py-2 rounded-lg transition-colors text-sm font-medium"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-            <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
-          </svg>
-          Add Person
-        </button>
       </div>
       
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -34,15 +25,6 @@ const FamilyMembersSection = Vue.defineComponent({
                    :class="person.electronicsStatus.status === 'allowed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
                 {{ person.electronicsStatus.message }}
               </div>
-              <button
-                @click.stop="$parent.confirmDeletePerson(person)"
-                class="text-red-500 hover:text-red-700 p-1 rounded transition-colors"
-                :title="'Remove ' + person.name"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-                  <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
-                </svg>
-              </button>
             </div>
           </div>
           <div class="min-h-[100px] px-4 pb-4">
@@ -95,23 +77,10 @@ const FamilyMembersSection = Vue.defineComponent({
         </div>
       </div>
 
-      <!-- Earnings Section -->
-      <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Earnings</h2>
-      <div class="p-4">
-        <div 
-          v-for="person in people" 
-          :key="person.id"
-          class="flex justify-between gap-x-6 py-2"
-        >
-          <p class="text-[#47569e] text-sm font-normal leading-normal">{{ person.name }}</p>
-          <p class="text-[#0d0f1c] text-sm font-normal leading-normal text-right">\${{ person.earnings.toFixed(2) }}</p>
-        </div>
-      </div>
     </div>
   `,
   inject: [
-    'choresByPerson', 'people', 'showDeletePersonModal', 'personToDelete', 
-    'showAddPersonModal', 'newPerson', 'isDragOverTrash', 'assignSelectedChore'
+    'choresByPerson', 'people', 'isDragOverTrash', 'assignSelectedChore'
   ],
   methods: {
     getDropZoneClasses(person) {
@@ -312,11 +281,6 @@ const FamilyMembersSection = Vue.defineComponent({
         // Revert the checkbox if API call failed
         chore.completed = !chore.completed;
       }
-    },
-
-    deletePerson(person) {
-      this.$parent.personToDelete = person;
-      this.$parent.showDeletePersonModal = true;
     }
   }
 });

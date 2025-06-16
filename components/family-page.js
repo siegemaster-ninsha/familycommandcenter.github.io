@@ -7,7 +7,7 @@ const FamilyPage = Vue.defineComponent({
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em]">👨‍👩‍👧‍👦 Family Members</h2>
           <button
-            @click="showAddPersonModal = true"
+            @click="$parent.openAddPersonModal()"
             class="flex items-center gap-2 bg-[#607afb] text-white px-4 py-2 rounded-lg hover:bg-[#4f68d8] transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
