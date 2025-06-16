@@ -591,7 +591,18 @@ const ShoppingPage = Vue.defineComponent({
       this.error = null;
       
       try {
-        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS));
+        const authHeader = authService.getAuthHeader();
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        
+        if (authHeader) {
+          headers.Authorization = authHeader;
+        }
+        
+        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS), {
+          headers
+        });
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -612,7 +623,18 @@ const ShoppingPage = Vue.defineComponent({
       this.quickError = null;
       
       try {
-        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS));
+        const authHeader = authService.getAuthHeader();
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        
+        if (authHeader) {
+          headers.Authorization = authHeader;
+        }
+        
+        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS), {
+          headers
+        });
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -632,11 +654,18 @@ const ShoppingPage = Vue.defineComponent({
       this.actionLoading = true;
       
       try {
+        const authHeader = authService.getAuthHeader();
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        
+        if (authHeader) {
+          headers.Authorization = authHeader;
+        }
+        
         const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS), {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers,
           body: JSON.stringify(this.newItem)
         });
         
@@ -661,8 +690,18 @@ const ShoppingPage = Vue.defineComponent({
 
     async toggleItem(itemId) {
       try {
+        const authHeader = authService.getAuthHeader();
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        
+        if (authHeader) {
+          headers.Authorization = authHeader;
+        }
+        
         const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS + '/' + itemId + '/toggle'), {
-          method: 'PUT'
+          method: 'PUT',
+          headers
         });
         
         if (!response.ok) {
@@ -682,8 +721,18 @@ const ShoppingPage = Vue.defineComponent({
 
     async removeItem(itemId) {
       try {
+        const authHeader = authService.getAuthHeader();
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        
+        if (authHeader) {
+          headers.Authorization = authHeader;
+        }
+        
         const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS + '/' + itemId), {
-          method: 'DELETE'
+          method: 'DELETE',
+          headers
         });
         
         if (!response.ok) {
