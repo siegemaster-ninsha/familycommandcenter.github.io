@@ -150,7 +150,7 @@ const AppModals = Vue.defineComponent({
         </p>
         <div class="flex gap-3">
           <button 
-            @click="confirmDeletePerson"
+            @click="executeDeletePerson"
             class="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors"
           >
             Remove Person
@@ -282,7 +282,7 @@ const AppModals = Vue.defineComponent({
     'showAddChoreModal', 'newChore', 'showNewDayModal',
     'addChore', 'cancelAddChore', 'addPerson', 'cancelAddPerson',
     'addToQuicklist', 'cancelAddToQuicklist', 'startNewDay', 'cancelNewDay',
-    'confirmDelete', 'cancelDelete', 'confirmDeletePerson', 'cancelDeletePerson'
+    'confirmDelete', 'cancelDelete', 'executeDeletePerson', 'cancelDeletePerson'
   ],
   methods: {
     // Use injected methods directly - they're already bound to the parent context

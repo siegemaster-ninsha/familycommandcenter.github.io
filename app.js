@@ -423,7 +423,7 @@ const app = createApp({
       }
     },
     
-    async confirmDeletePerson() {
+    async executeDeletePerson() {
       if (this.personToDelete) {
         try {
           // First, unassign all chores from this person
@@ -835,7 +835,7 @@ const app = createApp({
       confirmDelete: this.confirmDelete,
       cancelDelete: this.cancelDelete,
       deletePerson: this.deletePerson,
-      confirmDeletePerson: this.confirmDeletePerson,
+      executeDeletePerson: this.executeDeletePerson,
       cancelDeletePerson: this.cancelDeletePerson,
       triggerConfetti: this.triggerConfetti,
       loadEarnings: this.loadEarnings
