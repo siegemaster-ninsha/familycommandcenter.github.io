@@ -66,21 +66,18 @@
                   <span class="sm:hidden">Shop</span>
                 </a>
               </div>
-              <!-- Debug Info (temporary) - only show when authenticated -->
-              <div v-if="isAuthenticated" class="text-xs text-gray-500 hidden sm:block">
-                Auth: {{ isAuthenticated ? 'Yes' : 'No' }} | User: {{ currentUser ? 'Yes' : 'No' }}
-              </div>
+
               
               <!-- User Info and Settings -->
               <div v-if="isAuthenticated && currentUser" class="flex items-center gap-2 sm:gap-4">
                 <!-- User Avatar/Info -->
-                <div class="flex items-center gap-2 sm:gap-3 bg-white rounded-lg px-3 py-2 shadow-sm border border-[#e6e9f4]">
-                  <div class="w-8 h-8 bg-[#607afb] rounded-full flex items-center justify-center text-white text-sm font-medium">
-                    {{ (currentUser.name || currentUser.email || 'U').charAt(0).toUpperCase() }}
+                <div class="card flex items-center gap-2 sm:gap-3 px-3 py-2">
+                  <div class="avatar">
+                    {{ getUserInitial(currentUser) }}
                   </div>
                   <div class="hidden sm:block">
-                    <p class="text-sm font-medium text-[#0d0f1c]">{{ currentUser.name || 'User' }}</p>
-                    <p class="text-xs text-[#47569e]">{{ currentUser.email }}</p>
+                    <p class="text-sm font-medium text-neutral-900">{{ getUserDisplayName(currentUser) }}</p>
+                    <p class="text-xs text-secondary">{{ currentUser.email || 'No email' }}</p>
                   </div>
                 </div>
                 
@@ -88,7 +85,7 @@
                 <button 
                   @click="handleLogout"
                   :disabled="authLoading"
-                  class="flex items-center justify-center px-3 py-2 rounded-lg bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-sm transition-all duration-200 transform hover:scale-105 shadow-md min-h-[44px] touch-target disabled:opacity-50 disabled:transform-none"
+                  :class="['btn-error', authLoading && 'loading']"
                   :title="authLoading ? 'Signing out...' : 'Sign Out'"
                 >
                   <!-- Loading Spinner (shown when authLoading is true) -->
@@ -112,24 +109,24 @@
               
               <!-- Authentication Required Message -->
               <div v-if="!isAuthenticated" class="flex flex-col items-center justify-center min-h-[400px] text-center">
-                <div class="bg-white rounded-lg shadow-lg p-8 max-w-md">
+                <div class="card p-8 max-w-md">
                   <div class="mb-6">
-                    <svg class="mx-auto h-16 w-16 text-[#607afb]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="mx-auto h-16 w-16 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                     </svg>
                   </div>
-                  <h2 class="text-2xl font-bold text-[#0d0f1c] mb-4">Welcome to Family Hub</h2>
-                  <p class="text-gray-600 mb-6">Please sign in to access your family command center.</p>
+                  <h2 class="card-title text-2xl mb-4">Welcome to Family Hub</h2>
+                  <p class="text-secondary mb-6">Please sign in to access your family command center.</p>
                   <div class="space-y-3">
                     <button 
                       @click="showLoginForm"
-                      class="w-full bg-[#607afb] hover:bg-[#4f68d8] text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                      class="btn-primary w-full"
                     >
                       Sign In
                     </button>
                     <button 
                       @click="showSignupForm"
-                      class="w-full border border-[#607afb] text-[#607afb] hover:bg-[#607afb] hover:text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                      class="btn-secondary w-full"
                     >
                       Create Account
                     </button>
@@ -147,7 +144,7 @@
                   <div class="flex items-center gap-3" v-if="currentPage === 'chores'">
                     <button
                       @click="showNewDayModal = true"
-                      class="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-3 sm:px-4 py-3 sm:py-2 rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105 min-h-[48px] touch-target"
+                      class="btn-warning flex items-center gap-2 px-3 sm:px-4 py-3 sm:py-2 min-h-[48px] touch-target"
                       title="Start a new day - clears all chores while preserving earnings"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256">

@@ -201,14 +201,50 @@ class AuthService {
   }
 
   /**
-   * get current user from API
+   * decode JWT token payload (without verification - for extracting user info)
+   */
+  decodeTokenPayload(token) {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch (error) {
+      console.error('Failed to decode token:', error);
+      return null;
+    }
+  }
+
+  /**
+   * get current user from ID token (contains user attributes)
    */
   async getCurrentUser() {
     try {
+      // first try to get user info from ID token (contains user attributes)
+      if (this.idToken) {
+        const payload = this.decodeTokenPayload(this.idToken);
+        if (payload) {
+          console.log('🔧 ID token payload:', payload);
+          return {
+            id: payload.sub,
+            email: payload.email,
+            name: payload.name || payload.given_name || payload.email?.split('@')[0] || 'User',
+            username: payload['cognito:username'] || payload.username
+          };
+        }
+      }
+
+      // fallback: try the API endpoint if ID token doesn't work
       if (!this.accessToken) {
         return null;
       }
 
+      console.log('🔧 Falling back to API endpoint for user info...');
       const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.AUTH_ME), {
         headers: {
           'Authorization': `Bearer ${this.accessToken}`,
@@ -217,7 +253,9 @@ class AuthService {
       });
 
       if (response.ok) {
-        return await response.json();
+        const userData = await response.json();
+        console.log('🔧 API returned user data:', userData);
+        return userData;
       } else if (response.status === 401) {
         // token expired or invalid
         this.clearAuth();

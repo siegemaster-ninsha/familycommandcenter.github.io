@@ -951,6 +951,18 @@ const app = createApp({
         // Show user-friendly error message
         alert('Failed to assign chore. Please try again.');
       }
+    },
+
+    // User display helper methods
+    getUserDisplayName(user) {
+      if (!user) return 'User';
+      return user.name || user.email?.split('@')[0] || 'User';
+    },
+
+    getUserInitial(user) {
+      if (!user) return 'U';
+      const name = this.getUserDisplayName(user);
+      return name.charAt(0).toUpperCase();
     }
   },
   
