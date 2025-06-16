@@ -259,8 +259,8 @@ const EarningsWidget = Vue.defineComponent({
         const response = await this.$parent.apiCall(`${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${this.selectedPerson.name}/earnings`, {
           method: 'PUT',
           body: JSON.stringify({ 
-            earningsChange: -this.spendAmount,
-            action: 'spend'
+            amount: this.spendAmount,
+            operation: 'subtract'
           })
         });
         
