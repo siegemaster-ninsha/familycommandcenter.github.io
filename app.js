@@ -3,6 +3,21 @@ const { createApp } = Vue;
 const app = createApp({
   data() {
     return {
+      // Authentication state
+      isAuthenticated: false,
+      currentUser: null,
+      showLoginModal: false,
+      showSignupModal: false,
+      showConfirmModal: false,
+      authForm: {
+        email: '',
+        password: '',
+        name: '',
+        confirmationCode: ''
+      },
+      authError: null,
+      authLoading: false,
+      
       showAddChoreModal: false,
       newChore: {
         name: '',
@@ -132,15 +147,30 @@ const app = createApp({
         const url = CONFIG.getApiUrl(endpoint);
         console.log(`🌐 Making API call to: ${url}`);
         
+        // add authentication header if user is logged in
+        const authHeader = authService.getAuthHeader();
+        const headers = {
+          'Content-Type': 'application/json',
+          ...options.headers
+        };
+        
+        if (authHeader) {
+          headers.Authorization = authHeader;
+        }
+        
         const response = await fetch(url, {
-          headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-          },
+          headers,
           ...options
         });
         
         console.log(`📡 Response status: ${response.status} for ${endpoint}`);
+        
+        // handle authentication errors
+        if (response.status === 401) {
+          console.warn('Authentication required or token expired');
+          await this.handleAuthenticationRequired();
+          throw new Error('Authentication required');
+        }
         
         if (!response.ok) {
           let errorMessage = `API call failed: ${response.status} ${response.statusText}`;
@@ -582,6 +612,144 @@ const app = createApp({
       this.currentPage = page;
       console.log('📄 Switched to page:', page);
     },
+
+    // Authentication methods
+    async handleAuthenticationRequired() {
+      // try to refresh token first
+      if (authService.refreshToken) {
+        const refreshed = await authService.refreshAccessToken();
+        if (refreshed) {
+          this.isAuthenticated = true;
+          this.currentUser = authService.currentUser;
+          return;
+        }
+      }
+      
+      // if refresh failed, show login
+      this.isAuthenticated = false;
+      this.currentUser = null;
+      this.showLoginModal = true;
+    },
+
+    async handleLogin() {
+      try {
+        this.authLoading = true;
+        this.authError = null;
+        
+        const result = await authService.signIn(this.authForm.email, this.authForm.password);
+        
+        if (result.success) {
+          this.isAuthenticated = true;
+          this.currentUser = result.user;
+          this.showLoginModal = false;
+          this.clearAuthForm();
+          
+          // reload data after login
+          await this.loadAllData();
+        }
+      } catch (error) {
+        this.authError = error.message;
+      } finally {
+        this.authLoading = false;
+      }
+    },
+
+    async handleSignup() {
+      try {
+        this.authLoading = true;
+        this.authError = null;
+        
+        const result = await authService.signUp(
+          this.authForm.email,
+          this.authForm.password,
+          this.authForm.name
+        );
+        
+        if (result.success) {
+          if (result.confirmationRequired) {
+            this.showSignupModal = false;
+            this.showConfirmModal = true;
+          } else {
+            // auto sign in if no confirmation required
+            await this.handleLogin();
+          }
+        }
+      } catch (error) {
+        this.authError = error.message;
+      } finally {
+        this.authLoading = false;
+      }
+    },
+
+    async handleConfirmSignup() {
+      try {
+        this.authLoading = true;
+        this.authError = null;
+        
+        const result = await authService.confirmSignUp(
+          this.authForm.email,
+          this.authForm.confirmationCode
+        );
+        
+        if (result.success) {
+          this.showConfirmModal = false;
+          this.showLoginModal = true;
+          this.authError = null;
+          // clear confirmation code but keep email and password for login
+          this.authForm.confirmationCode = '';
+        }
+      } catch (error) {
+        this.authError = error.message;
+      } finally {
+        this.authLoading = false;
+      }
+    },
+
+    async handleLogout() {
+      try {
+        await authService.signOut();
+        this.isAuthenticated = false;
+        this.currentUser = null;
+        this.clearAuthForm();
+        
+        // clear all app data
+        this.chores = [];
+        this.quicklistChores = [];
+      } catch (error) {
+        console.error('Logout error:', error);
+      }
+    },
+
+    showLoginForm() {
+      this.showSignupModal = false;
+      this.showConfirmModal = false;
+      this.showLoginModal = true;
+      this.clearAuthForm();
+    },
+
+    showSignupForm() {
+      this.showLoginModal = false;
+      this.showConfirmModal = false;
+      this.showSignupModal = true;
+      this.clearAuthForm();
+    },
+
+    closeAuthModals() {
+      this.showLoginModal = false;
+      this.showSignupModal = false;
+      this.showConfirmModal = false;
+      this.clearAuthForm();
+    },
+
+    clearAuthForm() {
+      this.authForm = {
+        email: '',
+        password: '',
+        name: '',
+        confirmationCode: ''
+      };
+      this.authError = null;
+    },
     
     async removeFromQuicklist(quicklistId) {
       try {
@@ -783,7 +951,25 @@ const app = createApp({
   },
   
   async mounted() {
-    await this.loadAllData();
+    // check authentication first
+    console.log('🚀 App starting - checking authentication...');
+    
+    // wait a moment for authService to initialize
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    const isAuthenticated = await authService.initializeAuth();
+    
+    if (isAuthenticated) {
+      this.isAuthenticated = true;
+      this.currentUser = authService.currentUser;
+      console.log('✅ User is authenticated:', this.currentUser);
+      await this.loadAllData();
+    } else {
+      console.log('❌ User not authenticated - showing login');
+      this.isAuthenticated = false;
+      this.showLoginModal = true;
+      this.loading = false;
+    }
   },
 
   provide() {

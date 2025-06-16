@@ -275,14 +275,198 @@ const AppModals = Vue.defineComponent({
         </div>
       </div>
     </div>
+
+    <!-- Login Modal -->
+    <div v-if="showLoginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="bg-blue-100 p-2 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-blue-600" viewBox="0 0 256 256">
+              <path d="M141.66,133.66l-40,40A8,8,0,0,1,88,168V136H24a8,8,0,0,1,0-16H88V88a8,8,0,0,1,13.66-5.66l40,40A8,8,0,0,1,141.66,133.66ZM192,32H136a8,8,0,0,0,0,16h56V208H136a8,8,0,0,0,0,16h56a16,16,0,0,0,16-16V48A16,16,0,0,0,192,32Z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-[#0d0f1c]">Sign In</h3>
+        </div>
+        <div v-if="authError" class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+          <p class="text-red-600 text-sm">{{ authError }}</p>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Email</label>
+            <input 
+              v-model="authForm.email"
+              type="email" 
+              class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+              placeholder="Enter your email"
+              @keyup.enter="handleLogin"
+            >
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Password</label>
+            <input 
+              v-model="authForm.password"
+              type="password" 
+              class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+              placeholder="Enter your password"
+              @keyup.enter="handleLogin"
+            >
+          </div>
+        </div>
+        <div class="flex flex-col gap-3 mt-6">
+          <button 
+            @click="handleLogin"
+            :disabled="authLoading"
+            class="w-full bg-[#607afb] text-white py-2 px-4 rounded-lg hover:bg-[#4f68d8] transition-colors disabled:opacity-50"
+          >
+            {{ authLoading ? 'Signing In...' : 'Sign In' }}
+          </button>
+          <button 
+            @click="closeAuthModals"
+            class="w-full bg-[#e6e9f4] text-[#0d0f1c] py-2 px-4 rounded-lg hover:bg-[#d0d4e8] transition-colors"
+          >
+            Cancel
+          </button>
+          <div class="text-center">
+            <button 
+              @click="showSignupForm"
+              class="text-[#607afb] hover:underline text-sm"
+            >
+              Don't have an account? Sign up
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div v-if="showSignupModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="bg-green-100 p-2 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-green-600" viewBox="0 0 256 256">
+              <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-[#0d0f1c]">Create Account</h3>
+        </div>
+        <div v-if="authError" class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+          <p class="text-red-600 text-sm">{{ authError }}</p>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Name</label>
+            <input 
+              v-model="authForm.name"
+              type="text" 
+              class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+              placeholder="Enter your full name"
+            >
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Email</label>
+            <input 
+              v-model="authForm.email"
+              type="email" 
+              class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+              placeholder="Enter your email"
+            >
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Password</label>
+            <input 
+              v-model="authForm.password"
+              type="password" 
+              class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+              placeholder="Minimum 8 characters"
+            >
+            <p class="text-xs text-gray-500 mt-1">Password must be at least 8 characters with uppercase, lowercase, and numbers.</p>
+          </div>
+        </div>
+        <div class="flex flex-col gap-3 mt-6">
+          <button 
+            @click="handleSignup"
+            :disabled="authLoading"
+            class="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50"
+          >
+            {{ authLoading ? 'Creating Account...' : 'Create Account' }}
+          </button>
+          <button 
+            @click="closeAuthModals"
+            class="w-full bg-[#e6e9f4] text-[#0d0f1c] py-2 px-4 rounded-lg hover:bg-[#d0d4e8] transition-colors"
+          >
+            Cancel
+          </button>
+          <div class="text-center">
+            <button 
+              @click="showLoginForm"
+              class="text-[#607afb] hover:underline text-sm"
+            >
+              Already have an account? Sign in
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Email Confirmation Modal -->
+    <div v-if="showConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="bg-yellow-100 p-2 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-yellow-600" viewBox="0 0 256 256">
+              <path d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48ZM203.43,64,128,133.15,52.57,64ZM216,192H40V74.19l82.59,75.71a8,8,0,0,0,10.82,0L216,74.19V192Z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-[#0d0f1c]">Confirm Email</h3>
+        </div>
+        <div v-if="authError" class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+          <p class="text-red-600 text-sm">{{ authError }}</p>
+        </div>
+        <p class="text-[#47569e] mb-4">
+          We've sent a confirmation code to <strong>{{ authForm.email }}</strong>. 
+          Please enter the code below to verify your email.
+        </p>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Confirmation Code</label>
+            <input 
+              v-model="authForm.confirmationCode"
+              type="text" 
+              class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+              placeholder="Enter 6-digit code"
+              @keyup.enter="handleConfirmSignup"
+            >
+          </div>
+        </div>
+        <div class="flex flex-col gap-3 mt-6">
+          <button 
+            @click="handleConfirmSignup"
+            :disabled="authLoading"
+            class="w-full bg-[#607afb] text-white py-2 px-4 rounded-lg hover:bg-[#4f68d8] transition-colors disabled:opacity-50"
+          >
+            {{ authLoading ? 'Confirming...' : 'Confirm Email' }}
+          </button>
+          <button 
+            @click="closeAuthModals"
+            class="w-full bg-[#e6e9f4] text-[#0d0f1c] py-2 px-4 rounded-lg hover:bg-[#d0d4e8] transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
   `,
   inject: [
     'showDeleteModal', 'choreToDelete', 'showAddToQuicklistModal', 'newQuicklistChore',
     'showAddPersonModal', 'newPerson', 'showDeletePersonModal', 'personToDelete',
     'showAddChoreModal', 'newChore', 'showNewDayModal',
+    // Authentication props
+    'showLoginModal', 'showSignupModal', 'showConfirmModal', 'authForm', 'authError', 'authLoading',
     'addChore', 'cancelAddChore', 'addPerson', 'cancelAddPerson',
     'addToQuicklist', 'cancelAddToQuicklist', 'startNewDay', 'cancelNewDay',
-    'confirmDelete', 'cancelDelete', 'executeDeletePerson', 'cancelDeletePerson'
+    'confirmDelete', 'cancelDelete', 'executeDeletePerson', 'cancelDeletePerson',
+    // Authentication methods
+    'handleLogin', 'handleSignup', 'handleConfirmSignup', 'showLoginForm', 'showSignupForm', 'closeAuthModals'
   ],
   methods: {
     // Use injected methods directly - they're already bound to the parent context

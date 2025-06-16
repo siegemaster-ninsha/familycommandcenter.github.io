@@ -9,6 +9,9 @@ const CONFIG = {
     
     // API Endpoints
     ENDPOINTS: {
+      // Auth
+      AUTH_ME: '/auth/me',
+      
       // Chores
       CHORES: '/chores',
       CHORES_BY_PERSON: '/chores/person',
@@ -36,6 +39,15 @@ const CONFIG = {
       // Stores
       STORES: '/stores'
     }
+  },
+
+  // AWS Cognito Configuration
+  // These will need to be updated with your actual Cognito values after deployment
+  AUTH: {
+    REGION: 'us-east-1',
+    USER_POOL_ID: 'YOUR_USER_POOL_ID', // Replace after deployment
+    CLIENT_ID: 'YOUR_CLIENT_ID', // Replace after deployment
+    IDENTITY_POOL_ID: 'YOUR_IDENTITY_POOL_ID' // Replace after deployment
   },
 
   // Application Settings
