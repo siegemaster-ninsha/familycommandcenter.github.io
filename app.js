@@ -836,7 +836,9 @@ const app = createApp({
       cancelDelete: this.cancelDelete,
       deletePerson: this.deletePerson,
       confirmDeletePerson: this.confirmDeletePerson,
-      cancelDeletePerson: this.cancelDeletePerson
+      cancelDeletePerson: this.cancelDeletePerson,
+      triggerConfetti: this.triggerConfetti,
+      loadEarnings: this.loadEarnings
     };
   }
 });

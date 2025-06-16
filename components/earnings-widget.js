@@ -185,7 +185,7 @@ const EarningsWidget = Vue.defineComponent({
       default: false
     }
   },
-  inject: ['people'],
+  inject: ['people', 'triggerConfetti', 'loadEarnings', 'showSuccessMessage', 'completedChoreMessage'],
   data() {
     return {
       showDetails: false,
@@ -264,24 +264,28 @@ const EarningsWidget = Vue.defineComponent({
           })
         });
         
+        // Store values before closing modal
+        const personName = this.selectedPerson.name;
+        const spentAmount = this.spendAmount;
+        
         // Reload earnings data
-        await this.$parent.loadEarnings();
+        await this.loadEarnings();
         
-        // Close modal
+        // Show success message BEFORE closing modal
+        if (this.triggerConfetti) {
+          this.triggerConfetti();
+        }
+        
+        // Set success message using reactive refs
+        this.showSuccessMessage.value = true;
+        this.completedChoreMessage.value = `${personName} spent $${spentAmount.toFixed(2)}!`;
+        
+        setTimeout(() => {
+          this.showSuccessMessage.value = false;
+        }, 3000);
+        
+        // Close modal AFTER setting success message
         this.closeSpendingModal();
-        
-        // Show success message
-        if (this.$parent.triggerConfetti) {
-          this.$parent.triggerConfetti();
-        }
-        if (this.$parent.showSuccessMessage !== undefined) {
-          this.$parent.showSuccessMessage = true;
-          this.$parent.completedChoreMessage = `${this.selectedPerson.name} spent $${this.spendAmount.toFixed(2)}!`;
-          
-          setTimeout(() => {
-            this.$parent.showSuccessMessage = false;
-          }, 3000);
-        }
       } catch (error) {
         console.error('Error spending money:', error);
         alert('Failed to spend money. Please try again.');
