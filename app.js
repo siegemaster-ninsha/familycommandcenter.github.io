@@ -368,7 +368,7 @@ const app = createApp({
             name: this.newPerson.name.trim()
           };
           
-          await this.apiCall(CONFIG.API.ENDPOINTS.PEOPLE, {
+          await this.apiCall(CONFIG.API.ENDPOINTS.FAMILY_MEMBERS, {
             method: 'POST',
             body: JSON.stringify(personData)
           });
@@ -405,7 +405,7 @@ const app = createApp({
     async deletePerson() {
       if (this.personToDelete) {
         try {
-          await this.apiCall(`${CONFIG.API.ENDPOINTS.PEOPLE}/${this.personToDelete.id}`, {
+          await this.apiCall(`${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${this.personToDelete.id}`, {
             method: 'DELETE'
           });
           
