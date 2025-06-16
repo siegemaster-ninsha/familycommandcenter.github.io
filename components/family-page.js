@@ -34,7 +34,7 @@ const FamilyPage = Vue.defineComponent({
                 </div>
               </div>
               <button
-                @click="confirmDeletePerson(person)"
+                @click="handleDeletePerson(person)"
                 class="text-red-500 hover:text-red-700 p-1 rounded transition-colors"
                 title="Remove family member"
               >
@@ -75,10 +75,10 @@ const FamilyPage = Vue.defineComponent({
       <earnings-widget></earnings-widget>
     </div>
   `,
-  inject: ['people', 'showAddPersonModal'],
+  inject: ['people', 'showAddPersonModal', 'confirmDeletePerson'],
   methods: {
-    confirmDeletePerson(person) {
-      this.$parent.confirmDeletePerson(person);
+    handleDeletePerson(person) {
+      this.confirmDeletePerson(person);
     }
   }
 });
