@@ -245,13 +245,31 @@ const ShoppingPage = Vue.defineComponent({
             v-for="quickItem in quickItems"
             :key="quickItem.id"
             @click="addQuickItemToList(quickItem.id)"
-            class="flex flex-col items-center gap-2 p-3 border border-[#e6e9f4] rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors"
+            class="relative flex flex-col items-center gap-2 p-3 border border-[#e6e9f4] rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors group"
             :disabled="quickActionLoading"
           >
+            <!-- Store badge (top-right corner) -->
+            <div 
+              v-if="quickItem.defaultStore" 
+              class="absolute -top-1 -right-1 flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold text-white shadow-sm"
+              :style="{ backgroundColor: getStoreColor(quickItem.defaultStore) }"
+              :title="quickItem.defaultStore"
+            >
+              {{ getStoreInitial(quickItem.defaultStore) }}
+            </div>
+            
             <div class="text-2xl">{{ getCategoryIcon(quickItem.category) }}</div>
             <div class="text-sm font-medium text-[#0d0f1c] text-center">{{ quickItem.name }}</div>
             <div class="text-xs text-[#47569e] text-center">{{ quickItem.category }}</div>
             <div v-if="quickItem.defaultQuantity" class="text-xs text-gray-500">{{ quickItem.defaultQuantity }}</div>
+            
+            <!-- Store name (bottom, only visible on hover for better UX) -->
+            <div 
+              v-if="quickItem.defaultStore" 
+              class="absolute bottom-1 left-1 right-1 text-xs text-center bg-white bg-opacity-90 text-[#47569e] px-1 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            >
+              🏪 {{ quickItem.defaultStore }}
+            </div>
           </button>
           
           <div v-if="quickItems.length === 0" class="col-span-full text-center py-8 text-[#47569e]">
@@ -914,6 +932,44 @@ const ShoppingPage = Vue.defineComponent({
       setTimeout(() => {
         this.showSuccess = false;
       }, 3000);
+    },
+
+    // Get the first letter of store name for the badge
+    getStoreInitial(storeName) {
+      return storeName ? storeName.charAt(0).toUpperCase() : '';
+    },
+
+    // Generate a consistent color for each store based on its name
+    getStoreColor(storeName) {
+      if (!storeName) return '#6b7280'; // gray-500 default
+      
+      // Predefined color palette for stores
+      const colors = [
+        '#ef4444', // red-500
+        '#f97316', // orange-500
+        '#eab308', // yellow-500
+        '#22c55e', // green-500
+        '#06b6d4', // cyan-500
+        '#3b82f6', // blue-500
+        '#8b5cf6', // violet-500
+        '#ec4899', // pink-500
+        '#f59e0b', // amber-500
+        '#10b981', // emerald-500
+        '#6366f1', // indigo-500
+        '#84cc16'  // lime-500
+      ];
+      
+      // Generate a consistent hash from the store name
+      let hash = 0;
+      for (let i = 0; i < storeName.length; i++) {
+        const char = storeName.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32-bit integer
+      }
+      
+      // Use the hash to pick a color consistently
+      const colorIndex = Math.abs(hash) % colors.length;
+      return colors[colorIndex];
     }
   }
 });
