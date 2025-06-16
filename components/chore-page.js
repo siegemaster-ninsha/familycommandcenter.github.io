@@ -61,7 +61,7 @@ const ChorePage = Vue.defineComponent({
           <!-- Add to Quicklist button -->
           <div class="flex items-center justify-center">
             <button
-              @click="showAddToQuicklistModal = true"
+              @click="$parent.showAddToQuicklistModal = true"
               class="flex items-center gap-2 bg-purple-100 hover:bg-purple-200 active:bg-purple-300 text-purple-700 px-4 py-3 sm:px-3 sm:py-2 rounded-lg border-2 border-dashed border-purple-300 transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center"
               title="Add new chore to quicklist"
             >
@@ -136,7 +136,7 @@ const ChorePage = Vue.defineComponent({
           <!-- Add new chore button -->
           <div class="flex items-center justify-center" :class="choresByPerson.unassigned.length === 0 ? 'mt-4' : ''">
             <button
-              @click="showAddChoreModal = true"
+              @click="$parent.showAddChoreModal = true"
               class="flex items-center gap-2 bg-blue-100 hover:bg-blue-200 active:bg-blue-300 text-blue-700 px-4 py-3 sm:px-4 sm:py-2 rounded-lg border-2 border-dashed border-blue-300 transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center"
               title="Add new chore to unassigned"
             >
