@@ -42,12 +42,12 @@ const CONFIG = {
   },
 
   // AWS Cognito Configuration
-  // These will need to be updated with your actual Cognito values after deployment
+  // Updated with actual deployed Cognito values
   AUTH: {
     REGION: 'us-east-1',
-    USER_POOL_ID: 'YOUR_USER_POOL_ID', // Replace after deployment
-    CLIENT_ID: 'YOUR_CLIENT_ID', // Replace after deployment
-    IDENTITY_POOL_ID: 'YOUR_IDENTITY_POOL_ID' // Replace after deployment
+    USER_POOL_ID: 'us-east-1_tyyXdrTGe',
+    CLIENT_ID: '6hd0om6pf7sj2b56ui7hniba6c',
+    IDENTITY_POOL_ID: 'us-east-1:078efc79-7dd6-4a18-910e-258630151b99'
   },
 
   // Application Settings
