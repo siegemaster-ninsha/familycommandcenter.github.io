@@ -174,7 +174,7 @@ const ShoppingPage = Vue.defineComponent({
             <!-- Delete button (top-right corner) -->
             <button
               @click.stop="removeQuickItem(quickItem.id)"
-              class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-6 h-6 sm:w-5 sm:h-5 flex items-center justify-center text-sm sm:text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600 touch-target"
+              class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-6 h-6 sm:w-5 sm:h-5 flex items-center justify-center text-sm sm:text-xs sm:opacity-0 sm:group-hover:opacity-100 opacity-60 transition-opacity duration-200 hover:bg-red-600 touch-target"
               title="Remove quick item"
               :disabled="quickActionLoading"
             >
@@ -189,7 +189,7 @@ const ShoppingPage = Vue.defineComponent({
             <!-- Store name (bottom, only visible on hover for better UX) -->
             <div 
               v-if="quickItem.defaultStore" 
-              class="absolute bottom-1 left-1 right-1 text-xs text-center bg-white bg-opacity-90 text-[#47569e] px-1 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+              class="absolute bottom-1 left-1 right-1 text-xs text-center bg-white bg-opacity-90 text-[#47569e] px-1 py-0.5 rounded sm:opacity-0 sm:group-hover:opacity-100 opacity-75 transition-opacity duration-200"
             >
               🏪 {{ quickItem.defaultStore }}
             </div>

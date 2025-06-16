@@ -18,7 +18,7 @@ const QuicklistSection = Vue.defineComponent({
             <!-- Remove button -->
             <button
               @click.stop="removeFromQuicklist(quickChore.id)"
-              class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-6 h-6 sm:w-5 sm:h-5 flex items-center justify-center text-sm sm:text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600 touch-target"
+              class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-6 h-6 sm:w-5 sm:h-5 flex items-center justify-center text-sm sm:text-xs sm:opacity-0 sm:group-hover:opacity-100 opacity-60 transition-opacity duration-200 hover:bg-red-600 touch-target"
               title="Remove from quicklist"
             >
               ×

@@ -581,6 +581,26 @@ input:focus, select:focus, textarea:focus {
     transform: inherit !important;
     color: inherit !important;
   }
+  
+  /* Disable group-hover effects on touch devices - this is critical for mobile interactions */
+  .group:hover .group-hover\:opacity-100,
+  .group:hover .group-hover\:opacity-75,
+  .group:hover .group-hover\:opacity-50 {
+    opacity: inherit !important;
+  }
+  
+  .group:hover .group-hover\:bg-blue-50,
+  .group:hover .group-hover\:bg-blue-100,
+  .group:hover .group-hover\:bg-gray-100,
+  .group:hover .group-hover\:bg-red-600 {
+    background-color: inherit !important;
+  }
+  
+  /* Ensure delete buttons don't interfere with main touch target */
+  .group .touch-target[class*="absolute"] {
+    pointer-events: auto;
+    z-index: 2;
+  }
 }
 
 /* Mobile-specific improvements */
