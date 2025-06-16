@@ -108,7 +108,17 @@ const ChorePage = Vue.defineComponent({
               draggable="true"
               @dragstart="handleDragStart($event, chore)"
               @click.stop="selectChore(chore, $event)"
+              class="relative"
             >
+              <!-- Delete button (only visible when selected) -->
+              <button
+                v-if="isChoreSelected(chore)"
+                @click.stop="deleteChore(chore)"
+                class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 transition-colors shadow-lg z-10 touch-target"
+                title="Delete chore"
+              >
+                ×
+              </button>
               <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
                 <div
                   class="flex items-center justify-center rounded-lg bg-white shrink-0 size-14 sm:size-12"
@@ -213,7 +223,17 @@ const ChorePage = Vue.defineComponent({
                 draggable="true"
                 @dragstart="handleDragStart($event, chore)"
                 @click.stop="selectChore(chore, $event)"
+                class="relative"
               >
+                <!-- Delete button (only visible when selected) -->
+                <button
+                  v-if="isChoreSelected(chore)"
+                  @click.stop="deleteChore(chore)"
+                  class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 transition-colors shadow-lg z-10 touch-target"
+                  title="Delete chore"
+                >
+                  ×
+                </button>
                 <!-- Completion checkbox -->
                 <div class="shrink-0 flex items-center" @click.stop @change.stop @mousedown.stop @mouseup.stop>
                   <input 
@@ -255,40 +275,7 @@ const ChorePage = Vue.defineComponent({
         </div>
       </div>
 
-      <!-- Trash Section -->
-      <div class="bg-white rounded-lg border border-[#e6e9f4] p-6">
-        <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">🗑️ Delete Chores</h2>
-        
-        <div class="flex items-center justify-center">
-          <div
-            class="flex flex-col items-center gap-3 p-8 border-2 border-dashed border-red-300 rounded-lg bg-red-50"
-            @drop="handleTrashDrop($event)"
-            @dragover.prevent
-            @dragenter.prevent
-            :class="isDragOverTrash ? 'bg-red-100 border-red-400' : ''"
-          >
-            <div
-              @click="deleteSelectedChore"
-              class="bg-red-500 hover:bg-red-600 active:bg-red-700 text-white rounded-full p-4 shadow-lg cursor-pointer transition-all duration-200 flex items-center justify-center size-20 sm:size-16 touch-target"
-              :class="selectedChore ? 'scale-110 shadow-xl' : ''"
-              :title="selectedChore && !selectedChore.isNewFromQuicklist ? 'Tap to delete selected chore' : 'Drag chores here to delete them'"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256" class="sm:w-6 sm:h-6">
-                <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
-              </svg>
-            </div>
-            
-            <div class="text-center">
-              <p class="text-red-700 font-semibold text-sm sm:text-base">
-                {{ selectedChore ? 'Tap to delete' : 'Drag to delete' }}
-              </p>
-              <p class="text-red-600 text-xs sm:text-sm mt-1">
-                {{ selectedChore ? '"' + selectedChore.name + '"' : 'Drop chores here to remove them' }}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+
 
       <!-- Earnings Summary -->
       <div class="bg-white rounded-lg border border-[#e6e9f4] p-6">
@@ -496,6 +483,13 @@ const ChorePage = Vue.defineComponent({
     async deleteSelectedChore() {
       if (this.selectedChore && !this.selectedChore.isNewFromQuicklist) {
         this.$parent.choreToDelete = this.selectedChore;
+        this.$parent.showDeleteModal = true;
+      }
+    },
+
+    async deleteChore(chore) {
+      if (chore && !chore.isNewFromQuicklist) {
+        this.$parent.choreToDelete = chore;
         this.$parent.showDeleteModal = true;
       }
     },
