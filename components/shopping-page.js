@@ -774,8 +774,18 @@ const ShoppingPage = Vue.defineComponent({
       this.actionLoading = true;
       
       try {
+        const authHeader = authService.getAuthHeader();
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        
+        if (authHeader) {
+          headers.Authorization = authHeader;
+        }
+        
         const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS_MARK_ALL_COMPLETE), {
-          method: 'POST'
+          method: 'POST',
+          headers
         });
         
         if (!response.ok) {
@@ -801,8 +811,18 @@ const ShoppingPage = Vue.defineComponent({
       this.actionLoading = true;
       
       try {
+        const authHeader = authService.getAuthHeader();
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        
+        if (authHeader) {
+          headers.Authorization = authHeader;
+        }
+        
         const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS_CLEAR_ALL), {
-          method: 'POST'
+          method: 'POST',
+          headers
         });
         
         if (!response.ok) {
@@ -825,11 +845,18 @@ const ShoppingPage = Vue.defineComponent({
       this.quickActionLoading = true;
       
       try {
+        const authHeader = authService.getAuthHeader();
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        
+        if (authHeader) {
+          headers.Authorization = authHeader;
+        }
+        
         const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS), {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers,
           body: JSON.stringify(this.newQuickItem)
         });
         
@@ -856,8 +883,18 @@ const ShoppingPage = Vue.defineComponent({
       this.quickActionLoading = true;
       
       try {
+        const authHeader = authService.getAuthHeader();
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        
+        if (authHeader) {
+          headers.Authorization = authHeader;
+        }
+        
         const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS + '/' + quickItemId + '/add-to-list'), {
-          method: 'POST'
+          method: 'POST',
+          headers
         });
         
         if (!response.ok) {
@@ -879,8 +916,18 @@ const ShoppingPage = Vue.defineComponent({
       this.quickLoading = true;
       
       try {
+        const authHeader = authService.getAuthHeader();
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        
+        if (authHeader) {
+          headers.Authorization = authHeader;
+        }
+        
         const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS_INITIALIZE), {
-          method: 'POST'
+          method: 'POST',
+          headers
         });
         
         if (!response.ok) {
