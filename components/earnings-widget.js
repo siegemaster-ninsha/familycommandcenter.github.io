@@ -246,7 +246,7 @@ const EarningsWidget = Vue.defineComponent({
     
     updateSpendAmount() {
       const amount = parseFloat(this.spendAmountString);
-      this.spendAmount = isNaN(amount) ? 0 : amount;
+      this.spendAmount = isNaN(amount) ? 0 : Number(amount);
     },
     
     async confirmSpending() {
@@ -259,7 +259,7 @@ const EarningsWidget = Vue.defineComponent({
         const response = await this.$parent.apiCall(`${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${this.selectedPerson.name}/earnings`, {
           method: 'PUT',
           body: JSON.stringify({ 
-            amount: this.spendAmount,
+            amount: Number(this.spendAmount),
             operation: 'subtract'
           })
         });
