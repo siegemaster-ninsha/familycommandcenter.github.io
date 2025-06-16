@@ -707,6 +707,9 @@ const app = createApp({
 
     async handleLogout() {
       try {
+        console.log('🚪 Logging out...');
+        this.authLoading = true;
+        
         await authService.signOut();
         this.isAuthenticated = false;
         this.currentUser = null;
@@ -715,8 +718,16 @@ const app = createApp({
         // clear all app data
         this.chores = [];
         this.quicklistChores = [];
+        this.people = [
+          { id: 'ben', name: 'Ben', earnings: 0, electronicsStatus: { status: 'allowed', message: 'Electronics allowed' } },
+          { id: 'theo', name: 'Theo', earnings: 0, electronicsStatus: { status: 'allowed', message: 'Electronics allowed' } }
+        ];
+        
+        console.log('✅ Logout successful');
       } catch (error) {
-        console.error('Logout error:', error);
+        console.error('❌ Logout error:', error);
+      } finally {
+        this.authLoading = false;
       }
     },
 
@@ -1055,6 +1066,7 @@ const app = createApp({
       handleLogin: this.handleLogin,
       handleSignup: this.handleSignup,
       handleConfirmSignup: this.handleConfirmSignup,
+      handleLogout: this.handleLogout,
       showLoginForm: this.showLoginForm,
       showSignupForm: this.showSignupForm,
       closeAuthModals: this.closeAuthModals
