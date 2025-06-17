@@ -84,14 +84,23 @@ const AccountPage = Vue.defineComponent({
             :key="theme.id"
             @click="selectTheme(theme.id)"
             class="relative p-4 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md"
-            :class="currentTheme === theme.id ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'"
+            :class="selectedTheme === theme.id ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'"
           >
             <!-- Selected indicator -->
             <div 
-              v-if="currentTheme === theme.id"
+              v-if="selectedTheme === theme.id"
               class="absolute top-2 right-2 bg-primary-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
             >
               ✓
+            </div>
+            
+            <!-- Currently applied indicator -->
+            <div 
+              v-if="currentTheme === theme.id && currentTheme !== selectedTheme"
+              class="absolute top-2 left-2 bg-emerald-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+              title="Currently applied theme"
+            >
+              ●
             </div>
             
             <!-- Theme preview -->
@@ -130,15 +139,37 @@ const AccountPage = Vue.defineComponent({
           </div>
         </div>
         
-        <!-- Apply Theme Button -->
-        <div class="mt-6 flex justify-center">
-          <button
-            @click="applyTheme"
-            :disabled="themeLoading || currentTheme === selectedTheme"
-            class="bg-primary-500 text-white px-6 py-2 rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {{ themeLoading ? 'Applying...' : 'Apply Theme' }}
-          </button>
+        <!-- Current Status and Apply Button -->
+        <div class="mt-6 space-y-3">
+          <div class="text-center">
+            <p class="text-sm text-secondary-custom">
+              Currently applied: <span class="font-medium text-primary-custom">{{ getCurrentThemeName() }}</span>
+              <span v-if="selectedTheme !== currentTheme" class="text-orange-600">
+                → Selected: <span class="font-medium">{{ getSelectedThemeName() }}</span>
+              </span>
+            </p>
+          </div>
+          
+          <div class="flex justify-center">
+            <button
+              v-if="selectedTheme !== currentTheme"
+              @click="applyTheme"
+              :disabled="themeLoading"
+              class="bg-primary-500 text-white px-6 py-2 rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <svg v-if="themeLoading" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              {{ themeLoading ? 'Applying...' : 'Apply Theme' }}
+            </button>
+            <div v-else class="text-emerald-600 font-medium flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                <path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"></path>
+              </svg>
+              Theme Applied
+            </div>
+          </div>
         </div>
       </div>
 
@@ -427,6 +458,7 @@ const AccountPage = Vue.defineComponent({
     },
     
     selectTheme(themeId) {
+      console.log('🎨 Theme selected:', themeId);
       this.selectedTheme = themeId;
     },
     
@@ -560,6 +592,16 @@ const AccountPage = Vue.defineComponent({
       return "#" + (0x1000000 + (R > 255 ? 255 : R < 0 ? 0 : R) * 0x10000 +
         (G > 255 ? 255 : G < 0 ? 0 : G) * 0x100 +
         (B > 255 ? 255 : B < 0 ? 0 : B)).toString(16).slice(1);
+    },
+    
+    getCurrentThemeName() {
+      const theme = this.availableThemes.find(t => t.id === this.currentTheme);
+      return theme ? theme.name : 'Unknown';
+    },
+    
+    getSelectedThemeName() {
+      const theme = this.availableThemes.find(t => t.id === this.selectedTheme);
+      return theme ? theme.name : 'Unknown';
     }
   }
 });
