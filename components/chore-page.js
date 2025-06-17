@@ -33,7 +33,8 @@ const ChorePage = Vue.defineComponent({
             :class="getQuicklistChoreClasses(quickChore)"
             draggable="true"
             @dragstart="handleQuicklistDragStart($event, quickChore)"
-            @click="selectQuicklistChore(quickChore)"
+                          @click="selectQuicklistChore(quickChore, $event)"
+              @touchend="selectQuicklistChore(quickChore, $event)"
           >
             <!-- Remove button -->
             <button
@@ -108,6 +109,7 @@ const ChorePage = Vue.defineComponent({
               draggable="true"
               @dragstart="handleDragStart($event, chore)"
               @click.stop="selectChore(chore, $event)"
+              @touchend.stop="selectChore(chore, $event)"
               class="relative"
             >
               <!-- Delete button (only visible when selected) -->
@@ -342,12 +344,19 @@ const ChorePage = Vue.defineComponent({
 
     getQuicklistChoreClasses(quickChore) {
       const baseClasses = "relative group flex items-center gap-3 sm:gap-2 bg-white px-4 py-4 sm:px-3 sm:py-2 rounded-lg shadow-sm cursor-pointer border-l-4 border-purple-500 transition-all duration-200 touch-target min-h-[68px] sm:min-h-[56px]";
-      const selectedClasses = this.isChoreSelected(quickChore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : "md:hover:shadow-md md:hover:scale-105 active:scale-95";
+      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const hoverClasses = isTouch ? "" : "hover:shadow-md hover:scale-105";
+      const selectedClasses = this.isChoreSelected(quickChore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : `${hoverClasses} active:scale-95`;
       
       return `${baseClasses} ${selectedClasses}`;
     },
 
-    selectQuicklistChore(quickChore) {
+    selectQuicklistChore(quickChore, event) {
+      // For touch devices, prevent any hover-related delays
+      if (event && event.type === 'touchend') {
+        event.preventDefault();
+      }
+      
       // Create a new chore instance from the quicklist template
       const newChore = {
         name: quickChore.name,
@@ -392,7 +401,9 @@ const ChorePage = Vue.defineComponent({
     getChoreClasses(chore) {
       const baseClasses = "flex items-center gap-3 sm:gap-4 px-3 sm:px-4 min-h-[96px] sm:min-h-[72px] py-4 sm:py-2 justify-between mb-3 sm:mb-2 rounded-lg shadow-sm cursor-pointer border-l-4 transition-all duration-200 touch-target";
       const categoryClasses = this.getCategoryStyle(chore.category).background;
-      const selectedClasses = this.isChoreSelected(chore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : "md:hover:shadow-md md:hover:scale-102 active:scale-95";
+      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const hoverClasses = isTouch ? "" : "hover:shadow-md hover:scale-102";
+      const selectedClasses = this.isChoreSelected(chore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : `${hoverClasses} active:scale-95`;
       
       return `${baseClasses} ${categoryClasses} ${selectedClasses}`;
     },
@@ -406,6 +417,11 @@ const ChorePage = Vue.defineComponent({
 
     selectChore(chore, event) {
       console.log('selectChore called for:', chore.name, 'Current selectedChoreId:', this.$parent.selectedChoreId);
+      
+      // For touch devices, prevent any hover-related delays
+      if (event && event.type === 'touchend') {
+        event.preventDefault();
+      }
       
       // Special case: If we have a different chore selected and we click on a chore that's assigned to someone
       if (this.$parent.selectedChore && 
