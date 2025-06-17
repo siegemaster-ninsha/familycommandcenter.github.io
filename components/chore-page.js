@@ -342,7 +342,7 @@ const ChorePage = Vue.defineComponent({
 
     getQuicklistChoreClasses(quickChore) {
       const baseClasses = "relative group flex items-center gap-3 sm:gap-2 bg-white px-4 py-4 sm:px-3 sm:py-2 rounded-lg shadow-sm cursor-pointer border-l-4 border-purple-500 transition-all duration-200 touch-target min-h-[68px] sm:min-h-[56px]";
-      const selectedClasses = this.isChoreSelected(quickChore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : "hover:shadow-md hover:scale-105 active:scale-95";
+      const selectedClasses = this.isChoreSelected(quickChore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : "md:hover:shadow-md md:hover:scale-105 active:scale-95";
       
       return `${baseClasses} ${selectedClasses}`;
     },
@@ -392,7 +392,7 @@ const ChorePage = Vue.defineComponent({
     getChoreClasses(chore) {
       const baseClasses = "flex items-center gap-3 sm:gap-4 px-3 sm:px-4 min-h-[96px] sm:min-h-[72px] py-4 sm:py-2 justify-between mb-3 sm:mb-2 rounded-lg shadow-sm cursor-pointer border-l-4 transition-all duration-200 touch-target";
       const categoryClasses = this.getCategoryStyle(chore.category).background;
-      const selectedClasses = this.isChoreSelected(chore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : "hover:shadow-md hover:scale-102 active:scale-95";
+      const selectedClasses = this.isChoreSelected(chore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : "md:hover:shadow-md md:hover:scale-102 active:scale-95";
       
       return `${baseClasses} ${categoryClasses} ${selectedClasses}`;
     },
