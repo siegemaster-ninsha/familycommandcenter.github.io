@@ -1,18 +1,18 @@
 // Earnings Widget Component
 const EarningsWidget = Vue.defineComponent({
   template: `
-    <div class="bg-white rounded-lg border border-[#e6e9f4] p-4 shadow-sm">
+    <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
       <div v-if="!individualsOnly" class="flex items-center justify-between mb-4">
-        <h3 class="text-[#0d0f1c] text-lg font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
+        <h3 class="text-primary-custom text-lg font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
           📊 Earnings
         </h3>
-        <div v-if="compact" class="text-2xl font-bold text-green-600">
+        <div v-if="compact" class="text-2xl font-bold earnings-text">
           \${{ totalEarnings.toFixed(2) }}
         </div>
       </div>
       
       <div v-else class="mb-4">
-        <h3 class="text-[#0d0f1c] text-lg font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
+        <h3 class="text-primary-custom text-lg font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
           💰 Individual Earnings
         </h3>
       </div>
@@ -20,8 +20,8 @@ const EarningsWidget = Vue.defineComponent({
       <!-- Compact view (single row) -->
       <div v-if="compact && !individualsOnly" class="grid grid-cols-3 gap-3 text-center">
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <div class="text-lg font-bold text-blue-600 mb-1">{{ people.length }}</div>
-          <div class="text-xs text-blue-700">Members</div>
+          <div class="text-lg font-bold text-primary-500 mb-1">{{ people.length }}</div>
+          <div class="text-xs text-primary-600">Members</div>
         </div>
         
         <div class="bg-purple-50 border border-purple-200 rounded-lg p-3">
@@ -37,18 +37,18 @@ const EarningsWidget = Vue.defineComponent({
       
       <!-- Full view (2x2 grid) -->
       <div v-else-if="!individualsOnly" class="grid grid-cols-2 gap-4">
-        <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-          <div class="text-2xl font-bold text-green-600 mb-1">
+        <div class="earnings-card rounded-lg p-4 text-center">
+          <div class="text-2xl font-bold earnings-text mb-1">
             \${{ totalEarnings.toFixed(2) }}
           </div>
-          <div class="text-sm text-green-700">Total Family Earnings</div>
+          <div class="text-sm earnings-text">Total Family Earnings</div>
         </div>
         
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-          <div class="text-2xl font-bold text-blue-600 mb-1">
+          <div class="text-2xl font-bold text-primary-500 mb-1">
             {{ people.length }}
           </div>
-          <div class="text-sm text-blue-700">Family Members</div>
+          <div class="text-sm text-primary-600">Family Members</div>
         </div>
         
         <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
@@ -67,8 +67,8 @@ const EarningsWidget = Vue.defineComponent({
       </div>
       
       <!-- Individual member earnings (optional detailed view) -->
-      <div v-if="(showDetails && people.length > 0) || individualsOnly" :class="individualsOnly ? 'mt-0' : 'mt-4 pt-4 border-t border-[#e6e9f4]'">
-        <h4 v-if="!individualsOnly" class="text-sm font-medium text-[#47569e] mb-3">Individual Earnings</h4>
+      <div v-if="(showDetails && people.length > 0) || individualsOnly" :class="individualsOnly ? 'mt-0' : 'mt-4 pt-4 border-t border-gray-200'">
+        <h4 v-if="!individualsOnly" class="text-sm font-medium text-secondary-custom mb-3">Individual Earnings</h4>
         <div class="space-y-2">
           <div 
             v-for="person in people" 
@@ -78,12 +78,12 @@ const EarningsWidget = Vue.defineComponent({
             :title="'Click to spend money for ' + person.name"
           >
             <div class="flex items-center gap-3">
-              <div class="bg-[#607afb] text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">
+              <div class="earnings-avatar rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">
                 {{ person.name.charAt(0).toUpperCase() }}
               </div>
-              <span class="text-base font-medium text-[#0d0f1c]">{{ person.name }}</span>
+              <span class="text-base font-medium text-primary-custom">{{ person.name }}</span>
             </div>
-            <span class="font-bold text-green-600 text-lg">\${{ person.earnings.toFixed(2) }}</span>
+            <span class="font-bold earnings-text text-lg">\${{ person.earnings.toFixed(2) }}</span>
           </div>
         </div>
       </div>
@@ -92,7 +92,7 @@ const EarningsWidget = Vue.defineComponent({
       <div v-if="!compact && !individualsOnly && people.length > 0" class="mt-4 text-center">
         <button
           @click="showDetails = !showDetails"
-          class="text-xs text-[#607afb] hover:text-[#4f68d8] font-medium transition-colors"
+          class="text-xs text-primary-500 hover:text-primary-600 font-medium transition-colors"
         >
           {{ showDetails ? 'Hide Details' : 'Show Individual Earnings' }}
         </button>
@@ -108,16 +108,16 @@ const EarningsWidget = Vue.defineComponent({
               </svg>
             </div>
             <div>
-              <h3 class="text-lg font-bold text-[#0d0f1c]">Spend Money</h3>
-              <p class="text-sm text-[#47569e]">{{ selectedPerson?.name }} - \${{ selectedPerson?.earnings.toFixed(2) }} available</p>
+              <h3 class="text-lg font-bold text-primary-custom">Spend Money</h3>
+              <p class="text-sm text-secondary-custom">{{ selectedPerson?.name }} - \${{ selectedPerson?.earnings.toFixed(2) }} available</p>
             </div>
           </div>
           
           <!-- Amount Display -->
           <div class="mb-4">
             <div class="text-center bg-gray-50 rounded-lg p-4 mb-4">
-              <div class="text-2xl font-bold text-[#0d0f1c]">\${{ spendAmount.toFixed(2) }}</div>
-              <div class="text-sm text-[#47569e]">Amount to spend</div>
+              <div class="text-2xl font-bold text-primary-custom">\${{ spendAmount.toFixed(2) }}</div>
+              <div class="text-sm text-secondary-custom">Amount to spend</div>
             </div>
           </div>
           
@@ -127,19 +127,19 @@ const EarningsWidget = Vue.defineComponent({
               v-for="number in [1,2,3,4,5,6,7,8,9]"
               :key="number"
               @click="addDigit(number)"
-              class="bg-gray-100 hover:bg-gray-200 text-[#0d0f1c] font-bold py-3 px-4 rounded-lg transition-colors"
+              class="bg-gray-100 hover:bg-gray-200 text-primary-custom font-bold py-3 px-4 rounded-lg transition-colors"
             >
               {{ number }}
             </button>
             <button
               @click="addDecimal"
-              class="bg-gray-100 hover:bg-gray-200 text-[#0d0f1c] font-bold py-3 px-4 rounded-lg transition-colors"
+              class="bg-gray-100 hover:bg-gray-200 text-primary-custom font-bold py-3 px-4 rounded-lg transition-colors"
             >
               .
             </button>
             <button
               @click="addDigit(0)"
-              class="bg-gray-100 hover:bg-gray-200 text-[#0d0f1c] font-bold py-3 px-4 rounded-lg transition-colors"
+              class="bg-gray-100 hover:bg-gray-200 text-primary-custom font-bold py-3 px-4 rounded-lg transition-colors"
             >
               0
             </button>

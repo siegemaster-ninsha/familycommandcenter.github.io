@@ -3,12 +3,12 @@ const ShoppingPage = Vue.defineComponent({
   template: `
     <div class="space-y-6">
       <!-- Shopping List -->
-      <div class="bg-white rounded-lg border border-[#e6e9f4] p-6">
+      <div class="bg-white rounded-lg border border-gray-200 p-6">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em]">🛒 Shopping List</h2>
+          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em]">🛒 Shopping List</h2>
           <button
             @click="showAddItemModal = true"
-            class="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+            class="flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 transition-colors"
             :disabled="loading"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
@@ -20,8 +20,8 @@ const ShoppingPage = Vue.defineComponent({
         
         <!-- Loading state -->
         <div v-if="loading" class="text-center py-8">
-          <div class="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full border-blue-600 border-t-transparent"></div>
-          <p class="text-[#47569e] mt-2">Loading shopping items...</p>
+          <div class="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full border-primary-500 border-t-transparent"></div>
+          <p class="text-secondary-custom mt-2">Loading shopping items...</p>
         </div>
         
         <!-- Error state -->
@@ -33,7 +33,7 @@ const ShoppingPage = Vue.defineComponent({
           <p class="text-sm mt-1">{{ error }}</p>
           <button 
             @click="loadShoppingItems"
-            class="mt-3 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            class="mt-3 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
           >
             Try Again
           </button>
@@ -43,8 +43,8 @@ const ShoppingPage = Vue.defineComponent({
         <div v-else class="space-y-6">
           <!-- Items grouped by store -->
           <div v-for="(items, storeName) in itemsByStore" :key="storeName" class="space-y-3">
-            <div class="flex items-center justify-between border-b border-[#e6e9f4] pb-2">
-              <h3 class="text-lg font-bold text-[#0d0f1c] flex items-center gap-2">
+            <div class="flex items-center justify-between border-b border-gray-200 pb-2">
+              <h3 class="text-lg font-bold text-primary-custom flex items-center gap-2">
                 <div 
                   v-if="storeName !== 'No Store Selected'"
                   class="flex items-center justify-center w-6 h-6 rounded-full text-sm font-bold text-white"
@@ -54,7 +54,7 @@ const ShoppingPage = Vue.defineComponent({
                 </div>
                 <span v-else>🏪</span>
                 {{ storeName || 'No Store Selected' }}
-                <span class="text-sm font-normal text-[#47569e]">({{ items.length }} items)</span>
+                <span class="text-sm font-normal text-secondary-custom">({{ items.length }} items)</span>
               </h3>
             </div>
             
@@ -62,22 +62,22 @@ const ShoppingPage = Vue.defineComponent({
               <div 
                 v-for="item in items" 
                 :key="item.id"
-                class="flex items-center gap-3 p-3 border border-[#e6e9f4] rounded-lg hover:bg-gray-50 transition-colors"
+                class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <input 
                   type="checkbox" 
                   :checked="item.completed"
                   @change="toggleItem(item.id)"
-                  class="w-5 h-5 text-green-600 rounded focus:ring-green-500"
+                  class="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500"
                 >
                 <div class="flex-1">
                   <span 
-                    :class="item.completed ? 'line-through text-gray-500' : 'text-[#0d0f1c]'"
+                    :class="item.completed ? 'line-through text-gray-500' : 'text-primary-custom'"
                     class="font-medium"
                   >
                     {{ item.name }}
                   </span>
-                  <div class="text-sm text-[#47569e] flex items-center gap-2 mt-1">
+                  <div class="text-sm text-secondary-custom flex items-center gap-2 mt-1">
                     <span>{{ getCategoryIcon(item.category) }} {{ item.category }}</span>
                     <span v-if="item.quantity">• Qty: {{ item.quantity }}</span>
                     <span v-if="item.notes">• {{ item.notes }}</span>
@@ -96,7 +96,7 @@ const ShoppingPage = Vue.defineComponent({
             </div>
           </div>
           
-          <div v-if="shoppingItems.length === 0" class="text-center py-8 text-[#47569e]">
+          <div v-if="shoppingItems.length === 0" class="text-center py-8 text-secondary-custom">
             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="mx-auto mb-3 opacity-50" viewBox="0 0 256 256">
               <path d="M222.14,58.87A8,8,0,0,0,216,56H54.68L49.79,29.14A16,16,0,0,0,34.05,16H16a8,8,0,0,0,0,16H34.05l31.1,180.14A16,16,0,0,0,80.89,224H208a8,8,0,0,0,0-16H80.89L78.18,192H188.1a16,16,0,0,0,15.74-13.14L222.14,58.87ZM188.1,176H75.17l-18.73-108H207.37Z"></path>
             </svg>
@@ -107,13 +107,13 @@ const ShoppingPage = Vue.defineComponent({
       </div>
 
       <!-- Quick List -->
-      <div class="bg-white rounded-lg border border-[#e6e9f4] p-6">
+      <div class="bg-white rounded-lg border border-gray-200 p-6">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em]">⚡ Quick List</h2>
+          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em]">⚡ Quick List</h2>
           <div class="flex gap-2">
             <button
               @click="showAddQuickItemModal = true"
-              class="flex items-center gap-2 bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm"
+              class="flex items-center gap-2 bg-primary-500 text-white px-3 py-2 rounded-lg hover:bg-primary-600 transition-colors text-sm"
               :disabled="quickLoading"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256">
@@ -123,7 +123,7 @@ const ShoppingPage = Vue.defineComponent({
             </button>
             <button
               @click="initializeQuickItems"
-              class="flex items-center gap-2 bg-gray-500 text-white px-3 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm"
+              class="flex items-center gap-2 bg-slate-500 text-white px-3 py-2 rounded-lg hover:bg-slate-600 transition-colors text-sm"
               :disabled="quickLoading"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256">
@@ -134,12 +134,12 @@ const ShoppingPage = Vue.defineComponent({
           </div>
         </div>
         
-        <p class="text-sm text-[#47569e] mb-4">Tap any item below to quickly add it to your shopping list!</p>
+        <p class="text-sm text-secondary-custom mb-4">Tap any item below to quickly add it to your shopping list!</p>
         
         <!-- Quick loading state -->
         <div v-if="quickLoading" class="text-center py-4">
-          <div class="spinner-border animate-spin inline-block w-6 h-6 border-4 rounded-full border-blue-600 border-t-transparent"></div>
-          <p class="text-[#47569e] mt-2 text-sm">Loading quick items...</p>
+          <div class="spinner-border animate-spin inline-block w-6 h-6 border-4 rounded-full border-primary-500 border-t-transparent"></div>
+          <p class="text-secondary-custom mt-2 text-sm">Loading quick items...</p>
         </div>
         
         <!-- Quick error state -->
@@ -147,7 +147,7 @@ const ShoppingPage = Vue.defineComponent({
           <p class="text-sm">{{ quickError }}</p>
           <button 
             @click="loadQuickItems"
-            class="mt-2 px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
+            class="mt-2 px-3 py-1 bg-primary-500 text-white rounded text-sm hover:bg-primary-600 transition-colors"
           >
             Try Again
           </button>
@@ -158,7 +158,7 @@ const ShoppingPage = Vue.defineComponent({
           <div
             v-for="quickItem in quickItems"
             :key="quickItem.id"
-            class="relative flex flex-col items-center gap-2 p-3 border border-[#e6e9f4] rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors group cursor-pointer"
+            class="quicklist-card relative flex flex-col items-center gap-2 p-3 rounded-lg group cursor-pointer"
             @click="addQuickItemToList(quickItem.id)"
           >
             <!-- Store badge (top-left corner) -->
@@ -182,32 +182,32 @@ const ShoppingPage = Vue.defineComponent({
             </button>
             
             <div class="text-2xl">{{ getCategoryIcon(quickItem.category) }}</div>
-            <div class="text-sm font-medium text-[#0d0f1c] text-center">{{ quickItem.name }}</div>
-            <div class="text-xs text-[#47569e] text-center">{{ quickItem.category }}</div>
+            <div class="text-sm font-medium text-primary-custom text-center">{{ quickItem.name }}</div>
+            <div class="text-xs text-secondary-custom text-center">{{ quickItem.category }}</div>
             <div v-if="quickItem.defaultQuantity" class="text-xs text-gray-500">{{ quickItem.defaultQuantity }}</div>
             
             <!-- Store name (bottom, only visible on hover for better UX) -->
             <div 
               v-if="quickItem.defaultStore" 
-              class="absolute bottom-1 left-1 right-1 text-xs text-center bg-white bg-opacity-90 text-[#47569e] px-1 py-0.5 rounded sm:opacity-0 sm:group-hover:opacity-100 opacity-75 transition-opacity duration-200"
+              class="absolute bottom-1 left-1 right-1 text-xs text-center bg-white bg-opacity-90 text-secondary-custom px-1 py-0.5 rounded sm:opacity-0 sm:group-hover:opacity-100 opacity-75 transition-opacity duration-200"
             >
               🏪 {{ quickItem.defaultStore }}
             </div>
           </div>
           
-          <div v-if="quickItems.length === 0" class="col-span-full text-center py-8 text-[#47569e]">
+          <div v-if="quickItems.length === 0" class="col-span-full text-center py-8 text-secondary-custom">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="mx-auto mb-2 opacity-50" viewBox="0 0 256 256">
               <path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128Z"></path>
             </svg>
-            <p class="text-sm">No quick items available.</p>
-            <p class="text-xs mt-1">Click "Load Defaults" to get started!</p>
+            <p>No quick items available.</p>
+            <p class="text-sm mt-1">Click "Add Quick Item" to create some or "Load Defaults" to get started!</p>
           </div>
         </div>
       </div>
 
       <!-- Quick Actions -->
-      <div class="bg-white rounded-lg border border-[#e6e9f4] p-6">
-        <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">⚡ Quick Actions</h2>
+      <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">⚡ Quick Actions</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button
@@ -249,9 +249,9 @@ const ShoppingPage = Vue.defineComponent({
       </div>
 
       <!-- Store Management -->
-      <div class="bg-white rounded-lg border border-[#e6e9f4] p-6">
+      <div class="bg-white rounded-lg border border-gray-200 p-6">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em]">🏪 Store Management</h2>
+          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em]">🏪 Store Management</h2>
           <button
             @click="showAddStoreModal = true"
             class="flex items-center gap-2 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
@@ -267,7 +267,7 @@ const ShoppingPage = Vue.defineComponent({
         <!-- Store loading state -->
         <div v-if="storeLoading" class="text-center py-4">
           <div class="spinner-border animate-spin inline-block w-6 h-6 border-4 rounded-full border-purple-600 border-t-transparent"></div>
-          <p class="text-[#47569e] mt-2 text-sm">Loading stores...</p>
+          <p class="text-secondary-custom mt-2 text-sm">Loading stores...</p>
         </div>
         
         <!-- Stores list -->
@@ -284,7 +284,7 @@ const ShoppingPage = Vue.defineComponent({
               >
                 {{ getStoreInitial(store.name) }}
               </div>
-              <span class="font-medium text-[#0d0f1c]">{{ store.name }}</span>
+              <span class="font-medium text-primary-custom">{{ store.name }}</span>
             </div>
             <button
               @click="removeStore(store.id)"
@@ -297,7 +297,7 @@ const ShoppingPage = Vue.defineComponent({
             </button>
           </div>
           
-          <div v-if="stores.length === 0" class="col-span-full text-center py-4 text-[#47569e]">
+          <div v-if="stores.length === 0" class="col-span-full text-center py-4 text-secondary-custom">
             <p>No stores added yet.</p>
             <p class="text-sm mt-1">Click "Add Store" to get started!</p>
           </div>

@@ -10,10 +10,10 @@ const AppModals = Vue.defineComponent({
               <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
             </svg>
           </div>
-          <h3 class="text-lg font-bold text-[#0d0f1c]">Delete Chore</h3>
+          <h3 class="text-lg font-bold text-primary-custom">Delete Chore</h3>
         </div>
-        <p class="text-[#47569e] mb-6">
-          Are you sure you want to delete "<span class="font-medium text-[#0d0f1c]">{{ choreToDelete?.name }}</span>"? This action cannot be undone.
+        <p class="text-secondary-custom mb-6">
+          Are you sure you want to delete "<span class="font-medium text-primary-custom">{{ choreToDelete?.name }}</span>"? This action cannot be undone.
         </p>
         <div class="flex gap-3">
           <button 
@@ -24,7 +24,7 @@ const AppModals = Vue.defineComponent({
           </button>
           <button 
             @click="cancelDelete"
-            class="flex-1 bg-[#e6e9f4] text-[#0d0f1c] py-2 px-4 rounded-lg hover:bg-[#d0d4e8] transition-colors"
+            class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
           >
             Cancel
           </button>
@@ -41,34 +41,34 @@ const AppModals = Vue.defineComponent({
               <path d="M200,32H163.74a47.92,47.92,0,0,0-71.48,0H56A16,16,0,0,0,40,48V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V48A16,16,0,0,0,200,32Zm-72,0a32,32,0,0,1,32,32H96A32,32,0,0,1,128,32Zm72,184H56V48H72V64a8,8,0,0,0,8,8H176a8,8,0,0,0,8-8V48h16V216Z"></path>
             </svg>
           </div>
-          <h3 class="text-lg font-bold text-[#0d0f1c]">Add to Quicklist</h3>
+          <h3 class="text-lg font-bold text-primary-custom">Add to Quicklist</h3>
         </div>
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Chore Name</label>
+            <label class="block text-sm font-medium text-primary-custom mb-1">Chore Name</label>
             <input 
               v-model="newQuicklistChore.name"
               type="text" 
-              class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               placeholder="Enter chore name"
             >
           </div>
           <div>
-            <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Amount ($)</label>
+            <label class="block text-sm font-medium text-primary-custom mb-1">Amount ($)</label>
             <input 
               v-model.number="newQuicklistChore.amount"
               type="number" 
               step="0.25"
               min="0"
-              class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               placeholder="0.00"
             >
           </div>
           <div>
-            <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Chore Type</label>
+            <label class="block text-sm font-medium text-primary-custom mb-1">Chore Type</label>
             <select 
               v-model="newQuicklistChore.category"
-              class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
               <option value="regular">🏠 Regular Chore</option>
               <option value="school">📚 School Chore</option>
@@ -85,7 +85,7 @@ const AppModals = Vue.defineComponent({
           </button>
           <button 
             @click="cancelAddToQuicklist"
-            class="flex-1 bg-[#e6e9f4] text-[#0d0f1c] py-2 px-4 rounded-lg hover:bg-[#d0d4e8] transition-colors"
+            class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
           >
             Cancel
           </button>
@@ -102,15 +102,15 @@ const AppModals = Vue.defineComponent({
               <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
             </svg>
           </div>
-          <h3 class="text-lg font-bold text-[#0d0f1c]">Add Family Member</h3>
+          <h3 class="text-lg font-bold text-primary-custom">Add Family Member</h3>
         </div>
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Name</label>
+            <label class="block text-sm font-medium text-primary-custom mb-1">Name</label>
             <input 
               v-model="newPerson.name"
               type="text" 
-              class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="Enter person's name"
               @keyup.enter="addPerson"
             >
@@ -119,13 +119,13 @@ const AppModals = Vue.defineComponent({
         <div class="flex gap-3 mt-6">
           <button 
             @click="addPerson"
-            class="flex-1 bg-[#607afb] text-white py-2 px-4 rounded-lg hover:bg-[#4f68d8] transition-colors"
+            class="flex-1 bg-primary-500 text-white py-2 px-4 rounded-lg hover:bg-primary-600 transition-colors"
           >
             Add Person
           </button>
           <button 
             @click="cancelAddPerson"
-            class="flex-1 bg-[#e6e9f4] text-[#0d0f1c] py-2 px-4 rounded-lg hover:bg-[#d0d4e8] transition-colors"
+            class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
           >
             Cancel
           </button>
@@ -142,10 +142,10 @@ const AppModals = Vue.defineComponent({
               <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
             </svg>
           </div>
-          <h3 class="text-lg font-bold text-[#0d0f1c]">Remove Family Member</h3>
+          <h3 class="text-lg font-bold text-primary-custom">Remove Family Member</h3>
         </div>
-        <p class="text-[#47569e] mb-6">
-          Are you sure you want to remove "<span class="font-medium text-[#0d0f1c]">{{ personToDelete?.name }}</span>" from the family? 
+        <p class="text-secondary-custom mb-6">
+          Are you sure you want to remove "<span class="font-medium text-primary-custom">{{ personToDelete?.name }}</span>" from the family? 
           All their assigned chores will be moved to unassigned. This action cannot be undone.
         </p>
         <div class="flex gap-3">
@@ -157,7 +157,7 @@ const AppModals = Vue.defineComponent({
           </button>
           <button 
             @click="cancelDeletePerson"
-            class="flex-1 bg-[#e6e9f4] text-[#0d0f1c] py-2 px-4 rounded-lg hover:bg-[#d0d4e8] transition-colors"
+            class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
           >
             Cancel
           </button>
@@ -168,66 +168,50 @@ const AppModals = Vue.defineComponent({
     <!-- Add Chore Modal -->
     <div v-if="showAddChoreModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
-        <h3 class="text-lg font-bold text-[#0d0f1c] mb-4">Add New Chore</h3>
+        <h3 class="text-lg font-bold text-primary-custom mb-4">Add New Chore</h3>
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Chore Name</label>
+            <label class="block text-sm font-medium text-primary-custom mb-1">Chore Name</label>
             <input 
               v-model="newChore.name"
               type="text" 
-              class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="Enter chore name"
             >
           </div>
           <div>
-            <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Amount ($)</label>
+            <label class="block text-sm font-medium text-primary-custom mb-1">Amount ($)</label>
             <input 
               v-model.number="newChore.amount"
               type="number" 
               step="0.50"
               min="0"
-              class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="0.00"
             >
           </div>
           <div>
-            <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Chore Type</label>
+            <label class="block text-sm font-medium text-primary-custom mb-1">Chore Type</label>
             <select 
               v-model="newChore.category"
-              class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               <option value="regular">🏠 Regular Chore</option>
               <option value="school">📚 School Chore</option>
               <option value="game">🎮 Electronics Requirement</option>
             </select>
-            <p class="text-xs text-[#47569e] mt-1">
-              <span v-if="newChore.category === 'school'">School chores help with learning habits</span>
-              <span v-else-if="newChore.category === 'game'">Must be completed to earn electronics time</span>
-              <span v-else>Regular household chore</span>
-            </p>
-          </div>
-          <div>
-            <label class="flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                v-model="newChore.addToQuicklist"
-                class="h-4 w-4 rounded border-[#ced2e9] border-2 bg-transparent text-[#607afb] checked:bg-[#607afb] checked:border-[#607afb] focus:ring-0 focus:ring-offset-0"
-              >
-              <span class="text-sm text-[#0d0f1c]">⚡ Also add to Quicklist</span>
-            </label>
-            <p class="text-xs text-[#47569e] mt-1 ml-6">Make this chore available for quick assignment in the future</p>
           </div>
         </div>
         <div class="flex gap-3 mt-6">
           <button 
             @click="addChore"
-            class="flex-1 bg-[#607afb] text-white py-2 px-4 rounded-lg hover:bg-[#4f68d8] transition-colors"
+            class="flex-1 bg-primary-500 text-white py-2 px-4 rounded-lg hover:bg-primary-600 transition-colors"
           >
             Add Chore
           </button>
           <button 
             @click="cancelAddChore"
-            class="flex-1 bg-[#e6e9f4] text-[#0d0f1c] py-2 px-4 rounded-lg hover:bg-[#d0d4e8] transition-colors"
+            class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
           >
             Cancel
           </button>
@@ -244,7 +228,7 @@ const AppModals = Vue.defineComponent({
               <path d="M128,40a88,88,0,1,0,88,88A88.1,88.1,0,0,0,128,40Zm0,160a72,72,0,1,1,72-72A72.08,72.08,0,0,1,128,200ZM164.49,99.51a8,8,0,0,1,0,11.31L137.66,138.34a8,8,0,0,1-11.32,0L99.51,111.51a8,8,0,0,1,11.31-11.31L128,117.37l21.18-21.18A8,8,0,0,1,164.49,99.51Z"></path>
             </svg>
           </div>
-          <h3 class="text-lg font-bold text-[#0d0f1c]">Start New Day</h3>
+          <h3 class="text-lg font-bold text-primary-custom">Start New Day</h3>
         </div>
         <div class="space-y-4 mb-6">
           <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
@@ -255,7 +239,7 @@ const AppModals = Vue.defineComponent({
               <li>• The board will be cleared for fresh daily chores</li>
             </ul>
           </div>
-          <p class="text-[#47569e] text-sm">
+          <p class="text-secondary-custom text-sm">
             This action cannot be undone. Are you sure you want to start a new day?
           </p>
         </div>
@@ -268,7 +252,7 @@ const AppModals = Vue.defineComponent({
           </button>
           <button 
             @click="cancelNewDay"
-            class="flex-1 bg-[#e6e9f4] text-[#0d0f1c] py-2 px-4 rounded-lg hover:bg-[#d0d4e8] transition-colors"
+            class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
           >
             Cancel
           </button>
@@ -285,28 +269,28 @@ const AppModals = Vue.defineComponent({
               <path d="M141.66,133.66l-40,40A8,8,0,0,1,88,168V136H24a8,8,0,0,1,0-16H88V88a8,8,0,0,1,13.66-5.66l40,40A8,8,0,0,1,141.66,133.66ZM192,32H136a8,8,0,0,0,0,16h56V208H136a8,8,0,0,0,0,16h56a16,16,0,0,0,16-16V48A16,16,0,0,0,192,32Z"></path>
             </svg>
           </div>
-          <h3 class="text-lg font-bold text-[#0d0f1c]">Sign In</h3>
+          <h3 class="text-lg font-bold text-primary-custom">Sign In</h3>
         </div>
         <div v-if="authError" class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
           <p class="text-red-600 text-sm">{{ authError }}</p>
         </div>
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Email</label>
+            <label class="block text-sm font-medium text-primary-custom mb-1">Email</label>
             <input 
               v-model="authForm.email"
               type="email" 
-              class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="Enter your email"
               @keyup.enter="handleLogin"
             >
           </div>
           <div>
-            <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Password</label>
+            <label class="block text-sm font-medium text-primary-custom mb-1">Password</label>
             <input 
               v-model="authForm.password"
               type="password" 
-              class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="Enter your password"
               @keyup.enter="handleLogin"
             >
@@ -316,20 +300,20 @@ const AppModals = Vue.defineComponent({
           <button 
             @click="handleLogin"
             :disabled="authLoading"
-            class="w-full bg-[#607afb] text-white py-2 px-4 rounded-lg hover:bg-[#4f68d8] transition-colors disabled:opacity-50"
+            class="w-full bg-primary-500 text-white py-2 px-4 rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50"
           >
             {{ authLoading ? 'Signing In...' : 'Sign In' }}
           </button>
           <button 
             @click="closeAuthModals"
-            class="w-full bg-[#e6e9f4] text-[#0d0f1c] py-2 px-4 rounded-lg hover:bg-[#d0d4e8] transition-colors"
+            class="w-full bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
           >
             Cancel
           </button>
           <div class="text-center">
             <button 
               @click="showSignupForm"
-              class="text-[#607afb] hover:underline text-sm"
+              class="text-primary-custom hover:underline text-sm"
             >
               Don't have an account? Sign up
             </button>
@@ -347,36 +331,36 @@ const AppModals = Vue.defineComponent({
               <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
             </svg>
           </div>
-          <h3 class="text-lg font-bold text-[#0d0f1c]">Create Account</h3>
+          <h3 class="text-lg font-bold text-primary-custom">Create Account</h3>
         </div>
         <div v-if="authError" class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
           <p class="text-red-600 text-sm">{{ authError }}</p>
         </div>
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Name</label>
+            <label class="block text-sm font-medium text-primary-custom mb-1">Name</label>
             <input 
               v-model="authForm.name"
               type="text" 
-              class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="Enter your full name"
             >
           </div>
           <div>
-            <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Email</label>
+            <label class="block text-sm font-medium text-primary-custom mb-1">Email</label>
             <input 
               v-model="authForm.email"
               type="email" 
-              class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="Enter your email"
             >
           </div>
           <div>
-            <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Password</label>
+            <label class="block text-sm font-medium text-primary-custom mb-1">Password</label>
             <input 
               v-model="authForm.password"
               type="password" 
-              class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="Minimum 8 characters"
             >
             <p class="text-xs text-gray-500 mt-1">Password must be at least 8 characters with uppercase, lowercase, and numbers.</p>
@@ -392,14 +376,14 @@ const AppModals = Vue.defineComponent({
           </button>
           <button 
             @click="closeAuthModals"
-            class="w-full bg-[#e6e9f4] text-[#0d0f1c] py-2 px-4 rounded-lg hover:bg-[#d0d4e8] transition-colors"
+            class="w-full bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
           >
             Cancel
           </button>
           <div class="text-center">
             <button 
               @click="showLoginForm"
-              class="text-[#607afb] hover:underline text-sm"
+              class="text-primary-custom hover:underline text-sm"
             >
               Already have an account? Sign in
             </button>
@@ -417,22 +401,22 @@ const AppModals = Vue.defineComponent({
               <path d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48ZM203.43,64,128,133.15,52.57,64ZM216,192H40V74.19l82.59,75.71a8,8,0,0,0,10.82,0L216,74.19V192Z"></path>
             </svg>
           </div>
-          <h3 class="text-lg font-bold text-[#0d0f1c]">Confirm Email</h3>
+          <h3 class="text-lg font-bold text-primary-custom">Confirm Email</h3>
         </div>
         <div v-if="authError" class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
           <p class="text-red-600 text-sm">{{ authError }}</p>
         </div>
-        <p class="text-[#47569e] mb-4">
+        <p class="text-secondary-custom mb-4">
           We've sent a confirmation code to <strong>{{ authForm.email }}</strong>. 
           Please enter the code below to verify your email.
         </p>
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-[#0d0f1c] mb-1">Confirmation Code</label>
+            <label class="block text-sm font-medium text-primary-custom mb-1">Confirmation Code</label>
             <input 
               v-model="authForm.confirmationCode"
               type="text" 
-              class="w-full px-3 py-2 border border-[#ced2e9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#607afb]"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="Enter 6-digit code"
               @keyup.enter="handleConfirmSignup"
             >
@@ -442,13 +426,13 @@ const AppModals = Vue.defineComponent({
           <button 
             @click="handleConfirmSignup"
             :disabled="authLoading"
-            class="w-full bg-[#607afb] text-white py-2 px-4 rounded-lg hover:bg-[#4f68d8] transition-colors disabled:opacity-50"
+            class="w-full bg-primary-500 text-white py-2 px-4 rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50"
           >
             {{ authLoading ? 'Confirming...' : 'Confirm Email' }}
           </button>
           <button 
             @click="closeAuthModals"
-            class="w-full bg-[#e6e9f4] text-[#0d0f1c] py-2 px-4 rounded-lg hover:bg-[#d0d4e8] transition-colors"
+            class="w-full bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
           >
             Cancel
           </button>
