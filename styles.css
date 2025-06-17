@@ -731,4 +731,20 @@ input:focus, select:focus, textarea:focus {
     border: 3px solid rgba(34, 197, 94, 0.5);
     box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.15);
   }
+  
+  /* Ensure selection ring is visible on mobile */
+  .ring-4 {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.75) !important;
+    position: relative !important;
+    z-index: 10 !important;
+  }
+  
+  .ring-blue-400 {
+    --tw-ring-color: rgb(96 165 250 / 0.75) !important;
+  }
+  
+  /* Force hardware acceleration for better rendering */
+  .transform {
+    transform: translateZ(0) !important;
+  }
 } 

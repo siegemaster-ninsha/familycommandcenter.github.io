@@ -346,7 +346,7 @@ const ChorePage = Vue.defineComponent({
       const baseClasses = "relative group flex items-center gap-3 sm:gap-2 bg-white px-4 py-4 sm:px-3 sm:py-2 rounded-lg shadow-sm cursor-pointer border-l-4 border-purple-500 transition-all duration-200 touch-target min-h-[68px] sm:min-h-[56px]";
       const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       const hoverClasses = isTouch ? "" : "hover:shadow-md hover:scale-105";
-      const selectedClasses = this.isChoreSelected(quickChore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : `${hoverClasses} active:scale-95`;
+      const selectedClasses = this.isChoreSelected(quickChore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10" : `${hoverClasses} active:scale-95`;
       
       return `${baseClasses} ${selectedClasses}`;
     },
@@ -370,6 +370,11 @@ const ChorePage = Vue.defineComponent({
       this.$parent.selectedChoreId = null;
       this.$parent.selectedQuicklistChore = newChore;
       console.log('Quicklist chore selected:', newChore.name);
+      
+      // Force re-render on mobile to ensure selection styling appears
+      this.$nextTick(() => {
+        this.$forceUpdate();
+      });
     },
 
     handleQuicklistDragStart(event, quickChore) {
@@ -403,7 +408,7 @@ const ChorePage = Vue.defineComponent({
       const categoryClasses = this.getCategoryStyle(chore.category).background;
       const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       const hoverClasses = isTouch ? "" : "hover:shadow-md hover:scale-102";
-      const selectedClasses = this.isChoreSelected(chore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : `${hoverClasses} active:scale-95`;
+      const selectedClasses = this.isChoreSelected(chore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10" : `${hoverClasses} active:scale-95`;
       
       return `${baseClasses} ${categoryClasses} ${selectedClasses}`;
     },
@@ -444,6 +449,11 @@ const ChorePage = Vue.defineComponent({
         this.$parent.selectedChoreId = chore.id;
         this.$parent.selectedQuicklistChore = null;
       }
+      
+      // Force re-render on mobile to ensure selection styling appears
+      this.$nextTick(() => {
+        this.$forceUpdate();
+      });
     },
 
     handleDragStart(event, chore) {
