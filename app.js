@@ -963,6 +963,15 @@ const app = createApp({
       if (!user) return 'U';
       const name = this.getUserDisplayName(user);
       return name.charAt(0).toUpperCase();
+    },
+
+    showSuccessMessage(message) {
+      this.completedChoreMessage = message;
+      this.showSuccessMessage = true;
+      setTimeout(() => {
+        this.showSuccessMessage = false;
+        this.completedChoreMessage = '';
+      }, 3000);
     }
   },
   
@@ -1073,6 +1082,10 @@ const app = createApp({
       cancelDeletePerson: this.cancelDeletePerson,
       triggerConfetti: this.triggerConfetti,
       loadEarnings: this.loadEarnings,
+      showSuccessMessage: this.showSuccessMessage,
+      
+      // User data
+      currentUser: Vue.computed(() => this.currentUser),
       
       // Authentication methods
       handleLogin: this.handleLogin,
@@ -1101,7 +1114,8 @@ function checkAndRegisterComponents() {
     'EarningsWidgetComponent',
     'FamilyPageComponent',
     'ShoppingPageComponent',
-    'ChorePageComponent'
+    'ChorePageComponent',
+    'AccountPageComponent'
   ];
   
   const missingComponents = requiredComponents.filter(comp => !window[comp]);
@@ -1149,6 +1163,9 @@ function checkAndRegisterComponents() {
   
   console.log('📦 Registering chore-page');
   app.component('chore-page', window.ChorePageComponent);
+  
+  console.log('📦 Registering account-page');
+  app.component('account-page', window.AccountPageComponent);
 
   console.log('✅ All components registered, mounting app...');
   

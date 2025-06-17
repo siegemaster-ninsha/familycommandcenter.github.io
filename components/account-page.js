@@ -1,0 +1,568 @@
+// Account Page Component
+const AccountPage = Vue.defineComponent({
+  template: `
+    <div class="space-y-6">
+      <!-- Account Overview -->
+      <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em]">⚙️ Account Settings</h2>
+          <div class="flex items-center gap-3">
+            <div class="bg-primary-100 p-2 rounded-full">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-primary-600" viewBox="0 0 256 256">
+                <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-bold text-primary-custom">{{ currentUser?.name || 'User' }}</h3>
+              <p class="text-sm text-secondary-custom">{{ currentUser?.email || 'user@example.com' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Account Info -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-primary-custom mb-2">Display Name</label>
+              <input 
+                v-model="profileForm.name"
+                type="text" 
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                placeholder="Enter your name"
+              >
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-primary-custom mb-2">Email</label>
+              <input 
+                v-model="profileForm.email"
+                type="email" 
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                placeholder="Enter your email"
+              >
+            </div>
+          </div>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-primary-custom mb-2">Family Name</label>
+              <input 
+                v-model="profileForm.familyName"
+                type="text" 
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                placeholder="The Smith Family"
+              >
+            </div>
+            <div class="flex gap-3">
+              <button
+                @click="updateProfile"
+                :disabled="profileLoading"
+                class="flex-1 bg-primary-500 text-white py-2 px-4 rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50"
+              >
+                {{ profileLoading ? 'Saving...' : 'Save Changes' }}
+              </button>
+              <button
+                @click="resetProfile"
+                class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Theme Selection -->
+      <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <h3 class="text-primary-custom text-lg font-bold mb-4 flex items-center gap-2">
+          🎨 Theme Selection
+        </h3>
+        <p class="text-secondary-custom text-sm mb-6">Choose your preferred color theme for the application.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div
+            v-for="theme in availableThemes"
+            :key="theme.id"
+            @click="selectTheme(theme.id)"
+            class="relative p-4 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md"
+            :class="currentTheme === theme.id ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'"
+          >
+            <!-- Selected indicator -->
+            <div 
+              v-if="currentTheme === theme.id"
+              class="absolute top-2 right-2 bg-primary-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+            >
+              ✓
+            </div>
+            
+            <!-- Theme preview -->
+            <div class="mb-3">
+              <div class="flex gap-2 mb-2">
+                <div 
+                  class="w-8 h-8 rounded-full border-2 border-white shadow-sm"
+                  :style="{ backgroundColor: theme.colors.primary }"
+                ></div>
+                <div 
+                  class="w-8 h-8 rounded-full border-2 border-white shadow-sm"
+                  :style="{ backgroundColor: theme.colors.secondary }"
+                ></div>
+                <div 
+                  class="w-8 h-8 rounded-full border-2 border-white shadow-sm"
+                  :style="{ backgroundColor: theme.colors.success }"
+                ></div>
+              </div>
+              <div class="text-sm font-medium text-primary-custom">{{ theme.name }}</div>
+              <div class="text-xs text-secondary-custom">{{ theme.description }}</div>
+            </div>
+            
+            <!-- Mini preview card -->
+            <div class="border rounded p-2 text-xs" :style="{ borderColor: theme.colors.primary + '40' }">
+              <div class="flex items-center gap-2 mb-1">
+                <div 
+                  class="w-4 h-4 rounded-full text-white text-xs flex items-center justify-center"
+                  :style="{ backgroundColor: theme.colors.primary }"
+                >
+                  A
+                </div>
+                <span :style="{ color: theme.colors.textPrimary }">Sample Task</span>
+              </div>
+              <div class="text-xs" :style="{ color: theme.colors.textSecondary }">Preview text</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Apply Theme Button -->
+        <div class="mt-6 flex justify-center">
+          <button
+            @click="applyTheme"
+            :disabled="themeLoading || currentTheme === selectedTheme"
+            class="bg-primary-500 text-white px-6 py-2 rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ themeLoading ? 'Applying...' : 'Apply Theme' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- App Preferences -->
+      <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <h3 class="text-primary-custom text-lg font-bold mb-4 flex items-center gap-2">
+          📱 App Preferences
+        </h3>
+        
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="font-medium text-primary-custom">Confetti Animations</label>
+              <p class="text-sm text-secondary-custom">Show celebration animations when completing chores</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                v-model="preferences.confettiEnabled"
+                class="sr-only peer"
+              >
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+            </label>
+          </div>
+          
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="font-medium text-primary-custom">Sound Effects</label>
+              <p class="text-sm text-secondary-custom">Play sounds for task completion and other actions</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                v-model="preferences.soundEnabled"
+                class="sr-only peer"
+              >
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+            </label>
+          </div>
+          
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="font-medium text-primary-custom">Auto-save Changes</label>
+              <p class="text-sm text-secondary-custom">Automatically save changes without confirmation</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                v-model="preferences.autoSave"
+                class="sr-only peer"
+              >
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+            </label>
+          </div>
+        </div>
+        
+        <div class="mt-6">
+          <button
+            @click="savePreferences"
+            :disabled="preferencesLoading"
+            class="bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50"
+          >
+            {{ preferencesLoading ? 'Saving...' : 'Save Preferences' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Data Management -->
+      <div class="bg-white rounded-lg border border-gray-200 p-6">
+        <h3 class="text-primary-custom text-lg font-bold mb-4 flex items-center gap-2">
+          💾 Data Management
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 border border-gray-200 rounded-lg">
+            <h4 class="font-medium text-primary-custom mb-2">Export Data</h4>
+            <p class="text-sm text-secondary-custom mb-3">Download all your family's chore and earnings data</p>
+            <button
+              @click="exportData"
+              class="w-full bg-emerald-500 text-white py-2 px-4 rounded-lg hover:bg-emerald-600 transition-colors"
+            >
+              Export Data
+            </button>
+          </div>
+          
+          <div class="p-4 border border-red-200 rounded-lg bg-red-50">
+            <h4 class="font-medium text-red-600 mb-2">Reset All Data</h4>
+            <p class="text-sm text-red-600 mb-3">Permanently delete all chores, family members, and earnings</p>
+            <button
+              @click="showResetConfirmation = true"
+              class="w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors"
+            >
+              Reset All Data
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reset Confirmation Modal -->
+      <div v-if="showResetConfirmation" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="bg-red-100 p-2 rounded-full">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-red-600" viewBox="0 0 256 256">
+                <path d="M236.8,188.09,149.35,36.22h0a24.76,24.76,0,0,0-42.7,0L19.2,188.09a23.51,23.51,0,0,0,0,23.72A24.35,24.35,0,0,0,40.55,224h174.9a24.35,24.35,0,0,0,21.33-12.19A23.51,23.51,0,0,0,236.8,188.09ZM222.93,203.8a8.5,8.5,0,0,1-7.48,4.2H40.55a8.5,8.5,0,0,1-7.48-4.2,7.59,7.59,0,0,1,0-7.72L120.52,44.21a8.75,8.75,0,0,1,15,0l87.45,151.87A7.59,7.59,0,0,1,222.93,203.8Z"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-primary-custom">Reset All Data</h3>
+          </div>
+          <p class="text-secondary-custom mb-6">
+            This will permanently delete ALL data including:
+          </p>
+          <ul class="text-sm text-secondary-custom mb-6 space-y-1 ml-4">
+            <li>• All family members</li>
+            <li>• All chores and quicklist items</li>
+            <li>• All earnings and transaction history</li>
+            <li>• All shopping lists and quick items</li>
+          </ul>
+          <p class="text-red-600 font-medium mb-6">This action cannot be undone!</p>
+          
+          <div class="flex gap-3">
+            <button 
+              @click="confirmReset"
+              :disabled="resetLoading"
+              class="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
+            >
+              {{ resetLoading ? 'Resetting...' : 'Yes, Reset Everything' }}
+            </button>
+            <button 
+              @click="showResetConfirmation = false"
+              class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+  inject: ['currentUser', 'showSuccessMessage'],
+  data() {
+    return {
+      profileForm: {
+        name: '',
+        email: '',
+        familyName: ''
+      },
+      profileLoading: false,
+      
+      currentTheme: 'default',
+      selectedTheme: 'default',
+      themeLoading: false,
+      
+      preferences: {
+        confettiEnabled: true,
+        soundEnabled: false,
+        autoSave: true
+      },
+      preferencesLoading: false,
+      
+      showResetConfirmation: false,
+      resetLoading: false,
+      
+      availableThemes: [
+        {
+          id: 'default',
+          name: 'Ocean Blue',
+          description: 'Friendly blue with purple accents',
+          colors: {
+            primary: '#4A90E2',
+            secondary: '#7B68EE',
+            success: '#50C878',
+            textPrimary: '#2D3748',
+            textSecondary: '#718096'
+          }
+        },
+        {
+          id: 'forest',
+          name: 'Forest Green',
+          description: 'Natural greens with earth tones',
+          colors: {
+            primary: '#22C55E',
+            secondary: '#16A34A',
+            success: '#15803D',
+            textPrimary: '#1F2937',
+            textSecondary: '#6B7280'
+          }
+        },
+        {
+          id: 'sunset',
+          name: 'Sunset Orange',
+          description: 'Warm oranges and reds',
+          colors: {
+            primary: '#F97316',
+            secondary: '#EA580C',
+            success: '#22C55E',
+            textPrimary: '#1F2937',
+            textSecondary: '#6B7280'
+          }
+        },
+        {
+          id: 'lavender',
+          name: 'Lavender Purple',
+          description: 'Soft purples with pink accents',
+          colors: {
+            primary: '#8B5CF6',
+            secondary: '#A855F7',
+            success: '#22C55E',
+            textPrimary: '#1F2937',
+            textSecondary: '#6B7280'
+          }
+        },
+        {
+          id: 'rose',
+          name: 'Rose Pink',
+          description: 'Elegant pinks with warm tones',
+          colors: {
+            primary: '#EC4899',
+            secondary: '#F43F5E',
+            success: '#22C55E',
+            textPrimary: '#1F2937',
+            textSecondary: '#6B7280'
+          }
+        },
+        {
+          id: 'midnight',
+          name: 'Midnight Blue',
+          description: 'Deep blues with silver accents',
+          colors: {
+            primary: '#1E40AF',
+            secondary: '#3730A3',
+            success: '#22C55E',
+            textPrimary: '#1F2937',
+            textSecondary: '#6B7280'
+          }
+        }
+      ]
+    };
+  },
+  mounted() {
+    this.loadUserProfile();
+    this.loadCurrentTheme();
+    this.loadPreferences();
+  },
+  methods: {
+    loadUserProfile() {
+      // Load user profile data
+      this.profileForm = {
+        name: this.currentUser?.name || '',
+        email: this.currentUser?.email || '',
+        familyName: localStorage.getItem('familyName') || ''
+      };
+    },
+    
+    loadCurrentTheme() {
+      this.currentTheme = localStorage.getItem('selectedTheme') || 'default';
+      this.selectedTheme = this.currentTheme;
+    },
+    
+    loadPreferences() {
+      const saved = localStorage.getItem('appPreferences');
+      if (saved) {
+        this.preferences = { ...this.preferences, ...JSON.parse(saved) };
+      }
+    },
+    
+    async updateProfile() {
+      this.profileLoading = true;
+      try {
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Save to localStorage for now
+        localStorage.setItem('familyName', this.profileForm.familyName);
+        
+        this.showSuccessMessage('Profile updated successfully!');
+      } catch (error) {
+        console.error('Error updating profile:', error);
+      } finally {
+        this.profileLoading = false;
+      }
+    },
+    
+    resetProfile() {
+      this.loadUserProfile();
+    },
+    
+    selectTheme(themeId) {
+      this.selectedTheme = themeId;
+    },
+    
+    async applyTheme() {
+      if (this.selectedTheme === this.currentTheme) return;
+      
+      this.themeLoading = true;
+      try {
+        const theme = this.availableThemes.find(t => t.id === this.selectedTheme);
+        if (!theme) return;
+        
+        // Apply theme to CSS variables
+        const root = document.documentElement;
+        root.style.setProperty('--color-primary-500', theme.colors.primary);
+        root.style.setProperty('--color-primary-600', this.darkenColor(theme.colors.primary, 10));
+        root.style.setProperty('--color-primary-100', this.lightenColor(theme.colors.primary, 40));
+        root.style.setProperty('--color-secondary-500', theme.colors.secondary);
+        root.style.setProperty('--color-success-500', theme.colors.success);
+        root.style.setProperty('--color-text-primary', theme.colors.textPrimary);
+        root.style.setProperty('--color-text-secondary', theme.colors.textSecondary);
+        
+        // Save theme selection
+        localStorage.setItem('selectedTheme', this.selectedTheme);
+        this.currentTheme = this.selectedTheme;
+        
+        // Simulate loading time
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        this.showSuccessMessage(`${theme.name} theme applied successfully!`);
+      } catch (error) {
+        console.error('Error applying theme:', error);
+      } finally {
+        this.themeLoading = false;
+      }
+    },
+    
+    async savePreferences() {
+      this.preferencesLoading = true;
+      try {
+        // Save preferences
+        localStorage.setItem('appPreferences', JSON.stringify(this.preferences));
+        
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        this.showSuccessMessage('Preferences saved successfully!');
+      } catch (error) {
+        console.error('Error saving preferences:', error);
+      } finally {
+        this.preferencesLoading = false;
+      }
+    },
+    
+    exportData() {
+      try {
+        const data = {
+          familyMembers: JSON.parse(localStorage.getItem('familyMembers') || '[]'),
+          chores: JSON.parse(localStorage.getItem('chores') || '[]'),
+          quicklistChores: JSON.parse(localStorage.getItem('quicklistChores') || '[]'),
+          shoppingItems: JSON.parse(localStorage.getItem('shoppingItems') || '[]'),
+          quickShoppingItems: JSON.parse(localStorage.getItem('quickShoppingItems') || '[]'),
+          preferences: this.preferences,
+          theme: this.currentTheme,
+          exportDate: new Date().toISOString()
+        };
+        
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `family-chore-data-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        this.showSuccessMessage('Data exported successfully!');
+      } catch (error) {
+        console.error('Error exporting data:', error);
+      }
+    },
+    
+    async confirmReset() {
+      this.resetLoading = true;
+      try {
+        // Clear all localStorage data
+        const keysToKeep = ['selectedTheme', 'appPreferences'];
+        const allKeys = Object.keys(localStorage);
+        
+        allKeys.forEach(key => {
+          if (!keysToKeep.includes(key)) {
+            localStorage.removeItem(key);
+          }
+        });
+        
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        this.showResetConfirmation = false;
+        this.showSuccessMessage('All data has been reset successfully!');
+        
+        // Reload page to reflect changes
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } catch (error) {
+        console.error('Error resetting data:', error);
+      } finally {
+        this.resetLoading = false;
+      }
+    },
+    
+    // Utility functions for color manipulation
+    lightenColor(color, percent) {
+      const num = parseInt(color.replace("#", ""), 16);
+      const amt = Math.round(2.55 * percent);
+      const R = (num >> 16) + amt;
+      const G = (num >> 8 & 0x00FF) + amt;
+      const B = (num & 0x0000FF) + amt;
+      return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+        (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+        (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+    },
+    
+    darkenColor(color, percent) {
+      const num = parseInt(color.replace("#", ""), 16);
+      const amt = Math.round(2.55 * percent);
+      const R = (num >> 16) - amt;
+      const G = (num >> 8 & 0x00FF) - amt;
+      const B = (num & 0x0000FF) - amt;
+      return "#" + (0x1000000 + (R > 255 ? 255 : R < 0 ? 0 : R) * 0x10000 +
+        (G > 255 ? 255 : G < 0 ? 0 : G) * 0x100 +
+        (B > 255 ? 255 : B < 0 ? 0 : B)).toString(16).slice(1);
+    }
+  }
+});
+
+// Export component for manual registration
+window.AccountPageComponent = AccountPage; 

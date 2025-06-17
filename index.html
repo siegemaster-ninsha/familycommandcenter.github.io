@@ -20,6 +20,97 @@
     <script src="config.js"></script>
     <script src="auth.js"></script>
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- Theme initialization script - must run before page renders -->
+    <script>
+      // Initialize theme immediately to prevent flash of unstyled content
+      (function() {
+        const savedTheme = localStorage.getItem('selectedTheme') || 'default';
+        
+        const themes = {
+          default: {
+            primary: '#4A90E2',
+            secondary: '#7B68EE',
+            success: '#50C878',
+            textPrimary: '#2D3748',
+            textSecondary: '#718096'
+          },
+          forest: {
+            primary: '#22C55E',
+            secondary: '#16A34A',
+            success: '#15803D',
+            textPrimary: '#1F2937',
+            textSecondary: '#6B7280'
+          },
+          sunset: {
+            primary: '#F97316',
+            secondary: '#EA580C',
+            success: '#22C55E',
+            textPrimary: '#1F2937',
+            textSecondary: '#6B7280'
+          },
+          lavender: {
+            primary: '#8B5CF6',
+            secondary: '#A855F7',
+            success: '#22C55E',
+            textPrimary: '#1F2937',
+            textSecondary: '#6B7280'
+          },
+          rose: {
+            primary: '#EC4899',
+            secondary: '#F43F5E',
+            success: '#22C55E',
+            textPrimary: '#1F2937',
+            textSecondary: '#6B7280'
+          },
+          midnight: {
+            primary: '#1E40AF',
+            secondary: '#3730A3',
+            success: '#22C55E',
+            textPrimary: '#1F2937',
+            textSecondary: '#6B7280'
+          }
+        };
+        
+        const theme = themes[savedTheme] || themes.default;
+        
+        // Helper function to darken color
+        function darkenColor(color, percent) {
+          const num = parseInt(color.replace("#", ""), 16);
+          const amt = Math.round(2.55 * percent);
+          const R = (num >> 16) - amt;
+          const G = (num >> 8 & 0x00FF) - amt;
+          const B = (num & 0x0000FF) - amt;
+          return "#" + (0x1000000 + (R > 255 ? 255 : R < 0 ? 0 : R) * 0x10000 +
+            (G > 255 ? 255 : G < 0 ? 0 : G) * 0x100 +
+            (B > 255 ? 255 : B < 0 ? 0 : B)).toString(16).slice(1);
+        }
+        
+        // Helper function to lighten color
+        function lightenColor(color, percent) {
+          const num = parseInt(color.replace("#", ""), 16);
+          const amt = Math.round(2.55 * percent);
+          const R = (num >> 16) + amt;
+          const G = (num >> 8 & 0x00FF) + amt;
+          const B = (num & 0x0000FF) + amt;
+          return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+            (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+            (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+        }
+        
+        // Apply theme to CSS variables
+        const root = document.documentElement;
+        root.style.setProperty('--color-primary-500', theme.primary);
+        root.style.setProperty('--color-primary-600', darkenColor(theme.primary, 10));
+        root.style.setProperty('--color-primary-100', lightenColor(theme.primary, 40));
+        root.style.setProperty('--color-secondary-500', theme.secondary);
+        root.style.setProperty('--color-success-500', theme.success);
+        root.style.setProperty('--color-text-primary', theme.textPrimary);
+        root.style.setProperty('--color-text-secondary', theme.textSecondary);
+        
+        console.log('🎨 Theme initialized:', savedTheme, theme);
+      })();
+    </script>
   </head>
   <body>
     <div id="app">
@@ -30,7 +121,7 @@
         <div class="layout-container flex h-full grow flex-col">
           <!-- Header Component -->
           <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e6e9f4] px-4 sm:px-6 lg:px-10 py-3">
-            <div class="flex items-center gap-2 sm:gap-4 text-[#0d0f1c]">
+            <div class="flex items-center gap-2 sm:gap-4 text-primary-custom">
               <div class="size-4">
                 <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path
@@ -39,31 +130,39 @@
                   ></path>
                 </svg>
               </div>
-              <h2 class="text-[#0d0f1c] text-base sm:text-lg font-bold leading-tight tracking-[-0.015em]">Family Hub</h2>
+              <h2 class="text-primary-custom text-base sm:text-lg font-bold leading-tight tracking-[-0.015em]">Family Hub</h2>
             </div>
             <div class="flex flex-1 justify-end gap-4 sm:gap-8">
               <div class="flex items-center gap-4 sm:gap-9">
                 <a 
-                  :class="currentPage === 'chores' ? 'text-[#607afb] font-bold border-b-2 border-[#607afb] pb-1' : 'text-[#0d0f1c] hover:text-[#607afb]'"
+                  :class="currentPage === 'chores' ? 'text-primary-500 font-bold border-b-2 border-primary-500 pb-1' : 'text-primary-custom hover:text-primary-500'"
                   class="text-xs sm:text-sm font-medium leading-normal transition-colors cursor-pointer py-2 px-1 min-h-[44px] flex items-center touch-target"
                   @click="setCurrentPage('chores')"
                 >
                   Chores
                 </a>
                 <a 
-                  :class="currentPage === 'family' ? 'text-[#607afb] font-bold border-b-2 border-[#607afb] pb-1' : 'text-[#0d0f1c] hover:text-[#607afb]'"
+                  :class="currentPage === 'family' ? 'text-primary-500 font-bold border-b-2 border-primary-500 pb-1' : 'text-primary-custom hover:text-primary-500'"
                   class="text-xs sm:text-sm font-medium leading-normal transition-colors cursor-pointer py-2 px-1 min-h-[44px] flex items-center touch-target"
                   @click="setCurrentPage('family')"
                 >
                   Family
                 </a>
                 <a 
-                  :class="currentPage === 'shopping' ? 'text-[#607afb] font-bold border-b-2 border-[#607afb] pb-1' : 'text-[#0d0f1c] hover:text-[#607afb]'"
+                  :class="currentPage === 'shopping' ? 'text-primary-500 font-bold border-b-2 border-primary-500 pb-1' : 'text-primary-custom hover:text-primary-500'"
                   class="text-xs sm:text-sm font-medium leading-normal transition-colors cursor-pointer py-2 px-1 min-h-[44px] flex items-center touch-target"
                   @click="setCurrentPage('shopping')"
                 >
                   <span class="hidden sm:inline">Shopping List</span>
                   <span class="sm:hidden">Shop</span>
+                </a>
+                <a 
+                  :class="currentPage === 'account' ? 'text-primary-500 font-bold border-b-2 border-primary-500 pb-1' : 'text-primary-custom hover:text-primary-500'"
+                  class="text-xs sm:text-sm font-medium leading-normal transition-colors cursor-pointer py-2 px-1 min-h-[44px] flex items-center touch-target"
+                  @click="setCurrentPage('account')"
+                >
+                  <span class="hidden sm:inline">Account</span>
+                  <span class="sm:hidden">⚙️</span>
                 </a>
               </div>
 
@@ -138,8 +237,8 @@
               <div v-if="isAuthenticated">
                 <!-- Dynamic Page Title -->
                 <div class="flex flex-wrap justify-between gap-3 p-2 sm:p-4">
-                  <p class="text-[#0d0f1c] tracking-light text-2xl sm:text-[32px] font-bold leading-tight min-w-0">
-                    {{ currentPage === 'chores' ? 'Chores' : currentPage === 'family' ? 'Family Members' : 'Shopping List' }}
+                  <p class="text-primary-custom tracking-light text-2xl sm:text-[32px] font-bold leading-tight min-w-0">
+                    {{ currentPage === 'chores' ? 'Chores' : currentPage === 'family' ? 'Family Members' : currentPage === 'shopping' ? 'Shopping List' : 'Account Settings' }}
                   </p>
                   <div class="flex items-center gap-3" v-if="currentPage === 'chores'">
                     <button
@@ -179,6 +278,11 @@
                   <div v-else-if="currentPage === 'shopping'">
                     <shopping-page></shopping-page>
                   </div>
+
+                  <!-- Account Settings Page -->
+                  <div v-else-if="currentPage === 'account'">
+                    <account-page></account-page>
+                  </div>
                 </div>
               </div>
             </div>
@@ -201,6 +305,7 @@
     <script src="components/family-page.js"></script>
     <script src="components/shopping-page.js"></script>
     <script src="components/chore-page.js"></script>
+    <script src="components/account-page.js"></script>
     
     <!-- Load main application -->
     <script src="app.js"></script>

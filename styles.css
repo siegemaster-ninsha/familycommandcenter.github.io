@@ -873,4 +873,10 @@ input:focus, select:focus, textarea:focus {
       box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.75);
     }
   }
-} 
+}
+
+/* ============================================
+   THEME INITIALIZATION
+   ============================================ */
+
+/* JavaScript will be added here to initialize themes */ 
