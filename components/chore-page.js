@@ -374,6 +374,7 @@ const ChorePage = Vue.defineComponent({
       // Force re-render on mobile to ensure selection styling appears
       this.$nextTick(() => {
         this.$forceUpdate();
+        this.forceRepaintOnMobile();
       });
     },
 
@@ -453,6 +454,7 @@ const ChorePage = Vue.defineComponent({
       // Force re-render on mobile to ensure selection styling appears
       this.$nextTick(() => {
         this.$forceUpdate();
+        this.forceRepaintOnMobile();
       });
     },
 
@@ -597,6 +599,28 @@ const ChorePage = Vue.defineComponent({
 
     getTotalEarnings() {
       return this.people.reduce((total, person) => total + person.earnings, 0);
+    },
+
+    forceRepaintOnMobile() {
+      // Force repaint on mobile devices by triggering animation
+      if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+        this.$nextTick(() => {
+          // Find selected elements and trigger animation
+          const selectedElements = document.querySelectorAll('.ring-4');
+          selectedElements.forEach(el => {
+            // Remove and re-add the class to trigger animation
+            el.classList.remove('ring-4');
+            el.offsetHeight; // Force reflow
+            el.classList.add('ring-4');
+            
+            // Also force a style recalculation with transform
+            el.style.transform = 'translateZ(0) scale(1.05)';
+            setTimeout(() => {
+              el.style.transform = 'translateZ(0) scale(1.05)';
+            }, 50);
+          });
+        });
+      }
     }
   }
 });

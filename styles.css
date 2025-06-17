@@ -737,6 +737,7 @@ input:focus, select:focus, textarea:focus {
     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.75) !important;
     position: relative !important;
     z-index: 10 !important;
+    animation: mobile-ring-appear 0.1s ease-out !important;
   }
   
   .ring-blue-400 {
@@ -746,5 +747,15 @@ input:focus, select:focus, textarea:focus {
   /* Force hardware acceleration for better rendering */
   .transform {
     transform: translateZ(0) !important;
+  }
+  
+  /* Animation to force repaint on mobile */
+  @keyframes mobile-ring-appear {
+    0% {
+      box-shadow: 0 0 0 0px rgba(59, 130, 246, 0.75);
+    }
+    100% {
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.75);
+    }
   }
 } 
