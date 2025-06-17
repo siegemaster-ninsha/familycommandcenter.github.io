@@ -4,52 +4,66 @@
 
 /* Color System - Primary Palette */
 :root {
-  /* Primary Brand Colors */
-  --color-primary-50: #f0f4ff;
-  --color-primary-100: #e0e7ff;
-  --color-primary-200: #c7d2fe;
-  --color-primary-300: #a5b4fc;
-  --color-primary-400: #818cf8;
-  --color-primary-500: #607afb;   /* Main brand color */
-  --color-primary-600: #4f68d8;
-  --color-primary-700: #4338ca;
-  --color-primary-800: #3730a3;
-  --color-primary-900: #312e81;
+  /* Primary Brand Colors - Color Hunt Inspired */
+  --color-primary-50: #f0f7ff;
+  --color-primary-100: #e0efff;
+  --color-primary-200: #b8dcff;
+  --color-primary-300: #7cc3ff;
+  --color-primary-400: #4A90E2;
+  --color-primary-500: #4A90E2;   /* Main brand color */
+  --color-primary-600: #3a7bc8;
+  --color-primary-700: #2d5f9f;
+  --color-primary-800: #1e4176;
+  --color-primary-900: #0f234d;
   
-  /* Neutral Colors */
-  --color-neutral-50: #f8f9fc;    /* Light background */
-  --color-neutral-100: #f1f3f9;
-  --color-neutral-200: #e6e9f4;   /* Border color */
-  --color-neutral-300: #d1d5db;
-  --color-neutral-400: #9ca3af;
-  --color-neutral-500: #6b7280;
-  --color-neutral-600: #47569e;   /* Secondary text */
-  --color-neutral-700: #374151;
-  --color-neutral-800: #1f2937;
-  --color-neutral-900: #0d0f1c;   /* Primary text */
+  /* Secondary Purple Colors */
+  --color-secondary-50: #f5f3ff;
+  --color-secondary-100: #ede9fe;
+  --color-secondary-200: #ddd6fe;
+  --color-secondary-300: #c4b5fd;
+  --color-secondary-400: #a78bfa;
+  --color-secondary-500: #7B68EE;
+  --color-secondary-600: #6d5ce6;
+  --color-secondary-700: #5b21b6;
+  --color-secondary-800: #4c1d95;
+  --color-secondary-900: #3c1a78;
   
-  /* Status Colors */
-  --color-success-50: #f0fdf4;
-  --color-success-500: #22c55e;
-  --color-success-600: #16a34a;
-  --color-success-700: #15803d;
+  /* Neutral Colors - Warmer and Friendlier */
+  --color-neutral-50: #F8FAFC;    /* Clean light background */
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;   /* Softer border color */
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #718096;   /* Updated secondary text */
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-800: #2D3748;   /* Updated primary text */
+  --color-neutral-900: #1a202c;
   
-  --color-warning-50: #fefbf0;
-  --color-warning-500: #f59e0b;
-  --color-warning-600: #d97706;
-  --color-warning-700: #b45309;
+  /* Status Colors - Enhanced */
+  --color-success-50: #f0fff4;
+  --color-success-500: #50C878;   /* Emerald green */
+  --color-success-600: #22c55e;
+  --color-success-700: #16a34a;
+  
+  --color-warning-50: #fff7ed;
+  --color-warning-500: #FF8C42;   /* Warm orange */
+  --color-warning-600: #ea580c;
+  --color-warning-700: #c2410c;
   
   --color-error-50: #fef2f2;
   --color-error-500: #ef4444;
   --color-error-600: #dc2626;
   --color-error-700: #b91c1c;
   
-  /* Gradient Combinations */
+  /* Gradient Combinations - Updated for new palette */
   --gradient-primary: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
+  --gradient-secondary: linear-gradient(135deg, var(--color-secondary-500), var(--color-secondary-600));
   --gradient-success: linear-gradient(135deg, var(--color-success-500), var(--color-success-600));
   --gradient-warning: linear-gradient(135deg, var(--color-warning-500), var(--color-warning-600));
   --gradient-error: linear-gradient(135deg, var(--color-error-500), var(--color-error-600));
-  --gradient-sunset: linear-gradient(135deg, #f59e0b, #ef4444);
+  --gradient-sunset: linear-gradient(135deg, var(--color-warning-500), var(--color-error-500));
+  --gradient-ocean: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500));
   
   /* Typography */
   --font-family-sans: Inter, 'Noto Sans', sans-serif;
@@ -359,7 +373,7 @@
 
 body {
   font-family: var(--font-family-sans);
-  color: var(--color-neutral-900);
+  color: var(--color-neutral-800);
   background-color: var(--color-neutral-50);
   line-height: 1.5;
 }
@@ -432,16 +446,16 @@ input:focus, select:focus, textarea:focus {
   animation: confetti-fall 3s linear forwards;
 }
 
-.confetti-piece:nth-child(1) { background: #607afb; animation-delay: 0s; }
-.confetti-piece:nth-child(2) { background: #34d399; animation-delay: 0.1s; }
-.confetti-piece:nth-child(3) { background: #fbbf24; animation-delay: 0.2s; }
-.confetti-piece:nth-child(4) { background: #f87171; animation-delay: 0.3s; }
-.confetti-piece:nth-child(5) { background: #a78bfa; animation-delay: 0.4s; }
-.confetti-piece:nth-child(6) { background: #fb7185; animation-delay: 0.5s; }
-.confetti-piece:nth-child(7) { background: #60a5fa; animation-delay: 0.6s; }
-.confetti-piece:nth-child(8) { background: #4ade80; animation-delay: 0.7s; }
-.confetti-piece:nth-child(9) { background: #facc15; animation-delay: 0.8s; }
-.confetti-piece:nth-child(10) { background: #f472b6; animation-delay: 0.9s; }
+.confetti-piece:nth-child(1) { background: #4A90E2; animation-delay: 0s; }
+.confetti-piece:nth-child(2) { background: #50C878; animation-delay: 0.1s; }
+.confetti-piece:nth-child(3) { background: #FF8C42; animation-delay: 0.2s; }
+.confetti-piece:nth-child(4) { background: #7B68EE; animation-delay: 0.3s; }
+.confetti-piece:nth-child(5) { background: #4A90E2; animation-delay: 0.4s; }
+.confetti-piece:nth-child(6) { background: #50C878; animation-delay: 0.5s; }
+.confetti-piece:nth-child(7) { background: #FF8C42; animation-delay: 0.6s; }
+.confetti-piece:nth-child(8) { background: #7B68EE; animation-delay: 0.7s; }
+.confetti-piece:nth-child(9) { background: #4A90E2; animation-delay: 0.8s; }
+.confetti-piece:nth-child(10) { background: #50C878; animation-delay: 0.9s; }
 
 @keyframes confetti-explode {
   0% {

@@ -51,8 +51,8 @@ const ChorePage = Vue.defineComponent({
             >
             </div>
             <div class="flex flex-col flex-1 min-w-0">
-              <p class="text-[#0d0f1c] text-sm font-medium leading-tight line-clamp-2 sm:line-clamp-1">{{ quickChore.name }}</p>
-              <p v-if="quickChore.amount > 0" class="text-[#47569e] text-xs">\${{ quickChore.amount.toFixed(2) }}</p>
+              <p class="text-slate-800 text-sm font-medium leading-tight line-clamp-2 sm:line-clamp-1">{{ quickChore.name }}</p>
+              <p v-if="quickChore.amount > 0" class="text-slate-600 text-xs">\${{ quickChore.amount.toFixed(2) }}</p>
             </div>
             <span class="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-800 shrink-0 self-start sm:self-center">
               {{ getCategoryLabel(quickChore.category) }}
@@ -75,7 +75,7 @@ const ChorePage = Vue.defineComponent({
         </div>
         
         <!-- Empty state -->
-        <div v-if="quicklistChores.length === 0 && !quicklistLoading" class="text-center py-8 text-[#47569e]">
+        <div v-if="quicklistChores.length === 0 && !quicklistLoading" class="text-center py-8 text-slate-500">
           <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="mx-auto mb-3 opacity-50" viewBox="0 0 256 256">
             <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
           </svg>
@@ -85,17 +85,17 @@ const ChorePage = Vue.defineComponent({
       </div>
 
       <!-- Unassigned Chores -->
-      <div class="bg-white rounded-lg border border-[#e6e9f4] p-6">
-        <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">📋 Unassigned Chores</h2>
+      <div class="bg-white rounded-lg border border-slate-200 p-6">
+        <h2 class="text-slate-800 text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">📋 Unassigned Chores</h2>
         
         <div 
-          class="min-h-[120px] sm:min-h-[100px] bg-[#f0f2f8] border-2 border-dashed border-[#ced2e9] rounded-lg p-4"
+          class="min-h-[120px] sm:min-h-[100px] bg-slate-50 border-2 border-dashed border-slate-300 rounded-lg p-4"
           @drop="handleDrop($event, 'unassigned')"
           @dragover.prevent
           @dragenter.prevent
         >
           <!-- Empty state when no chores -->
-          <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-[#47569e] py-6 flex flex-col items-center justify-center">
+          <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-slate-500 py-6 flex flex-col items-center justify-center">
             <p class="text-sm px-2">No unassigned chores</p>
             <p class="text-xs mt-2 px-2">Create a new chore or drag completed chores here to unassign them</p>
           </div>
@@ -130,17 +130,17 @@ const ChorePage = Vue.defineComponent({
                 </div>
                 <div class="flex flex-col justify-center min-w-0 flex-1">
                   <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
-                    <p class="text-[#0d0f1c] text-base sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1">{{ chore.name }}</p>
+                    <p class="text-slate-800 text-base sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1">{{ chore.name }}</p>
                     <span class="text-xs px-2 py-1 rounded-full self-start sm:self-center shrink-0" :class="getCategoryStyle(chore.category).badge">
                       {{ getCategoryLabel(chore.category) }}
                     </span>
                   </div>
-                  <p v-if="chore.amount > 0" class="text-[#47569e] text-sm font-normal leading-normal line-clamp-2">\${{ chore.amount.toFixed(2) }}</p>
+                  <p v-if="chore.amount > 0" class="text-slate-600 text-sm font-normal leading-normal line-clamp-2">\${{ chore.amount.toFixed(2) }}</p>
                 </div>
               </div>
               <div class="flex items-center gap-2 shrink-0">
-                <span class="text-xs text-[#47569e] bg-white px-2 py-1 rounded hidden sm:inline">Drag to assign</span>
-                <span class="text-xs text-[#47569e] bg-white px-2 py-1 rounded sm:hidden">Tap to select</span>
+                <span class="text-xs text-slate-600 bg-white px-2 py-1 rounded hidden sm:inline">Drag to assign</span>
+                <span class="text-xs text-slate-600 bg-white px-2 py-1 rounded sm:hidden">Tap to select</span>
               </div>
             </div>
           </div>
@@ -162,16 +162,16 @@ const ChorePage = Vue.defineComponent({
       </div>
 
       <!-- Family Members & Assigned Chores -->
-      <div class="bg-white rounded-lg border border-[#e6e9f4] p-6">
-        <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">👨‍👩‍👧‍👦 Family Members</h2>
+      <div class="bg-white rounded-lg border border-slate-200 p-6">
+        <h2 class="text-slate-800 text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">👨‍👩‍👧‍👦 Family Members</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div 
             v-for="person in people" 
             :key="person.id"
             :class="[
-              'bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 transition-all duration-200',
-              selectedChore ? 'cursor-pointer hover:border-blue-400 hover:shadow-md' : ''
+              'bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-300 rounded-lg p-4 transition-all duration-200',
+              selectedChore ? 'cursor-pointer hover:border-blue-500 hover:shadow-md' : ''
             ]"
             @drop="handleDrop($event, person.name)"
             @dragover.prevent
@@ -185,13 +185,13 @@ const ChorePage = Vue.defineComponent({
                 Tap to assign
               </div>
               <div class="flex items-center gap-3">
-                <div class="avatar bg-gradient-to-br from-[#607afb] to-[#a855f7] text-white">
+                <div class="avatar bg-gradient-to-br from-blue-500 to-purple-500 text-white">
                   {{ person.name.charAt(0) }}
                 </div>
                 <div>
-                  <h3 class="font-bold text-[#0d0f1c]">{{ person.name }}</h3>
-                  <p class="text-sm text-[#47569e]">
-                    <span class="font-semibold text-green-600">\${{ person.earnings.toFixed(2) }}</span> earned
+                  <h3 class="font-bold text-slate-800">{{ person.name }}</h3>
+                  <p class="text-sm text-slate-600">
+                    <span class="font-semibold text-emerald-600">\${{ person.earnings.toFixed(2) }}</span> earned
                   </p>
                 </div>
               </div>
@@ -208,7 +208,7 @@ const ChorePage = Vue.defineComponent({
             
             <!-- Person's chores -->
             <div class="space-y-2 min-h-[60px]">
-              <div v-if="choresByPerson[person.name] && choresByPerson[person.name].length === 0" class="text-center py-4 text-[#47569e]">
+              <div v-if="choresByPerson[person.name] && choresByPerson[person.name].length === 0" class="text-center py-4 text-slate-500">
                 <p class="text-sm">No chores assigned</p>
                 <p class="text-xs mt-1">Drag chores here to assign them</p>
               </div>
@@ -275,28 +275,28 @@ const ChorePage = Vue.defineComponent({
 
 
       <!-- Earnings Summary -->
-      <div class="bg-white rounded-lg border border-[#e6e9f4] p-6">
-        <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">💰 Earnings Summary</h2>
+      <div class="bg-white rounded-lg border border-slate-200 p-6">
+        <h2 class="text-slate-800 text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">💰 Earnings Summary</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div 
             v-for="person in people" 
             :key="person.id"
-            class="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-4"
+            class="bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 rounded-lg p-4"
           >
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
-                <div class="avatar bg-gradient-to-br from-green-500 to-blue-500 text-white">
+                <div class="avatar bg-gradient-to-br from-emerald-500 to-blue-500 text-white">
                   {{ person.name.charAt(0) }}
                 </div>
                 <div>
-                  <h3 class="font-bold text-[#0d0f1c]">{{ person.name }}</h3>
-                  <p class="text-sm text-[#47569e]">Total Earnings</p>
+                  <h3 class="font-bold text-slate-800">{{ person.name }}</h3>
+                  <p class="text-sm text-slate-600">Total Earnings</p>
                 </div>
               </div>
               <div class="text-right">
-                <p class="text-2xl font-bold text-green-600">\${{ person.earnings.toFixed(2) }}</p>
-                <p class="text-xs text-[#47569e]">
+                <p class="text-2xl font-bold text-emerald-600">\${{ person.earnings.toFixed(2) }}</p>
+                <p class="text-xs text-slate-600">
                   {{ getCompletedChoresCount(person.name) }} chores completed
                 </p>
               </div>
@@ -305,10 +305,10 @@ const ChorePage = Vue.defineComponent({
         </div>
         
         <!-- Total earnings -->
-        <div class="mt-4 pt-4 border-t border-gray-200">
+        <div class="mt-4 pt-4 border-t border-slate-200">
           <div class="flex items-center justify-between">
-            <h3 class="text-lg font-bold text-[#0d0f1c]">Family Total</h3>
-            <p class="text-3xl font-bold text-green-600">\${{ getTotalEarnings().toFixed(2) }}</p>
+            <h3 class="text-lg font-bold text-slate-800">Family Total</h3>
+            <p class="text-3xl font-bold text-emerald-600">\${{ getTotalEarnings().toFixed(2) }}</p>
           </div>
         </div>
       </div>
@@ -343,12 +343,13 @@ const ChorePage = Vue.defineComponent({
     },
 
     getQuicklistChoreClasses(quickChore) {
-      const baseClasses = "relative group flex items-center gap-3 sm:gap-2 bg-white px-4 py-4 sm:px-3 sm:py-2 rounded-lg shadow-sm cursor-pointer border-l-4 border-purple-500 transition-all duration-200 touch-target min-h-[68px] sm:min-h-[56px]";
+      const baseClasses = "relative group flex items-center gap-3 sm:gap-2 bg-white px-4 py-4 sm:px-3 sm:py-2 rounded-lg shadow-sm cursor-pointer border-l-4 transition-all duration-200 touch-target min-h-[68px] sm:min-h-[56px]";
+      const borderColor = "border-l-purple-500"; // Using the new secondary purple
       const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       const hoverClasses = isTouch ? "" : "hover:shadow-md hover:scale-105";
       const selectedClasses = this.isChoreSelected(quickChore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10" : `${hoverClasses} active:scale-95`;
       
-      return `${baseClasses} ${selectedClasses}`;
+      return `${baseClasses} ${borderColor} ${selectedClasses}`;
     },
 
     selectQuicklistChore(quickChore, event) {
@@ -536,15 +537,15 @@ const ChorePage = Vue.defineComponent({
           };
         case 'game':
           return {
-            background: 'bg-green-50 border-l-green-500',
-            icon: 'text-green-600',
-            badge: 'bg-green-100 text-green-800'
+            background: 'bg-emerald-50 border-l-emerald-500',
+            icon: 'text-emerald-600',
+            badge: 'bg-emerald-100 text-emerald-800'
           };
         default:
           return {
-            background: 'bg-[#f8f9fc] border-l-gray-300',
-            icon: 'text-[#0d0f1c]',
-            badge: 'bg-gray-100 text-gray-800'
+            background: 'bg-slate-50 border-l-slate-400',
+            icon: 'text-slate-700',
+            badge: 'bg-slate-100 text-slate-700'
           };
       }
     },
