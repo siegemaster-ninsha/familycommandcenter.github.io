@@ -2,6 +2,24 @@
    FAMILY HUB - UNIFIED STYLE GUIDE
    =========================================== */
 
+/* ===========================================
+   COLOR SYSTEM DOCUMENTATION
+   =========================================== 
+   
+   This color system follows best practices:
+   
+   1. BASE COLORS: Defined as CSS custom properties (--color-*)
+   2. SEMANTIC MAPPINGS: Component-specific color assignments (--color-quicklist-*, --color-family-card-*, etc.)
+   3. UTILITY CLASSES: Reusable classes for common color patterns (.quicklist-card, .family-card, etc.)
+   
+   Usage Guidelines:
+   - Use semantic classes (.family-card) over direct color references
+   - Avoid hardcoded hex values in components
+   - All colors should trace back to the base color variables
+   - Update semantic mappings when changing themes
+   
+   =========================================== */
+
 /* Color System - Primary Palette */
 :root {
   /* Primary Brand Colors - Color Hunt Inspired */
@@ -64,6 +82,26 @@
   --gradient-error: linear-gradient(135deg, var(--color-error-500), var(--color-error-600));
   --gradient-sunset: linear-gradient(135deg, var(--color-warning-500), var(--color-error-500));
   --gradient-ocean: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500));
+  
+  /* Semantic Color Mappings for App Components */
+  --color-quicklist-border: var(--color-secondary-500);
+  --color-quicklist-bg: var(--color-secondary-50);
+  --color-quicklist-text: var(--color-secondary-800);
+  
+  --color-family-card-bg: linear-gradient(135deg, var(--color-primary-50), var(--color-secondary-50));
+  --color-family-card-border: var(--color-primary-300);
+  --color-family-card-hover: var(--color-primary-500);
+  
+  --color-earnings-bg: linear-gradient(135deg, var(--color-success-50), var(--color-primary-50));
+  --color-earnings-border: var(--color-success-200);
+  --color-earnings-text: var(--color-success-600);
+  
+  --color-unassigned-bg: var(--color-neutral-50);
+  --color-unassigned-border: var(--color-neutral-300);
+  
+  --color-text-primary: var(--color-neutral-800);
+  --color-text-secondary: var(--color-neutral-600);
+  --color-text-muted: var(--color-neutral-500);
   
   /* Typography */
   --font-family-sans: Inter, 'Noto Sans', sans-serif;
@@ -314,6 +352,69 @@
 
 .text-warning {
   color: var(--color-warning-600);
+}
+
+/* ===========================================
+   SEMANTIC COMPONENT CLASSES
+   =========================================== */
+
+/* Quicklist Components */
+.quicklist-card {
+  background: white;
+  border-left: 4px solid var(--color-quicklist-border);
+  color: var(--color-text-primary);
+}
+
+.quicklist-badge {
+  background: var(--color-quicklist-bg);
+  color: var(--color-quicklist-text);
+}
+
+/* Family Member Cards */
+.family-card {
+  background: var(--color-family-card-bg);
+  border-color: var(--color-family-card-border);
+}
+
+.family-card:hover {
+  border-color: var(--color-family-card-hover);
+}
+
+.family-avatar {
+  background: var(--gradient-ocean);
+}
+
+/* Earnings Components */
+.earnings-card {
+  background: var(--color-earnings-bg);
+  border-color: var(--color-earnings-border);
+}
+
+.earnings-text {
+  color: var(--color-earnings-text);
+}
+
+.earnings-avatar {
+  background: linear-gradient(135deg, var(--color-success-500), var(--color-primary-500));
+}
+
+/* Unassigned Chores */
+.unassigned-area {
+  background: var(--color-unassigned-bg);
+  border-color: var(--color-unassigned-border);
+}
+
+/* Text Utilities */
+.text-primary-custom {
+  color: var(--color-text-primary);
+}
+
+.text-secondary-custom {
+  color: var(--color-text-secondary);
+}
+
+.text-muted-custom {
+  color: var(--color-text-muted);
 }
 
 /* ===========================================

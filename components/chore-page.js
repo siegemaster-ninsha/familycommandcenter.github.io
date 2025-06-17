@@ -54,7 +54,7 @@ const ChorePage = Vue.defineComponent({
               <p class="text-slate-800 text-sm font-medium leading-tight line-clamp-2 sm:line-clamp-1">{{ quickChore.name }}</p>
               <p v-if="quickChore.amount > 0" class="text-slate-600 text-xs">\${{ quickChore.amount.toFixed(2) }}</p>
             </div>
-            <span class="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-800 shrink-0 self-start sm:self-center">
+            <span class="quicklist-badge text-xs px-2 py-1 rounded-full shrink-0 self-start sm:self-center">
               {{ getCategoryLabel(quickChore.category) }}
             </span>
           </div>
@@ -170,8 +170,8 @@ const ChorePage = Vue.defineComponent({
             v-for="person in people" 
             :key="person.id"
             :class="[
-              'bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-300 rounded-lg p-4 transition-all duration-200',
-              selectedChore ? 'cursor-pointer hover:border-blue-500 hover:shadow-md' : ''
+              'family-card border rounded-lg p-4 transition-all duration-200',
+              selectedChore ? 'cursor-pointer hover:shadow-md' : ''
             ]"
             @drop="handleDrop($event, person.name)"
             @dragover.prevent
@@ -185,13 +185,13 @@ const ChorePage = Vue.defineComponent({
                 Tap to assign
               </div>
               <div class="flex items-center gap-3">
-                <div class="avatar bg-gradient-to-br from-blue-500 to-purple-500 text-white">
+                <div class="avatar family-avatar text-white">
                   {{ person.name.charAt(0) }}
                 </div>
                 <div>
-                  <h3 class="font-bold text-slate-800">{{ person.name }}</h3>
-                  <p class="text-sm text-slate-600">
-                    <span class="font-semibold text-emerald-600">\${{ person.earnings.toFixed(2) }}</span> earned
+                  <h3 class="font-bold text-primary-custom">{{ person.name }}</h3>
+                  <p class="text-sm text-secondary-custom">
+                    <span class="earnings-text font-semibold">\${{ person.earnings.toFixed(2) }}</span> earned
                   </p>
                 </div>
               </div>
@@ -282,21 +282,21 @@ const ChorePage = Vue.defineComponent({
           <div 
             v-for="person in people" 
             :key="person.id"
-            class="bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 rounded-lg p-4"
+            class="earnings-card border rounded-lg p-4"
           >
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
-                <div class="avatar bg-gradient-to-br from-emerald-500 to-blue-500 text-white">
+                <div class="avatar earnings-avatar text-white">
                   {{ person.name.charAt(0) }}
                 </div>
                 <div>
-                  <h3 class="font-bold text-slate-800">{{ person.name }}</h3>
-                  <p class="text-sm text-slate-600">Total Earnings</p>
+                  <h3 class="font-bold text-primary-custom">{{ person.name }}</h3>
+                  <p class="text-sm text-secondary-custom">Total Earnings</p>
                 </div>
               </div>
               <div class="text-right">
-                <p class="text-2xl font-bold text-emerald-600">\${{ person.earnings.toFixed(2) }}</p>
-                <p class="text-xs text-slate-600">
+                <p class="text-2xl font-bold earnings-text">\${{ person.earnings.toFixed(2) }}</p>
+                <p class="text-xs text-secondary-custom">
                   {{ getCompletedChoresCount(person.name) }} chores completed
                 </p>
               </div>
@@ -343,13 +343,12 @@ const ChorePage = Vue.defineComponent({
     },
 
     getQuicklistChoreClasses(quickChore) {
-      const baseClasses = "relative group flex items-center gap-3 sm:gap-2 bg-white px-4 py-4 sm:px-3 sm:py-2 rounded-lg shadow-sm cursor-pointer border-l-4 transition-all duration-200 touch-target min-h-[68px] sm:min-h-[56px]";
-      const borderColor = "border-l-purple-500"; // Using the new secondary purple
+      const baseClasses = "quicklist-card relative group flex items-center gap-3 sm:gap-2 px-4 py-4 sm:px-3 sm:py-2 rounded-lg shadow-sm cursor-pointer transition-all duration-200 touch-target min-h-[68px] sm:min-h-[56px]";
       const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       const hoverClasses = isTouch ? "" : "hover:shadow-md hover:scale-105";
       const selectedClasses = this.isChoreSelected(quickChore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10" : `${hoverClasses} active:scale-95`;
       
-      return `${baseClasses} ${borderColor} ${selectedClasses}`;
+      return `${baseClasses} ${selectedClasses}`;
     },
 
     selectQuicklistChore(quickChore, event) {
