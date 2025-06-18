@@ -254,6 +254,7 @@ const app = createApp({
             id: member.name.toLowerCase(),
             name: member.name,
             earnings: member.earnings || 0,
+            completedChores: member.completedChores || 0,
             electronicsStatus: { status: 'allowed', message: 'Electronics allowed' }
           }));
         } else {
@@ -834,10 +835,15 @@ const app = createApp({
           setTimeout(() => {
             this.showSuccessMessageFlag = false;
           }, 3000);
+        } else {
+          // Also handle unchecking - clear any success message
+          this.showSuccessMessageFlag = false;
+          this.completedChoreMessage = '';
         }
         
         await this.loadEarnings();
         await this.loadElectronicsStatus();
+        await this.loadFamilyMembers();
       } catch (error) {
         console.error('Failed to update chore completion:', error);
         // Revert the checkbox if API call failed
