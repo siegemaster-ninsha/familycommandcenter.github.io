@@ -48,10 +48,8 @@ const app = createApp({
       currentPage: 'chores', // Default to chores page
       // Existing data
       chores: [],
-      draggedChore: null,
       selectedChoreId: null, // Changed from selectedChore to selectedChoreId
       selectedQuicklistChore: null, // For quicklist selections
-      isDragOverTrash: false,
       choreToDelete: null,
       showDeleteModal: false,
       showConfetti: false,
@@ -338,88 +336,7 @@ const app = createApp({
       }
     },
     
-    // Drag and drop methods
-    handleDragStart(chore) {
-      console.log('Starting drag for chore:', chore.name);
-      this.draggedChore = chore;
-      this.selectedChoreId = chore.id;
-    },
-    
-    handleDragEnd() {
-      console.log('Drag ended');
-      this.draggedChore = null;
-      this.isDragOverTrash = false;
-    },
-    
-    handleDragOver(event) {
-      event.preventDefault();
-    },
-    
-    handleDragEnter(event) {
-      event.preventDefault();
-    },
-    
-    handleDragLeave() {
-      // Keep drag state for visual feedback
-    },
-    
-    handleTrashDragOver(event) {
-      event.preventDefault();
-      this.isDragOverTrash = true;
-    },
-    
-    handleTrashDragLeave() {
-      this.isDragOverTrash = false;
-    },
-    
-    async handleDrop(event, targetPerson) {
-      event.preventDefault();
-      
-      if (this.draggedChore) {
-        try {
-          // Check if it's a quicklist chore being dropped
-          if (this.draggedChore.isNewFromQuicklist) {
-            // Create new chore from quicklist
-            const newChoreData = {
-              name: this.draggedChore.name,
-              amount: this.draggedChore.amount,
-              category: this.draggedChore.category,
-              assignedTo: targetPerson,
-              completed: false
-            };
-            
-            await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
-              method: 'POST',
-              body: JSON.stringify(newChoreData)
-            });
-            
-            console.log('Created new chore from quicklist');
-          } else {
-            // Update existing chore assignment
-            const updatedChore = {
-              ...this.draggedChore,
-              assignedTo: targetPerson
-            };
-            
-            await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.draggedChore.id}`, {
-              method: 'PUT',
-              body: JSON.stringify(updatedChore)
-            });
-            
-            console.log('Updated chore assignment');
-          }
-          
-          await this.loadChores();
-          await this.loadEarnings();
-          await this.loadElectronicsStatus();
-        } catch (error) {
-          console.error('Failed to update chore:', error);
-        }
-        
-        this.draggedChore = null;
-        this.selectedChoreId = null;
-      }
-    },
+
     
     // Chore selection methods
     handleChoreClick(chore) {
@@ -879,26 +796,7 @@ const app = createApp({
       }
     },
     
-    async handleTrashDrop(event) {
-      event.preventDefault();
-      this.isDragOverTrash = false;
-      if (this.draggedChore) {
-        // Only delete if it's an existing chore (not a new one from quicklist)
-        if (!this.draggedChore.isNewFromQuicklist && this.draggedChore.id) {
-          try {
-            await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.draggedChore.id}`, {
-              method: 'DELETE'
-            });
-            await this.loadChores();
-            await this.loadEarnings();
-            await this.loadElectronicsStatus();
-          } catch (error) {
-            console.error('Failed to delete chore:', error);
-          }
-        }
-        this.draggedChore = null;
-      }
-    },
+
     
     async confirmDelete() {
       try {
@@ -1249,7 +1147,6 @@ const app = createApp({
       quicklistChores: Vue.computed(() => this.quicklistChores || []),
       choresByPerson: Vue.computed(() => this.choresByPerson || {}),
       people: Vue.computed(() => this.people || []),
-      isDragOverTrash: Vue.computed(() => this.isDragOverTrash),
       choreToDelete: Vue.computed(() => this.choreToDelete),
       personToDelete: Vue.computed(() => this.personToDelete),
       

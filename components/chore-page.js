@@ -31,10 +31,8 @@ const ChorePage = Vue.defineComponent({
             v-for="quickChore in quicklistChores" 
             :key="quickChore.id"
             :class="getQuicklistChoreClasses(quickChore)"
-            draggable="true"
-            @dragstart="handleQuicklistDragStart($event, quickChore)"
-                          @click="selectQuicklistChore(quickChore, $event)"
-              @touchend="selectQuicklistChore(quickChore, $event)"
+            @click="selectQuicklistChore(quickChore, $event)"
+            @touchend="selectQuicklistChore(quickChore, $event)"
           >
             <!-- Remove button -->
             <button
@@ -90,9 +88,6 @@ const ChorePage = Vue.defineComponent({
         
         <div 
           class="min-h-[120px] sm:min-h-[100px] bg-slate-50 border-2 border-dashed border-slate-300 rounded-lg p-4"
-          @drop="handleDrop($event, 'unassigned')"
-          @dragover.prevent
-          @dragenter.prevent
         >
           <!-- Empty state when no chores -->
           <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-slate-500 py-6 flex flex-col items-center justify-center">
@@ -106,8 +101,6 @@ const ChorePage = Vue.defineComponent({
               v-for="chore in choresByPerson.unassigned" 
               :key="chore.id"
               :class="getChoreClasses(chore)"
-              draggable="true"
-              @dragstart="handleDragStart($event, chore)"
               @click.stop="selectChore(chore, $event)"
               @touchend.stop="selectChore(chore, $event)"
               class="relative"
@@ -139,8 +132,7 @@ const ChorePage = Vue.defineComponent({
                 </div>
               </div>
               <div class="flex items-center gap-2 shrink-0">
-                <span class="text-xs text-slate-600 bg-white px-2 py-1 rounded hidden sm:inline">Drag to assign</span>
-                <span class="text-xs text-slate-600 bg-white px-2 py-1 rounded sm:hidden">Tap to select</span>
+                <span class="text-xs text-slate-600 bg-white px-2 py-1 rounded">Tap to select</span>
               </div>
             </div>
           </div>
@@ -173,9 +165,6 @@ const ChorePage = Vue.defineComponent({
               'family-card border rounded-lg p-4 transition-all duration-200',
               selectedChore ? 'cursor-pointer hover:shadow-md' : ''
             ]"
-            @drop="handleDrop($event, person.name)"
-            @dragover.prevent
-            @dragenter.prevent
             @click="selectedChore ? assignSelectedChore(person.name) : null"
           >
             <!-- Person header -->
@@ -207,15 +196,13 @@ const ChorePage = Vue.defineComponent({
             <div class="space-y-2 min-h-[60px]">
               <div v-if="choresByPerson[person.name] && choresByPerson[person.name].length === 0" class="text-center py-4 text-slate-500">
                 <p class="text-sm">No chores assigned</p>
-                <p class="text-xs mt-1">Drag chores here to assign them</p>
+                <p class="text-xs mt-1">Select a chore and tap here to assign it</p>
               </div>
               
               <div 
                 v-for="chore in choresByPerson[person.name]" 
                 :key="chore.id"
                 :class="getChoreClasses(chore)"
-                draggable="true"
-                @dragstart="handleDragStart($event, chore)"
                 @click.stop="selectChore(chore, $event)"
                 class="relative"
               >
@@ -315,7 +302,7 @@ const ChorePage = Vue.defineComponent({
   `,
   inject: [
     'people', 'choresByPerson', 'selectedChore', 'selectedChoreId', 'selectedQuicklistChore',
-    'quicklistChores', 'isDragOverTrash', 'loading', 'error',
+    'quicklistChores', 'loading', 'error',
     'showAddChoreModal', 'showAddToQuicklistModal'
   ],
   data() {
@@ -377,19 +364,7 @@ const ChorePage = Vue.defineComponent({
       });
     },
 
-    handleQuicklistDragStart(event, quickChore) {
-      // Create a new chore instance from the quicklist template
-      const newChore = {
-        name: quickChore.name,
-        amount: quickChore.amount,
-        category: quickChore.category,
-        assignedTo: 'unassigned',
-        completed: false,
-        isNewFromQuicklist: true
-      };
-      this.$parent.draggedChore = newChore;
-      event.dataTransfer.effectAllowed = 'copy';
-    },
+
 
     async removeFromQuicklist(quicklistId) {
       try {
@@ -457,50 +432,7 @@ const ChorePage = Vue.defineComponent({
       });
     },
 
-    handleDragStart(event, chore) {
-      this.$parent.draggedChore = chore;
-      event.dataTransfer.effectAllowed = 'move';
-    },
 
-    async handleDrop(event, assignTo) {
-      event.preventDefault();
-      if (this.$parent.draggedChore) {
-        try {
-          if (this.$parent.draggedChore.isNewFromQuicklist) {
-            // This is a new chore from quicklist
-            const choreData = {
-              name: this.$parent.draggedChore.name,
-              amount: this.$parent.draggedChore.amount,
-              category: this.$parent.draggedChore.category,
-              assignedTo: assignTo
-            };
-            await this.$parent.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
-              method: 'POST',
-              body: JSON.stringify(choreData)
-            });
-          } else {
-            // This is an existing chore being moved
-            await this.$parent.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.$parent.draggedChore.id}/assign`, {
-              method: 'PUT',
-              body: JSON.stringify({ assignedTo: assignTo })
-            });
-          }
-          
-          // Reload data to get updated state
-          await this.$parent.loadChores();
-          await this.$parent.loadEarnings();
-          await this.$parent.loadElectronicsStatus();
-        } catch (error) {
-          console.error('Failed to assign chore:', error);
-        }
-        
-        this.$parent.draggedChore = null;
-      }
-    },
-
-    async handleTrashDrop(event) {
-      await this.$parent.handleTrashDrop(event);
-    },
 
     async deleteSelectedChore() {
       if (this.selectedChore && !this.selectedChore.isNewFromQuicklist) {

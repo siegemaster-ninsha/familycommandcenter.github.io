@@ -798,13 +798,6 @@ input:focus, select:focus, textarea:focus {
     -ms-user-select: none;
     user-select: none;
   }
-  
-  /* Improve drag and drop visual feedback */
-  .drag-over {
-    background-color: rgba(34, 197, 94, 0.1);
-    border-color: rgba(34, 197, 94, 0.5);
-    transform: scale(1.02);
-  }
 }
 
 /* Tablet optimizations */
@@ -854,21 +847,6 @@ input:focus, select:focus, textarea:focus {
   .selected-chore {
     transform: scale(1.02);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.6);
-  }
-}
-
-/* Highlight drop zones when item is selected */
-.drop-zone-highlight {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05));
-  border: 2px solid rgba(34, 197, 94, 0.3);
-  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
-}
-
-/* Mobile drop zone improvements */
-@media (max-width: 640px) {
-  .drop-zone-highlight {
-    border: 3px solid rgba(34, 197, 94, 0.5);
-    box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.15);
   }
   
   /* Ensure selection ring is visible on mobile */

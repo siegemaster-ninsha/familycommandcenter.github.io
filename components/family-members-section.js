@@ -12,9 +12,6 @@ const FamilyMembersSection = Vue.defineComponent({
           v-for="person in people"
           :key="person.id"
           :class="getDropZoneClasses(person.name)"
-          @drop="handleDrop($event, person.name)"
-          @dragover.prevent
-          @dragenter.prevent
           @click="assignSelectedChore(person.name)"
           :data-person="person.name"
         >
@@ -32,8 +29,6 @@ const FamilyMembersSection = Vue.defineComponent({
               v-for="chore in choresByPerson[person.name]" 
               :key="chore.id"
               :class="getChoreClasses(chore)"
-              draggable="true"
-              @dragstart="handleDragStart($event, chore)"
               @click.stop="selectChore(chore, $event)"
             >
               <div class="flex items-center gap-3 flex-1 min-w-0">
@@ -68,10 +63,10 @@ const FamilyMembersSection = Vue.defineComponent({
               </div>
             </div>
             
-            <!-- Drop zone indicator -->
+            <!-- Assignment zone indicator -->
             <div v-if="choresByPerson[person.name].length === 0" class="text-center text-[#47569e] py-8 sm:py-8 border-2 border-dashed border-[#ced2e9] rounded-lg bg-[#f8f9fc] min-h-[80px] flex flex-col items-center justify-center">
-              <p class="text-sm px-2">Drag chores here to assign to {{ person.name }}</p>
-              <p v-if="selectedChore" class="text-xs mt-2 text-blue-600 px-2">Or tap here to assign selected chore</p>
+              <p class="text-sm px-2">No chores assigned to {{ person.name }}</p>
+              <p v-if="selectedChore" class="text-xs mt-2 text-blue-600 px-2">Tap here to assign selected chore</p>
             </div>
           </div>
         </div>
@@ -150,10 +145,7 @@ const FamilyMembersSection = Vue.defineComponent({
       }
     },
 
-    handleDragStart(event, chore) {
-      this.$parent.draggedChore = chore;
-      event.dataTransfer.effectAllowed = 'move';
-    },
+
 
     selectChore(chore, event) {
       console.log('🎯 selectChore called for:', chore.name, 'Current selectedChoreId:', this.$parent.selectedChoreId);
@@ -184,41 +176,7 @@ const FamilyMembersSection = Vue.defineComponent({
       }
     },
 
-    async handleDrop(event, assignTo) {
-      event.preventDefault();
-      if (this.$parent.draggedChore) {
-        try {
-          if (this.$parent.draggedChore.isNewFromQuicklist) {
-            // This is a new chore from quicklist
-            const choreData = {
-              name: this.$parent.draggedChore.name,
-              amount: this.$parent.draggedChore.amount,
-              category: this.$parent.draggedChore.category,
-              assignedTo: assignTo
-            };
-            await this.$parent.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
-              method: 'POST',
-              body: JSON.stringify(choreData)
-            });
-          } else {
-            // This is an existing chore being moved
-            await this.$parent.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.$parent.draggedChore.id}/assign`, {
-              method: 'PUT',
-              body: JSON.stringify({ assignedTo: assignTo })
-            });
-          }
-          
-          // Reload data to get updated state
-          await this.$parent.loadChores();
-          await this.$parent.loadEarnings();
-          await this.$parent.loadElectronicsStatus();
-        } catch (error) {
-          console.error('Failed to assign chore:', error);
-        }
-        
-        this.$parent.draggedChore = null;
-      }
-    },
+
 
     async handleChoreCompletionChange(chore, event) {
       console.log('🔲 Checkbox changed for chore:', chore.name, 'to:', event.target.checked);

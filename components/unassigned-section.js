@@ -5,9 +5,6 @@ const UnassignedSection = Vue.defineComponent({
       <h2 class="text-[#0d0f1c] text-lg sm:text-[22px] font-bold leading-tight tracking-[-0.015em] px-2 sm:px-4 pb-3 pt-5">Unassigned Chores</h2>
       <div 
         class="min-h-[120px] sm:min-h-[100px] bg-[#f0f2f8] border-2 border-dashed border-[#ced2e9] rounded-lg mx-2 sm:mx-4 p-3 sm:p-4"
-        @drop="handleDrop($event, 'unassigned')"
-        @dragover.prevent
-        @dragenter.prevent
       >
         <!-- Empty state when no chores -->
         <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-[#47569e] py-6 sm:py-6 flex flex-col items-center justify-center">
@@ -21,8 +18,6 @@ const UnassignedSection = Vue.defineComponent({
             v-for="chore in choresByPerson.unassigned" 
             :key="chore.id"
             :class="getChoreClasses(chore)"
-            draggable="true"
-            @dragstart="handleDragStart($event, chore)"
             @click.stop="selectChore(chore, $event)"
           >
             <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
@@ -43,8 +38,7 @@ const UnassignedSection = Vue.defineComponent({
               </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-              <span class="text-xs text-[#47569e] bg-white px-2 py-1 rounded hidden sm:inline">Drag to assign</span>
-              <span class="text-xs text-[#47569e] bg-white px-2 py-1 rounded sm:hidden">Tap to select</span>
+              <span class="text-xs text-[#47569e] bg-white px-2 py-1 rounded">Tap to select</span>
             </div>
           </div>
         </div>
@@ -127,10 +121,7 @@ const UnassignedSection = Vue.defineComponent({
       }
     },
 
-    handleDragStart(event, chore) {
-      this.$parent.draggedChore = chore;
-      event.dataTransfer.effectAllowed = 'move';
-    },
+
 
     selectChore(chore, event) {
       console.log('selectChore called for:', chore.name, 'Current selectedChoreId:', this.$parent.selectedChoreId);
@@ -159,41 +150,7 @@ const UnassignedSection = Vue.defineComponent({
       }
     },
 
-    async handleDrop(event, assignTo) {
-      event.preventDefault();
-      if (this.$parent.draggedChore) {
-        try {
-          if (this.$parent.draggedChore.isNewFromQuicklist) {
-            // This is a new chore from quicklist
-            const choreData = {
-              name: this.$parent.draggedChore.name,
-              amount: this.$parent.draggedChore.amount,
-              category: this.$parent.draggedChore.category,
-              assignedTo: assignTo
-            };
-            await this.$parent.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
-              method: 'POST',
-              body: JSON.stringify(choreData)
-            });
-          } else {
-            // This is an existing chore being moved
-            await this.$parent.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.$parent.draggedChore.id}/assign`, {
-              method: 'PUT',
-              body: JSON.stringify({ assignedTo: assignTo })
-            });
-          }
-          
-          // Reload data to get updated state
-          await this.$parent.loadChores();
-          await this.$parent.loadEarnings();
-          await this.$parent.loadElectronicsStatus();
-        } catch (error) {
-          console.error('Failed to assign chore:', error);
-        }
-        
-        this.$parent.draggedChore = null;
-      }
-    }
+
   }
 });
 

@@ -4,15 +4,13 @@ const QuicklistSection = Vue.defineComponent({
     <div class="mb-6 sm:mb-8">
       <h2 class="text-[#0d0f1c] text-lg sm:text-[22px] font-bold leading-tight tracking-[-0.015em] px-2 sm:px-4 pb-3 pt-5">⚡ Quicklist</h2>
       <div class="bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-dashed border-purple-300 rounded-lg mx-2 sm:mx-4 p-3 sm:p-4">
-        <p class="text-[#47569e] text-sm mb-4 sm:mb-3 text-center px-2">Drag these common chores to assign them quickly</p>
+        <p class="text-[#47569e] text-sm mb-4 sm:mb-3 text-center px-2">Select these common chores to assign them quickly</p>
         
         <div class="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-2 justify-center">
           <div 
             v-for="quickChore in quicklistChores" 
             :key="quickChore.id"
             :class="getQuicklistChoreClasses(quickChore)"
-            draggable="true"
-            @dragstart="handleQuicklistDragStart($event, quickChore)"
             @click="selectQuicklistChore(quickChore)"
           >
             <!-- Remove button -->
@@ -93,19 +91,7 @@ const QuicklistSection = Vue.defineComponent({
       }
     },
     
-    handleQuicklistDragStart(event, quickChore) {
-      // Create a new chore instance from the quicklist template
-      const newChore = {
-        name: quickChore.name,
-        amount: quickChore.amount,
-        category: quickChore.category,
-        assignedTo: 'unassigned',
-        completed: false,
-        isNewFromQuicklist: true
-      };
-      this.$parent.draggedChore = newChore;
-      event.dataTransfer.effectAllowed = 'copy';
-    },
+
     
     selectQuicklistChore(quickChore) {
       // Create a new chore instance from the quicklist template
