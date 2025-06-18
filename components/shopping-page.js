@@ -999,7 +999,18 @@ const ShoppingPage = Vue.defineComponent({
       this.storeLoading = true;
       
       try {
-        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.STORES));
+        const authHeader = authService.getAuthHeader();
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        
+        if (authHeader) {
+          headers.Authorization = authHeader;
+        }
+        
+        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.STORES), {
+          headers
+        });
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -1019,11 +1030,18 @@ const ShoppingPage = Vue.defineComponent({
       this.storeLoading = true;
       
       try {
+        const authHeader = authService.getAuthHeader();
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        
+        if (authHeader) {
+          headers.Authorization = authHeader;
+        }
+        
         const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.STORES), {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers,
           body: JSON.stringify(this.newStore)
         });
         
@@ -1052,8 +1070,18 @@ const ShoppingPage = Vue.defineComponent({
       }
       
       try {
+        const authHeader = authService.getAuthHeader();
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        
+        if (authHeader) {
+          headers.Authorization = authHeader;
+        }
+        
         const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.STORES + '/' + storeId), {
-          method: 'DELETE'
+          method: 'DELETE',
+          headers
         });
         
         if (!response.ok) {
