@@ -3,7 +3,7 @@ const ChorePage = Vue.defineComponent({
   template: `
     <div class="space-y-6">
       <!-- Quicklist Section -->
-      <div class="rounded-lg border p-6 shadow-md" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
+      <div class="rounded-lg border-2 p-6 shadow-lg" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">⚡ Quicklist</h2>
         <p class="text-secondary-custom text-sm mb-4 text-center">Tap these common chores to assign them quickly</p>
         
@@ -130,22 +130,22 @@ const ChorePage = Vue.defineComponent({
               </button>
               <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
                 <div
-                  class="flex items-center justify-center rounded-lg shrink-0 size-14 sm:size-12 text-white bg-white bg-opacity-20"
+                  :class="chore.assignedTo === 'unassigned' ? 'flex items-center justify-center rounded-lg shrink-0 size-14 sm:size-12 text-primary-custom bg-primary-100' : 'flex items-center justify-center rounded-lg shrink-0 size-14 sm:size-12 text-white bg-white bg-opacity-20'"
                   v-html="getCategoryIcon(chore.category)"
                 >
                 </div>
                 <div class="flex flex-col justify-center min-w-0 flex-1">
                   <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
-                    <p class="text-white text-base sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1">{{ chore.name }}</p>
-                    <span class="text-xs px-2 py-1 rounded-full self-start sm:self-center shrink-0" :class="getCategoryStyle(chore.category).badge">
+                    <p :class="chore.assignedTo === 'unassigned' ? 'text-primary-custom text-base sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1' : 'text-white text-base sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1'">{{ chore.name }}</p>
+                    <span class="text-xs px-2 py-1 rounded-full self-start sm:self-center shrink-0" :class="getCategoryStyle(chore.category, chore.assignedTo === 'unassigned').badge">
                       {{ getCategoryLabel(chore.category) }}
                     </span>
                   </div>
-                  <p v-if="chore.amount > 0" class="text-white text-opacity-90 text-sm font-normal leading-normal line-clamp-2">\${{ chore.amount.toFixed(2) }}</p>
+                  <p v-if="chore.amount > 0" :class="chore.assignedTo === 'unassigned' ? 'text-secondary-custom text-sm font-normal leading-normal line-clamp-2' : 'text-white text-opacity-90 text-sm font-normal leading-normal line-clamp-2'">\${{ chore.amount.toFixed(2) }}</p>
                 </div>
               </div>
               <div class="flex items-center gap-2 shrink-0">
-                <span class="text-xs text-white px-2 py-1 rounded bg-white bg-opacity-20">Tap to select</span>
+                <span :class="chore.assignedTo === 'unassigned' ? 'text-xs text-secondary-custom px-2 py-1 rounded bg-primary-100' : 'text-xs text-white px-2 py-1 rounded bg-white bg-opacity-20'">Tap to select</span>
               </div>
             </div>
           </div>
@@ -395,7 +395,8 @@ const ChorePage = Vue.defineComponent({
     // Regular chore methods
     getChoreClasses(chore) {
       const baseClasses = "flex items-center gap-3 sm:gap-4 px-3 sm:px-4 min-h-[96px] sm:min-h-[72px] py-4 sm:py-2 justify-between mb-3 sm:mb-2 rounded-lg shadow-md cursor-pointer transition-all duration-200 touch-target";
-      const categoryClasses = this.getCategoryStyle(chore.category).background;
+      const isUnassigned = chore.assignedTo === 'unassigned';
+      const categoryClasses = this.getCategoryStyle(chore.category, isUnassigned).background;
       const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       const hoverClasses = isTouch ? "" : "hover:shadow-lg hover:scale-102";
       const selectedClasses = this.isChoreSelected(chore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10 shadow-xl" : `${hoverClasses} active:scale-95`;
@@ -404,7 +405,8 @@ const ChorePage = Vue.defineComponent({
     },
 
     getChoreStyle(chore) {
-      return this.getCategoryStyle(chore.category).backgroundStyle;
+      const isUnassigned = chore.assignedTo === 'unassigned';
+      return this.getCategoryStyle(chore.category, isUnassigned).backgroundStyle;
     },
 
     isChoreSelected(chore) {
@@ -485,8 +487,18 @@ const ChorePage = Vue.defineComponent({
     },
 
     // Utility methods
-    getCategoryStyle(category) {
-      // All chores now use the same high-contrast primary color background like quicklist
+    getCategoryStyle(category, isUnassigned = false) {
+      if (isUnassigned) {
+        // Unassigned chores use lighter background to match the inner container
+        return {
+          background: 'border',
+          backgroundStyle: 'background-color: var(--color-bg-card); border-color: var(--color-border-card);',
+          icon: 'text-primary-custom',
+          badge: 'bg-primary-100 text-primary-700'
+        };
+      }
+      
+      // All other chores use high-contrast primary color background
       return {
         background: 'border',
         backgroundStyle: 'background-color: var(--color-primary-500); border-color: var(--color-primary-600);',
