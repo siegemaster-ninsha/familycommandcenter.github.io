@@ -312,11 +312,11 @@ const ThemeManager = {
     let bgPrimary, bgSecondary, cardBg, borderColor;
     
     if (isDark) {
-      // For dark themes: use darkened colors for backgrounds
-      bgPrimary = this.darkenColor(theme.colors.primary, 35);
-      bgSecondary = this.darkenColor(theme.colors.secondary, 35);
-      cardBg = this.darkenColor(theme.colors.primary, 25);
-      borderColor = this.darkenColor(theme.colors.primary, 15);
+      // For dark themes: use much darker colors for backgrounds to contrast with light text
+      bgPrimary = this.darkenColor(theme.colors.primary, 60);
+      bgSecondary = this.darkenColor(theme.colors.secondary, 60);
+      cardBg = this.darkenColor(theme.colors.primary, 50);
+      borderColor = this.darkenColor(theme.colors.primary, 40);
     } else {
       // For light themes: use lightened colors for backgrounds
       bgPrimary = this.lightenColor(theme.colors.primary, 48);
@@ -332,16 +332,16 @@ const ThemeManager = {
 
     // Update neutral colors for dark themes
     if (isDark) {
-      root.style.setProperty('--color-neutral-50', this.darkenColor(theme.colors.primary, 40));
-      root.style.setProperty('--color-neutral-100', this.darkenColor(theme.colors.primary, 35));
-      root.style.setProperty('--color-neutral-200', this.darkenColor(theme.colors.primary, 25));
-      root.style.setProperty('--color-neutral-300', this.darkenColor(theme.colors.primary, 15));
-      root.style.setProperty('--color-neutral-400', this.lightenColor(theme.colors.primary, 10));
-      root.style.setProperty('--color-neutral-500', this.lightenColor(theme.colors.primary, 20));
-      root.style.setProperty('--color-neutral-600', theme.colors.textSecondary);
-      root.style.setProperty('--color-neutral-700', this.lightenColor(theme.colors.textSecondary, 10));
-      root.style.setProperty('--color-neutral-800', theme.colors.textPrimary);
-      root.style.setProperty('--color-neutral-900', this.lightenColor(theme.colors.textPrimary, 5));
+      root.style.setProperty('--color-neutral-50', this.darkenColor(theme.colors.primary, 70));
+      root.style.setProperty('--color-neutral-100', this.darkenColor(theme.colors.primary, 65));
+      root.style.setProperty('--color-neutral-200', this.darkenColor(theme.colors.primary, 55));
+      root.style.setProperty('--color-neutral-300', this.darkenColor(theme.colors.primary, 45));
+      root.style.setProperty('--color-neutral-400', this.darkenColor(theme.colors.primary, 35));
+      root.style.setProperty('--color-neutral-500', this.darkenColor(theme.colors.primary, 25));
+      root.style.setProperty('--color-neutral-600', this.darkenColor(theme.colors.primary, 15));
+      root.style.setProperty('--color-neutral-700', this.darkenColor(theme.colors.primary, 5));
+      root.style.setProperty('--color-neutral-800', theme.colors.primary);
+      root.style.setProperty('--color-neutral-900', this.lightenColor(theme.colors.primary, 10));
     } else {
       // Reset to default neutral colors for light themes
       root.style.setProperty('--color-neutral-50', '#F8FAFC');
