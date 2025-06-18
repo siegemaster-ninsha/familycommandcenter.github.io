@@ -768,8 +768,18 @@ const ShoppingPage = Vue.defineComponent({
       this.actionLoading = true;
       
       try {
+        const authHeader = authService.getAuthHeader();
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        
+        if (authHeader) {
+          headers.Authorization = authHeader;
+        }
+        
         const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS_CLEAR_COMPLETED), {
-          method: 'POST'
+          method: 'POST',
+          headers
         });
         
         if (!response.ok) {
