@@ -211,11 +211,19 @@ const app = createApp({
         console.log('🔄 Starting to load data...');
         console.log('🌐 API Base URL:', CONFIG.API.BASE_URL);
         
+        // check authentication first
+        if (!this.isAuthenticated) {
+          console.log('🔒 User not authenticated, skipping data load');
+          this.loading = false;
+          return;
+        }
+        
         await Promise.all([
           this.loadChores(),
           this.loadEarnings(),
           this.loadElectronicsStatus(),
-          this.loadQuicklistChores()
+          this.loadQuicklistChores(),
+          this.loadFamilyMembers() // Add this to load family members from backend
         ]);
         console.log('✅ All data loaded successfully');
       } catch (error) {
@@ -234,6 +242,27 @@ const app = createApp({
       } catch (error) {
         console.error('Failed to load chores:', error);
         this.chores = [];
+      }
+    },
+    
+    async loadFamilyMembers() {
+      try {
+        const response = await this.apiCall(CONFIG.API.ENDPOINTS.FAMILY_MEMBERS);
+        if (response.familyMembers && response.familyMembers.length > 0) {
+          // Update the people array with family members from backend
+          this.people = response.familyMembers.map(member => ({
+            id: member.name.toLowerCase(),
+            name: member.name,
+            earnings: member.earnings || 0,
+            electronicsStatus: { status: 'allowed', message: 'Electronics allowed' }
+          }));
+        } else {
+          // keep default people if no family members in backend yet
+          console.log('No family members found in backend, using default people');
+        }
+      } catch (error) {
+        console.error('Failed to load family members:', error);
+        // Don't clear people array on error, keep existing
       }
     },
     
@@ -256,8 +285,7 @@ const app = createApp({
         for (const person of this.people) {
           try {
             const response = await this.apiCall(`${CONFIG.API.ENDPOINTS.ELECTRONICS_STATUS}/${person.name}`);
-            person.electronicsStatus = response.electronicsStatus || 
-              { status: 'allowed', message: 'Electronics allowed' };
+            person.electronicsStatus = response;
           } catch (error) {
             console.error(`Failed to load electronics status for ${person.name}:`, error);
             person.electronicsStatus = { status: 'allowed', message: 'Electronics allowed' };
@@ -613,21 +641,25 @@ const app = createApp({
       console.log('📄 Switched to page:', page);
     },
 
-    // Authentication methods
+    // Authentication and user management
     async handleAuthenticationRequired() {
-      // try to refresh token first
-      if (authService.refreshToken) {
-        const refreshed = await authService.refreshAccessToken();
-        if (refreshed) {
-          this.isAuthenticated = true;
-          this.currentUser = authService.currentUser;
-          return;
-        }
-      }
-      
-      // if refresh failed, show login
+      console.log('🔒 Authentication required - clearing auth state');
       this.isAuthenticated = false;
       this.currentUser = null;
+      
+      // Clear all data since user is no longer authenticated
+      this.chores = [];
+      this.people = [
+        { id: 'ben', name: 'Ben', earnings: 0, electronicsStatus: { status: 'allowed', message: 'Electronics allowed' } },
+        { id: 'theo', name: 'Theo', earnings: 0, electronicsStatus: { status: 'allowed', message: 'Electronics allowed' } }
+      ];
+      this.quicklistChores = [];
+      
+      // Clear any ongoing operations
+      this.selectedChoreId = null;
+      this.selectedQuicklistChore = null;
+      
+      // Show login modal
       this.showLoginModal = true;
     },
 
@@ -641,14 +673,19 @@ const app = createApp({
         if (result.success) {
           this.isAuthenticated = true;
           this.currentUser = result.user;
-          this.showLoginModal = false;
+          this.closeAuthModals();
           this.clearAuthForm();
           
-          // reload data after login
+          console.log('✅ Login successful, loading user data...');
+          
+          // Load all data for the newly authenticated user
           await this.loadAllData();
+        } else {
+          this.authError = 'Login failed. Please check your credentials.';
         }
       } catch (error) {
-        this.authError = error.message;
+        console.error('Login error:', error);
+        this.authError = error.message || 'Login failed. Please try again.';
       } finally {
         this.authLoading = false;
       }
@@ -660,22 +697,22 @@ const app = createApp({
         this.authError = null;
         
         const result = await authService.signUp(
-          this.authForm.email,
-          this.authForm.password,
+          this.authForm.email, 
+          this.authForm.password, 
           this.authForm.name
         );
         
         if (result.success) {
-          if (result.confirmationRequired) {
-            this.showSignupModal = false;
-            this.showConfirmModal = true;
-          } else {
-            // auto sign in if no confirmation required
-            await this.handleLogin();
-          }
+          // Close signup modal and show confirmation modal
+          this.showSignupModal = false;
+          this.showConfirmModal = true;
+          this.authError = null;
+        } else {
+          this.authError = 'Signup failed. Please try again.';
         }
       } catch (error) {
-        this.authError = error.message;
+        console.error('Signup error:', error);
+        this.authError = error.message || 'Signup failed. Please try again.';
       } finally {
         this.authLoading = false;
       }
@@ -687,19 +724,35 @@ const app = createApp({
         this.authError = null;
         
         const result = await authService.confirmSignUp(
-          this.authForm.email,
+          this.authForm.email, 
           this.authForm.confirmationCode
         );
         
         if (result.success) {
-          this.showConfirmModal = false;
-          this.showLoginModal = true;
-          this.authError = null;
-          // clear confirmation code but keep email and password for login
-          this.authForm.confirmationCode = '';
+          // Account confirmed, now sign them in automatically
+          const signInResult = await authService.signIn(this.authForm.email, this.authForm.password);
+          
+          if (signInResult.success) {
+            this.isAuthenticated = true;
+            this.currentUser = signInResult.user;
+            this.closeAuthModals();
+            this.clearAuthForm();
+            
+            console.log('✅ Account confirmed and logged in, loading user data...');
+            
+            // Load all data for the newly authenticated user
+            await this.loadAllData();
+          } else {
+            this.authError = 'Account confirmed but auto-login failed. Please log in manually.';
+            this.showConfirmModal = false;
+            this.showLoginModal = true;
+          }
+        } else {
+          this.authError = 'Confirmation failed. Please check the code and try again.';
         }
       } catch (error) {
-        this.authError = error.message;
+        console.error('Confirmation error:', error);
+        this.authError = error.message || 'Confirmation failed. Please try again.';
       } finally {
         this.authLoading = false;
       }
@@ -707,27 +760,35 @@ const app = createApp({
 
     async handleLogout() {
       try {
-        console.log('🚪 Logging out...');
-        this.authLoading = true;
+        console.log('🚪 Logging out user...');
         
         await authService.signOut();
+        
+        // Clear authentication state
         this.isAuthenticated = false;
         this.currentUser = null;
-        this.clearAuthForm();
         
-        // clear all app data
+        // Clear all data since user is no longer authenticated
         this.chores = [];
-        this.quicklistChores = [];
         this.people = [
           { id: 'ben', name: 'Ben', earnings: 0, electronicsStatus: { status: 'allowed', message: 'Electronics allowed' } },
           { id: 'theo', name: 'Theo', earnings: 0, electronicsStatus: { status: 'allowed', message: 'Electronics allowed' } }
         ];
+        this.quicklistChores = [];
+        
+        // Clear any ongoing operations
+        this.selectedChoreId = null;
+        this.selectedQuicklistChore = null;
+        
+        // Reset to chores page
+        this.currentPage = 'chores';
         
         console.log('✅ Logout successful');
       } catch (error) {
-        console.error('❌ Logout error:', error);
-      } finally {
-        this.authLoading = false;
+        console.error('Logout error:', error);
+        // Still clear local state even if server logout fails
+        this.isAuthenticated = false;
+        this.currentUser = null;
       }
     },
 

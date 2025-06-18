@@ -589,6 +589,14 @@ const ShoppingPage = Vue.defineComponent({
     }
   },
   async mounted() {
+    // Check if user is authenticated before loading data
+    if (!authService.isAuthenticated()) {
+      console.log('🔒 User not authenticated, skipping shopping data load');
+      this.loading = false;
+      this.quickLoading = false;
+      return;
+    }
+    
     await this.loadShoppingItems();
     await this.loadQuickItems();
     await this.loadStores();
