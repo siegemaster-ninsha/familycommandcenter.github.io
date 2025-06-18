@@ -623,9 +623,10 @@ const ChorePage = Vue.defineComponent({
     },
 
     openSpendModal(person) {
-      // Set the selected person for the spend modal
-      this.$parent.selectedPersonForSpending = person;
-      this.$parent.showSpendModal = true;
+      // Call parent method to open spending modal
+      if (this.$parent.openSpendingModal) {
+        this.$parent.openSpendingModal(person);
+      }
     }
   }
 });

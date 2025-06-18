@@ -439,16 +439,92 @@ const AppModals = Vue.defineComponent({
         </div>
       </div>
     </div>
+
+    <!-- Spending Modal -->
+    <div v-if="showSpendingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-full max-w-sm mx-4">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="bg-red-100 p-2 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-red-600" viewBox="0 0 256 256">
+              <path d="M224,48H32A16,16,0,0,0,16,64V192a16,16,0,0,0,16,16H224a16,16,0,0,0,16-16V64A16,16,0,0,0,224,48ZM32,64H224V88H32ZM32,192V104H224v88Z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-primary-custom">Spend Money</h3>
+            <p class="text-sm text-secondary-custom">{{ selectedPerson?.name }} - \${{ selectedPerson?.earnings.toFixed(2) }} available</p>
+          </div>
+        </div>
+        
+        <!-- Amount Display -->
+        <div class="mb-4">
+          <div class="text-center bg-gray-50 rounded-lg p-4 mb-4">
+            <div class="text-2xl font-bold text-primary-custom">\${{ spendAmountString }}</div>
+            <div class="text-sm text-secondary-custom">Amount to spend</div>
+          </div>
+        </div>
+        
+        <!-- Number Pad -->
+        <div class="grid grid-cols-3 gap-2 mb-4">
+          <button
+            v-for="number in [1,2,3,4,5,6,7,8,9]"
+            :key="number"
+            @click="addDigit(number)"
+            class="bg-gray-100 hover:bg-gray-200 text-primary-custom font-bold py-3 px-4 rounded-lg transition-colors"
+          >
+            {{ number }}
+          </button>
+          <button
+            @click="addDecimal"
+            class="bg-gray-100 hover:bg-gray-200 text-primary-custom font-bold py-3 px-4 rounded-lg transition-colors"
+          >
+            .
+          </button>
+          <button
+            @click="addDigit(0)"
+            class="bg-gray-100 hover:bg-gray-200 text-primary-custom font-bold py-3 px-4 rounded-lg transition-colors"
+          >
+            0
+          </button>
+          <button
+            @click="clearSpendAmount"
+            class="bg-red-100 hover:bg-red-200 text-red-600 font-bold py-3 px-4 rounded-lg transition-colors"
+          >
+            Clear
+          </button>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="flex gap-3">
+          <button
+            @click="closeSpendingModal"
+            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            @click="confirmSpending"
+            :disabled="spendAmount <= 0 || spendAmount > selectedPerson?.earnings"
+            class="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+          >
+            Spend Money
+          </button>
+        </div>
+      </div>
+    </div>
   `,
   inject: [
     'showDeleteModal', 'choreToDelete', 'showAddToQuicklistModal', 'newQuicklistChore',
     'showAddPersonModal', 'newPerson', 'showDeletePersonModal', 'personToDelete',
     'showAddChoreModal', 'newChore', 'showNewDayModal',
+    // Spending modal props
+    'showSpendingModal', 'selectedPerson', 'spendAmount', 'spendAmountString',
     // Authentication props
     'showLoginModal', 'showSignupModal', 'showConfirmModal', 'authForm', 'authError', 'authLoading',
     'addChore', 'cancelAddChore', 'addPerson', 'cancelAddPerson',
     'addToQuicklist', 'cancelAddToQuicklist', 'startNewDay', 'cancelNewDay',
     'confirmDelete', 'cancelDelete', 'executeDeletePerson', 'cancelDeletePerson',
+    // Spending modal methods
+    'closeSpendingModal', 'addDigit', 'addDecimal', 'clearSpendAmount', 'confirmSpending',
     // Authentication methods
     'handleLogin', 'handleSignup', 'handleConfirmSignup', 'showLoginForm', 'showSignupForm', 'closeAuthModals'
   ],

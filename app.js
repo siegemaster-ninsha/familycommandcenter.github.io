@@ -39,6 +39,11 @@ const app = createApp({
       personToDelete: null,
       // New Day functionality
       showNewDayModal: false,
+      // Spending modal
+      showSpendingModal: false,
+      selectedPerson: null,
+      spendAmount: 0,
+      spendAmountString: '0',
       // Page navigation
       currentPage: 'chores', // Default to chores page
       // Existing data
@@ -647,10 +652,7 @@ const app = createApp({
       
       // Clear all data since user is no longer authenticated
       this.chores = [];
-      this.people = [
-        { id: 'ben', name: 'Ben', earnings: 0, electronicsStatus: { status: 'allowed', message: 'Electronics allowed' } },
-        { id: 'theo', name: 'Theo', earnings: 0, electronicsStatus: { status: 'allowed', message: 'Electronics allowed' } }
-      ];
+      this.people = [];
       this.quicklistChores = [];
       
       // Clear any ongoing operations
@@ -1039,6 +1041,85 @@ const app = createApp({
       console.log('🧹 Manually clearing success message');
       this.showSuccessMessageFlag = false;
       this.completedChoreMessage = '';
+    },
+
+    // Spending modal methods
+    openSpendingModal(person) {
+      this.selectedPerson = person;
+      this.spendAmount = 0;
+      this.spendAmountString = '0';
+      this.showSpendingModal = true;
+    },
+
+    closeSpendingModal() {
+      this.showSpendingModal = false;
+      this.selectedPerson = null;
+      this.spendAmount = 0;
+      this.spendAmountString = '0';
+    },
+
+    addDigit(digit) {
+      if (this.spendAmountString === '0') {
+        this.spendAmountString = digit.toString();
+      } else {
+        this.spendAmountString += digit.toString();
+      }
+      this.updateSpendAmount();
+    },
+
+    addDecimal() {
+      if (!this.spendAmountString.includes('.')) {
+        this.spendAmountString += '.';
+        this.updateSpendAmount();
+      }
+    },
+
+    clearSpendAmount() {
+      this.spendAmountString = '0';
+      this.spendAmount = 0;
+    },
+
+    updateSpendAmount() {
+      const amount = parseFloat(this.spendAmountString);
+      this.spendAmount = isNaN(amount) ? 0 : Number(amount);
+    },
+
+    async confirmSpending() {
+      if (this.spendAmount <= 0 || this.spendAmount > this.selectedPerson.earnings) {
+        return;
+      }
+
+      try {
+        await this.apiCall(`${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${this.selectedPerson.name}/earnings`, {
+          method: 'PUT',
+          body: JSON.stringify({ 
+            amount: Number(this.spendAmount),
+            operation: 'subtract'
+          })
+        });
+
+        // Store values before closing modal
+        const personName = this.selectedPerson.name;
+        const spentAmount = this.spendAmount;
+
+        // Reload earnings data
+        await this.loadEarnings();
+
+        // Show success message
+        this.triggerConfetti();
+        this.showSuccessMessageFlag = true;
+        this.completedChoreMessage = `${personName} spent $${spentAmount.toFixed(2)}!`;
+
+        setTimeout(() => {
+          this.showSuccessMessageFlag = false;
+        }, 3000);
+
+        // Close modal
+        this.closeSpendingModal();
+      } catch (error) {
+        console.error('Error spending money:', error);
+        alert('Failed to spend money. Please try again.');
+      }
     }
   },
   
@@ -1133,6 +1214,10 @@ const app = createApp({
       showDeleteModal: Vue.computed(() => this.showDeleteModal),
       showDeletePersonModal: Vue.computed(() => this.showDeletePersonModal),
       showNewDayModal: Vue.computed(() => this.showNewDayModal),
+      showSpendingModal: Vue.computed(() => this.showSpendingModal),
+      selectedPerson: Vue.computed(() => this.selectedPerson),
+      spendAmount: Vue.computed(() => this.spendAmount),
+      spendAmountString: Vue.computed(() => this.spendAmountString),
       currentPage: Vue.computed(() => this.currentPage),
       
       // Authentication modal state
@@ -1170,6 +1255,14 @@ const app = createApp({
       triggerConfetti: this.triggerConfetti,
       loadEarnings: this.loadEarnings,
       showSuccessMessage: this.showSuccessMessage,
+      
+      // Spending modal methods
+      openSpendingModal: this.openSpendingModal,
+      closeSpendingModal: this.closeSpendingModal,
+      addDigit: this.addDigit,
+      addDecimal: this.addDecimal,
+      clearSpendAmount: this.clearSpendAmount,
+      confirmSpending: this.confirmSpending,
       
       // User data
       currentUser: Vue.computed(() => this.currentUser),
