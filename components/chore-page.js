@@ -73,7 +73,7 @@ const ChorePage = Vue.defineComponent({
         </div>
         
         <!-- Empty state -->
-        <div v-if="quicklistChores.length === 0 && !quicklistLoading" class="text-center py-8 text-slate-500">
+        <div v-if="quicklistChores.length === 0 && !quicklistLoading" class="text-center py-8 text-secondary-custom">
           <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="mx-auto mb-3 opacity-50" viewBox="0 0 256 256">
             <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
           </svg>
@@ -92,7 +92,7 @@ const ChorePage = Vue.defineComponent({
           @click="selectedChore ? assignSelectedChore('unassigned') : null"
         >
           <!-- Empty state when no chores -->
-                      <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-slate-500 py-6 flex flex-col items-center justify-center">
+                      <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-secondary-custom py-6 flex flex-col items-center justify-center">
               <p class="text-sm px-2">No unassigned chores</p>
               <p class="text-xs mt-2 px-2">Create new chores here - they'll be available for any family member to pick up</p>
               <p v-if="selectedChore" class="text-xs mt-2 text-secondary-custom px-2">Tap here to move selected chore to unassigned</p>
@@ -235,7 +235,7 @@ const ChorePage = Vue.defineComponent({
                   <div class="flex flex-col justify-center min-w-0 flex-1">
                     <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
                       <p 
-                        :class="chore.completed ? 'line-through text-gray-500' : 'text-primary-custom'"
+                        :class="chore.completed ? 'line-through text-secondary-custom opacity-60' : 'text-primary-custom'"
                         class="text-sm sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1"
                       >
                         {{ chore.name }}
@@ -244,7 +244,7 @@ const ChorePage = Vue.defineComponent({
                         {{ getCategoryLabel(chore.category) }}
                       </span>
                     </div>
-                    <p v-if="chore.amount > 0" :class="chore.completed ? 'text-gray-400' : 'text-secondary-custom'" class="text-xs sm:text-sm font-normal leading-normal line-clamp-2">
+                    <p v-if="chore.amount > 0" :class="chore.completed ? 'text-secondary-custom opacity-50' : 'text-secondary-custom'" class="text-xs sm:text-sm font-normal leading-normal line-clamp-2">
                       \${{ chore.amount.toFixed(2) }}
                     </p>
                   </div>
@@ -473,8 +473,8 @@ const ChorePage = Vue.defineComponent({
         default:
           return {
             background: 'bg-slate-50 border-l-slate-400',
-            icon: 'text-slate-700',
-            badge: 'bg-slate-100 text-slate-700'
+            icon: 'text-primary-custom',
+            badge: 'bg-slate-100 text-primary-custom'
           };
       }
     },
@@ -509,7 +509,7 @@ const ChorePage = Vue.defineComponent({
         case 'allowed': return 'bg-green-100 text-green-800';
         case 'restricted': return 'bg-yellow-100 text-yellow-800';
         case 'blocked': return 'bg-red-100 text-red-800';
-        default: return 'bg-gray-100 text-gray-800';
+        default: return 'bg-slate-100 text-primary-custom';
       }
     },
 

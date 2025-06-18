@@ -91,8 +91,8 @@
   /* Background Colors */
   --color-bg-primary: var(--color-neutral-50);
   --color-bg-secondary: var(--color-neutral-100);
-  --color-bg-card: #ffffff;
-  --color-bg-card-hover: var(--color-neutral-50);
+  --color-bg-card: var(--color-neutral-50);
+  --color-bg-card-hover: var(--color-neutral-100);
   --color-border-card: var(--color-neutral-200);
   
   /* Component-Specific Colors (inherit from base theme) */

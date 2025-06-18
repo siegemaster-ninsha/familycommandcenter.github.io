@@ -263,6 +263,13 @@ const ThemeManager = {
       null;
   },
 
+  // detect if theme is dark based on text color brightness
+  isDarkTheme(theme) {
+    // Dark themes have light text colors
+    const darkThemes = ['darknight', 'cyberpunk', 'obsidian', 'deepforest', 'darkcrimson'];
+    return darkThemes.includes(theme.id);
+  },
+
   // apply a theme to CSS custom properties
   applyTheme(themeId) {
     const theme = CONFIG.THEMES[themeId];
@@ -272,6 +279,7 @@ const ThemeManager = {
     }
 
     const root = document.documentElement;
+    const isDark = this.isDarkTheme(theme);
 
     // Primary colors
     root.style.setProperty('--color-primary-500', theme.colors.primary);
@@ -300,16 +308,53 @@ const ThemeManager = {
     root.style.setProperty('--color-text-primary', theme.colors.textPrimary);
     root.style.setProperty('--color-text-secondary', theme.colors.textSecondary);
 
-    // Background colors - create themed backgrounds
-    const bgPrimary = this.lightenColor(theme.colors.primary, 48);
-    const bgSecondary = this.lightenColor(theme.colors.secondary, 48);
-    const cardBg = this.lightenColor(theme.colors.primary, 50);
-    const borderColor = this.lightenColor(theme.colors.primary, 42);
+    // Background colors - handle dark themes differently
+    let bgPrimary, bgSecondary, cardBg, borderColor;
+    
+    if (isDark) {
+      // For dark themes: use darkened colors for backgrounds
+      bgPrimary = this.darkenColor(theme.colors.primary, 35);
+      bgSecondary = this.darkenColor(theme.colors.secondary, 35);
+      cardBg = this.darkenColor(theme.colors.primary, 25);
+      borderColor = this.darkenColor(theme.colors.primary, 15);
+    } else {
+      // For light themes: use lightened colors for backgrounds
+      bgPrimary = this.lightenColor(theme.colors.primary, 48);
+      bgSecondary = this.lightenColor(theme.colors.secondary, 48);
+      cardBg = this.lightenColor(theme.colors.primary, 50);
+      borderColor = this.lightenColor(theme.colors.primary, 42);
+    }
 
     root.style.setProperty('--color-bg-primary', bgPrimary);
     root.style.setProperty('--color-bg-secondary', bgSecondary);
     root.style.setProperty('--color-bg-card', cardBg);
     root.style.setProperty('--color-border-card', borderColor);
+
+    // Update neutral colors for dark themes
+    if (isDark) {
+      root.style.setProperty('--color-neutral-50', this.darkenColor(theme.colors.primary, 40));
+      root.style.setProperty('--color-neutral-100', this.darkenColor(theme.colors.primary, 35));
+      root.style.setProperty('--color-neutral-200', this.darkenColor(theme.colors.primary, 25));
+      root.style.setProperty('--color-neutral-300', this.darkenColor(theme.colors.primary, 15));
+      root.style.setProperty('--color-neutral-400', this.lightenColor(theme.colors.primary, 10));
+      root.style.setProperty('--color-neutral-500', this.lightenColor(theme.colors.primary, 20));
+      root.style.setProperty('--color-neutral-600', theme.colors.textSecondary);
+      root.style.setProperty('--color-neutral-700', this.lightenColor(theme.colors.textSecondary, 10));
+      root.style.setProperty('--color-neutral-800', theme.colors.textPrimary);
+      root.style.setProperty('--color-neutral-900', this.lightenColor(theme.colors.textPrimary, 5));
+    } else {
+      // Reset to default neutral colors for light themes
+      root.style.setProperty('--color-neutral-50', '#F8FAFC');
+      root.style.setProperty('--color-neutral-100', '#f1f5f9');
+      root.style.setProperty('--color-neutral-200', '#e2e8f0');
+      root.style.setProperty('--color-neutral-300', '#cbd5e1');
+      root.style.setProperty('--color-neutral-400', '#94a3b8');
+      root.style.setProperty('--color-neutral-500', '#718096');
+      root.style.setProperty('--color-neutral-600', '#475569');
+      root.style.setProperty('--color-neutral-700', '#334155');
+      root.style.setProperty('--color-neutral-800', '#2D3748');
+      root.style.setProperty('--color-neutral-900', '#1a202c');
+    }
 
     // Update component colors to match theme
     root.style.setProperty('--color-quicklist-border', borderColor);
