@@ -528,12 +528,22 @@ const AccountPage = Vue.defineComponent({
             if (response.ok) {
               this.accountSettings = await response.json();
               console.log('✅ Theme saved to backend');
+              // Also save to localStorage for immediate future loads
+              localStorage.setItem('selectedTheme', this.selectedTheme);
             } else {
               console.warn('Failed to save theme to backend, using localStorage');
+              // Save to localStorage as fallback
+              localStorage.setItem('selectedTheme', this.selectedTheme);
             }
           } catch (error) {
             console.warn('Backend unavailable, using localStorage:', error);
+            // Save to localStorage as fallback
+            localStorage.setItem('selectedTheme', this.selectedTheme);
           }
+        } else {
+          // No accountId available, save to localStorage only
+          console.log('🎨 No account ID, saving theme to localStorage only');
+          localStorage.setItem('selectedTheme', this.selectedTheme);
         }
         
         // Update local state

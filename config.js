@@ -315,6 +315,7 @@ const ThemeManager = {
   // initialize theme on page load
   initializeTheme() {
     const savedTheme = localStorage.getItem('selectedTheme') || 'default';
+    console.log('🎨 ThemeManager.initializeTheme() - applying theme:', savedTheme);
     this.applyTheme(savedTheme);
   },
 

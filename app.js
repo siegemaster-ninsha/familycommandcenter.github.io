@@ -314,6 +314,8 @@ const app = createApp({
         console.log('🎨 Loading user theme from account settings...');
         const response = await this.apiCall(CONFIG.API.ENDPOINTS.ACCOUNT_SETTINGS);
         
+        console.log('🎨 Account settings response:', response);
+        
         if (response && response.theme) {
           console.log('🎨 Found user theme:', response.theme);
           // Apply the user's saved theme
@@ -322,6 +324,10 @@ const app = createApp({
           localStorage.setItem('selectedTheme', response.theme);
         } else {
           console.log('🎨 No theme found in account settings, using current theme');
+          // If no theme in backend, keep the current localStorage theme
+          const localTheme = localStorage.getItem('selectedTheme') || 'default';
+          console.log('🎨 Using existing localStorage theme:', localTheme);
+          ThemeManager.applyTheme(localTheme);
         }
       } catch (error) {
         console.error('Failed to load user theme:', error);
