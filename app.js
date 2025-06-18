@@ -32,10 +32,7 @@ const app = createApp({
         category: 'regular'
       },
       // Person management
-      people: [
-        { id: 'ben', name: 'Ben', earnings: 0, electronicsStatus: { status: 'allowed', message: 'Electronics allowed' } },
-        { id: 'theo', name: 'Theo', earnings: 0, electronicsStatus: { status: 'allowed', message: 'Electronics allowed' } }
-      ],
+      people: [],
       showAddPersonModal: false,
       newPerson: { name: '' },
       showDeletePersonModal: false,
@@ -257,8 +254,9 @@ const app = createApp({
             electronicsStatus: { status: 'allowed', message: 'Electronics allowed' }
           }));
         } else {
-          // keep default people if no family members in backend yet
-          console.log('No family members found in backend, using default people');
+          // No family members in backend - start with empty array
+          this.people = [];
+          console.log('No family members found in backend, starting with empty family');
         }
       } catch (error) {
         console.error('Failed to load family members:', error);

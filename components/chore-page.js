@@ -190,9 +190,6 @@ const ChorePage = Vue.defineComponent({
                 </div>
                 <div>
                   <h3 class="font-bold text-primary-custom">{{ person.name }}</h3>
-                  <p class="text-sm text-secondary-custom">
-                    <span class="earnings-text font-semibold">\${{ person.earnings.toFixed(2) }}</span> earned
-                  </p>
                 </div>
               </div>
               
@@ -282,7 +279,9 @@ const ChorePage = Vue.defineComponent({
           <div 
             v-for="person in people" 
             :key="person.id"
-            class="earnings-card border rounded-lg p-4"
+            class="earnings-card border rounded-lg p-4 cursor-pointer hover:shadow-md hover:scale-102 transition-all duration-200 touch-target"
+            @click="openSpendModal(person)"
+            @touchend="openSpendModal(person)"
           >
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
@@ -621,6 +620,12 @@ const ChorePage = Vue.defineComponent({
           });
         });
       }
+    },
+
+    openSpendModal(person) {
+      // Set the selected person for the spend modal
+      this.$parent.selectedPersonForSpending = person;
+      this.$parent.showSpendModal = true;
     }
   }
 });
