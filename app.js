@@ -308,6 +308,29 @@ const app = createApp({
         this.quicklistChores = [];
       }
     },
+
+    async loadUserTheme() {
+      try {
+        console.log('🎨 Loading user theme from account settings...');
+        const response = await this.apiCall(CONFIG.API.ENDPOINTS.ACCOUNT_SETTINGS);
+        
+        if (response && response.theme) {
+          console.log('🎨 Found user theme:', response.theme);
+          // Apply the user's saved theme
+          ThemeManager.applyTheme(response.theme);
+          // Also save to localStorage for offline access
+          localStorage.setItem('selectedTheme', response.theme);
+        } else {
+          console.log('🎨 No theme found in account settings, using current theme');
+        }
+      } catch (error) {
+        console.error('Failed to load user theme:', error);
+        // Fallback to localStorage theme if backend fails
+        const localTheme = localStorage.getItem('selectedTheme') || 'default';
+        console.log('🎨 Using fallback theme from localStorage:', localTheme);
+        ThemeManager.applyTheme(localTheme);
+      }
+    },
     
     // Drag and drop methods
     handleDragStart(chore) {
@@ -678,6 +701,9 @@ const app = createApp({
           
           console.log('✅ Login successful, loading user data...');
           
+          // Load user theme first to prevent flash of wrong theme
+          await this.loadUserTheme();
+          
           // Load all data for the newly authenticated user
           await this.loadAllData();
         } else {
@@ -740,6 +766,9 @@ const app = createApp({
             
             console.log('✅ Account confirmed and logged in, loading user data...');
             
+            // Load user theme first to prevent flash of wrong theme
+            await this.loadUserTheme();
+            
             // Load all data for the newly authenticated user
             await this.loadAllData();
           } else {
@@ -777,6 +806,11 @@ const app = createApp({
         this.selectedChoreId = null;
         this.selectedQuicklistChore = null;
         
+        // Reset to default theme on logout
+        console.log('🎨 Resetting to default theme on logout');
+        ThemeManager.applyTheme('default');
+        localStorage.setItem('selectedTheme', 'default');
+        
         // Reset to chores page
         this.currentPage = 'chores';
         
@@ -786,6 +820,10 @@ const app = createApp({
         // Still clear local state even if server logout fails
         this.isAuthenticated = false;
         this.currentUser = null;
+        
+        // Still reset theme on error
+        ThemeManager.applyTheme('default');
+        localStorage.setItem('selectedTheme', 'default');
       }
     },
 
@@ -1173,6 +1211,11 @@ const app = createApp({
         this.isAuthenticated = true;
         this.currentUser = authService.currentUser;
         console.log('✅ User is authenticated:', this.currentUser);
+        
+        // Load user theme first to prevent flash of wrong theme
+        await this.loadUserTheme();
+        
+        // Then load all other data
         await this.loadAllData();
       } else {
         console.log('❌ User not authenticated - ready for login');
