@@ -3,7 +3,7 @@ const ChorePage = Vue.defineComponent({
   template: `
     <div class="space-y-6">
       <!-- Quicklist Section -->
-      <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-[#e6e9f4] p-6">
+      <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">⚡ Quicklist</h2>
         <p class="text-secondary-custom text-sm mb-4 text-center">Tap these common chores to assign them quickly</p>
         
@@ -83,7 +83,7 @@ const ChorePage = Vue.defineComponent({
       </div>
 
       <!-- Unassigned Chores -->
-      <div class="bg-white rounded-lg border border-slate-200 p-6">
+      <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">📋 Unassigned Chores</h2>
         
         <div 
@@ -95,6 +95,7 @@ const ChorePage = Vue.defineComponent({
                       <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-secondary-custom py-6 flex flex-col items-center justify-center">
               <p class="text-sm px-2">No unassigned chores</p>
               <p class="text-xs mt-2 px-2">Create new chores here - they'll be available for any family member to pick up</p>
+              
               <p v-if="selectedChore" class="text-xs mt-2 text-secondary-custom px-2">Tap here to move selected chore to unassigned</p>
             </div>
           
@@ -119,7 +120,8 @@ const ChorePage = Vue.defineComponent({
               </button>
               <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
                 <div
-                  class="flex items-center justify-center rounded-lg bg-white shrink-0 size-14 sm:size-12"
+                  class="flex items-center justify-center rounded-lg shrink-0 size-14 sm:size-12"
+                  style="background-color: var(--color-neutral-50);"
                   :class="getCategoryStyle(chore.category).icon"
                   v-html="getCategoryIcon(chore.category)"
                 >
@@ -135,7 +137,7 @@ const ChorePage = Vue.defineComponent({
                 </div>
               </div>
               <div class="flex items-center gap-2 shrink-0">
-                <span class="text-xs text-secondary-custom bg-white px-2 py-1 rounded">Tap to select</span>
+                <span class="text-xs text-secondary-custom px-2 py-1 rounded" style="background-color: var(--color-neutral-100);">Tap to select</span>
               </div>
             </div>
           </div>
@@ -157,7 +159,7 @@ const ChorePage = Vue.defineComponent({
       </div>
 
       <!-- Family Members & Assigned Chores -->
-      <div class="bg-white rounded-lg border border-slate-200 p-6">
+      <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">👨‍👩‍👧‍👦 Family Members</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -227,7 +229,8 @@ const ChorePage = Vue.defineComponent({
                 
                 <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
                   <div
-                    class="flex items-center justify-center rounded-lg bg-white shrink-0 size-12 sm:size-10"
+                    class="flex items-center justify-center rounded-lg shrink-0 size-12 sm:size-10"
+                    style="background-color: var(--color-neutral-50);"
                     :class="getCategoryStyle(chore.category).icon"
                     v-html="getCategoryIcon(chore.category)"
                   >
@@ -258,7 +261,7 @@ const ChorePage = Vue.defineComponent({
 
 
       <!-- Earnings Summary -->
-      <div class="bg-white rounded-lg border border-slate-200 p-6">
+      <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">💰 Earnings Summary</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
