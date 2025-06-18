@@ -9,7 +9,7 @@ const ChorePage = Vue.defineComponent({
         
         <!-- Loading state -->
         <div v-if="quicklistLoading" class="text-center py-8">
-          <div class="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full border-purple-600 border-t-transparent"></div>
+          <div class="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full border-primary-600 border-t-transparent"></div>
           <p class="text-secondary-custom mt-2">Loading quicklist...</p>
         </div>
         
@@ -19,7 +19,7 @@ const ChorePage = Vue.defineComponent({
           <p class="text-sm mt-1">{{ quicklistError }}</p>
           <button 
             @click="loadQuicklistChores"
-            class="mt-3 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+            class="mt-3 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
           >
             Try Again
           </button>
@@ -44,7 +44,7 @@ const ChorePage = Vue.defineComponent({
             </button>
             
             <div
-              class="flex items-center justify-center rounded-lg bg-purple-100 shrink-0 size-10 sm:size-8 text-purple-600"
+              class="flex items-center justify-center rounded-lg bg-primary-100 shrink-0 size-10 sm:size-8 text-primary-600"
               v-html="getCategoryIcon(quickChore.category)"
             >
             </div>
@@ -61,7 +61,7 @@ const ChorePage = Vue.defineComponent({
           <div class="flex items-center justify-center">
             <button
               @click="$parent.showAddToQuicklistModal = true"
-              class="flex items-center gap-2 bg-purple-100 hover:bg-purple-200 active:bg-purple-300 text-purple-700 px-4 py-3 sm:px-3 sm:py-2 rounded-lg border-2 border-dashed border-purple-300 transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center"
+              class="flex items-center gap-2 bg-primary-100 hover:bg-primary-200 active:bg-primary-300 text-primary-700 px-4 py-3 sm:px-3 sm:py-2 rounded-lg border-2 border-dashed border-primary-300 transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center"
               title="Add new chore to quicklist"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
@@ -144,7 +144,7 @@ const ChorePage = Vue.defineComponent({
           <div class="flex items-center justify-center" :class="choresByPerson.unassigned.length === 0 ? 'mt-4' : ''">
             <button
               @click="$parent.showAddChoreModal = true"
-              class="flex items-center gap-2 bg-blue-100 hover:bg-blue-200 active:bg-blue-300 text-blue-700 px-4 py-3 sm:px-4 sm:py-2 rounded-lg border-2 border-dashed border-blue-300 transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center"
+              class="flex items-center gap-2 bg-primary-100 hover:bg-primary-200 active:bg-primary-300 text-primary-700 px-4 py-3 sm:px-4 sm:py-2 rounded-lg border-2 border-dashed border-primary-300 transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center"
               title="Add new chore to unassigned"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">

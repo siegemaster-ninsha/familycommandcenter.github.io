@@ -8,7 +8,7 @@ const ShoppingPage = Vue.defineComponent({
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em]">🛒 Shopping List</h2>
           <button
             @click="showAddItemModal = true"
-            class="flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 transition-colors"
+            class="flex items-center gap-2 bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-colors"
             :disabled="loading"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
@@ -113,7 +113,7 @@ const ShoppingPage = Vue.defineComponent({
           <div class="flex gap-2">
             <button
               @click="showAddQuickItemModal = true"
-              class="flex items-center gap-2 bg-primary-500 text-white px-3 py-2 rounded-lg hover:bg-primary-600 transition-colors text-sm"
+              class="flex items-center gap-2 bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-colors text-sm"
               :disabled="quickLoading"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256">
@@ -121,16 +121,7 @@ const ShoppingPage = Vue.defineComponent({
               </svg>
               Add Quick Item
             </button>
-            <button
-              @click="initializeQuickItems"
-              class="flex items-center gap-2 bg-slate-500 text-white px-3 py-2 rounded-lg hover:bg-slate-600 transition-colors text-sm"
-              :disabled="quickLoading"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256">
-                <path d="M232,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H224A8,8,0,0,1,232,128Z"></path>
-              </svg>
-              Load Defaults
-            </button>
+
           </div>
         </div>
         
@@ -200,7 +191,7 @@ const ShoppingPage = Vue.defineComponent({
               <path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128Z"></path>
             </svg>
             <p>No quick items available.</p>
-            <p class="text-sm mt-1">Click "Add Quick Item" to create some or "Load Defaults" to get started!</p>
+            <p class="text-sm mt-1">Click "Add Quick Item" to create some common items!</p>
           </div>
         </div>
       </div>
@@ -254,7 +245,7 @@ const ShoppingPage = Vue.defineComponent({
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em]">🏪 Store Management</h2>
           <button
             @click="showAddStoreModal = true"
-            class="flex items-center gap-2 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
+            class="flex items-center gap-2 bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-colors"
             :disabled="storeLoading"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
