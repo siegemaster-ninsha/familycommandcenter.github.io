@@ -173,7 +173,7 @@ const ChorePage = Vue.defineComponent({
             <!-- Person header -->
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center gap-3">
-                <div class="avatar family-avatar text-white">
+                <div class="avatar family-avatar text-white bg-gradient-to-br from-primary-500 to-primary-600">
                   {{ person.name.charAt(0) }}
                 </div>
                 <div>
@@ -270,20 +270,15 @@ const ChorePage = Vue.defineComponent({
             @touchend="openSpendModal(person)"
           >
             <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="avatar earnings-avatar text-white">
-                  {{ person.name.charAt(0) }}
-                </div>
-                <div>
-                  <h3 class="font-bold text-primary-custom">{{ person.name }}</h3>
-                  <p class="text-sm text-secondary-custom">Total Earnings</p>
-                </div>
+              <div class="flex flex-col">
+                <h3 class="font-bold text-primary-custom text-lg">{{ person.name }}</h3>
+                <p class="text-sm text-secondary-custom">Total Earnings</p>
+                <p class="text-xs text-secondary-custom mt-1">
+                  {{ person.completedChores || 0 }} chores completed
+                </p>
               </div>
               <div class="text-right">
-                <p class="text-2xl font-bold earnings-text">\${{ person.earnings.toFixed(2) }}</p>
-                <p class="text-xs text-secondary-custom">
-                  {{ getCompletedChoresCount(person.name) }} chores completed
-                </p>
+                <p class="text-3xl font-bold earnings-text">\${{ person.earnings.toFixed(2) }}</p>
               </div>
             </div>
           </div>
