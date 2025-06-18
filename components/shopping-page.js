@@ -977,7 +977,7 @@ const ShoppingPage = Vue.defineComponent({
         
         const data = await response.json();
         this.quickItems = data.items || [];
-        this.showSuccessMessage('Default quick items loaded!');
+        // this.showSuccessMessage('Default quick items loaded!');
       } catch (error) {
         console.error('Error initializing quick items:', error);
         alert('Error loading default items: ' + error.message);

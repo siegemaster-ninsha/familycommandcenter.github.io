@@ -966,6 +966,8 @@ const app = createApp({
     },
 
     showSuccessMessage(message) {
+      console.log('🎉 showSuccessMessage called with:', message);
+      console.trace('showSuccessMessage call stack:');
       this.completedChoreMessage = message;
       this.showSuccessMessageFlag = true;
       setTimeout(() => {
@@ -982,6 +984,14 @@ const app = createApp({
         console.trace('Selection cleared from:');
       } else if (newVal) {
         console.log('Chore selected:', newVal);
+      }
+    },
+    
+    showSuccessMessageFlag(newVal, oldVal) {
+      console.log('🎉 showSuccessMessageFlag changed:', oldVal, '->', newVal);
+      if (newVal) {
+        console.log('📝 Success message content:', this.completedChoreMessage);
+        console.trace('showSuccessMessageFlag set to true from:');
       }
     }
   },

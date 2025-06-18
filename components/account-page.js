@@ -309,7 +309,7 @@ const AccountPage = Vue.defineComponent({
       </div>
     </div>
   `,
-  inject: ['currentUser', 'showSuccessMessage'],
+  inject: ['currentUser'],
   data() {
     return {
       accountSettings: null,
@@ -407,6 +407,66 @@ const AccountPage = Vue.defineComponent({
             success: '#22C55E',
             textPrimary: '#1F2937',
             textSecondary: '#6B7280'
+          }
+        },
+        {
+          id: 'darknight',
+          name: 'Dark Night',
+          description: 'Sophisticated dark theme with purple accents',
+          colors: {
+            primary: '#3C3C50',
+            secondary: '#28283C',
+            success: '#22C55E',
+            textPrimary: '#E5E7EB',
+            textSecondary: '#9CA3AF'
+          }
+        },
+        {
+          id: 'cyberpunk',
+          name: 'Cyberpunk',
+          description: 'Futuristic dark theme with neon accents',
+          colors: {
+            primary: '#8B5CF6',
+            secondary: '#A855F7',
+            success: '#10B981',
+            textPrimary: '#F3F4F6',
+            textSecondary: '#D1D5DB'
+          }
+        },
+        {
+          id: 'obsidian',
+          name: 'Obsidian',
+          description: 'Pure dark elegance with subtle highlights',
+          colors: {
+            primary: '#374151',
+            secondary: '#4B5563',
+            success: '#059669',
+            textPrimary: '#F9FAFB',
+            textSecondary: '#E5E7EB'
+          }
+        },
+        {
+          id: 'deepforest',
+          name: 'Deep Forest',
+          description: 'Dark forest greens with earthy tones',
+          colors: {
+            primary: '#064E3B',
+            secondary: '#065F46',
+            success: '#10B981',
+            textPrimary: '#ECFDF5',
+            textSecondary: '#A7F3D0'
+          }
+        },
+        {
+          id: 'darkcrimson',
+          name: 'Dark Crimson',
+          description: 'Rich dark reds with warm undertones',
+          colors: {
+            primary: '#7F1D1D',
+            secondary: '#991B1B',
+            success: '#16A34A',
+            textPrimary: '#FEF2F2',
+            textSecondary: '#FECACA'
           }
         }
       ]
@@ -590,8 +650,8 @@ const AccountPage = Vue.defineComponent({
         root.style.setProperty('--color-border-card', borderColor);
         
         // Update quicklist colors to match theme
-        root.style.setProperty('--color-quicklist-border', theme.colors.secondary);
-        root.style.setProperty('--color-quicklist-bg', this.lightenColor(theme.colors.secondary, 45));
+        root.style.setProperty('--color-quicklist-border', borderColor);
+        root.style.setProperty('--color-quicklist-bg', cardBg);
         
         // Update family card colors
         root.style.setProperty('--color-family-card-bg', cardBg);
@@ -763,6 +823,11 @@ const AccountPage = Vue.defineComponent({
     getSelectedThemeName() {
       const theme = this.availableThemes.find(t => t.id === this.selectedTheme);
       return theme ? theme.name : 'Unknown';
+    },
+    
+    showSuccessMessage(message) {
+      // Use the parent's showSuccessMessage method
+      this.$parent.showSuccessMessage(message);
     }
   }
 });

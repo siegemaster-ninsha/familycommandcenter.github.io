@@ -101,6 +101,41 @@
             success: '#22C55E',
             textPrimary: '#1F2937',
             textSecondary: '#6B7280'
+          },
+          darknight: {
+            primary: '#3C3C50',
+            secondary: '#28283C',
+            success: '#22C55E',
+            textPrimary: '#E5E7EB',
+            textSecondary: '#9CA3AF'
+          },
+          cyberpunk: {
+            primary: '#8B5CF6',
+            secondary: '#A855F7',
+            success: '#10B981',
+            textPrimary: '#F3F4F6',
+            textSecondary: '#D1D5DB'
+          },
+          obsidian: {
+            primary: '#374151',
+            secondary: '#4B5563',
+            success: '#059669',
+            textPrimary: '#F9FAFB',
+            textSecondary: '#E5E7EB'
+          },
+          deepforest: {
+            primary: '#064E3B',
+            secondary: '#065F46',
+            success: '#10B981',
+            textPrimary: '#ECFDF5',
+            textSecondary: '#A7F3D0'
+          },
+          darkcrimson: {
+            primary: '#7F1D1D',
+            secondary: '#991B1B',
+            success: '#16A34A',
+            textPrimary: '#FEF2F2',
+            textSecondary: '#FECACA'
           }
         };
         
@@ -172,8 +207,8 @@
         root.style.setProperty('--color-border-card', borderColor);
         
         // Update component colors to match theme
-        root.style.setProperty('--color-quicklist-border', theme.secondary);
-        root.style.setProperty('--color-quicklist-bg', lightenColor(theme.secondary, 45));
+        root.style.setProperty('--color-quicklist-border', borderColor);
+        root.style.setProperty('--color-quicklist-bg', cardBg);
         root.style.setProperty('--color-family-card-bg', cardBg);
         root.style.setProperty('--color-family-card-border', borderColor);
         root.style.setProperty('--color-unassigned-bg', cardBg);
