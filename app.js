@@ -770,10 +770,7 @@ const app = createApp({
         
         // Clear all data since user is no longer authenticated
         this.chores = [];
-        this.people = [
-          { id: 'ben', name: 'Ben', earnings: 0, electronicsStatus: { status: 'allowed', message: 'Electronics allowed' } },
-          { id: 'theo', name: 'Theo', earnings: 0, electronicsStatus: { status: 'allowed', message: 'Electronics allowed' } }
-        ];
+        this.people = [];
         this.quicklistChores = [];
         
         // Clear any ongoing operations
