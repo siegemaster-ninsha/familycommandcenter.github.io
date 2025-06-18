@@ -16,6 +16,38 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     
+    <!-- Tailwind CSS Configuration -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'primary': {
+                50: 'rgb(var(--color-primary-50) / <alpha-value>)',
+                100: 'rgb(var(--color-primary-100) / <alpha-value>)',
+                200: 'rgb(var(--color-primary-200) / <alpha-value>)',
+                300: 'rgb(var(--color-primary-300) / <alpha-value>)',
+                400: 'rgb(var(--color-primary-400) / <alpha-value>)',
+                500: 'var(--color-primary-500)',
+                600: 'var(--color-primary-600)',
+                700: 'rgb(var(--color-primary-700) / <alpha-value>)',
+                800: 'rgb(var(--color-primary-800) / <alpha-value>)',
+                900: 'rgb(var(--color-primary-900) / <alpha-value>)',
+              },
+              'secondary': {
+                500: 'var(--color-secondary-500)',
+                600: 'var(--color-secondary-600)',
+              },
+              'success': {
+                500: 'var(--color-success-500)',
+                600: 'var(--color-success-600)',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    
     <!-- Local config and styles -->
     <script src="config.js"></script>
     <script src="auth.js"></script>
@@ -98,15 +130,35 @@
             (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
         }
         
+        // Helper function to convert hex to RGB
+        function hexToRgb(hex) {
+          const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+          return result ? 
+            `${parseInt(result[1], 16)} ${parseInt(result[2], 16)} ${parseInt(result[3], 16)}` : 
+            null;
+        }
+        
         // Apply theme to CSS variables
         const root = document.documentElement;
         root.style.setProperty('--color-primary-500', theme.primary);
         root.style.setProperty('--color-primary-600', darkenColor(theme.primary, 10));
         root.style.setProperty('--color-primary-100', lightenColor(theme.primary, 40));
         root.style.setProperty('--color-secondary-500', theme.secondary);
+        root.style.setProperty('--color-secondary-600', darkenColor(theme.secondary, 10));
         root.style.setProperty('--color-success-500', theme.success);
+        root.style.setProperty('--color-success-600', darkenColor(theme.success, 10));
         root.style.setProperty('--color-text-primary', theme.textPrimary);
         root.style.setProperty('--color-text-secondary', theme.textSecondary);
+        
+        // Also update the RGB versions for Tailwind opacity support
+        root.style.setProperty('--color-primary-50', hexToRgb(lightenColor(theme.primary, 45)));
+        root.style.setProperty('--color-primary-100', hexToRgb(lightenColor(theme.primary, 40)));
+        root.style.setProperty('--color-primary-200', hexToRgb(lightenColor(theme.primary, 30)));
+        root.style.setProperty('--color-primary-300', hexToRgb(lightenColor(theme.primary, 20)));
+        root.style.setProperty('--color-primary-400', hexToRgb(lightenColor(theme.primary, 10)));
+        root.style.setProperty('--color-primary-700', hexToRgb(darkenColor(theme.primary, 20)));
+        root.style.setProperty('--color-primary-800', hexToRgb(darkenColor(theme.primary, 30)));
+        root.style.setProperty('--color-primary-900', hexToRgb(darkenColor(theme.primary, 40)));
         
         console.log('🎨 Theme initialized:', savedTheme, theme);
       })();

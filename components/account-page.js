@@ -312,6 +312,9 @@ const AccountPage = Vue.defineComponent({
   inject: ['currentUser', 'showSuccessMessage'],
   data() {
     return {
+      accountSettings: null,
+      accountId: null,
+      
       profileForm: {
         name: '',
         email: '',
@@ -409,18 +412,58 @@ const AccountPage = Vue.defineComponent({
       ]
     };
   },
-  mounted() {
+  async mounted() {
+    await this.loadAccountSettings();
     this.loadUserProfile();
     this.loadCurrentTheme();
     this.loadPreferences();
   },
   methods: {
+    async loadAccountSettings() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/account-settings`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          this.accountSettings = await response.json();
+          this.accountId = this.accountSettings.accountId;
+          
+          // Load settings into local state
+          if (this.accountSettings.theme) {
+            this.currentTheme = this.accountSettings.theme;
+            this.selectedTheme = this.accountSettings.theme;
+          }
+          
+          if (this.accountSettings.preferences) {
+            this.preferences = { ...this.preferences, ...this.accountSettings.preferences };
+          }
+          
+          if (this.accountSettings.profile) {
+            this.profileForm.familyName = this.accountSettings.profile.familyName || '';
+          }
+          
+          console.log('✅ Account settings loaded:', this.accountSettings);
+        } else {
+          console.log('No account settings found, using defaults');
+        }
+      } catch (error) {
+        console.error('Error loading account settings:', error);
+        // Fall back to localStorage
+        this.loadCurrentTheme();
+        this.loadPreferences();
+      }
+    },
+
     loadUserProfile() {
       // Load user profile data
       this.profileForm = {
         name: this.currentUser?.name || '',
         email: this.currentUser?.email || '',
-        familyName: localStorage.getItem('familyName') || ''
+        familyName: this.profileForm.familyName || localStorage.getItem('familyName') || ''
       };
     },
     
@@ -439,15 +482,58 @@ const AccountPage = Vue.defineComponent({
     async updateProfile() {
       this.profileLoading = true;
       try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (this.accountId) {
+          // Update via API
+          const response = await fetch(`${API_BASE_URL}/account-settings/${this.accountId}`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              profile: {
+                displayName: this.profileForm.name,
+                familyName: this.profileForm.familyName
+              }
+            })
+          });
+
+          if (response.ok) {
+            this.accountSettings = await response.json();
+            this.showSuccessMessage('Profile updated successfully!');
+          } else {
+            throw new Error('Failed to update profile');
+          }
+        } else {
+          // Create new account settings
+          const response = await fetch(`${API_BASE_URL}/account-settings`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
+          });
+
+          if (response.ok) {
+            this.accountSettings = await response.json();
+            this.accountId = this.accountSettings.accountId;
+            // Try updating again
+            await this.updateProfile();
+            return;
+          } else {
+            throw new Error('Failed to create account settings');
+          }
+        }
         
-        // Save to localStorage for now
+        // Fallback to localStorage
         localStorage.setItem('familyName', this.profileForm.familyName);
         
-        this.showSuccessMessage('Profile updated successfully!');
       } catch (error) {
         console.error('Error updating profile:', error);
+        // Fallback to localStorage
+        localStorage.setItem('familyName', this.profileForm.familyName);
+        this.showSuccessMessage('Profile updated locally!');
       } finally {
         this.profileLoading = false;
       }
@@ -480,12 +566,32 @@ const AccountPage = Vue.defineComponent({
         root.style.setProperty('--color-text-primary', theme.colors.textPrimary);
         root.style.setProperty('--color-text-secondary', theme.colors.textSecondary);
         
-        // Save theme selection
+        // Save to backend if available
+        if (this.accountId) {
+          try {
+            const response = await fetch(`${API_BASE_URL}/account-settings/${this.accountId}/theme`, {
+              method: 'PUT',
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ theme: this.selectedTheme })
+            });
+
+            if (response.ok) {
+              this.accountSettings = await response.json();
+              console.log('✅ Theme saved to backend');
+            } else {
+              console.warn('Failed to save theme to backend, using localStorage');
+            }
+          } catch (error) {
+            console.warn('Backend unavailable, using localStorage:', error);
+          }
+        }
+        
+        // Save theme selection locally as fallback
         localStorage.setItem('selectedTheme', this.selectedTheme);
         this.currentTheme = this.selectedTheme;
-        
-        // Simulate loading time
-        await new Promise(resolve => setTimeout(resolve, 800));
         
         this.showSuccessMessage(`${theme.name} theme applied successfully!`);
       } catch (error) {
@@ -498,11 +604,31 @@ const AccountPage = Vue.defineComponent({
     async savePreferences() {
       this.preferencesLoading = true;
       try {
-        // Save preferences
-        localStorage.setItem('appPreferences', JSON.stringify(this.preferences));
+        // Save to backend if available
+        if (this.accountId) {
+          try {
+            const response = await fetch(`${API_BASE_URL}/account-settings/${this.accountId}/preferences`, {
+              method: 'PUT',
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ preferences: this.preferences })
+            });
+
+            if (response.ok) {
+              this.accountSettings = await response.json();
+              console.log('✅ Preferences saved to backend');
+            } else {
+              console.warn('Failed to save preferences to backend, using localStorage');
+            }
+          } catch (error) {
+            console.warn('Backend unavailable, using localStorage:', error);
+          }
+        }
         
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Save preferences locally as fallback
+        localStorage.setItem('appPreferences', JSON.stringify(this.preferences));
         
         this.showSuccessMessage('Preferences saved successfully!');
       } catch (error) {
