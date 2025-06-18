@@ -290,14 +290,6 @@ const ChorePage = Vue.defineComponent({
             </div>
           </div>
         </div>
-        
-        <!-- Total earnings -->
-        <div class="mt-4 pt-4 border-t border-slate-200">
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-bold text-primary-custom">Family Total</h3>
-            <p class="text-3xl font-bold text-emerald-600">\${{ getTotalEarnings().toFixed(2) }}</p>
-          </div>
-        </div>
       </div>
     </div>
   `,
@@ -353,19 +345,28 @@ const ChorePage = Vue.defineComponent({
         event.preventDefault();
       }
       
-      // Create a new chore instance from the quicklist template
-      const newChore = {
-        name: quickChore.name,
-        amount: quickChore.amount,
-        category: quickChore.category,
-        assignedTo: 'unassigned',
-        completed: false,
-        isNewFromQuicklist: true
-      };
-      // Clear any existing regular chore selection
-      this.$parent.selectedChoreId = null;
-      this.$parent.selectedQuicklistChore = newChore;
-      console.log('Quicklist chore selected:', newChore.name);
+      // Check if the same quicklist chore is already selected
+      if (this.$parent.selectedQuicklistChore && 
+          this.$parent.selectedQuicklistChore.name === quickChore.name) {
+        // Clicking the same quicklist chore deselects it
+        console.log('Deselecting quicklist chore:', quickChore.name);
+        this.$parent.selectedQuicklistChore = null;
+        this.$parent.selectedChoreId = null;
+      } else {
+        // Create a new chore instance from the quicklist template
+        const newChore = {
+          name: quickChore.name,
+          amount: quickChore.amount,
+          category: quickChore.category,
+          assignedTo: 'unassigned',
+          completed: false,
+          isNewFromQuicklist: true
+        };
+        // Clear any existing regular chore selection
+        this.$parent.selectedChoreId = null;
+        this.$parent.selectedQuicklistChore = newChore;
+        console.log('Quicklist chore selected:', newChore.name);
+      }
       
       // Force re-render on mobile to ensure selection styling appears
       this.$nextTick(() => {
