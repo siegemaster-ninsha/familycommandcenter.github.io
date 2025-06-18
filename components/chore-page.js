@@ -124,9 +124,7 @@ const ChorePage = Vue.defineComponent({
               </button>
               <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
                 <div
-                  class="flex items-center justify-center rounded-lg shrink-0 size-14 sm:size-12"
-                  style="background-color: var(--color-neutral-50);"
-                  :class="getCategoryStyle(chore.category).icon"
+                  class="flex items-center justify-center rounded-lg shrink-0 size-14 sm:size-12 text-white bg-white bg-opacity-20"
                   v-html="getCategoryIcon(chore.category)"
                 >
                 </div>
@@ -234,9 +232,7 @@ const ChorePage = Vue.defineComponent({
                 
                 <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
                   <div
-                    class="flex items-center justify-center rounded-lg shrink-0 size-12 sm:size-10"
-                    style="background-color: var(--color-neutral-50);"
-                    :class="getCategoryStyle(chore.category).icon"
+                    class="flex items-center justify-center rounded-lg shrink-0 size-12 sm:size-10 text-white bg-white bg-opacity-20"
                     v-html="getCategoryIcon(chore.category)"
                   >
                   </div>
