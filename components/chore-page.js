@@ -132,16 +132,16 @@ const ChorePage = Vue.defineComponent({
                 </div>
                 <div class="flex flex-col justify-center min-w-0 flex-1">
                   <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
-                    <p class="text-primary-custom text-base sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1">{{ chore.name }}</p>
+                    <p class="text-white text-base sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1">{{ chore.name }}</p>
                     <span class="text-xs px-2 py-1 rounded-full self-start sm:self-center shrink-0" :class="getCategoryStyle(chore.category).badge">
                       {{ getCategoryLabel(chore.category) }}
                     </span>
                   </div>
-                  <p v-if="chore.amount > 0" class="text-secondary-custom text-sm font-normal leading-normal line-clamp-2">\${{ chore.amount.toFixed(2) }}</p>
+                  <p v-if="chore.amount > 0" class="text-white text-opacity-90 text-sm font-normal leading-normal line-clamp-2">\${{ chore.amount.toFixed(2) }}</p>
                 </div>
               </div>
               <div class="flex items-center gap-2 shrink-0">
-                <span class="text-xs text-secondary-custom px-2 py-1 rounded" style="background-color: var(--color-neutral-100);">Tap to select</span>
+                <span class="text-xs text-white px-2 py-1 rounded bg-white bg-opacity-20">Tap to select</span>
               </div>
             </div>
           </div>
@@ -243,7 +243,7 @@ const ChorePage = Vue.defineComponent({
                   <div class="flex flex-col justify-center min-w-0 flex-1">
                     <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
                       <p 
-                        :class="chore.completed ? 'line-through text-secondary-custom opacity-60' : 'text-primary-custom'"
+                        :class="chore.completed ? 'line-through text-white opacity-60' : 'text-white'"
                         class="text-sm sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1"
                       >
                         {{ chore.name }}
@@ -252,7 +252,7 @@ const ChorePage = Vue.defineComponent({
                         {{ getCategoryLabel(chore.category) }}
                       </span>
                     </div>
-                    <p v-if="chore.amount > 0" :class="chore.completed ? 'text-secondary-custom opacity-50' : 'text-secondary-custom'" class="text-xs sm:text-sm font-normal leading-normal line-clamp-2">
+                    <p v-if="chore.amount > 0" :class="chore.completed ? 'text-white opacity-50' : 'text-white text-opacity-90'" class="text-xs sm:text-sm font-normal leading-normal line-clamp-2">
                       \${{ chore.amount.toFixed(2) }}
                     </p>
                   </div>
@@ -274,19 +274,20 @@ const ChorePage = Vue.defineComponent({
             v-for="person in people" 
             :key="person.id"
             class="earnings-card border rounded-lg p-4 cursor-pointer hover:shadow-md hover:scale-102 transition-all duration-200 touch-target"
+            style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
             @click="openSpendModal(person)"
             @touchend="openSpendModal(person)"
           >
             <div class="flex items-center justify-between">
               <div class="flex flex-col">
-                <h3 class="font-bold text-primary-custom text-lg">{{ person.name }}</h3>
-                <p class="text-sm text-secondary-custom">Total Earnings</p>
-                <p class="text-xs text-secondary-custom mt-1">
+                <h3 class="font-bold text-white text-lg">{{ person.name }}</h3>
+                <p class="text-sm text-white text-opacity-90">Total Earnings</p>
+                <p class="text-xs text-white text-opacity-80 mt-1">
                   {{ person.completedChores || 0 }} chores completed
                 </p>
               </div>
               <div class="text-right">
-                <p class="text-3xl font-bold earnings-text">\${{ person.earnings.toFixed(2) }}</p>
+                <p class="text-3xl font-bold text-white">\${{ person.earnings.toFixed(2) }}</p>
               </div>
             </div>
           </div>
@@ -473,30 +474,13 @@ const ChorePage = Vue.defineComponent({
 
     // Utility methods
     getCategoryStyle(category) {
-      // Use theme-aware colors with better contrast
-      switch(category) {
-        case 'school':
-          return {
-            background: 'border-l-4',
-            backgroundStyle: 'background-color: var(--color-neutral-100); border-left-color: #3B82F6;',
-            icon: 'text-blue-600',
-            badge: 'bg-blue-100 text-blue-800'
-          };
-        case 'game':
-          return {
-            background: 'border-l-4',
-            backgroundStyle: 'background-color: var(--color-neutral-100); border-left-color: #10B981;',
-            icon: 'text-emerald-600',
-            badge: 'bg-emerald-100 text-emerald-800'
-          };
-        default:
-          return {
-            background: 'border-l-4',
-            backgroundStyle: 'background-color: var(--color-neutral-100); border-left-color: var(--color-neutral-400);',
-            icon: 'text-primary-custom',
-            badge: 'bg-slate-100 text-primary-custom'
-          };
-      }
+      // All chores now use the same high-contrast primary color background like quicklist
+      return {
+        background: 'border',
+        backgroundStyle: 'background-color: var(--color-primary-500); border-color: var(--color-primary-600);',
+        icon: 'text-white',
+        badge: 'bg-white bg-opacity-20 text-white'
+      };
     },
 
     getCategoryIcon(category) {
