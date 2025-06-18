@@ -212,6 +212,18 @@ const CONFIG = {
         textPrimary: '#FEF2F2',
         textSecondary: '#FECACA'
       }
+    },
+    vintageCharm: {
+      id: 'vintageCharm',
+      name: 'Vintage Charm',
+      description: 'Sophisticated palette with burgundy and coral tones',
+      colors: {
+        primary: '#7B3947',     // Deep burgundy/wine red
+        secondary: '#EB615F',   // Coral/salmon pink 
+        success: '#A59A7E',     // Olive/tan for success states
+        textPrimary: '#24222D', // Dark charcoal for primary text
+        textSecondary: '#9C7379' // Dusty rose/mauve for secondary text
+      }
     }
   }
 };
