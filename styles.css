@@ -6,23 +6,27 @@
    COLOR SYSTEM DOCUMENTATION
    =========================================== 
    
-   This color system follows best practices:
+   This is the SINGLE SOURCE OF TRUTH for all colors and themes.
    
-   1. BASE COLORS: Defined as CSS custom properties (--color-*)
-   2. SEMANTIC MAPPINGS: Component-specific color assignments (--color-quicklist-*, --color-family-card-*, etc.)
-   3. UTILITY CLASSES: Reusable classes for common color patterns (.quicklist-card, .family-card, etc.)
+   System Architecture:
+   1. BASE THEME VARIABLES: Default theme colors (--color-*)
+   2. SEMANTIC MAPPINGS: Component-specific assignments
+   3. UTILITY CLASSES: Reusable styling patterns
+   4. THEME OVERRIDES: JavaScript can override base variables for theme switching
    
    Usage Guidelines:
-   - Use semantic classes (.family-card) over direct color references
-   - Avoid hardcoded hex values in components
-   - All colors should trace back to the base color variables
-   - Update semantic mappings when changing themes
+   - Use CSS custom properties (var(--color-*)) in all components
+   - Avoid hardcoded hex values
+   - All theme switching happens by overriding these base variables
+   - Update semantic mappings when adding new components
    
    =========================================== */
 
-/* Color System - Primary Palette */
+/* ===========================================
+   BASE THEME COLORS (Default Theme)
+   =========================================== */
 :root {
-  /* Primary Brand Colors - Color Hunt Inspired */
+  /* Primary Brand Colors */
   --color-primary-50: #f0f7ff;
   --color-primary-100: #e0efff;
   --color-primary-200: #b8dcff;
@@ -34,7 +38,7 @@
   --color-primary-800: #1e4176;
   --color-primary-900: #0f234d;
   
-  /* Secondary Purple Colors */
+  /* Secondary Colors */
   --color-secondary-50: #f5f3ff;
   --color-secondary-100: #ede9fe;
   --color-secondary-200: #ddd6fe;
@@ -46,26 +50,26 @@
   --color-secondary-800: #4c1d95;
   --color-secondary-900: #3c1a78;
   
-  /* Neutral Colors - Warmer and Friendlier */
-  --color-neutral-50: #F8FAFC;    /* Clean light background */
+  /* Neutral Colors */
+  --color-neutral-50: #F8FAFC;
   --color-neutral-100: #f1f5f9;
-  --color-neutral-200: #e2e8f0;   /* Softer border color */
+  --color-neutral-200: #e2e8f0;
   --color-neutral-300: #cbd5e1;
   --color-neutral-400: #94a3b8;
-  --color-neutral-500: #718096;   /* Updated secondary text */
+  --color-neutral-500: #718096;
   --color-neutral-600: #475569;
   --color-neutral-700: #334155;
-  --color-neutral-800: #2D3748;   /* Updated primary text */
+  --color-neutral-800: #2D3748;
   --color-neutral-900: #1a202c;
   
-  /* Status Colors - Enhanced */
+  /* Status Colors */
   --color-success-50: #f0fff4;
-  --color-success-500: #50C878;   /* Emerald green */
+  --color-success-500: #50C878;
   --color-success-600: #22c55e;
   --color-success-700: #16a34a;
   
   --color-warning-50: #fff7ed;
-  --color-warning-500: #FF8C42;   /* Warm orange */
+  --color-warning-500: #FF8C42;
   --color-warning-600: #ea580c;
   --color-warning-700: #c2410c;
   
@@ -74,23 +78,24 @@
   --color-error-600: #dc2626;
   --color-error-700: #b91c1c;
   
-  /* Gradient Combinations - Updated for new palette */
-  --gradient-primary: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
-  --gradient-secondary: linear-gradient(135deg, var(--color-secondary-500), var(--color-secondary-600));
-  --gradient-success: linear-gradient(135deg, var(--color-success-500), var(--color-success-600));
-  --gradient-warning: linear-gradient(135deg, var(--color-warning-500), var(--color-warning-600));
-  --gradient-error: linear-gradient(135deg, var(--color-error-500), var(--color-error-600));
-  --gradient-sunset: linear-gradient(135deg, var(--color-warning-500), var(--color-error-500));
-  --gradient-ocean: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500));
+  /* ===========================================
+     COMPUTED SEMANTIC COLORS
+     (These are calculated from base colors above)
+     =========================================== */
   
-  /* Background and Layout Colors */
-  --color-bg-primary: #f8fafc;    /* Main background */
-  --color-bg-secondary: #f1f5f9;  /* Secondary background */
-  --color-bg-card: #ffffff;       /* Card background */
-  --color-bg-card-hover: #f8fafc; /* Card hover background */
-  --color-border-card: #e2e8f0;   /* Card border */
+  /* Text Colors */
+  --color-text-primary: var(--color-neutral-800);
+  --color-text-secondary: var(--color-neutral-600);
+  --color-text-muted: var(--color-neutral-500);
   
-  /* Semantic Color Mappings for App Components */
+  /* Background Colors */
+  --color-bg-primary: var(--color-neutral-50);
+  --color-bg-secondary: var(--color-neutral-100);
+  --color-bg-card: #ffffff;
+  --color-bg-card-hover: var(--color-neutral-50);
+  --color-border-card: var(--color-neutral-200);
+  
+  /* Component-Specific Colors (inherit from base theme) */
   --color-quicklist-border: var(--color-border-card);
   --color-quicklist-bg: var(--color-bg-card);
   --color-quicklist-text: var(--color-text-primary);
@@ -106,9 +111,18 @@
   --color-unassigned-bg: var(--color-bg-card);
   --color-unassigned-border: var(--color-border-card);
   
-  --color-text-primary: var(--color-neutral-800);
-  --color-text-secondary: var(--color-neutral-600);
-  --color-text-muted: var(--color-neutral-500);
+  /* ===========================================
+     DESIGN TOKENS
+     =========================================== */
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
+  --gradient-secondary: linear-gradient(135deg, var(--color-secondary-500), var(--color-secondary-600));
+  --gradient-success: linear-gradient(135deg, var(--color-success-500), var(--color-success-600));
+  --gradient-warning: linear-gradient(135deg, var(--color-warning-500), var(--color-warning-600));
+  --gradient-error: linear-gradient(135deg, var(--color-error-500), var(--color-error-600));
+  --gradient-sunset: linear-gradient(135deg, var(--color-warning-500), var(--color-error-500));
+  --gradient-ocean: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500));
   
   /* Typography */
   --font-family-sans: Inter, 'Noto Sans', sans-serif;
