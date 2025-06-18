@@ -225,7 +225,7 @@ const ChorePage = Vue.defineComponent({
                     type="checkbox" 
                     :checked="chore.completed"
                     @click.stop
-                    @change="handleChoreCompletion(chore)"
+                    @change="handleChoreCompletionToggle(chore, $event)"
                     class="w-5 h-5 sm:w-4 sm:h-4 text-green-600 rounded focus:ring-green-500 focus:border-[#ced2e9] focus:outline-none touch-target"
                   >
                 </div>
@@ -465,6 +465,15 @@ const ChorePage = Vue.defineComponent({
     },
 
     async handleChoreCompletion(chore) {
+      await this.$parent.handleChoreCompletion(chore);
+    },
+
+    async handleChoreCompletionToggle(chore, event) {
+      // Update the chore's completed status based on checkbox state
+      const newCompletedState = event.target.checked;
+      chore.completed = newCompletedState;
+      
+      // Call the parent's completion handler
       await this.$parent.handleChoreCompletion(chore);
     },
 
