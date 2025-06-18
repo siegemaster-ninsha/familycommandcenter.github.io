@@ -84,22 +84,17 @@ const ChorePage = Vue.defineComponent({
       </div>
 
       <!-- Unassigned Chores -->
-      <div class="rounded-lg border p-6 shadow-md" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
+      <div class="rounded-lg border-2 p-6 shadow-lg" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">📋 Unassigned Chores</h2>
         
-        <!-- Outer container with primary color background -->
+        <!-- Inner container for chores -->
         <div 
-          class="min-h-[120px] sm:min-h-[100px] rounded-lg p-4 border-2 shadow-lg"
-          style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
+          class="min-h-[120px] sm:min-h-[100px] rounded-lg p-4"
+          style="background-color: var(--color-bg-card);"
+          :class="[selectedChore ? 'cursor-pointer hover:shadow-md' : '']"
+          :style="selectedChore ? 'cursor: pointer;' : ''"
+          @click="selectedChore ? assignSelectedChore('unassigned') : null"
         >
-          <!-- Inner container with lighter background for chores -->
-          <div 
-            class="min-h-[88px] sm:min-h-[68px] rounded-lg p-3"
-            style="background-color: var(--color-bg-card); border: 1px solid var(--color-border-card);"
-            :class="[selectedChore ? 'cursor-pointer hover:shadow-md' : '']"
-            :style="selectedChore ? 'cursor: pointer;' : ''"
-            @click="selectedChore ? assignSelectedChore('unassigned') : null"
-          >
             <!-- Empty state when no chores -->
             <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-secondary-custom py-6 flex flex-col items-center justify-center">
               <p class="text-sm px-2">No unassigned chores</p>
@@ -130,32 +125,31 @@ const ChorePage = Vue.defineComponent({
               </button>
               <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
                 <div
-                  :class="chore.assignedTo === 'unassigned' ? 'flex items-center justify-center rounded-lg shrink-0 size-14 sm:size-12 text-primary-custom bg-primary-100' : 'flex items-center justify-center rounded-lg shrink-0 size-14 sm:size-12 text-white bg-white bg-opacity-20'"
+                  class="flex items-center justify-center rounded-lg shrink-0 size-14 sm:size-12 text-white bg-white bg-opacity-20"
                   v-html="getCategoryIcon(chore.category)"
                 >
                 </div>
                 <div class="flex flex-col justify-center min-w-0 flex-1">
                   <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
-                    <p :class="chore.assignedTo === 'unassigned' ? 'text-primary-custom text-base sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1' : 'text-white text-base sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1'">{{ chore.name }}</p>
-                    <span class="text-xs px-2 py-1 rounded-full self-start sm:self-center shrink-0" :class="getCategoryStyle(chore.category, chore.assignedTo === 'unassigned').badge">
+                    <p class="text-white text-base sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1">{{ chore.name }}</p>
+                    <span class="text-xs px-2 py-1 rounded-full self-start sm:self-center shrink-0" :class="getCategoryStyle(chore.category).badge">
                       {{ getCategoryLabel(chore.category) }}
                     </span>
                   </div>
-                  <p v-if="chore.amount > 0" :class="chore.assignedTo === 'unassigned' ? 'text-secondary-custom text-sm font-normal leading-normal line-clamp-2' : 'text-white text-opacity-90 text-sm font-normal leading-normal line-clamp-2'">\${{ chore.amount.toFixed(2) }}</p>
+                  <p v-if="chore.amount > 0" class="text-white text-opacity-90 text-sm font-normal leading-normal line-clamp-2">\${{ chore.amount.toFixed(2) }}</p>
                 </div>
               </div>
               <div class="flex items-center gap-2 shrink-0">
-                <span :class="chore.assignedTo === 'unassigned' ? 'text-xs text-secondary-custom px-2 py-1 rounded bg-primary-100' : 'text-xs text-white px-2 py-1 rounded bg-white bg-opacity-20'">Tap to select</span>
+                <span class="text-xs text-white px-2 py-1 rounded bg-white bg-opacity-20">Tap to select</span>
               </div>
             </div>
           </div>
-          </div>
           
-          <!-- Add new chore button (outside inner container) -->
-          <div class="flex items-center justify-center mt-3">
+          <!-- Add new chore button -->
+          <div class="flex items-center justify-center" :class="choresByPerson.unassigned.length === 0 ? 'mt-4' : 'mt-4'">
             <button
               @click="$parent.showAddChoreModal = true"
-              class="flex items-center gap-2 bg-white hover:bg-gray-50 active:bg-gray-100 text-primary-500 px-4 py-3 sm:px-4 sm:py-2 rounded-lg transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center border border-white shadow-sm hover:shadow-md"
+              class="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white px-4 py-3 sm:px-4 sm:py-2 rounded-lg transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center shadow-md hover:shadow-lg"
               title="Add new chore to unassigned"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
@@ -489,17 +483,7 @@ const ChorePage = Vue.defineComponent({
 
     // Utility methods
     getCategoryStyle(category, isUnassigned = false) {
-      if (isUnassigned) {
-        // Unassigned chores use lighter background to match the inner container
-        return {
-          background: 'border',
-          backgroundStyle: 'background-color: var(--color-bg-card); border-color: var(--color-border-card);',
-          icon: 'text-primary-custom',
-          badge: 'bg-primary-100 text-primary-700'
-        };
-      }
-      
-      // All other chores use high-contrast primary color background
+      // All chores now use the same high-contrast primary color background
       return {
         background: 'border',
         backgroundStyle: 'background-color: var(--color-primary-500); border-color: var(--color-primary-600);',
