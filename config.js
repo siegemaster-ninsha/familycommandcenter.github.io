@@ -288,6 +288,14 @@ const ThemeManager = {
     root.style.setProperty('--color-success-500', theme.colors.success);
     root.style.setProperty('--color-success-600', this.darkenColor(theme.colors.success, 10));
 
+    // Warning colors (use secondary color for warning states)
+    root.style.setProperty('--color-warning-500', theme.colors.secondary);
+    root.style.setProperty('--color-warning-600', this.darkenColor(theme.colors.secondary, 10));
+
+    // Error colors (use darkened primary color for error states)
+    root.style.setProperty('--color-error-500', this.darkenColor(theme.colors.primary, 15));
+    root.style.setProperty('--color-error-600', this.darkenColor(theme.colors.primary, 25));
+
     // Text colors
     root.style.setProperty('--color-text-primary', theme.colors.textPrimary);
     root.style.setProperty('--color-text-secondary', theme.colors.textSecondary);
@@ -310,6 +318,13 @@ const ThemeManager = {
     root.style.setProperty('--color-family-card-border', borderColor);
     root.style.setProperty('--color-unassigned-bg', cardBg);
     root.style.setProperty('--color-unassigned-border', borderColor);
+
+    // Update gradients to use the new theme colors
+    root.style.setProperty('--gradient-primary', `linear-gradient(135deg, ${theme.colors.primary}, ${this.darkenColor(theme.colors.primary, 10)})`);
+    root.style.setProperty('--gradient-secondary', `linear-gradient(135deg, ${theme.colors.secondary}, ${this.darkenColor(theme.colors.secondary, 10)})`);
+    root.style.setProperty('--gradient-success', `linear-gradient(135deg, ${theme.colors.success}, ${this.darkenColor(theme.colors.success, 10)})`);
+    root.style.setProperty('--gradient-warning', `linear-gradient(135deg, ${theme.colors.secondary}, ${this.darkenColor(theme.colors.secondary, 10)})`);
+    root.style.setProperty('--gradient-error', `linear-gradient(135deg, ${this.darkenColor(theme.colors.primary, 15)}, ${this.darkenColor(theme.colors.primary, 25)})`);
 
     // RGB versions for Tailwind opacity support
     root.style.setProperty('--color-primary-50', this.hexToRgb(this.lightenColor(theme.colors.primary, 45)));
