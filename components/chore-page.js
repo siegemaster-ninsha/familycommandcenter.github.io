@@ -172,10 +172,6 @@ const ChorePage = Vue.defineComponent({
           >
             <!-- Person header -->
             <div class="flex items-center justify-between mb-4">
-              <!-- Selected chore indicator -->
-              <div v-if="selectedChore" class="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full opacity-75">
-                Tap to assign
-              </div>
               <div class="flex items-center gap-3">
                 <div class="avatar family-avatar text-white">
                   {{ person.name.charAt(0) }}
