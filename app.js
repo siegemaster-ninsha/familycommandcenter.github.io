@@ -974,6 +974,12 @@ const app = createApp({
         this.showSuccessMessageFlag = false;
         this.completedChoreMessage = '';
       }, 3000);
+    },
+    
+    clearSuccessMessage() {
+      console.log('🧹 Manually clearing success message');
+      this.showSuccessMessageFlag = false;
+      this.completedChoreMessage = '';
     }
   },
   
@@ -998,6 +1004,18 @@ const app = createApp({
   
   async mounted() {
     try {
+      // Debug initial success message state
+      console.log('🔍 Initial success message state:', {
+        showSuccessMessageFlag: this.showSuccessMessageFlag,
+        completedChoreMessage: this.completedChoreMessage
+      });
+      
+      // Clear any stray success messages on app start
+      if (this.showSuccessMessageFlag && !this.completedChoreMessage) {
+        console.log('🧹 Clearing stray success message on app start');
+        this.clearSuccessMessage();
+      }
+      
       // check authentication first
       console.log('🚀 App starting - checking authentication...');
       

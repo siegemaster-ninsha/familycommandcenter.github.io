@@ -75,7 +75,7 @@ const AppSelectionInfo = Vue.defineComponent({
 // Success Message Component
 const AppSuccessMessage = Vue.defineComponent({
   template: `
-    <div v-if="showSuccessMessage" class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+    <div v-if="showSuccessMessage && completedChoreMessage" class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
       <div class="success-message bg-green-500 text-white px-8 py-4 rounded-lg shadow-lg text-center">
         <div class="flex items-center gap-3">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256">
