@@ -31,6 +31,7 @@ const ChorePage = Vue.defineComponent({
             v-for="quickChore in quicklistChores" 
             :key="quickChore.id"
             :class="getQuicklistChoreClasses(quickChore)"
+            :style="getQuicklistChoreStyle(quickChore)"
             @click="selectQuicklistChore(quickChore, $event)"
             @touchend="selectQuicklistChore(quickChore, $event)"
           >
@@ -44,15 +45,15 @@ const ChorePage = Vue.defineComponent({
             </button>
             
             <div
-              class="flex items-center justify-center rounded-lg bg-primary-100 shrink-0 size-10 sm:size-8 text-primary-600"
+              class="flex items-center justify-center rounded-lg shrink-0 size-10 sm:size-8 text-white bg-white bg-opacity-20"
               v-html="getCategoryIcon(quickChore.category)"
             >
             </div>
             <div class="flex flex-col flex-1 min-w-0">
-              <p class="text-primary-custom text-sm font-medium leading-tight line-clamp-2 sm:line-clamp-1">{{ quickChore.name }}</p>
-                              <p v-if="quickChore.amount > 0" class="text-secondary-custom text-xs">\${{ quickChore.amount.toFixed(2) }}</p>
+              <p class="text-white text-sm font-medium leading-tight line-clamp-2 sm:line-clamp-1">{{ quickChore.name }}</p>
+              <p v-if="quickChore.amount > 0" class="text-white text-opacity-90 text-xs">\${{ quickChore.amount.toFixed(2) }}</p>
             </div>
-            <span class="quicklist-badge text-xs px-2 py-1 rounded-full shrink-0 self-start sm:self-center">
+            <span class="text-xs px-2 py-1 rounded-full shrink-0 self-start sm:self-center bg-white bg-opacity-20 text-white">
               {{ getCategoryLabel(quickChore.category) }}
             </span>
           </div>
@@ -61,7 +62,7 @@ const ChorePage = Vue.defineComponent({
           <div class="flex items-center justify-center">
             <button
               @click="$parent.showAddToQuicklistModal = true"
-              class="flex items-center gap-2 bg-primary-100 hover:bg-primary-200 active:bg-primary-300 text-primary-700 px-4 py-3 sm:px-3 sm:py-2 rounded-lg border-2 border-dashed border-primary-300 transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center"
+              class="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white px-4 py-3 sm:px-3 sm:py-2 rounded-lg transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center"
               title="Add new chore to quicklist"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
@@ -87,8 +88,10 @@ const ChorePage = Vue.defineComponent({
         <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">📋 Unassigned Chores</h2>
         
         <div 
-          class="min-h-[120px] sm:min-h-[100px] bg-slate-50 border-2 border-dashed border-slate-300 rounded-lg p-4"
-          :class="[selectedChore ? 'cursor-pointer hover:bg-slate-100 hover:border-slate-400' : '']"
+          class="min-h-[120px] sm:min-h-[100px] rounded-lg p-4 border-2"
+          style="background-color: var(--color-neutral-100); border-color: var(--color-neutral-300);"
+          :class="[selectedChore ? 'cursor-pointer' : '']"
+          :style="selectedChore ? 'cursor: pointer;' : ''"
           @click="selectedChore ? assignSelectedChore('unassigned') : null"
         >
           <!-- Empty state when no chores -->
@@ -105,6 +108,7 @@ const ChorePage = Vue.defineComponent({
               v-for="chore in choresByPerson.unassigned" 
               :key="chore.id"
               :class="getChoreClasses(chore)"
+              :style="getChoreStyle(chore)"
               @click.stop="selectChore(chore, $event)"
               @touchend.stop="selectChore(chore, $event)"
               class="relative"
@@ -146,7 +150,7 @@ const ChorePage = Vue.defineComponent({
           <div class="flex items-center justify-center" :class="choresByPerson.unassigned.length === 0 ? 'mt-4' : ''">
             <button
               @click="$parent.showAddChoreModal = true"
-              class="flex items-center gap-2 bg-primary-100 hover:bg-primary-200 active:bg-primary-300 text-primary-700 px-4 py-3 sm:px-4 sm:py-2 rounded-lg border-2 border-dashed border-primary-300 transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center"
+              class="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white px-4 py-3 sm:px-4 sm:py-2 rounded-lg transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center"
               title="Add new chore to unassigned"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
@@ -204,6 +208,7 @@ const ChorePage = Vue.defineComponent({
                 v-for="chore in choresByPerson[person.name]" 
                 :key="chore.id"
                 :class="getChoreClasses(chore)"
+                :style="getChoreStyle(chore)"
                 @click.stop="selectChore(chore, $event)"
                 class="relative"
               >
@@ -326,12 +331,21 @@ const ChorePage = Vue.defineComponent({
     },
 
     getQuicklistChoreClasses(quickChore) {
-      const baseClasses = "quicklist-card relative group flex items-center gap-3 sm:gap-2 px-4 py-4 sm:px-3 sm:py-2 rounded-lg shadow-sm cursor-pointer transition-all duration-200 touch-target min-h-[68px] sm:min-h-[56px]";
+      const baseClasses = "quicklist-card relative group flex items-center gap-3 sm:gap-2 px-4 py-4 sm:px-3 sm:py-2 rounded-lg shadow-sm cursor-pointer transition-all duration-200 touch-target min-h-[68px] sm:min-h-[56px] border";
       const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       const hoverClasses = isTouch ? "" : "hover:shadow-md hover:scale-105";
       const selectedClasses = this.isChoreSelected(quickChore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10" : `${hoverClasses} active:scale-95`;
       
       return `${baseClasses} ${selectedClasses}`;
+    },
+
+    getQuicklistChoreStyle(quickChore) {
+      // Provide high contrast background for quicklist items
+      return {
+        backgroundColor: 'var(--color-primary-500)',
+        borderColor: 'var(--color-primary-600)',
+        color: 'white'
+      };
     },
 
     selectQuicklistChore(quickChore, event) {
@@ -376,13 +390,17 @@ const ChorePage = Vue.defineComponent({
 
     // Regular chore methods
     getChoreClasses(chore) {
-      const baseClasses = "flex items-center gap-3 sm:gap-4 px-3 sm:px-4 min-h-[96px] sm:min-h-[72px] py-4 sm:py-2 justify-between mb-3 sm:mb-2 rounded-lg shadow-sm cursor-pointer border-l-4 transition-all duration-200 touch-target";
+      const baseClasses = "flex items-center gap-3 sm:gap-4 px-3 sm:px-4 min-h-[96px] sm:min-h-[72px] py-4 sm:py-2 justify-between mb-3 sm:mb-2 rounded-lg shadow-sm cursor-pointer transition-all duration-200 touch-target";
       const categoryClasses = this.getCategoryStyle(chore.category).background;
       const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       const hoverClasses = isTouch ? "" : "hover:shadow-md hover:scale-102";
       const selectedClasses = this.isChoreSelected(chore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10" : `${hoverClasses} active:scale-95`;
       
       return `${baseClasses} ${categoryClasses} ${selectedClasses}`;
+    },
+
+    getChoreStyle(chore) {
+      return this.getCategoryStyle(chore.category).backgroundStyle;
     },
 
     isChoreSelected(chore) {
@@ -455,22 +473,26 @@ const ChorePage = Vue.defineComponent({
 
     // Utility methods
     getCategoryStyle(category) {
+      // Use theme-aware colors with better contrast
       switch(category) {
         case 'school':
           return {
-            background: 'bg-blue-50 border-l-blue-500',
+            background: 'border-l-4',
+            backgroundStyle: 'background-color: var(--color-neutral-100); border-left-color: #3B82F6;',
             icon: 'text-blue-600',
             badge: 'bg-blue-100 text-blue-800'
           };
         case 'game':
           return {
-            background: 'bg-emerald-50 border-l-emerald-500',
+            background: 'border-l-4',
+            backgroundStyle: 'background-color: var(--color-neutral-100); border-left-color: #10B981;',
             icon: 'text-emerald-600',
             badge: 'bg-emerald-100 text-emerald-800'
           };
         default:
           return {
-            background: 'bg-slate-50 border-l-slate-400',
+            background: 'border-l-4',
+            backgroundStyle: 'background-color: var(--color-neutral-100); border-left-color: var(--color-neutral-400);',
             icon: 'text-primary-custom',
             badge: 'bg-slate-100 text-primary-custom'
           };
