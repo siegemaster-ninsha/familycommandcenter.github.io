@@ -149,6 +149,7 @@ const ChorePage = Vue.defineComponent({
               </div>
             </div>
           </div>
+          </div>
           
           <!-- Add new chore button (outside inner container) -->
           <div class="flex items-center justify-center mt-3">
