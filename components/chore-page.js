@@ -3,7 +3,7 @@ const ChorePage = Vue.defineComponent({
   template: `
     <div class="space-y-6">
       <!-- Quicklist Section -->
-      <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
+      <div class="rounded-lg border p-6 shadow-md" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">⚡ Quicklist</h2>
         <p class="text-secondary-custom text-sm mb-4 text-center">Tap these common chores to assign them quickly</p>
         
@@ -84,22 +84,22 @@ const ChorePage = Vue.defineComponent({
       </div>
 
       <!-- Unassigned Chores -->
-      <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
+      <div class="rounded-lg border p-6 shadow-md" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">📋 Unassigned Chores</h2>
         
         <div 
-          class="min-h-[120px] sm:min-h-[100px] rounded-lg p-4 border-2"
-          style="background-color: var(--color-neutral-100); border-color: var(--color-neutral-300);"
-          :class="[selectedChore ? 'cursor-pointer' : '']"
+          class="min-h-[120px] sm:min-h-[100px] rounded-lg p-4 border-2 shadow-lg"
+          style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
+          :class="[selectedChore ? 'cursor-pointer hover:shadow-xl' : '']"
           :style="selectedChore ? 'cursor: pointer;' : ''"
           @click="selectedChore ? assignSelectedChore('unassigned') : null"
         >
           <!-- Empty state when no chores -->
-                      <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-secondary-custom py-6 flex flex-col items-center justify-center">
+                      <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-white py-6 flex flex-col items-center justify-center">
               <p class="text-sm px-2">No unassigned chores</p>
               <p class="text-xs mt-2 px-2">Create new chores here - they'll be available for any family member to pick up</p>
               
-              <p v-if="selectedChore" class="text-xs mt-2 text-secondary-custom px-2">Tap here to move selected chore to unassigned</p>
+              <p v-if="selectedChore" class="text-xs mt-2 text-white text-opacity-90 px-2">Tap here to move selected chore to unassigned</p>
             </div>
           
           <!-- Container for chores and add button -->
@@ -161,7 +161,7 @@ const ChorePage = Vue.defineComponent({
       </div>
 
       <!-- Family Members & Assigned Chores -->
-      <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
+      <div class="rounded-lg border p-6 shadow-md" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">👨‍👩‍👧‍👦 Family Members</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -169,9 +169,10 @@ const ChorePage = Vue.defineComponent({
             v-for="person in people" 
             :key="person.id"
             :class="[
-              'family-card border rounded-lg p-4 transition-all duration-200',
-              selectedChore ? 'cursor-pointer hover:shadow-md' : ''
+              'family-card border-2 rounded-lg p-4 transition-all duration-200 shadow-lg',
+              selectedChore ? 'cursor-pointer hover:shadow-xl hover:scale-102' : ''
             ]"
+            style="border-color: var(--color-border-card);"
             @click="selectedChore ? assignSelectedChore(person.name) : null"
           >
             <!-- Person header -->
@@ -262,7 +263,7 @@ const ChorePage = Vue.defineComponent({
 
 
       <!-- Earnings Summary -->
-      <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
+      <div class="rounded-lg border p-6 shadow-md" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">💰 Earnings Summary</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
