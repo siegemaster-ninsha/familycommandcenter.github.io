@@ -87,23 +87,29 @@ const ChorePage = Vue.defineComponent({
       <div class="rounded-lg border p-6 shadow-md" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">📋 Unassigned Chores</h2>
         
+        <!-- Outer container with primary color background -->
         <div 
           class="min-h-[120px] sm:min-h-[100px] rounded-lg p-4 border-2 shadow-lg"
           style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
-          :class="[selectedChore ? 'cursor-pointer hover:shadow-xl' : '']"
-          :style="selectedChore ? 'cursor: pointer;' : ''"
-          @click="selectedChore ? assignSelectedChore('unassigned') : null"
         >
-          <!-- Empty state when no chores -->
-                      <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-white py-6 flex flex-col items-center justify-center">
+          <!-- Inner container with lighter background for chores -->
+          <div 
+            class="min-h-[88px] sm:min-h-[68px] rounded-lg p-3"
+            style="background-color: var(--color-bg-card); border: 1px solid var(--color-border-card);"
+            :class="[selectedChore ? 'cursor-pointer hover:shadow-md' : '']"
+            :style="selectedChore ? 'cursor: pointer;' : ''"
+            @click="selectedChore ? assignSelectedChore('unassigned') : null"
+          >
+            <!-- Empty state when no chores -->
+            <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-secondary-custom py-6 flex flex-col items-center justify-center">
               <p class="text-sm px-2">No unassigned chores</p>
               <p class="text-xs mt-2 px-2">Create new chores here - they'll be available for any family member to pick up</p>
               
-              <p v-if="selectedChore" class="text-xs mt-2 text-white text-opacity-90 px-2">Tap here to move selected chore to unassigned</p>
+              <p v-if="selectedChore" class="text-xs mt-2 text-secondary-custom px-2">Tap here to move selected chore to unassigned</p>
             </div>
           
-          <!-- Container for chores and add button -->
-          <div v-else class="space-y-3 sm:space-y-2 mb-4">
+            <!-- Container for chores -->
+            <div v-else class="space-y-3 sm:space-y-2 mb-4">
             <div 
               v-for="chore in choresByPerson.unassigned" 
               :key="chore.id"
@@ -144,11 +150,11 @@ const ChorePage = Vue.defineComponent({
             </div>
           </div>
           
-          <!-- Add new chore button -->
-          <div class="flex items-center justify-center" :class="choresByPerson.unassigned.length === 0 ? 'mt-4' : ''">
+          <!-- Add new chore button (outside inner container) -->
+          <div class="flex items-center justify-center mt-3">
             <button
               @click="$parent.showAddChoreModal = true"
-              class="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white px-4 py-3 sm:px-4 sm:py-2 rounded-lg transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center"
+              class="flex items-center gap-2 bg-white hover:bg-gray-50 active:bg-gray-100 text-primary-500 px-4 py-3 sm:px-4 sm:py-2 rounded-lg transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center border border-white shadow-sm hover:shadow-md"
               title="Add new chore to unassigned"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
@@ -270,7 +276,7 @@ const ChorePage = Vue.defineComponent({
           <div 
             v-for="person in people" 
             :key="person.id"
-            class="earnings-card border rounded-lg p-4 cursor-pointer hover:shadow-md hover:scale-102 transition-all duration-200 touch-target"
+            class="earnings-card border-2 rounded-lg p-4 cursor-pointer hover:shadow-xl hover:scale-102 transition-all duration-200 touch-target shadow-lg"
             style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
             @click="openSpendModal(person)"
             @touchend="openSpendModal(person)"
@@ -329,10 +335,10 @@ const ChorePage = Vue.defineComponent({
     },
 
     getQuicklistChoreClasses(quickChore) {
-      const baseClasses = "quicklist-card relative group flex items-center gap-3 sm:gap-2 px-4 py-4 sm:px-3 sm:py-2 rounded-lg shadow-sm cursor-pointer transition-all duration-200 touch-target min-h-[68px] sm:min-h-[56px] border";
+      const baseClasses = "quicklist-card relative group flex items-center gap-3 sm:gap-2 px-4 py-4 sm:px-3 sm:py-2 rounded-lg shadow-md cursor-pointer transition-all duration-200 touch-target min-h-[68px] sm:min-h-[56px] border";
       const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      const hoverClasses = isTouch ? "" : "hover:shadow-md hover:scale-105";
-      const selectedClasses = this.isChoreSelected(quickChore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10" : `${hoverClasses} active:scale-95`;
+      const hoverClasses = isTouch ? "" : "hover:shadow-lg hover:scale-105";
+      const selectedClasses = this.isChoreSelected(quickChore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10 shadow-xl" : `${hoverClasses} active:scale-95`;
       
       return `${baseClasses} ${selectedClasses}`;
     },
@@ -388,11 +394,11 @@ const ChorePage = Vue.defineComponent({
 
     // Regular chore methods
     getChoreClasses(chore) {
-      const baseClasses = "flex items-center gap-3 sm:gap-4 px-3 sm:px-4 min-h-[96px] sm:min-h-[72px] py-4 sm:py-2 justify-between mb-3 sm:mb-2 rounded-lg shadow-sm cursor-pointer transition-all duration-200 touch-target";
+      const baseClasses = "flex items-center gap-3 sm:gap-4 px-3 sm:px-4 min-h-[96px] sm:min-h-[72px] py-4 sm:py-2 justify-between mb-3 sm:mb-2 rounded-lg shadow-md cursor-pointer transition-all duration-200 touch-target";
       const categoryClasses = this.getCategoryStyle(chore.category).background;
       const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      const hoverClasses = isTouch ? "" : "hover:shadow-md hover:scale-102";
-      const selectedClasses = this.isChoreSelected(chore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10" : `${hoverClasses} active:scale-95`;
+      const hoverClasses = isTouch ? "" : "hover:shadow-lg hover:scale-102";
+      const selectedClasses = this.isChoreSelected(chore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10 shadow-xl" : `${hoverClasses} active:scale-95`;
       
       return `${baseClasses} ${categoryClasses} ${selectedClasses}`;
     },
