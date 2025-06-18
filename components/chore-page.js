@@ -4,13 +4,13 @@ const ChorePage = Vue.defineComponent({
     <div class="space-y-6">
       <!-- Quicklist Section -->
       <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-[#e6e9f4] p-6">
-        <h2 class="text-[#0d0f1c] text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">⚡ Quicklist</h2>
-        <p class="text-[#47569e] text-sm mb-4 text-center">Tap these common chores to assign them quickly</p>
+        <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">⚡ Quicklist</h2>
+        <p class="text-secondary-custom text-sm mb-4 text-center">Tap these common chores to assign them quickly</p>
         
         <!-- Loading state -->
         <div v-if="quicklistLoading" class="text-center py-8">
           <div class="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full border-purple-600 border-t-transparent"></div>
-          <p class="text-[#47569e] mt-2">Loading quicklist...</p>
+          <p class="text-secondary-custom mt-2">Loading quicklist...</p>
         </div>
         
         <!-- Error state -->
@@ -49,8 +49,8 @@ const ChorePage = Vue.defineComponent({
             >
             </div>
             <div class="flex flex-col flex-1 min-w-0">
-              <p class="text-slate-800 text-sm font-medium leading-tight line-clamp-2 sm:line-clamp-1">{{ quickChore.name }}</p>
-              <p v-if="quickChore.amount > 0" class="text-slate-600 text-xs">\${{ quickChore.amount.toFixed(2) }}</p>
+              <p class="text-primary-custom text-sm font-medium leading-tight line-clamp-2 sm:line-clamp-1">{{ quickChore.name }}</p>
+                              <p v-if="quickChore.amount > 0" class="text-secondary-custom text-xs">\${{ quickChore.amount.toFixed(2) }}</p>
             </div>
             <span class="quicklist-badge text-xs px-2 py-1 rounded-full shrink-0 self-start sm:self-center">
               {{ getCategoryLabel(quickChore.category) }}
@@ -84,7 +84,7 @@ const ChorePage = Vue.defineComponent({
 
       <!-- Unassigned Chores -->
       <div class="bg-white rounded-lg border border-slate-200 p-6">
-        <h2 class="text-slate-800 text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">📋 Unassigned Chores</h2>
+        <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">📋 Unassigned Chores</h2>
         
         <div 
           class="min-h-[120px] sm:min-h-[100px] bg-slate-50 border-2 border-dashed border-slate-300 rounded-lg p-4"
@@ -95,7 +95,7 @@ const ChorePage = Vue.defineComponent({
                       <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-slate-500 py-6 flex flex-col items-center justify-center">
               <p class="text-sm px-2">No unassigned chores</p>
               <p class="text-xs mt-2 px-2">Create new chores here - they'll be available for any family member to pick up</p>
-              <p v-if="selectedChore" class="text-xs mt-2 text-blue-600 px-2">Tap here to move selected chore to unassigned</p>
+              <p v-if="selectedChore" class="text-xs mt-2 text-secondary-custom px-2">Tap here to move selected chore to unassigned</p>
             </div>
           
           <!-- Container for chores and add button -->
@@ -126,16 +126,16 @@ const ChorePage = Vue.defineComponent({
                 </div>
                 <div class="flex flex-col justify-center min-w-0 flex-1">
                   <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
-                    <p class="text-slate-800 text-base sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1">{{ chore.name }}</p>
+                    <p class="text-primary-custom text-base sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1">{{ chore.name }}</p>
                     <span class="text-xs px-2 py-1 rounded-full self-start sm:self-center shrink-0" :class="getCategoryStyle(chore.category).badge">
                       {{ getCategoryLabel(chore.category) }}
                     </span>
                   </div>
-                  <p v-if="chore.amount > 0" class="text-slate-600 text-sm font-normal leading-normal line-clamp-2">\${{ chore.amount.toFixed(2) }}</p>
+                  <p v-if="chore.amount > 0" class="text-secondary-custom text-sm font-normal leading-normal line-clamp-2">\${{ chore.amount.toFixed(2) }}</p>
                 </div>
               </div>
               <div class="flex items-center gap-2 shrink-0">
-                <span class="text-xs text-slate-600 bg-white px-2 py-1 rounded">Tap to select</span>
+                <span class="text-xs text-secondary-custom bg-white px-2 py-1 rounded">Tap to select</span>
               </div>
             </div>
           </div>
@@ -158,7 +158,7 @@ const ChorePage = Vue.defineComponent({
 
       <!-- Family Members & Assigned Chores -->
       <div class="bg-white rounded-lg border border-slate-200 p-6">
-        <h2 class="text-slate-800 text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">👨‍👩‍👧‍👦 Family Members</h2>
+        <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">👨‍👩‍👧‍👦 Family Members</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div 
@@ -193,7 +193,7 @@ const ChorePage = Vue.defineComponent({
             
             <!-- Person's chores -->
             <div class="space-y-2 min-h-[60px]">
-              <div v-if="choresByPerson[person.name] && choresByPerson[person.name].length === 0" class="text-center py-4 text-slate-500">
+              <div v-if="choresByPerson[person.name] && choresByPerson[person.name].length === 0" class="text-center py-4 text-secondary-custom">
                 <p class="text-sm">No chores assigned</p>
                 <p class="text-xs mt-1">Select a chore and tap here to assign it</p>
               </div>
@@ -235,7 +235,7 @@ const ChorePage = Vue.defineComponent({
                   <div class="flex flex-col justify-center min-w-0 flex-1">
                     <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
                       <p 
-                        :class="chore.completed ? 'line-through text-gray-500' : 'text-[#0d0f1c]'"
+                        :class="chore.completed ? 'line-through text-gray-500' : 'text-primary-custom'"
                         class="text-sm sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1"
                       >
                         {{ chore.name }}
@@ -244,7 +244,7 @@ const ChorePage = Vue.defineComponent({
                         {{ getCategoryLabel(chore.category) }}
                       </span>
                     </div>
-                    <p v-if="chore.amount > 0" :class="chore.completed ? 'text-gray-400' : 'text-[#47569e]'" class="text-xs sm:text-sm font-normal leading-normal line-clamp-2">
+                    <p v-if="chore.amount > 0" :class="chore.completed ? 'text-gray-400' : 'text-secondary-custom'" class="text-xs sm:text-sm font-normal leading-normal line-clamp-2">
                       \${{ chore.amount.toFixed(2) }}
                     </p>
                   </div>
@@ -259,7 +259,7 @@ const ChorePage = Vue.defineComponent({
 
       <!-- Earnings Summary -->
       <div class="bg-white rounded-lg border border-slate-200 p-6">
-        <h2 class="text-slate-800 text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">💰 Earnings Summary</h2>
+        <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">💰 Earnings Summary</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div 
@@ -292,7 +292,7 @@ const ChorePage = Vue.defineComponent({
         <!-- Total earnings -->
         <div class="mt-4 pt-4 border-t border-slate-200">
           <div class="flex items-center justify-between">
-            <h3 class="text-lg font-bold text-slate-800">Family Total</h3>
+            <h3 class="text-lg font-bold text-primary-custom">Family Total</h3>
             <p class="text-3xl font-bold text-emerald-600">\${{ getTotalEarnings().toFixed(2) }}</p>
           </div>
         </div>
