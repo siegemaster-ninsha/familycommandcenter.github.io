@@ -37,7 +37,10 @@ const CONFIG = {
       SHOPPING_QUICK_ITEMS_INITIALIZE: '/shopping-quick-items/initialize',
       
       // Stores
-      STORES: '/stores'
+      STORES: '/stores',
+      
+      // Account Settings
+      ACCOUNT_SETTINGS: '/account-settings'
     }
   },
 

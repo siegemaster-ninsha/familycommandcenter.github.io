@@ -54,7 +54,7 @@ const app = createApp({
       showDeleteModal: false,
       showConfetti: false,
       confettiPieces: [],
-      showSuccessMessage: false,
+      showSuccessMessageFlag: false,
       completedChoreMessage: '',
       quicklistChores: [],
       loading: true,
@@ -586,12 +586,12 @@ const app = createApp({
         await this.loadAllData();
         
         // Show success message
-        this.showSuccessMessage = true;
+        this.showSuccessMessageFlag = true;
         this.completedChoreMessage = `🌅 New day started! ${response.choresCleared} chores cleared, earnings preserved.`;
         
         // Hide success message after delay
         setTimeout(() => {
-          this.showSuccessMessage = false;
+          this.showSuccessMessageFlag = false;
         }, CONFIG.APP.SUCCESS_MESSAGE_DURATION);
         
         this.showNewDayModal = false;
@@ -828,11 +828,11 @@ const app = createApp({
         
         if (chore.completed) {
           this.triggerConfetti();
-          this.showSuccessMessage = true;
+          this.showSuccessMessageFlag = true;
           this.completedChoreMessage = `${chore.name} completed!`;
           
           setTimeout(() => {
-            this.showSuccessMessage = false;
+            this.showSuccessMessageFlag = false;
           }, 3000);
         }
         
@@ -967,9 +967,9 @@ const app = createApp({
 
     showSuccessMessage(message) {
       this.completedChoreMessage = message;
-      this.showSuccessMessage = true;
+      this.showSuccessMessageFlag = true;
       setTimeout(() => {
-        this.showSuccessMessage = false;
+        this.showSuccessMessageFlag = false;
         this.completedChoreMessage = '';
       }, 3000);
     }
@@ -1028,7 +1028,7 @@ const app = createApp({
       loading: Vue.computed(() => this.loading),
       error: Vue.computed(() => this.error),
       selectedChore: Vue.computed(() => this.selectedChore),
-      showSuccessMessage: Vue.computed(() => this.showSuccessMessage),
+      showSuccessMessage: Vue.computed(() => this.showSuccessMessageFlag),
       completedChoreMessage: Vue.computed(() => this.completedChoreMessage),
       showConfetti: Vue.computed(() => this.showConfetti),
       confettiPieces: Vue.computed(() => this.confettiPieces),

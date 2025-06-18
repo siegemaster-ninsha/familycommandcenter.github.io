@@ -421,7 +421,7 @@ const AccountPage = Vue.defineComponent({
   methods: {
     async loadAccountSettings() {
       try {
-        const response = await fetch(`${API_BASE_URL}/account-settings`, {
+        const response = await fetch(`${CONFIG.API.BASE_URL}/account-settings`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
             'Content-Type': 'application/json'
@@ -484,7 +484,7 @@ const AccountPage = Vue.defineComponent({
       try {
         if (this.accountId) {
           // Update via API
-          const response = await fetch(`${API_BASE_URL}/account-settings/${this.accountId}`, {
+          const response = await fetch(`${CONFIG.API.BASE_URL}/account-settings/${this.accountId}`, {
             method: 'PUT',
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -506,7 +506,7 @@ const AccountPage = Vue.defineComponent({
           }
         } else {
           // Create new account settings
-          const response = await fetch(`${API_BASE_URL}/account-settings`, {
+          const response = await fetch(`${CONFIG.API.BASE_URL}/account-settings`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -558,18 +558,53 @@ const AccountPage = Vue.defineComponent({
         
         // Apply theme to CSS variables
         const root = document.documentElement;
+        
+        // Primary colors
         root.style.setProperty('--color-primary-500', theme.colors.primary);
         root.style.setProperty('--color-primary-600', this.darkenColor(theme.colors.primary, 10));
         root.style.setProperty('--color-primary-100', this.lightenColor(theme.colors.primary, 40));
+        root.style.setProperty('--color-primary-50', this.lightenColor(theme.colors.primary, 45));
+        
+        // Secondary colors
         root.style.setProperty('--color-secondary-500', theme.colors.secondary);
+        root.style.setProperty('--color-secondary-600', this.darkenColor(theme.colors.secondary, 10));
+        root.style.setProperty('--color-secondary-50', this.lightenColor(theme.colors.secondary, 45));
+        
+        // Success colors
         root.style.setProperty('--color-success-500', theme.colors.success);
+        root.style.setProperty('--color-success-600', this.darkenColor(theme.colors.success, 10));
+        
+        // Text colors
         root.style.setProperty('--color-text-primary', theme.colors.textPrimary);
         root.style.setProperty('--color-text-secondary', theme.colors.textSecondary);
+        
+        // Background colors - create a themed background
+        const bgPrimary = this.lightenColor(theme.colors.primary, 48);
+        const bgSecondary = this.lightenColor(theme.colors.secondary, 48);
+        const cardBg = this.lightenColor(theme.colors.primary, 50);
+        const borderColor = this.lightenColor(theme.colors.primary, 42);
+        
+        root.style.setProperty('--color-bg-primary', bgPrimary);
+        root.style.setProperty('--color-bg-secondary', bgSecondary);
+        root.style.setProperty('--color-bg-card', cardBg);
+        root.style.setProperty('--color-border-card', borderColor);
+        
+        // Update quicklist colors to match theme
+        root.style.setProperty('--color-quicklist-border', theme.colors.secondary);
+        root.style.setProperty('--color-quicklist-bg', this.lightenColor(theme.colors.secondary, 45));
+        
+        // Update family card colors
+        root.style.setProperty('--color-family-card-bg', cardBg);
+        root.style.setProperty('--color-family-card-border', borderColor);
+        
+        // Update unassigned area colors
+        root.style.setProperty('--color-unassigned-bg', cardBg);
+        root.style.setProperty('--color-unassigned-border', borderColor);
         
         // Save to backend if available
         if (this.accountId) {
           try {
-            const response = await fetch(`${API_BASE_URL}/account-settings/${this.accountId}/theme`, {
+            const response = await fetch(`${CONFIG.API.BASE_URL}/account-settings/${this.accountId}/theme`, {
               method: 'PUT',
               headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -607,7 +642,7 @@ const AccountPage = Vue.defineComponent({
         // Save to backend if available
         if (this.accountId) {
           try {
-            const response = await fetch(`${API_BASE_URL}/account-settings/${this.accountId}/preferences`, {
+            const response = await fetch(`${CONFIG.API.BASE_URL}/account-settings/${this.accountId}/preferences`, {
               method: 'PUT',
               headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,

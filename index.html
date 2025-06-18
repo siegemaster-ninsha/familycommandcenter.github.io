@@ -140,17 +140,46 @@
         
         // Apply theme to CSS variables
         const root = document.documentElement;
+        
+        // Primary colors
         root.style.setProperty('--color-primary-500', theme.primary);
         root.style.setProperty('--color-primary-600', darkenColor(theme.primary, 10));
         root.style.setProperty('--color-primary-100', lightenColor(theme.primary, 40));
+        root.style.setProperty('--color-primary-50', lightenColor(theme.primary, 45));
+        
+        // Secondary colors
         root.style.setProperty('--color-secondary-500', theme.secondary);
         root.style.setProperty('--color-secondary-600', darkenColor(theme.secondary, 10));
+        root.style.setProperty('--color-secondary-50', lightenColor(theme.secondary, 45));
+        
+        // Success colors
         root.style.setProperty('--color-success-500', theme.success);
         root.style.setProperty('--color-success-600', darkenColor(theme.success, 10));
+        
+        // Text colors
         root.style.setProperty('--color-text-primary', theme.textPrimary);
         root.style.setProperty('--color-text-secondary', theme.textSecondary);
         
-        // Also update the RGB versions for Tailwind opacity support
+        // Background colors - create a themed background
+        const bgPrimary = lightenColor(theme.primary, 48);
+        const bgSecondary = lightenColor(theme.secondary, 48);
+        const cardBg = lightenColor(theme.primary, 50);
+        const borderColor = lightenColor(theme.primary, 42);
+        
+        root.style.setProperty('--color-bg-primary', bgPrimary);
+        root.style.setProperty('--color-bg-secondary', bgSecondary);
+        root.style.setProperty('--color-bg-card', cardBg);
+        root.style.setProperty('--color-border-card', borderColor);
+        
+        // Update component colors to match theme
+        root.style.setProperty('--color-quicklist-border', theme.secondary);
+        root.style.setProperty('--color-quicklist-bg', lightenColor(theme.secondary, 45));
+        root.style.setProperty('--color-family-card-bg', cardBg);
+        root.style.setProperty('--color-family-card-border', borderColor);
+        root.style.setProperty('--color-unassigned-bg', cardBg);
+        root.style.setProperty('--color-unassigned-border', borderColor);
+        
+        // RGB versions for Tailwind opacity support
         root.style.setProperty('--color-primary-50', hexToRgb(lightenColor(theme.primary, 45)));
         root.style.setProperty('--color-primary-100', hexToRgb(lightenColor(theme.primary, 40)));
         root.style.setProperty('--color-primary-200', hexToRgb(lightenColor(theme.primary, 30)));
@@ -167,12 +196,12 @@
   <body>
     <div id="app">
       <div
-        class="relative flex size-full min-h-screen flex-col bg-[#f8f9fc] group/design-root overflow-x-hidden"
-        style="--checkbox-tick-svg: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(248,249,252)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z%27/%3e%3c/svg%3e'); font-family: Inter, 'Noto Sans', sans-serif;"
+        class="relative flex size-full min-h-screen flex-col group/design-root overflow-x-hidden"
+        style="background: var(--color-bg-primary); background-image: linear-gradient(135deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 100%); --checkbox-tick-svg: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(248,249,252)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z%27/%3e%3c/svg%3e'); font-family: Inter, 'Noto Sans', sans-serif;"
       >
         <div class="layout-container flex h-full grow flex-col">
           <!-- Header Component -->
-          <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e6e9f4] px-4 sm:px-6 lg:px-10 py-3">
+          <header class="flex items-center justify-between whitespace-nowrap border-b border-solid px-4 sm:px-6 lg:px-10 py-3" style="border-bottom-color: var(--color-border-card);">
             <div class="flex items-center gap-2 sm:gap-4 text-primary-custom">
               <div class="size-4">
                 <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
