@@ -348,11 +348,17 @@ const AccountPage = Vue.defineComponent({
   methods: {
     async loadAccountSettings() {
       try {
+        const authHeader = authService.getAuthHeader();
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        
+        if (authHeader) {
+          headers.Authorization = authHeader;
+        }
+        
         const response = await fetch(`${CONFIG.API.BASE_URL}/account-settings`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json'
-          }
+          headers
         });
 
         if (response.ok) {
@@ -411,12 +417,18 @@ const AccountPage = Vue.defineComponent({
       try {
         if (this.accountId) {
           // Update via API
+          const authHeader = authService.getAuthHeader();
+          const headers = {
+            'Content-Type': 'application/json'
+          };
+          
+          if (authHeader) {
+            headers.Authorization = authHeader;
+          }
+          
           const response = await fetch(`${CONFIG.API.BASE_URL}/account-settings/${this.accountId}`, {
             method: 'PUT',
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`,
-              'Content-Type': 'application/json'
-            },
+            headers,
             body: JSON.stringify({
               profile: {
                 displayName: this.profileForm.name,
@@ -433,12 +445,18 @@ const AccountPage = Vue.defineComponent({
           }
         } else {
           // Create new account settings
+          const authHeader = authService.getAuthHeader();
+          const headers = {
+            'Content-Type': 'application/json'
+          };
+          
+          if (authHeader) {
+            headers.Authorization = authHeader;
+          }
+          
           const response = await fetch(`${CONFIG.API.BASE_URL}/account-settings`, {
             method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`,
-              'Content-Type': 'application/json'
-            },
+            headers,
             body: JSON.stringify({})
           });
 
@@ -492,12 +510,18 @@ const AccountPage = Vue.defineComponent({
         // Save to backend if available
         if (this.accountId) {
           try {
+            const authHeader = authService.getAuthHeader();
+            const headers = {
+              'Content-Type': 'application/json'
+            };
+            
+            if (authHeader) {
+              headers.Authorization = authHeader;
+            }
+            
             const response = await fetch(`${CONFIG.API.BASE_URL}/account-settings/${this.accountId}/theme`, {
               method: 'PUT',
-              headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                'Content-Type': 'application/json'
-              },
+              headers,
               body: JSON.stringify({ theme: this.selectedTheme })
             });
 
@@ -529,12 +553,18 @@ const AccountPage = Vue.defineComponent({
         // Save to backend if available
         if (this.accountId) {
           try {
+            const authHeader = authService.getAuthHeader();
+            const headers = {
+              'Content-Type': 'application/json'
+            };
+            
+            if (authHeader) {
+              headers.Authorization = authHeader;
+            }
+            
             const response = await fetch(`${CONFIG.API.BASE_URL}/account-settings/${this.accountId}/preferences`, {
               method: 'PUT',
-              headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                'Content-Type': 'application/json'
-              },
+              headers,
               body: JSON.stringify({ preferences: this.preferences })
             });
 
