@@ -88,12 +88,15 @@ const ChorePage = Vue.defineComponent({
         
         <div 
           class="min-h-[120px] sm:min-h-[100px] bg-slate-50 border-2 border-dashed border-slate-300 rounded-lg p-4"
+          :class="[selectedChore ? 'cursor-pointer hover:bg-slate-100 hover:border-slate-400' : '']"
+          @click="selectedChore ? assignSelectedChore('unassigned') : null"
         >
           <!-- Empty state when no chores -->
-          <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-slate-500 py-6 flex flex-col items-center justify-center">
-            <p class="text-sm px-2">No unassigned chores</p>
-            <p class="text-xs mt-2 px-2">Create a new chore or drag completed chores here to unassign them</p>
-          </div>
+                      <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-slate-500 py-6 flex flex-col items-center justify-center">
+              <p class="text-sm px-2">No unassigned chores</p>
+              <p class="text-xs mt-2 px-2">Create new chores here - they'll be available for any family member to pick up</p>
+              <p v-if="selectedChore" class="text-xs mt-2 text-blue-600 px-2">Tap here to move selected chore to unassigned</p>
+            </div>
           
           <!-- Container for chores and add button -->
           <div v-else class="space-y-3 sm:space-y-2 mb-4">

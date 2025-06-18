@@ -75,7 +75,7 @@ const FamilyMembersSection = Vue.defineComponent({
     </div>
   `,
   inject: [
-    'choresByPerson', 'people', 'isDragOverTrash', 'assignSelectedChore'
+    'choresByPerson', 'people', 'assignSelectedChore'
   ],
   methods: {
     getDropZoneClasses(person) {

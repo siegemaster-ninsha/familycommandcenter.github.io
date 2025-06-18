@@ -5,12 +5,15 @@ const UnassignedSection = Vue.defineComponent({
       <h2 class="text-[#0d0f1c] text-lg sm:text-[22px] font-bold leading-tight tracking-[-0.015em] px-2 sm:px-4 pb-3 pt-5">Unassigned Chores</h2>
       <div 
         class="min-h-[120px] sm:min-h-[100px] bg-[#f0f2f8] border-2 border-dashed border-[#ced2e9] rounded-lg mx-2 sm:mx-4 p-3 sm:p-4"
+        :class="[selectedChore ? 'cursor-pointer hover:bg-[#e8eaf2] hover:border-[#b8bdd1]' : '']"
+        @click="selectedChore ? assignSelectedChore('unassigned') : null"
       >
         <!-- Empty state when no chores -->
-        <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-[#47569e] py-6 sm:py-6 flex flex-col items-center justify-center">
-          <p class="text-sm px-2">No unassigned chores</p>
-          <p class="text-xs mt-2 px-2">Create a new chore or drag completed chores here to unassign them</p>
-        </div>
+                  <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-[#47569e] py-6 sm:py-6 flex flex-col items-center justify-center">
+            <p class="text-sm px-2">No unassigned chores</p>
+            <p class="text-xs mt-2 px-2">Create new chores here - they'll be available for any family member to pick up</p>
+            <p v-if="selectedChore" class="text-xs mt-2 text-blue-600 px-2">Tap here to move selected chore to unassigned</p>
+          </div>
         
         <!-- Container for chores and add button -->
         <div v-else class="space-y-3 sm:space-y-2 mb-4">
@@ -59,7 +62,7 @@ const UnassignedSection = Vue.defineComponent({
       </div>
     </div>
   `,
-  inject: ['choresByPerson', 'showAddChoreModal', 'assignSelectedChore'],
+  inject: ['choresByPerson', 'showAddChoreModal', 'assignSelectedChore', 'selectedChore'],
   methods: {
     getChoreClasses(chore) {
       const baseClasses = "flex items-center gap-3 sm:gap-4 px-3 sm:px-4 min-h-[96px] sm:min-h-[72px] py-4 sm:py-2 justify-between mb-3 sm:mb-2 rounded-lg shadow-sm cursor-pointer border-l-4 transition-all duration-200 touch-target";
