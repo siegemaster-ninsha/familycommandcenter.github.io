@@ -263,18 +263,40 @@ const app = createApp({
       }
     },
     
-    async loadFamilyMembers() {
+    async loadFamilyMembers(preserveOptimisticUpdates = false) {
       try {
         const response = await this.apiCall(CONFIG.API.ENDPOINTS.FAMILY_MEMBERS);
         if (response.familyMembers && response.familyMembers.length > 0) {
-          // Update the people array with family members from backend
-          this.people = response.familyMembers.map(member => ({
-            id: member.name.toLowerCase(),
-            name: member.name,
-            earnings: member.earnings || 0,
-            completedChores: member.completedChores || 0,
-            electronicsStatus: { status: 'allowed', message: 'Electronics allowed' }
-          }));
+          if (preserveOptimisticUpdates) {
+            // Merge server data with existing optimistic updates
+            response.familyMembers.forEach(serverMember => {
+              const existingPerson = this.people.find(p => p.name === serverMember.name);
+              if (existingPerson) {
+                // Preserve optimistic completedChores count, but update other fields
+                existingPerson.earnings = serverMember.earnings || 0;
+                // Keep the existing completedChores if it's higher (optimistic update)
+                existingPerson.completedChores = Math.max(existingPerson.completedChores || 0, serverMember.completedChores || 0);
+              } else {
+                // New person from server
+                this.people.push({
+                  id: serverMember.name.toLowerCase(),
+                  name: serverMember.name,
+                  earnings: serverMember.earnings || 0,
+                  completedChores: serverMember.completedChores || 0,
+                  electronicsStatus: { status: 'allowed', message: 'Electronics allowed' }
+                });
+              }
+            });
+          } else {
+            // Normal full refresh - replace all data
+            this.people = response.familyMembers.map(member => ({
+              id: member.name.toLowerCase(),
+              name: member.name,
+              earnings: member.earnings || 0,
+              completedChores: member.completedChores || 0,
+              electronicsStatus: { status: 'allowed', message: 'Electronics allowed' }
+            }));
+          }
         } else {
           // No family members in backend - start with empty array
           this.people = [];
@@ -1008,7 +1030,7 @@ const app = createApp({
         Promise.all([
           this.loadEarnings(),
           this.loadElectronicsStatus(),
-          this.loadFamilyMembers()
+          this.loadFamilyMembers(true) // Preserve optimistic updates
         ]).catch(error => {
           console.warn('Background data refresh failed:', error);
         });
@@ -1062,12 +1084,7 @@ const app = createApp({
         // Show success message and trigger confetti immediately for completed chores
         if (chore.completed) {
           this.triggerConfetti();
-          this.showSuccessMessageFlag = true;
-          this.completedChoreMessage = `🎉 Great job! "${chore.name}" completed!`;
-          
-          setTimeout(() => {
-            this.showSuccessMessageFlag = false;
-          }, CONFIG.APP.SUCCESS_MESSAGE_DURATION);
+          this.showSuccessMessage(`🎉 Great job! "${chore.name}" completed!`);
         } else {
           // Clear any success message for uncompleted chores
           this.showSuccessMessageFlag = false;
@@ -1086,7 +1103,7 @@ const app = createApp({
         Promise.all([
           this.loadEarnings(),
           this.loadElectronicsStatus(),
-          this.loadFamilyMembers()
+          this.loadFamilyMembers(true) // Preserve optimistic updates
         ]).catch(error => {
           console.warn('Background data refresh failed:', error);
         });
