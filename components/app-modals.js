@@ -463,7 +463,7 @@ const AppModals = Vue.defineComponent({
           <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <p class="text-blue-800 font-medium">{{ choreDetailsForm.name }}</p>
             <div class="flex items-center gap-4 text-sm text-blue-600 mt-1">
-              <span>${{ choreDetailsForm.amount.toFixed(2) }}</span>
+              <span>\${{ choreDetailsForm.amount.toFixed(2) }}</span>
               <span>{{ getCategoryLabel(choreDetailsForm.category) }}</span>
             </div>
           </div>
