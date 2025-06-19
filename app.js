@@ -23,13 +23,26 @@ const app = createApp({
         name: '',
         amount: 0,
         category: 'regular',
-        addToQuicklist: false
+        addToQuicklist: false,
+        isDetailed: false
       },
       showAddToQuicklistModal: false,
       newQuicklistChore: {
         name: '',
         amount: 0,
-        category: 'regular'
+        category: 'regular',
+        isDetailed: false
+      },
+      // New modal for chore details
+      showChoreDetailsModal: false,
+      choreDetailsForm: {
+        name: '',
+        details: '',
+        amount: 0,
+        category: 'regular',
+        assignedTo: '',
+        isNewFromQuicklist: false,
+        quicklistChoreId: null
       },
       // Person management
       people: [],
@@ -579,7 +592,18 @@ const app = createApp({
     // Chore management methods
     async addChore() {
       if (this.newChore.name.trim() && this.newChore.amount >= 0) {
-        console.log('🚀 Optimistically adding new chore:', this.newChore.name);
+        console.log('🚀 Adding new chore:', this.newChore.name);
+        
+        // Check if this is a detailed chore
+        if (this.newChore.isDetailed) {
+          // Open details modal instead of creating immediately
+          this.openChoreDetailsModal({
+            name: this.newChore.name.trim(),
+            amount: this.newChore.amount,
+            category: this.newChore.category
+          }, 'unassigned', false);
+          return;
+        }
         
         // Store original state for potential rollback
         const originalChores = [...this.chores];
@@ -589,7 +613,9 @@ const app = createApp({
           amount: this.newChore.amount,
           category: this.newChore.category,
           assignedTo: 'unassigned',
-          completed: false
+          completed: false,
+          isDetailed: false,
+          details: ''
         };
         
         try {
@@ -684,7 +710,7 @@ const app = createApp({
     
     cancelAddChore() {
       this.showAddChoreModal = false;
-      this.newChore = { name: '', amount: 0, category: 'regular', addToQuicklist: false };
+      this.newChore = { name: '', amount: 0, category: 'regular', addToQuicklist: false, isDetailed: false };
     },
     
     async addToQuicklist() {
@@ -696,7 +722,8 @@ const app = createApp({
         const quicklistData = {
           name: this.newQuicklistChore.name.trim(),
           amount: this.newQuicklistChore.amount,
-          category: this.newQuicklistChore.category
+          category: this.newQuicklistChore.category,
+          isDetailed: this.newQuicklistChore.isDetailed || false
         };
         
         try {
@@ -747,7 +774,113 @@ const app = createApp({
     
     cancelAddToQuicklist() {
       this.showAddToQuicklistModal = false;
-      this.newQuicklistChore = { name: '', amount: 0, category: 'regular' };
+      this.newQuicklistChore = { name: '', amount: 0, category: 'regular', isDetailed: false };
+    },
+
+    // Chore details modal methods
+    openChoreDetailsModal(choreData, assignedTo = '', isNewFromQuicklist = false) {
+      this.choreDetailsForm = {
+        name: choreData.name,
+        details: '',
+        amount: choreData.amount,
+        category: choreData.category,
+        assignedTo: assignedTo,
+        isNewFromQuicklist: isNewFromQuicklist,
+        quicklistChoreId: choreData.id
+      };
+      this.showChoreDetailsModal = true;
+    },
+
+    async confirmChoreDetails() {
+      if (!this.choreDetailsForm.details.trim()) {
+        // Allow empty details, but at least ensure it's not just whitespace
+        this.choreDetailsForm.details = '';
+      }
+
+      try {
+        if (this.choreDetailsForm.isNewFromQuicklist) {
+          // Create new chore from quicklist with details
+          const choreData = {
+            name: this.choreDetailsForm.name,
+            amount: this.choreDetailsForm.amount,
+            category: this.choreDetailsForm.category,
+            assignedTo: this.choreDetailsForm.assignedTo,
+            completed: false,
+            details: this.choreDetailsForm.details.trim(),
+            isDetailed: true
+          };
+          
+          // Create the chore with details
+          const response = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
+            method: 'POST',
+            body: JSON.stringify(choreData)
+          });
+          
+          // Add to local chores array
+          this.chores.push(response.chore);
+          
+          // Clear selections
+          this.selectedChoreId = null;
+          this.selectedQuicklistChore = null;
+          
+        } else {
+          // Handle regular chore creation with details
+          const choreData = {
+            name: this.choreDetailsForm.name,
+            amount: this.choreDetailsForm.amount,
+            category: this.choreDetailsForm.category,
+            assignedTo: this.choreDetailsForm.assignedTo || 'unassigned',
+            completed: false,
+            details: this.choreDetailsForm.details.trim(),
+            isDetailed: true
+          };
+          
+          const response = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
+            method: 'POST',
+            body: JSON.stringify(choreData)
+          });
+          
+          // Add to local chores array
+          this.chores.push(response.chore);
+          
+          // Also add to quicklist if requested
+          if (this.newChore.addToQuicklist) {
+            const quicklistData = {
+              name: choreData.name,
+              amount: choreData.amount,
+              category: choreData.category,
+              isDetailed: true
+            };
+            
+            const quicklistResponse = await this.apiCall(CONFIG.API.ENDPOINTS.QUICKLIST, {
+              method: 'POST',
+              body: JSON.stringify(quicklistData)
+            });
+            
+            this.quicklistChores.push(quicklistResponse.quicklistChore);
+          }
+        }
+        
+        this.cancelChoreDetails();
+        console.log('✅ Chore with details created successfully');
+        
+      } catch (error) {
+        console.error('❌ Failed to create chore with details:', error);
+        this.showSuccessMessage(`❌ Failed to create chore. Please try again.`);
+      }
+    },
+
+    cancelChoreDetails() {
+      this.showChoreDetailsModal = false;
+      this.choreDetailsForm = {
+        name: '',
+        details: '',
+        amount: 0,
+        category: 'regular',
+        assignedTo: '',
+        isNewFromQuicklist: false,
+        quicklistChoreId: null
+      };
     },
 
     // New Day functionality
@@ -1235,6 +1368,14 @@ const app = createApp({
       
       try {
         if (this.selectedChore.isNewFromQuicklist) {
+          // Check if this quicklist chore requires details
+          const quicklistChore = this.quicklistChores.find(qc => qc.name === this.selectedChore.name);
+          if (quicklistChore && quicklistChore.isDetailed) {
+            // Open details modal for detailed quicklist chore
+            this.openChoreDetailsModal(this.selectedChore, assignTo, true);
+            return;
+          }
+          
           // OPTIMISTIC UPDATE: Add new chore immediately to UI
           const newChore = {
             id: `temp-${Date.now()}`, // Temporary ID
@@ -1243,6 +1384,8 @@ const app = createApp({
             category: this.selectedChore.category || 'regular',
             assignedTo: assignTo,
             completed: false,
+            isDetailed: false,
+            details: '',
             isOptimistic: true // Flag to identify optimistic updates
           };
           
@@ -1566,6 +1709,7 @@ const app = createApp({
       showNewDayModal: Vue.computed(() => this.showNewDayModal),
       newDayLoading: Vue.computed(() => this.newDayLoading),
       showSpendingModal: Vue.computed(() => this.showSpendingModal),
+      showChoreDetailsModal: Vue.computed(() => this.showChoreDetailsModal),
       selectedPerson: Vue.computed(() => this.selectedPerson),
       spendAmount: Vue.computed(() => this.spendAmount),
       spendAmountString: Vue.computed(() => this.spendAmountString),
@@ -1583,6 +1727,7 @@ const app = createApp({
       newPerson: Vue.toRef(this, 'newPerson'),
       newChore: Vue.toRef(this, 'newChore'),
       authForm: Vue.toRef(this, 'authForm'),
+      choreDetailsForm: Vue.toRef(this, 'choreDetailsForm'),
       
       // Provide methods that child components need
       loadAllData: this.loadAllData,
@@ -1596,6 +1741,9 @@ const app = createApp({
       openAddPersonModal: this.openAddPersonModal,
       addToQuicklist: this.addToQuicklist,
       cancelAddToQuicklist: this.cancelAddToQuicklist,
+      openChoreDetailsModal: this.openChoreDetailsModal,
+      confirmChoreDetails: this.confirmChoreDetails,
+      cancelChoreDetails: this.cancelChoreDetails,
       startNewDay: this.startNewDay,
       cancelNewDay: this.cancelNewDay,
       deleteChore: this.deleteChore,

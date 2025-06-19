@@ -44,6 +44,17 @@ const AppModals = Vue.defineComponent({
               <option value="game">🎮 Electronics Requirement</option>
             </select>
           </div>
+          <div>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input 
+                type="checkbox" 
+                v-model="newQuicklistChore.isDetailed"
+                class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+              >
+              <span class="text-sm font-medium text-primary-custom">Requires details when assigned</span>
+            </label>
+            <p class="text-xs text-secondary-custom mt-1">If checked, a details prompt will appear when this chore is assigned</p>
+          </div>
         </div>
         <div class="flex gap-3 mt-6">
           <button 
@@ -169,6 +180,28 @@ const AppModals = Vue.defineComponent({
               <option value="school">📚 School Chore</option>
               <option value="game">🎮 Electronics Requirement</option>
             </select>
+          </div>
+          <div>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input 
+                type="checkbox" 
+                v-model="newChore.isDetailed"
+                class="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+              >
+              <span class="text-sm font-medium text-primary-custom">Requires details when created</span>
+            </label>
+            <p class="text-xs text-secondary-custom mt-1">If checked, you'll be prompted to add details for this chore</p>
+          </div>
+          <div>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input 
+                type="checkbox" 
+                v-model="newChore.addToQuicklist"
+                class="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+              >
+              <span class="text-sm font-medium text-primary-custom">Add to quicklist</span>
+            </label>
+            <p class="text-xs text-secondary-custom mt-1">Also add this chore to the quicklist for future use</p>
           </div>
         </div>
         <div class="flex gap-3 mt-6">
@@ -415,6 +448,55 @@ const AppModals = Vue.defineComponent({
       </div>
     </div>
 
+    <!-- Chore Details Modal -->
+    <div v-if="showChoreDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="bg-blue-100 p-2 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-blue-600" viewBox="0 0 256 256">
+              <path d="M208,24H72A32,32,0,0,0,40,56V224a8,8,0,0,0,8,8H192a8,8,0,0,0,0-16H56a16,16,0,0,1,16-16H208a8,8,0,0,0,8-8V32A8,8,0,0,0,208,24ZM72,40H200V184H72a31.82,31.82,0,0,0-16,4.29V56A16,16,0,0,1,72,40Z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-primary-custom">Add Chore Details</h3>
+        </div>
+        <div class="mb-4">
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p class="text-blue-800 font-medium">{{ choreDetailsForm.name }}</p>
+            <div class="flex items-center gap-4 text-sm text-blue-600 mt-1">
+              <span>${{ choreDetailsForm.amount.toFixed(2) }}</span>
+              <span>{{ getCategoryLabel(choreDetailsForm.category) }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-primary-custom mb-1">Chore Details</label>
+            <textarea 
+              v-model="choreDetailsForm.details"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+              rows="4"
+              placeholder="Add any specific instructions, requirements, or notes for this chore..."
+            ></textarea>
+            <p class="text-xs text-secondary-custom mt-1">Optional: Add specific details about how to complete this chore</p>
+          </div>
+        </div>
+        <div class="flex gap-3 mt-6">
+          <button 
+            @click="confirmChoreDetails"
+            class="flex-1 bg-primary-500 text-white py-2 px-4 rounded-lg hover:bg-primary-600 transition-colors"
+          >
+            Create Chore
+          </button>
+          <button 
+            @click="cancelChoreDetails"
+            class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Spending Modal -->
     <div v-if="showSpendingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white rounded-lg p-6 w-full max-w-sm mx-4">
@@ -491,20 +573,25 @@ const AppModals = Vue.defineComponent({
     'showAddToQuicklistModal', 'newQuicklistChore',
     'showAddPersonModal', 'newPerson', 'showDeletePersonModal', 'personToDelete',
     'showAddChoreModal', 'newChore', 'showNewDayModal', 'newDayLoading',
-    // Spending modal props
+    'showChoreDetailsModal', 'choreDetailsForm',
     'showSpendingModal', 'selectedPerson', 'spendAmount', 'spendAmountString',
-    // Authentication props
     'showLoginModal', 'showSignupModal', 'showConfirmModal', 'authForm', 'authError', 'authLoading',
     'addChore', 'cancelAddChore', 'addPerson', 'cancelAddPerson',
     'addToQuicklist', 'cancelAddToQuicklist', 'startNewDay', 'cancelNewDay',
     'executeDeletePerson', 'cancelDeletePerson',
-    // Spending modal methods
+    'confirmChoreDetails', 'cancelChoreDetails',
     'closeSpendingModal', 'addDigit', 'addDecimal', 'clearSpendAmount', 'confirmSpending',
-    // Authentication methods
     'handleLogin', 'handleSignup', 'handleConfirmSignup', 'showLoginForm', 'showSignupForm', 'closeAuthModals'
   ],
   methods: {
     // Use injected methods directly - they're already bound to the parent context
+    getCategoryLabel(category) {
+      switch(category) {
+        case 'school': return '📚 School';
+        case 'game': return '⚡ Electronics';
+        default: return '🏠 Regular';
+      }
+    }
   }
 });
 

@@ -128,15 +128,16 @@ const ChorePage = Vue.defineComponent({
                   v-html="getCategoryIcon(chore.category)"
                 >
                 </div>
-                <div class="flex flex-col justify-center min-w-0 flex-1">
-                  <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
-                    <p class="text-white text-base sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1">{{ chore.name }}</p>
-                    <span class="text-xs px-2 py-1 rounded-full self-start sm:self-center shrink-0" :class="getCategoryStyle(chore.category).badge">
-                      {{ getCategoryLabel(chore.category) }}
-                    </span>
+                                  <div class="flex flex-col justify-center min-w-0 flex-1">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                      <p class="text-white text-base sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1">{{ chore.name }}</p>
+                      <span class="text-xs px-2 py-1 rounded-full self-start sm:self-center shrink-0" :class="getCategoryStyle(chore.category).badge">
+                        {{ getCategoryLabel(chore.category) }}
+                      </span>
+                    </div>
+                    <p v-if="chore.details" class="text-white text-opacity-80 text-sm font-normal leading-normal line-clamp-2 mb-1">{{ chore.details }}</p>
+                    <p v-if="chore.amount > 0" class="text-white text-opacity-90 text-sm font-normal leading-normal line-clamp-2">\${{ chore.amount.toFixed(2) }}</p>
                   </div>
-                  <p v-if="chore.amount > 0" class="text-white text-opacity-90 text-sm font-normal leading-normal line-clamp-2">\${{ chore.amount.toFixed(2) }}</p>
-                </div>
               </div>
               <div class="flex items-center gap-2 shrink-0">
                 <span class="text-xs text-white px-2 py-1 rounded bg-white bg-opacity-20">Tap to select</span>
@@ -236,22 +237,25 @@ const ChorePage = Vue.defineComponent({
                     v-html="getCategoryIcon(chore.category)"
                   >
                   </div>
-                  <div class="flex flex-col justify-center min-w-0 flex-1">
-                    <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
-                      <p 
-                        :class="chore.completed ? 'line-through text-white opacity-60' : 'text-white'"
-                        class="text-sm sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1"
-                      >
-                        {{ chore.name }}
+                                      <div class="flex flex-col justify-center min-w-0 flex-1">
+                      <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                        <p 
+                          :class="chore.completed ? 'line-through text-white opacity-60' : 'text-white'"
+                          class="text-sm sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1"
+                        >
+                          {{ chore.name }}
+                        </p>
+                        <span class="text-xs px-2 py-1 rounded-full self-start sm:self-center shrink-0" :class="getCategoryStyle(chore.category).badge">
+                          {{ getCategoryLabel(chore.category) }}
+                        </span>
+                      </div>
+                      <p v-if="chore.details" :class="chore.completed ? 'text-white opacity-50' : 'text-white text-opacity-80'" class="text-xs sm:text-sm font-normal leading-normal line-clamp-2 mb-1">
+                        {{ chore.details }}
                       </p>
-                      <span class="text-xs px-2 py-1 rounded-full self-start sm:self-center shrink-0" :class="getCategoryStyle(chore.category).badge">
-                        {{ getCategoryLabel(chore.category) }}
-                      </span>
+                      <p v-if="chore.amount > 0" :class="chore.completed ? 'text-white opacity-50' : 'text-white text-opacity-90'" class="text-xs sm:text-sm font-normal leading-normal line-clamp-2">
+                        \${{ chore.amount.toFixed(2) }}
+                      </p>
                     </div>
-                    <p v-if="chore.amount > 0" :class="chore.completed ? 'text-white opacity-50' : 'text-white text-opacity-90'" class="text-xs sm:text-sm font-normal leading-normal line-clamp-2">
-                      \${{ chore.amount.toFixed(2) }}
-                    </p>
-                  </div>
                 </div>
               </div>
             </div>
