@@ -287,19 +287,19 @@ const ThemeManager = {
     // Background colors - handle dark themes differently
     let bgPrimary, bgSecondary, cardBg, borderColor;
     
-    // if (isDark) {
-    //   // For dark themes: use much darker colors for backgrounds to contrast with light text
-    //   bgPrimary = this.darkenColor(theme.colors.primary, 60);
-    //   bgSecondary = this.darkenColor(theme.colors.secondary, 60);
-    //   cardBg = this.darkenColor(theme.colors.primary, 50);
-    //   borderColor = this.darkenColor(theme.colors.primary, 40);
-    // } else {
-    //   // For light themes: use lightened colors for backgrounds
-    //   bgPrimary = this.lightenColor(theme.colors.primary, 48);
-    //   bgSecondary = this.lightenColor(theme.colors.secondary, 48);
-    //   cardBg = this.lightenColor(theme.colors.primary, 50);
-    //   borderColor = this.lightenColor(theme.colors.primary, 42);
-    // }
+    if (isDark) {
+      // For dark themes: use much darker colors for backgrounds to contrast with light text
+      bgPrimary = this.darkenColor(theme.colors.primary, 60);
+      bgSecondary = this.darkenColor(theme.colors.secondary, 60);
+      cardBg = this.darkenColor(theme.colors.primary, 50);
+      borderColor = this.darkenColor(theme.colors.primary, 40);
+    } else {
+      // For light themes: use lightened colors for backgrounds
+      bgPrimary = this.lightenColor(theme.colors.primary, 48);
+      bgSecondary = this.lightenColor(theme.colors.secondary, 48);
+      cardBg = this.lightenColor(theme.colors.primary, 50);
+      borderColor = this.lightenColor(theme.colors.primary, 42);
+    }
 
     root.style.setProperty('--color-bg-primary', bgPrimary);
     root.style.setProperty('--color-bg-secondary', bgSecondary);
