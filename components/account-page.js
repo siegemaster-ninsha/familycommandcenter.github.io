@@ -59,14 +59,68 @@ const AccountPage = Vue.defineComponent({
           </div>
         </div>
         
+        <!-- App Preferences -->
+        <div class="mt-8 pt-6 border-t" style="border-color: var(--color-border-card);">
+          <h3 class="text-primary-custom text-lg font-bold mb-6 flex items-center gap-2">
+            📱 App Preferences
+          </h3>
+          
+          <div class="space-y-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <label class="font-medium text-primary-custom">Confetti Animations</label>
+                <p class="text-sm text-secondary-custom">Show celebration animations when completing chores</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  v-model="preferences.confettiEnabled"
+                  class="sr-only peer"
+                >
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+              </label>
+            </div>
+            
+            <div class="flex items-center justify-between">
+              <div>
+                <label class="font-medium text-primary-custom">Sound Effects</label>
+                <p class="text-sm text-secondary-custom">Play sounds for task completion and other actions</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  v-model="preferences.soundEnabled"
+                  class="sr-only peer"
+                >
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+              </label>
+            </div>
+            
+            <div class="flex items-center justify-between">
+              <div>
+                <label class="font-medium text-primary-custom">Auto-save Changes</label>
+                <p class="text-sm text-secondary-custom">Automatically save changes without confirmation</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  v-model="preferences.autoSave"
+                  class="sr-only peer"
+                >
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+
         <!-- Save Button at bottom -->
-        <div class="mt-6 flex justify-center">
+        <div class="mt-8 flex justify-center">
           <button
-            @click="updateProfile"
+            @click="saveAllSettings"
             :disabled="profileLoading"
             class="bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white py-3 px-8 rounded-lg transition-colors duration-200 disabled:opacity-50 shadow-md hover:shadow-lg touch-target min-h-[48px] font-medium"
           >
-            {{ profileLoading ? 'Saving...' : 'Save Changes' }}
+            {{ profileLoading ? 'Saving...' : 'Save All Settings' }}
           </button>
         </div>
       </div>
@@ -150,69 +204,7 @@ const AccountPage = Vue.defineComponent({
         </div>
       </div>
 
-      <!-- App Preferences -->
-      <div class="rounded-lg border-2 p-6 shadow-lg" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
-        <h3 class="text-primary-custom text-lg font-bold mb-4 flex items-center gap-2">
-          📱 App Preferences
-        </h3>
-        
-        <div class="space-y-6">
-          <div class="flex items-center justify-between">
-            <div>
-              <label class="font-medium text-primary-custom">Confetti Animations</label>
-              <p class="text-sm text-secondary-custom">Show celebration animations when completing chores</p>
-            </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input 
-                type="checkbox" 
-                v-model="preferences.confettiEnabled"
-                class="sr-only peer"
-              >
-              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
-            </label>
-          </div>
-          
-          <div class="flex items-center justify-between">
-            <div>
-              <label class="font-medium text-primary-custom">Sound Effects</label>
-              <p class="text-sm text-secondary-custom">Play sounds for task completion and other actions</p>
-            </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input 
-                type="checkbox" 
-                v-model="preferences.soundEnabled"
-                class="sr-only peer"
-              >
-              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
-            </label>
-          </div>
-          
-          <div class="flex items-center justify-between">
-            <div>
-              <label class="font-medium text-primary-custom">Auto-save Changes</label>
-              <p class="text-sm text-secondary-custom">Automatically save changes without confirmation</p>
-            </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input 
-                type="checkbox" 
-                v-model="preferences.autoSave"
-                class="sr-only peer"
-              >
-              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
-            </label>
-          </div>
-        </div>
-        
-        <div class="mt-6">
-          <button
-            @click="savePreferences"
-            :disabled="preferencesLoading"
-            class="bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 disabled:opacity-50 shadow-md hover:shadow-lg touch-target min-h-[48px] font-medium"
-          >
-            {{ preferencesLoading ? 'Saving...' : 'Save Preferences' }}
-          </button>
-        </div>
-      </div>
+
 
       <!-- Data Management -->
       <div class="rounded-lg border-2 p-6 shadow-lg" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
@@ -463,6 +455,115 @@ const AccountPage = Vue.defineComponent({
     
     resetProfile() {
       this.loadUserProfile();
+    },
+
+    async saveAllSettings() {
+      this.profileLoading = true;
+      try {
+        // Save profile settings (without showing individual success message)
+        await this.updateProfileSilent();
+        // Save preferences (without showing individual success message)
+        await this.savePreferencesSilent();
+        
+        this.showSuccessMessage('All settings saved successfully!');
+      } catch (error) {
+        console.error('Error saving settings:', error);
+      } finally {
+        this.profileLoading = false;
+      }
+    },
+
+    async updateProfileSilent() {
+      // Same as updateProfile but without success message
+      try {
+        if (this.accountId) {
+          try {
+            const authHeader = authService.getAuthHeader();
+            const headers = {
+              'Content-Type': 'application/json'
+            };
+            
+            if (authHeader) {
+              headers.Authorization = authHeader;
+            }
+            
+            const response = await fetch(`${CONFIG.API.BASE_URL}/account-settings/${this.accountId}/profile`, {
+              method: 'PUT',
+              headers,
+              body: JSON.stringify({ 
+                profile: {
+                  name: this.profileForm.name,
+                  email: this.profileForm.email,
+                  familyName: this.profileForm.familyName
+                }
+              })
+            });
+
+            if (response.ok) {
+              this.accountSettings = await response.json();
+              console.log('✅ Profile saved to backend');
+            } else {
+              console.warn('Failed to save profile to backend, using localStorage');
+            }
+          } catch (error) {
+            console.warn('Backend unavailable, using localStorage:', error);
+          }
+        }
+        
+        // Save to localStorage as fallback
+        localStorage.setItem('userProfile', JSON.stringify({
+          name: this.profileForm.name,
+          email: this.profileForm.email,
+          familyName: this.profileForm.familyName
+        }));
+        
+        localStorage.setItem('familyName', this.profileForm.familyName);
+        
+        console.log('✅ Profile saved locally');
+      } catch (error) {
+        console.error('Error saving profile:', error);
+        throw error;
+      }
+    },
+
+    async savePreferencesSilent() {
+      // Same as savePreferences but without success message
+      try {
+        if (this.accountId) {
+          try {
+            const authHeader = authService.getAuthHeader();
+            const headers = {
+              'Content-Type': 'application/json'
+            };
+            
+            if (authHeader) {
+              headers.Authorization = authHeader;
+            }
+            
+            const response = await fetch(`${CONFIG.API.BASE_URL}/account-settings/${this.accountId}/preferences`, {
+              method: 'PUT',
+              headers,
+              body: JSON.stringify({ preferences: this.preferences })
+            });
+
+            if (response.ok) {
+              this.accountSettings = await response.json();
+              console.log('✅ Preferences saved to backend');
+            } else {
+              console.warn('Failed to save preferences to backend, using localStorage');
+            }
+          } catch (error) {
+            console.warn('Backend unavailable, using localStorage:', error);
+          }
+        }
+        
+        // Save preferences locally as fallback
+        localStorage.setItem('appPreferences', JSON.stringify(this.preferences));
+        console.log('✅ Preferences saved locally');
+      } catch (error) {
+        console.error('Error saving preferences:', error);
+        throw error;
+      }
     },
     
     async selectTheme(themeId) {
