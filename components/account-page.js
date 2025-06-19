@@ -33,12 +33,13 @@ const AccountPage = Vue.defineComponent({
               >
             </div>
             <div>
-              <label class="block text-sm font-medium text-primary-custom mb-2">Email</label>
+              <label class="block text-sm font-medium text-secondary-custom mb-2">Email</label>
               <input 
                 v-model="profileForm.email"
                 type="email" 
-                class="w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200 shadow-sm focus:shadow-md"
-                style="border-color: var(--color-border-card); background-color: var(--color-bg-card);"
+                readonly
+                class="w-full px-4 py-3 border-2 rounded-lg cursor-not-allowed opacity-60 bg-gray-100"
+                style="border-color: var(--color-border-card);"
                 placeholder="Enter your email"
               >
             </div>
@@ -55,20 +56,13 @@ const AccountPage = Vue.defineComponent({
                 placeholder="The Smith Family"
               >
             </div>
-            <div class="flex gap-3">
+            <div>
               <button
                 @click="updateProfile"
                 :disabled="profileLoading"
-                class="flex-1 bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white py-3 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 shadow-md hover:shadow-lg touch-target min-h-[48px] font-medium"
+                class="w-full bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white py-3 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 shadow-md hover:shadow-lg touch-target min-h-[48px] font-medium"
               >
                 {{ profileLoading ? 'Saving...' : 'Save Changes' }}
-              </button>
-              <button
-                @click="resetProfile"
-                class="px-4 py-3 border-2 rounded-lg hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md touch-target min-h-[48px] font-medium"
-                style="border-color: var(--color-border-card); color: var(--color-text-primary);"
-              >
-                Reset
               </button>
             </div>
           </div>
