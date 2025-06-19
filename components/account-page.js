@@ -138,36 +138,12 @@ const AccountPage = Vue.defineComponent({
           </div>
         </div>
         
-        <!-- Current Status and Apply Button -->
-        <div class="mt-6 space-y-3">
+        <!-- Current Status -->
+        <div class="mt-6">
           <div class="text-center">
             <p class="text-sm text-secondary-custom">
-              Currently applied: <span class="font-medium text-primary-custom">{{ getCurrentThemeName() }}</span>
-              <span v-if="selectedTheme !== currentTheme" class="text-orange-600">
-                → Selected: <span class="font-medium">{{ getSelectedThemeName() }}</span>
-              </span>
+              Current theme: <span class="font-medium text-primary-custom">{{ getCurrentThemeName() }}</span>
             </p>
-          </div>
-          
-          <div class="flex justify-center">
-            <button
-              v-if="selectedTheme !== currentTheme"
-              @click="applyTheme"
-              :disabled="themeLoading"
-              class="bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md hover:shadow-lg touch-target min-h-[48px] font-medium"
-            >
-              <svg v-if="themeLoading" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              {{ themeLoading ? 'Applying...' : 'Apply Theme' }}
-            </button>
-            <div v-else class="text-emerald-600 font-medium flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-                <path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"></path>
-              </svg>
-              Theme Applied
-            </div>
           </div>
         </div>
       </div>
@@ -487,24 +463,22 @@ const AccountPage = Vue.defineComponent({
       this.loadUserProfile();
     },
     
-    selectTheme(themeId) {
-      console.log('🎨 Theme selected:', themeId);
-      this.selectedTheme = themeId;
-    },
-    
-    async applyTheme() {
-      if (this.selectedTheme === this.currentTheme) return;
+    async selectTheme(themeId) {
+      if (themeId === this.currentTheme) return; // Don't reapply the same theme
       
+      console.log('🎨 Theme selected and applying:', themeId);
+      this.selectedTheme = themeId;
       this.themeLoading = true;
+      
       try {
-        const theme = CONFIG.THEMES[this.selectedTheme];
+        const theme = CONFIG.THEMES[themeId];
         if (!theme) {
-          console.error('Theme not found:', this.selectedTheme);
+          console.error('Theme not found:', themeId);
           return;
         }
         
-        // Use centralized ThemeManager to apply theme
-        ThemeManager.applyTheme(this.selectedTheme);
+        // Use centralized ThemeManager to apply theme immediately
+        ThemeManager.applyTheme(themeId);
         
         // Save to backend if available
         if (this.accountId) {
@@ -521,32 +495,32 @@ const AccountPage = Vue.defineComponent({
             const response = await fetch(`${CONFIG.API.BASE_URL}/account-settings/${this.accountId}/theme`, {
               method: 'PUT',
               headers,
-              body: JSON.stringify({ theme: this.selectedTheme })
+              body: JSON.stringify({ theme: themeId })
             });
 
             if (response.ok) {
               this.accountSettings = await response.json();
               console.log('✅ Theme saved to backend');
               // Also save to localStorage for immediate future loads
-              localStorage.setItem('selectedTheme', this.selectedTheme);
+              localStorage.setItem('selectedTheme', themeId);
             } else {
               console.warn('Failed to save theme to backend, using localStorage');
               // Save to localStorage as fallback
-              localStorage.setItem('selectedTheme', this.selectedTheme);
+              localStorage.setItem('selectedTheme', themeId);
             }
           } catch (error) {
             console.warn('Backend unavailable, using localStorage:', error);
             // Save to localStorage as fallback
-            localStorage.setItem('selectedTheme', this.selectedTheme);
+            localStorage.setItem('selectedTheme', themeId);
           }
         } else {
           // No accountId available, save to localStorage only
           console.log('🎨 No account ID, saving theme to localStorage only');
-          localStorage.setItem('selectedTheme', this.selectedTheme);
+          localStorage.setItem('selectedTheme', themeId);
         }
         
         // Update local state
-        this.currentTheme = this.selectedTheme;
+        this.currentTheme = themeId;
         
         this.showSuccessMessage(`${theme.name} theme applied successfully!`);
       } catch (error) {
