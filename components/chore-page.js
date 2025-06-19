@@ -30,7 +30,7 @@ const ChorePage = Vue.defineComponent({
           <div 
             v-for="quickChore in quicklistChores" 
             :key="quickChore.id"
-            :class="getQuicklistChoreClasses(quickChore)"
+            :class="[getQuicklistChoreClasses(quickChore), quickChore.isOptimistic ? 'optimistic-update' : '']"
             :style="getQuicklistChoreStyle(quickChore)"
             @click="selectQuicklistChore(quickChore, $event)"
             @touchend="selectQuicklistChore(quickChore, $event)"
@@ -108,11 +108,10 @@ const ChorePage = Vue.defineComponent({
             <div 
               v-for="chore in choresByPerson.unassigned" 
               :key="chore.id"
-              :class="getChoreClasses(chore)"
+              :class="[getChoreClasses(chore), chore.isOptimistic ? 'optimistic-update' : '', 'relative']"
               :style="getChoreStyle(chore)"
               @click.stop="selectChore(chore, $event)"
               @touchend.stop="selectChore(chore, $event)"
-              class="relative"
             >
               <!-- Delete button (only visible when selected) -->
               <button
@@ -207,10 +206,9 @@ const ChorePage = Vue.defineComponent({
               <div 
                 v-for="chore in choresByPerson[person.name]" 
                 :key="chore.id"
-                :class="getChoreClasses(chore)"
+                :class="[getChoreClasses(chore), chore.isOptimistic ? 'optimistic-update' : '', 'relative']"
                 :style="getChoreStyle(chore)"
                 @click.stop="selectChore(chore, $event)"
-                class="relative"
               >
                 <!-- Delete button (only visible when selected) -->
                 <button
@@ -322,10 +320,10 @@ const ChorePage = Vue.defineComponent({
     },
 
     getQuicklistChoreClasses(quickChore) {
-      const baseClasses = "quicklist-card relative group flex items-center gap-3 sm:gap-2 px-4 py-4 sm:px-3 sm:py-2 rounded-lg shadow-md cursor-pointer transition-all duration-200 touch-target min-h-[68px] sm:min-h-[56px] border";
+      const baseClasses = "quicklist-card relative group flex items-center gap-3 sm:gap-2 px-4 py-4 sm:px-3 sm:py-2 rounded-lg shadow-md cursor-pointer chore-item touch-feedback touch-target min-h-[68px] sm:min-h-[56px] border";
       const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       const hoverClasses = isTouch ? "" : "hover:shadow-lg hover:scale-105";
-      const selectedClasses = this.isChoreSelected(quickChore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10 shadow-xl" : `${hoverClasses} active:scale-95`;
+      const selectedClasses = this.isChoreSelected(quickChore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10 shadow-xl" : `${hoverClasses}`;
       
       return `${baseClasses} ${selectedClasses}`;
     },
@@ -390,12 +388,12 @@ const ChorePage = Vue.defineComponent({
 
     // Regular chore methods
     getChoreClasses(chore) {
-      const baseClasses = "flex items-center gap-3 sm:gap-4 px-3 sm:px-4 min-h-[96px] sm:min-h-[72px] py-4 sm:py-2 justify-between mb-3 sm:mb-2 rounded-lg shadow-md cursor-pointer transition-all duration-200 touch-target";
+      const baseClasses = "flex items-center gap-3 sm:gap-4 px-3 sm:px-4 min-h-[96px] sm:min-h-[72px] py-4 sm:py-2 justify-between mb-3 sm:mb-2 rounded-lg shadow-md cursor-pointer chore-item touch-feedback touch-target";
       const isUnassigned = chore.assignedTo === 'unassigned';
       const categoryClasses = this.getCategoryStyle(chore.category, isUnassigned).background;
       const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       const hoverClasses = isTouch ? "" : "hover:shadow-lg hover:scale-102";
-      const selectedClasses = this.isChoreSelected(chore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10 shadow-xl" : `${hoverClasses} active:scale-95`;
+      const selectedClasses = this.isChoreSelected(chore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10 shadow-xl" : `${hoverClasses}`;
       
       return `${baseClasses} ${categoryClasses} ${selectedClasses}`;
     },

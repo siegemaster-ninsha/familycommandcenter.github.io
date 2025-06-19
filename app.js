@@ -547,40 +547,98 @@ const app = createApp({
     // Chore management methods
     async addChore() {
       if (this.newChore.name.trim() && this.newChore.amount >= 0) {
+        console.log('🚀 Optimistically adding new chore:', this.newChore.name);
+        
+        // Store original state for potential rollback
+        const originalChores = [...this.chores];
+        const originalQuicklistChores = [...this.quicklistChores];
+        const choreData = {
+          name: this.newChore.name.trim(),
+          amount: this.newChore.amount,
+          category: this.newChore.category,
+          assignedTo: 'unassigned',
+          completed: false
+        };
+        
         try {
-          const choreData = {
-            name: this.newChore.name.trim(),
-            amount: this.newChore.amount,
-            category: this.newChore.category,
-            assignedTo: 'unassigned',
-            completed: false
+          // OPTIMISTIC UPDATE: Add chore to UI immediately
+          const tempChore = {
+            id: `temp-chore-${Date.now()}`,
+            ...choreData,
+            isOptimistic: true
           };
+          this.chores.push(tempChore);
           
-          await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
+          // Also add to quicklist optimistically if requested
+          let tempQuicklistChore = null;
+          if (this.newChore.addToQuicklist) {
+            tempQuicklistChore = {
+              id: `temp-quicklist-${Date.now()}`,
+              name: choreData.name,
+              amount: choreData.amount,
+              category: choreData.category,
+              isOptimistic: true
+            };
+            this.quicklistChores.push(tempQuicklistChore);
+          }
+          
+          // Close modal immediately for instant feedback
+          this.cancelAddChore();
+          
+          console.log('✨ Optimistic UI updated - chore added');
+          
+          // Make API call in background
+          const response = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
             method: 'POST',
             body: JSON.stringify(choreData)
           });
           
+          // Update the temporary chore with real data from server
+          const choreIndex = this.chores.findIndex(c => c.id === tempChore.id);
+          if (choreIndex !== -1) {
+            this.chores[choreIndex] = {
+              ...response.chore,
+              isOptimistic: false
+            };
+          }
+          
           // Also add to quicklist if requested
-          if (this.newChore.addToQuicklist) {
+          if (this.newChore.addToQuicklist && tempQuicklistChore) {
             const quicklistData = {
-              name: this.newChore.name.trim(),
-              amount: this.newChore.amount,
-              category: this.newChore.category
+              name: choreData.name,
+              amount: choreData.amount,
+              category: choreData.category
             };
             
-            await this.apiCall(CONFIG.API.ENDPOINTS.QUICKLIST, {
+            const quicklistResponse = await this.apiCall(CONFIG.API.ENDPOINTS.QUICKLIST, {
               method: 'POST',
               body: JSON.stringify(quicklistData)
             });
             
-            await this.loadQuicklistChores();
+            // Update the temporary quicklist chore with real data
+            const quicklistIndex = this.quicklistChores.findIndex(c => c.id === tempQuicklistChore.id);
+            if (quicklistIndex !== -1) {
+              this.quicklistChores[quicklistIndex] = {
+                ...quicklistResponse.quicklistChore,
+                isOptimistic: false
+              };
+            }
           }
           
-          await this.loadChores();
-          this.cancelAddChore();
+          console.log('✅ Server confirmed chore creation');
+          
         } catch (error) {
-          console.error('Failed to add chore:', error);
+          console.error('❌ Chore creation failed, rolling back optimistic update:', error);
+          
+          // ROLLBACK: Restore original state
+          this.chores = originalChores;
+          this.quicklistChores = originalQuicklistChores;
+          
+          // Reopen modal with original data
+          this.showAddChoreModal = true;
+          
+          // Show error message
+          this.showSuccessMessage(`❌ Failed to add "${choreData.name}". Please try again.`);
         }
       }
     },
@@ -592,22 +650,58 @@ const app = createApp({
     
     async addToQuicklist() {
       if (this.newQuicklistChore.name.trim() && this.newQuicklistChore.amount >= 0) {
+        console.log('🚀 Optimistically adding to quicklist:', this.newQuicklistChore.name);
+        
+        // Store original state for potential rollback
+        const originalQuicklistChores = [...this.quicklistChores];
+        const quicklistData = {
+          name: this.newQuicklistChore.name.trim(),
+          amount: this.newQuicklistChore.amount,
+          category: this.newQuicklistChore.category
+        };
+        
         try {
-          const quicklistData = {
-            name: this.newQuicklistChore.name.trim(),
-            amount: this.newQuicklistChore.amount,
-            category: this.newQuicklistChore.category
+          // OPTIMISTIC UPDATE: Add to quicklist immediately
+          const tempQuicklistChore = {
+            id: `temp-quicklist-${Date.now()}`,
+            ...quicklistData,
+            isOptimistic: true
           };
+          this.quicklistChores.push(tempQuicklistChore);
           
-          await this.apiCall(CONFIG.API.ENDPOINTS.QUICKLIST, {
+          // Close modal immediately for instant feedback
+          this.cancelAddToQuicklist();
+          
+          console.log('✨ Optimistic UI updated - quicklist item added');
+          
+          // Make API call in background
+          const response = await this.apiCall(CONFIG.API.ENDPOINTS.QUICKLIST, {
             method: 'POST',
             body: JSON.stringify(quicklistData)
           });
           
-          await this.loadQuicklistChores();
-          this.cancelAddToQuicklist();
+          // Update the temporary quicklist chore with real data from server
+          const quicklistIndex = this.quicklistChores.findIndex(c => c.id === tempQuicklistChore.id);
+          if (quicklistIndex !== -1) {
+            this.quicklistChores[quicklistIndex] = {
+              ...response.quicklistChore,
+              isOptimistic: false
+            };
+          }
+          
+          console.log('✅ Server confirmed quicklist creation');
+          
         } catch (error) {
-          console.error('Failed to add to quicklist:', error);
+          console.error('❌ Quicklist creation failed, rolling back optimistic update:', error);
+          
+          // ROLLBACK: Restore original state
+          this.quicklistChores = originalQuicklistChores;
+          
+          // Reopen modal with original data
+          this.showAddToQuicklistModal = true;
+          
+          // Show error message
+          this.showSuccessMessage(`❌ Failed to add "${quicklistData.name}" to quicklist. Please try again.`);
         }
       }
     },
@@ -887,33 +981,84 @@ const app = createApp({
     },
     
     async handleChoreCompletion(chore) {
+      console.log('🚀 Optimistically handling chore completion for:', chore.name, 'Current state:', chore.completed);
+      
+      // Store original state for potential rollback
+      const originalCompleted = chore.completed;
+      const originalEarnings = this.people.map(p => ({ name: p.name, earnings: p.earnings, completedChores: p.completedChores }));
+      
       try {
+        // OPTIMISTIC UPDATE: Update earnings and completed chores count immediately if assigned
+        if (chore.assignedTo && chore.assignedTo !== 'unassigned') {
+          const person = this.people.find(p => p.name === chore.assignedTo);
+          if (person) {
+            if (chore.completed) {
+              // Chore was completed - add earnings and increment count
+              person.earnings += chore.amount || 0;
+              person.completedChores = (person.completedChores || 0) + 1;
+            } else {
+              // Chore was uncompleted - subtract earnings and decrement count
+              person.earnings = Math.max(0, person.earnings - (chore.amount || 0));
+              person.completedChores = Math.max(0, (person.completedChores || 0) - 1);
+            }
+          }
+        }
+        
+        console.log('✨ Optimistic UI updated - earnings and completed count');
+        
+        // Show success message and trigger confetti immediately for completed chores
+        if (chore.completed) {
+          this.triggerConfetti();
+          this.showSuccessMessageFlag = true;
+          this.completedChoreMessage = `🎉 Great job! "${chore.name}" completed!`;
+          
+          setTimeout(() => {
+            this.showSuccessMessageFlag = false;
+          }, CONFIG.APP.SUCCESS_MESSAGE_DURATION);
+        } else {
+          // Clear any success message for uncompleted chores
+          this.showSuccessMessageFlag = false;
+          this.completedChoreMessage = '';
+        }
+        
+        // Make API call in background
         await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/complete`, {
           method: 'PUT',
           body: JSON.stringify({ completed: chore.completed })
         });
         
-        if (chore.completed) {
-          this.triggerConfetti();
-          this.showSuccessMessageFlag = true;
-          this.completedChoreMessage = `${chore.name} completed!`;
-          
-          setTimeout(() => {
-            this.showSuccessMessageFlag = false;
-          }, 3000);
-        } else {
-          // Also handle unchecking - clear any success message
-          this.showSuccessMessageFlag = false;
-          this.completedChoreMessage = '';
-        }
+        console.log('✅ Server confirmed chore completion');
         
-        await this.loadEarnings();
-        await this.loadElectronicsStatus();
-        await this.loadFamilyMembers();
+        // Refresh data in background (non-blocking) to ensure consistency
+        Promise.all([
+          this.loadEarnings(),
+          this.loadElectronicsStatus(),
+          this.loadFamilyMembers()
+        ]).catch(error => {
+          console.warn('Background data refresh failed:', error);
+        });
+        
       } catch (error) {
-        console.error('Failed to update chore completion:', error);
-        // Revert the checkbox if API call failed
-        chore.completed = !chore.completed;
+        console.error('❌ Chore completion failed, rolling back optimistic update:', error);
+        
+        // ROLLBACK: Restore original state
+        chore.completed = originalCompleted;
+        
+        // Restore original earnings
+        originalEarnings.forEach(original => {
+          const person = this.people.find(p => p.name === original.name);
+          if (person) {
+            person.earnings = original.earnings;
+            person.completedChores = original.completedChores;
+          }
+        });
+        
+        // Clear any success messages
+        this.showSuccessMessageFlag = false;
+        this.completedChoreMessage = '';
+        
+        // Show error message
+        this.showSuccessMessage(`❌ Failed to update "${chore.name}". Please try again.`);
       }
     },
     
@@ -962,7 +1107,7 @@ const app = createApp({
       }, 4500);
     },
 
-    // Add method for click-to-assign functionality
+    // Add method for click-to-assign functionality with optimistic updates
     async assignSelectedChore(assignTo) {
       if (!this.selectedChore) {
         console.warn('No chore selected for assignment');
@@ -974,15 +1119,39 @@ const app = createApp({
         return;
       }
       
+      console.log('🚀 Optimistically assigning chore:', this.selectedChore.name, 'to:', assignTo);
+      
+      // Store original state for potential rollback
+      const originalChores = [...this.chores];
+      const selectedChore = { ...this.selectedChore };
+      
       try {
-        console.log('Assigning chore:', this.selectedChore.name, 'to:', assignTo);
-        
         if (this.selectedChore.isNewFromQuicklist) {
-          // This is a new chore from quicklist
-          const choreData = {
+          // OPTIMISTIC UPDATE: Add new chore immediately to UI
+          const newChore = {
+            id: `temp-${Date.now()}`, // Temporary ID
             name: this.selectedChore.name,
             amount: this.selectedChore.amount || 0,
             category: this.selectedChore.category || 'regular',
+            assignedTo: assignTo,
+            completed: false,
+            isOptimistic: true // Flag to identify optimistic updates
+          };
+          
+          // Add to chores array immediately for instant UI update
+          this.chores.push(newChore);
+          
+          // Clear selection immediately for instant feedback
+          this.selectedChoreId = null;
+          this.selectedQuicklistChore = null;
+          
+          console.log('✨ Optimistic UI updated - new chore added');
+          
+          // Now make API call in background
+          const choreData = {
+            name: newChore.name,
+            amount: newChore.amount,
+            category: newChore.category,
             assignedTo: assignTo,
             completed: false
           };
@@ -992,36 +1161,71 @@ const app = createApp({
             body: JSON.stringify(choreData)
           });
           
-          console.log('Created new chore from quicklist:', response);
-        } else {
-          // This is an existing chore being moved
-          if (!this.selectedChore.id) {
-            console.error('Selected chore missing ID:', this.selectedChore);
-            return;
+          // Update the temporary chore with real data from server
+          const choreIndex = this.chores.findIndex(c => c.id === newChore.id);
+          if (choreIndex !== -1) {
+            this.chores[choreIndex] = {
+              ...response.chore,
+              isOptimistic: false
+            };
           }
           
-          const response = await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.selectedChore.id}/assign`, {
+          console.log('✅ Server confirmed new chore creation');
+          
+        } else {
+          // OPTIMISTIC UPDATE: Move existing chore immediately
+          const choreIndex = this.chores.findIndex(c => c.id === this.selectedChore.id);
+          if (choreIndex !== -1) {
+            // Update assignment immediately for instant UI feedback
+            this.chores[choreIndex] = {
+              ...this.chores[choreIndex],
+              assignedTo: assignTo,
+              isOptimistic: true
+            };
+          }
+          
+          // Clear selection immediately for instant feedback
+          this.selectedChoreId = null;
+          this.selectedQuicklistChore = null;
+          
+          console.log('✨ Optimistic UI updated - chore moved');
+          
+          // Now make API call in background
+          const response = await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${selectedChore.id}/assign`, {
             method: 'PUT',
             body: JSON.stringify({ assignedTo: assignTo })
           });
           
-          console.log('Updated chore assignment:', response);
+          // Update with server response
+          if (choreIndex !== -1) {
+            this.chores[choreIndex] = {
+              ...response.chore,
+              isOptimistic: false
+            };
+          }
+          
+          console.log('✅ Server confirmed chore assignment');
         }
         
-        // Reload data to get updated state
-        await this.loadChores();
-        await this.loadEarnings();
-        await this.loadElectronicsStatus();
+        // Reload earnings and electronics status in background (non-blocking)
+        Promise.all([
+          this.loadEarnings(),
+          this.loadElectronicsStatus(),
+          this.loadFamilyMembers()
+        ]).catch(error => {
+          console.warn('Background data refresh failed:', error);
+        });
         
-        // Clear selection
-        this.selectedChoreId = null;
-        this.selectedQuicklistChore = null;
-        
-        console.log('Chore assignment completed successfully');
       } catch (error) {
-        console.error('Failed to assign chore:', error);
+        console.error('❌ Assignment failed, rolling back optimistic update:', error);
+        
+        // ROLLBACK: Restore original state
+        this.chores = originalChores;
+        this.selectedChoreId = selectedChore.isNewFromQuicklist ? null : selectedChore.id;
+        this.selectedQuicklistChore = selectedChore.isNewFromQuicklist ? selectedChore : null;
+        
         // Show user-friendly error message
-        alert('Failed to assign chore. Please try again.');
+        this.showSuccessMessage(`❌ Failed to assign "${selectedChore.name}". Please try again.`);
       }
     },
 
