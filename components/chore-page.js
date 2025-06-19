@@ -451,15 +451,13 @@ const ChorePage = Vue.defineComponent({
 
     async deleteSelectedChore() {
       if (this.selectedChore && !this.selectedChore.isNewFromQuicklist) {
-        this.$parent.choreToDelete = this.selectedChore;
-        this.$parent.showDeleteModal = true;
+        await this.$parent.deleteChore(this.selectedChore);
       }
     },
 
     async deleteChore(chore) {
       if (chore && !chore.isNewFromQuicklist) {
-        this.$parent.choreToDelete = chore;
-        this.$parent.showDeleteModal = true;
+        await this.$parent.deleteChore(chore);
       }
     },
 

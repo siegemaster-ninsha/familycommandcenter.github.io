@@ -1,37 +1,6 @@
 // App Modals Component
 const AppModals = Vue.defineComponent({
   template: `
-    <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="bg-red-100 p-2 rounded-full">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-red-600" viewBox="0 0 256 256">
-              <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
-            </svg>
-          </div>
-          <h3 class="text-lg font-bold text-primary-custom">Delete Chore</h3>
-        </div>
-        <p class="text-secondary-custom mb-6">
-          Are you sure you want to delete "<span class="font-medium text-primary-custom">{{ choreToDelete?.name }}</span>"? This action cannot be undone.
-        </p>
-        <div class="flex gap-3">
-          <button 
-            @click="confirmDelete"
-            class="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors"
-          >
-            Delete
-          </button>
-          <button 
-            @click="cancelDelete"
-            class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- Add to Quicklist Modal -->
     <div v-if="showAddToQuicklistModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
@@ -513,7 +482,7 @@ const AppModals = Vue.defineComponent({
     </div>
   `,
   inject: [
-    'showDeleteModal', 'choreToDelete', 'showAddToQuicklistModal', 'newQuicklistChore',
+    'showAddToQuicklistModal', 'newQuicklistChore',
     'showAddPersonModal', 'newPerson', 'showDeletePersonModal', 'personToDelete',
     'showAddChoreModal', 'newChore', 'showNewDayModal',
     // Spending modal props
@@ -522,7 +491,7 @@ const AppModals = Vue.defineComponent({
     'showLoginModal', 'showSignupModal', 'showConfirmModal', 'authForm', 'authError', 'authLoading',
     'addChore', 'cancelAddChore', 'addPerson', 'cancelAddPerson',
     'addToQuicklist', 'cancelAddToQuicklist', 'startNewDay', 'cancelNewDay',
-    'confirmDelete', 'cancelDelete', 'executeDeletePerson', 'cancelDeletePerson',
+    'executeDeletePerson', 'cancelDeletePerson',
     // Spending modal methods
     'closeSpendingModal', 'addDigit', 'addDecimal', 'clearSpendAmount', 'confirmSpending',
     // Authentication methods

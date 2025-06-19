@@ -50,8 +50,6 @@ const app = createApp({
       chores: [],
       selectedChoreId: null, // Changed from selectedChore to selectedChoreId
       selectedQuicklistChore: null, // For quicklist selections
-      choreToDelete: null,
-      showDeleteModal: false,
       showConfetti: false,
       confettiPieces: [],
       showSuccessMessageFlag: false,
@@ -959,25 +957,80 @@ const app = createApp({
     
 
     
-    async confirmDelete() {
-      try {
-        await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.choreToDelete.id}`, {
-          method: 'DELETE'
-        });
-        await this.loadChores();
-        await this.loadEarnings();
-        await this.loadElectronicsStatus();
-      } catch (error) {
-        console.error('Failed to delete chore:', error);
+    // Instant delete with optimistic updates
+    async deleteChore(chore) {
+      if (!chore || !chore.id) {
+        console.warn('Invalid chore for deletion');
+        return;
       }
       
-      this.choreToDelete = null;
-      this.showDeleteModal = false;
-    },
-    
-    cancelDelete() {
-      this.choreToDelete = null;
-      this.showDeleteModal = false;
+      console.log('🚀 Optimistically deleting chore:', chore.name);
+      
+      // Store original state for potential rollback
+      const originalChores = [...this.chores];
+      const originalEarnings = this.people.map(p => ({ name: p.name, earnings: p.earnings, completedChores: p.completedChores }));
+      
+      try {
+        // OPTIMISTIC UPDATE: Remove chore immediately from UI
+        const choreIndex = this.chores.findIndex(c => c.id === chore.id);
+        if (choreIndex !== -1) {
+          this.chores.splice(choreIndex, 1);
+        }
+        
+        // If chore was completed and assigned, update earnings optimistically
+        if (chore.completed && chore.assignedTo && chore.assignedTo !== 'unassigned') {
+          const person = this.people.find(p => p.name === chore.assignedTo);
+          if (person) {
+            person.earnings = Math.max(0, person.earnings - (chore.amount || 0));
+            person.completedChores = Math.max(0, (person.completedChores || 0) - 1);
+          }
+        }
+        
+        // Clear selection if deleted chore was selected
+        if (this.selectedChoreId === chore.id) {
+          this.selectedChoreId = null;
+          this.selectedQuicklistChore = null;
+        }
+        
+        console.log('✨ Optimistic UI updated - chore deleted');
+        
+        // Make API call in background
+        await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}`, {
+          method: 'DELETE'
+        });
+        
+        console.log('✅ Server confirmed chore deletion');
+        
+        // Show success message
+        this.showSuccessMessage(`🗑️ "${chore.name}" deleted successfully`);
+        
+        // Refresh data in background (non-blocking) to ensure consistency
+        Promise.all([
+          this.loadEarnings(),
+          this.loadElectronicsStatus(),
+          this.loadFamilyMembers()
+        ]).catch(error => {
+          console.warn('Background data refresh failed:', error);
+        });
+        
+      } catch (error) {
+        console.error('❌ Chore deletion failed, rolling back optimistic update:', error);
+        
+        // ROLLBACK: Restore original state
+        this.chores = originalChores;
+        
+        // Restore original earnings
+        originalEarnings.forEach(original => {
+          const person = this.people.find(p => p.name === original.name);
+          if (person) {
+            person.earnings = original.earnings;
+            person.completedChores = original.completedChores;
+          }
+        });
+        
+        // Show error message
+        this.showSuccessMessage(`❌ Failed to delete "${chore.name}". Please try again.`);
+      }
     },
     
     async handleChoreCompletion(chore) {
@@ -1423,7 +1476,6 @@ const app = createApp({
       quicklistChores: Vue.computed(() => this.quicklistChores || []),
       choresByPerson: Vue.computed(() => this.choresByPerson || {}),
       people: Vue.computed(() => this.people || []),
-      choreToDelete: Vue.computed(() => this.choreToDelete),
       personToDelete: Vue.computed(() => this.personToDelete),
       
       // Preloaded shopping page data
@@ -1439,7 +1491,6 @@ const app = createApp({
       showAddToQuicklistModal: Vue.computed(() => this.showAddToQuicklistModal),
       showAddChoreModal: Vue.computed(() => this.showAddChoreModal),
       showAddPersonModal: Vue.computed(() => this.showAddPersonModal),
-      showDeleteModal: Vue.computed(() => this.showDeleteModal),
       showDeletePersonModal: Vue.computed(() => this.showDeletePersonModal),
       showNewDayModal: Vue.computed(() => this.showNewDayModal),
       showSpendingModal: Vue.computed(() => this.showSpendingModal),
@@ -1475,8 +1526,7 @@ const app = createApp({
       cancelAddToQuicklist: this.cancelAddToQuicklist,
       startNewDay: this.startNewDay,
       cancelNewDay: this.cancelNewDay,
-      confirmDelete: this.confirmDelete,
-      cancelDelete: this.cancelDelete,
+      deleteChore: this.deleteChore,
       deletePerson: this.deletePerson,
       executeDeletePerson: this.executeDeletePerson,
       cancelDeletePerson: this.cancelDeletePerson,
