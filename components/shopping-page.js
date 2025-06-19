@@ -521,10 +521,8 @@ const ShoppingPage = Vue.defineComponent({
   `,
   data() {
     return {
-      shoppingItems: [],
-      quickItems: [],
-      stores: [],
-      loading: false,
+      // Note: shoppingItems, quickItems, and stores are now provided by parent (preloaded)
+      localLoading: false,
       quickLoading: false,
       storeLoading: false,
       actionLoading: false,
@@ -578,81 +576,53 @@ const ShoppingPage = Vue.defineComponent({
         grouped[storeName].push(item);
       });
       return grouped;
+    },
+    
+    // Use injected data with fallback names for template compatibility
+    quickItems() {
+      return this.shoppingQuickItems;
     }
   },
+  inject: [
+    // Preloaded data from parent
+    'shoppingItems',
+    'shoppingQuickItems', 
+    'stores'
+  ],
   async mounted() {
-    // Check if user is authenticated before loading data
-    if (!authService.isAuthenticated()) {
-      console.log('🔒 User not authenticated, skipping shopping data load');
-      this.loading = false;
-      this.quickLoading = false;
-      return;
-    }
-    
-    await this.loadShoppingItems();
-    await this.loadQuickItems();
-    await this.loadStores();
+    // Data is now preloaded by parent component - no need to load on mount!
+    console.log('🛒 Shopping page mounted with preloaded data:');
+    console.log('  - Shopping items:', this.shoppingItems.length);
+    console.log('  - Quick items:', this.shoppingQuickItems.length);
+    console.log('  - Stores:', this.stores.length);
   },
   methods: {
     // === API Methods ===
-    async loadShoppingItems() {
-      this.loading = true;
+    // Data reloading methods (now trigger parent to reload)
+    async reloadShoppingItems() {
+      this.localLoading = true;
       this.error = null;
       
       try {
-        const authHeader = authService.getAuthHeader();
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-        
-        if (authHeader) {
-          headers.Authorization = authHeader;
-        }
-        
-        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS), {
-          headers
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        this.shoppingItems = data.items || [];
+        // Reload data in parent component
+        await this.$parent.loadShoppingItems();
       } catch (error) {
-        console.error('Error loading shopping items:', error);
+        console.error('Error reloading shopping items:', error);
         this.error = error.message;
       } finally {
-        this.loading = false;
+        this.localLoading = false;
       }
     },
 
-    async loadQuickItems() {
+    async reloadQuickItems() {
       this.quickLoading = true;
       this.quickError = null;
       
       try {
-        const authHeader = authService.getAuthHeader();
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-        
-        if (authHeader) {
-          headers.Authorization = authHeader;
-        }
-        
-        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS), {
-          headers
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        this.quickItems = data.items || [];
+        // Reload data in parent component
+        await this.$parent.loadShoppingQuickItems();
       } catch (error) {
-        console.error('Error loading quick items:', error);
+        console.error('Error reloading quick items:', error);
         this.quickError = error.message;
       } finally {
         this.quickLoading = false;
@@ -683,7 +653,8 @@ const ShoppingPage = Vue.defineComponent({
         }
         
         const data = await response.json();
-        this.shoppingItems.push(data.item);
+        // Reload shopping items to get updated data
+        await this.$parent.loadShoppingItems();
         
         // Reset form and close modal
         this.newItem = { name: '', category: 'General', quantity: '', notes: '', store: '' };
@@ -718,10 +689,8 @@ const ShoppingPage = Vue.defineComponent({
         }
         
         const data = await response.json();
-        const index = this.shoppingItems.findIndex(item => item.id === itemId);
-        if (index !== -1) {
-          this.shoppingItems[index] = data.item;
-        }
+        // Reload shopping items to get updated data
+        await this.$parent.loadShoppingItems();
       } catch (error) {
         console.error('Error toggling item:', error);
         alert('Error updating item: ' + error.message);
@@ -748,7 +717,8 @@ const ShoppingPage = Vue.defineComponent({
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        this.shoppingItems = this.shoppingItems.filter(item => item.id !== itemId);
+        // Reload shopping items to get updated data
+        await this.$parent.loadShoppingItems();
         this.showSuccessMessage('Item removed successfully!');
       } catch (error) {
         console.error('Error removing item:', error);
@@ -779,7 +749,7 @@ const ShoppingPage = Vue.defineComponent({
         }
         
         const data = await response.json();
-        await this.loadShoppingItems(); // Reload the list
+        await this.$parent.loadShoppingItems(); // Reload the list
         this.showSuccessMessage(`${data.clearedCount} completed items cleared!`);
       } catch (error) {
         console.error('Error clearing completed items:', error);
@@ -812,7 +782,7 @@ const ShoppingPage = Vue.defineComponent({
         }
         
         const data = await response.json();
-        await this.loadShoppingItems(); // Reload the list
+        await this.$parent.loadShoppingItems(); // Reload the list
         this.showSuccessMessage(`${data.updatedCount} items marked as complete!`);
       } catch (error) {
         console.error('Error marking all items complete:', error);
@@ -849,7 +819,7 @@ const ShoppingPage = Vue.defineComponent({
         }
         
         const data = await response.json();
-        this.shoppingItems = [];
+        await this.$parent.loadShoppingItems(); // Reload the list
         this.showSuccessMessage(`${data.clearedCount} items cleared!`);
       } catch (error) {
         console.error('Error clearing all items:', error);
@@ -884,7 +854,7 @@ const ShoppingPage = Vue.defineComponent({
         }
         
         const data = await response.json();
-        this.quickItems.push(data.item);
+        await this.$parent.loadShoppingQuickItems(); // Reload quick items
         
         // Reset form and close modal
         this.newQuickItem = { name: '', category: 'General', defaultQuantity: '', defaultNotes: '', defaultStore: '' };
@@ -921,7 +891,7 @@ const ShoppingPage = Vue.defineComponent({
         }
         
         const data = await response.json();
-        this.shoppingItems.push(data.item);
+        await this.$parent.loadShoppingItems(); // Reload shopping items
         this.showSuccessMessage('Item added to shopping list!');
       } catch (error) {
         console.error('Error adding quick item to list:', error);
@@ -955,7 +925,7 @@ const ShoppingPage = Vue.defineComponent({
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        this.quickItems = this.quickItems.filter(item => item.id !== quickItemId);
+        await this.$parent.loadShoppingQuickItems(); // Reload quick items
         this.showSuccessMessage('Quick item removed successfully!');
       } catch (error) {
         console.error('Error removing quick item:', error);
@@ -986,7 +956,7 @@ const ShoppingPage = Vue.defineComponent({
         }
         
         const data = await response.json();
-        this.quickItems = data.items || [];
+        await this.$parent.loadShoppingQuickItems(); // Reload quick items
         // this.showSuccessMessage('Default quick items loaded!');
       } catch (error) {
         console.error('Error initializing quick items:', error);
@@ -997,36 +967,6 @@ const ShoppingPage = Vue.defineComponent({
     },
 
     // === Store Management Methods ===
-    async loadStores() {
-      this.storeLoading = true;
-      
-      try {
-        const authHeader = authService.getAuthHeader();
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-        
-        if (authHeader) {
-          headers.Authorization = authHeader;
-        }
-        
-        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.STORES), {
-          headers
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        this.stores = data.stores || [];
-      } catch (error) {
-        console.error('Error loading stores:', error);
-        // Don't show error for stores as it's not critical
-      } finally {
-        this.storeLoading = false;
-      }
-    },
 
     async addStore() {
       this.storeLoading = true;
@@ -1052,7 +992,7 @@ const ShoppingPage = Vue.defineComponent({
         }
         
         const data = await response.json();
-        this.stores.push(data.store);
+        await this.$parent.loadStores(); // Reload stores
         
         // Reset form and close modal
         this.newStore = { name: '' };
@@ -1090,7 +1030,7 @@ const ShoppingPage = Vue.defineComponent({
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        this.stores = this.stores.filter(store => store.id !== storeId);
+        await this.$parent.loadStores(); // Reload stores
         this.showSuccessMessage('Store removed successfully!');
       } catch (error) {
         console.error('Error removing store:', error);

@@ -308,52 +308,52 @@ const AccountPage = Vue.defineComponent({
       availableThemes: Object.values(CONFIG.THEMES)
     };
   },
+  inject: [
+    // Preloaded data from parent
+    'accountSettings',
+    'accountId',
+    'currentUser'
+  ],
   async mounted() {
-    await this.loadAccountSettings();
+    // Data is now preloaded by parent component
+    console.log('⚙️ Account page mounted with preloaded data');
     this.loadUserProfile();
     this.loadCurrentTheme();
     this.loadPreferences();
+    
+    // Sync preloaded account settings to local state
+    if (this.accountSettings) {
+      this.syncAccountSettings();
+    }
   },
   methods: {
-    async loadAccountSettings() {
-      try {
-        const authHeader = authService.getAuthHeader();
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-        
-        if (authHeader) {
-          headers.Authorization = authHeader;
-        }
-        
-        const response = await fetch(`${CONFIG.API.BASE_URL}/account-settings`, {
-          headers
-        });
+    syncAccountSettings() {
+      // Sync preloaded account settings to local state
+      if (this.accountSettings.theme) {
+        this.currentTheme = this.accountSettings.theme;
+        this.selectedTheme = this.accountSettings.theme;
+      }
+      
+      if (this.accountSettings.preferences) {
+        this.preferences = { ...this.preferences, ...this.accountSettings.preferences };
+      }
+      
+      if (this.accountSettings.profile) {
+        this.profileForm.familyName = this.accountSettings.profile.familyName || '';
+      }
+      
+      console.log('✅ Account settings synced from preloaded data');
+    },
 
-        if (response.ok) {
-          this.accountSettings = await response.json();
-          this.accountId = this.accountSettings.accountId;
-          
-          // Load settings into local state
-          if (this.accountSettings.theme) {
-            this.currentTheme = this.accountSettings.theme;
-            this.selectedTheme = this.accountSettings.theme;
-          }
-          
-          if (this.accountSettings.preferences) {
-            this.preferences = { ...this.preferences, ...this.accountSettings.preferences };
-          }
-          
-          if (this.accountSettings.profile) {
-            this.profileForm.familyName = this.accountSettings.profile.familyName || '';
-          }
-          
-          console.log('✅ Account settings loaded:', this.accountSettings);
-        } else {
-          console.log('No account settings found, using defaults');
+    async reloadAccountSettings() {
+      // Trigger parent to reload account settings
+      try {
+        await this.$parent.loadAccountSettings();
+        if (this.accountSettings) {
+          this.syncAccountSettings();
         }
       } catch (error) {
-        console.error('Error loading account settings:', error);
+        console.error('Error reloading account settings:', error);
         // Fall back to localStorage
         this.loadCurrentTheme();
         this.loadPreferences();
@@ -407,7 +407,7 @@ const AccountPage = Vue.defineComponent({
           });
 
           if (response.ok) {
-            this.accountSettings = await response.json();
+            await this.$parent.loadAccountSettings(); // Reload account settings
             this.showSuccessMessage('Profile updated successfully!');
           } else {
             throw new Error('Failed to update profile');
@@ -430,8 +430,7 @@ const AccountPage = Vue.defineComponent({
           });
 
           if (response.ok) {
-            this.accountSettings = await response.json();
-            this.accountId = this.accountSettings.accountId;
+            await this.$parent.loadAccountSettings(); // Reload account settings
             // Try updating again
             await this.updateProfile();
             return;
@@ -500,7 +499,7 @@ const AccountPage = Vue.defineComponent({
             });
 
             if (response.ok) {
-              this.accountSettings = await response.json();
+              await this.$parent.loadAccountSettings(); // Reload account settings
               console.log('✅ Profile saved to backend');
             } else {
               console.warn('Failed to save profile to backend, using localStorage');
@@ -547,7 +546,7 @@ const AccountPage = Vue.defineComponent({
             });
 
             if (response.ok) {
-              this.accountSettings = await response.json();
+              await this.$parent.loadAccountSettings(); // Reload account settings
               console.log('✅ Preferences saved to backend');
             } else {
               console.warn('Failed to save preferences to backend, using localStorage');
@@ -602,7 +601,7 @@ const AccountPage = Vue.defineComponent({
             });
 
             if (response.ok) {
-              this.accountSettings = await response.json();
+              await this.$parent.loadAccountSettings(); // Reload account settings
               console.log('✅ Theme saved to backend');
               // Also save to localStorage for immediate future loads
               localStorage.setItem('selectedTheme', themeId);
@@ -655,7 +654,7 @@ const AccountPage = Vue.defineComponent({
             });
 
             if (response.ok) {
-              this.accountSettings = await response.json();
+              await this.$parent.loadAccountSettings(); // Reload account settings
               console.log('✅ Preferences saved to backend');
             } else {
               console.warn('Failed to save preferences to backend, using localStorage');

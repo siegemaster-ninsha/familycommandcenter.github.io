@@ -57,6 +57,16 @@ const app = createApp({
       showSuccessMessageFlag: false,
       completedChoreMessage: '',
       quicklistChores: [],
+      
+      // Shopping page data (preloaded for instant page switching)
+      shoppingItems: [],
+      shoppingQuickItems: [],
+      stores: [],
+      
+      // Account page data (preloaded for instant page switching)
+      accountSettings: null,
+      accountId: null,
+      
       loading: true,
       error: null
     }
@@ -208,7 +218,7 @@ const app = createApp({
       try {
         this.loading = true;
         this.error = null;
-        console.log('🔄 Starting to load data...');
+        console.log('🔄 Starting to load all application data...');
         console.log('🌐 API Base URL:', CONFIG.API.BASE_URL);
         
         // check authentication first
@@ -218,14 +228,24 @@ const app = createApp({
           return;
         }
         
+        // Load all data for all pages in parallel for instant page switching
         await Promise.all([
+          // Core chore page data
           this.loadChores(),
           this.loadEarnings(),
           this.loadElectronicsStatus(),
           this.loadQuicklistChores(),
-          this.loadFamilyMembers() // Add this to load family members from backend
+          this.loadFamilyMembers(),
+          
+          // Shopping page data
+          this.loadShoppingItems(),
+          this.loadShoppingQuickItems(),
+          this.loadStores(),
+          
+          // Account page data
+          this.loadAccountSettings()
         ]);
-        console.log('✅ All data loaded successfully');
+        console.log('✅ All application data loaded successfully');
       } catch (error) {
         console.error('❌ Failed to load data:', error);
         this.error = `Failed to load data: ${error.message}. Please check your connection and API configuration.`;
@@ -334,6 +354,58 @@ const app = createApp({
         const localTheme = localStorage.getItem('selectedTheme') || 'default';
         console.log('🎨 Using fallback theme from localStorage:', localTheme);
         ThemeManager.applyTheme(localTheme);
+      }
+    },
+
+    // Shopping page data loading methods
+    async loadShoppingItems() {
+      try {
+        console.log('🛒 Loading shopping items...');
+        const response = await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS);
+        this.shoppingItems = response.items || [];
+        console.log('✅ Shopping items loaded:', this.shoppingItems.length);
+      } catch (error) {
+        console.error('Failed to load shopping items:', error);
+        this.shoppingItems = [];
+      }
+    },
+
+    async loadShoppingQuickItems() {
+      try {
+        console.log('🛒 Loading shopping quick items...');
+        const response = await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS);
+        this.shoppingQuickItems = response.items || [];
+        console.log('✅ Shopping quick items loaded:', this.shoppingQuickItems.length);
+      } catch (error) {
+        console.error('Failed to load shopping quick items:', error);
+        this.shoppingQuickItems = [];
+      }
+    },
+
+    async loadStores() {
+      try {
+        console.log('🏪 Loading stores...');
+        const response = await this.apiCall(CONFIG.API.ENDPOINTS.STORES);
+        this.stores = response.stores || [];
+        console.log('✅ Stores loaded:', this.stores.length);
+      } catch (error) {
+        console.error('Failed to load stores:', error);
+        this.stores = [];
+      }
+    },
+
+    // Account page data loading methods
+    async loadAccountSettings() {
+      try {
+        console.log('⚙️ Loading account settings...');
+        const response = await this.apiCall(CONFIG.API.ENDPOINTS.ACCOUNT_SETTINGS);
+        this.accountSettings = response;
+        this.accountId = response?.accountId || null;
+        console.log('✅ Account settings loaded:', this.accountSettings);
+      } catch (error) {
+        console.error('Failed to load account settings:', error);
+        this.accountSettings = null;
+        this.accountId = null;
       }
     },
     
@@ -564,13 +636,7 @@ const app = createApp({
         await this.loadAllData();
         
         // Show success message
-        this.showSuccessMessageFlag = true;
-        this.completedChoreMessage = `🌅 New day started! ${response.choresCleared} chores cleared, earnings preserved.`;
-        
-        // Hide success message after delay
-        setTimeout(() => {
-          this.showSuccessMessageFlag = false;
-        }, CONFIG.APP.SUCCESS_MESSAGE_DURATION);
+        this.showSuccessMessage(`🌅 New day started! ${response.createdChores || 0} chores created, earnings preserved.`);
         
         this.showNewDayModal = false;
       } catch (error) {
@@ -1156,6 +1222,15 @@ const app = createApp({
       choreToDelete: Vue.computed(() => this.choreToDelete),
       personToDelete: Vue.computed(() => this.personToDelete),
       
+      // Preloaded shopping page data
+      shoppingItems: Vue.computed(() => this.shoppingItems || []),
+      shoppingQuickItems: Vue.computed(() => this.shoppingQuickItems || []),
+      stores: Vue.computed(() => this.stores || []),
+      
+      // Preloaded account page data
+      accountSettings: Vue.computed(() => this.accountSettings),
+      accountId: Vue.computed(() => this.accountId),
+      
       // Modal state computed values (readonly)
       showAddToQuicklistModal: Vue.computed(() => this.showAddToQuicklistModal),
       showAddChoreModal: Vue.computed(() => this.showAddChoreModal),
@@ -1204,6 +1279,12 @@ const app = createApp({
       triggerConfetti: this.triggerConfetti,
       loadEarnings: this.loadEarnings,
       showSuccessMessage: this.showSuccessMessage,
+      
+      // Data reload methods for child components
+      loadShoppingItems: this.loadShoppingItems,
+      loadShoppingQuickItems: this.loadShoppingQuickItems,
+      loadStores: this.loadStores,
+      loadAccountSettings: this.loadAccountSettings,
       
       // Spending modal methods
       openSpendingModal: this.openSpendingModal,
