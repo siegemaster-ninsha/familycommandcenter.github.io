@@ -533,7 +533,7 @@ const app = createApp({
       this.showDeletePersonModal = true;
     },
     
-    async deletePerson() {
+    async performDeletePerson() {
       if (this.personToDelete) {
         try {
           console.log(`🗑️ Deleting family member: ${this.personToDelete.name}`);
@@ -561,9 +561,9 @@ const app = createApp({
     },
     
     async executeDeletePerson() {
-      // This method is deprecated - use deletePerson() instead
-      console.warn('executeDeletePerson is deprecated, redirecting to deletePerson');
-      await this.deletePerson();
+      // This method is deprecated - use performDeletePerson() instead
+      console.warn('executeDeletePerson is deprecated, redirecting to performDeletePerson');
+      await this.performDeletePerson();
     },
     
     cancelDeletePerson() {
@@ -571,7 +571,7 @@ const app = createApp({
       this.showDeletePersonModal = false;
     },
     
-    deletePerson(person) {
+    showDeletePersonModalFor(person) {
       this.personToDelete = person;
       this.showDeletePersonModal = true;
     },
@@ -1599,7 +1599,7 @@ const app = createApp({
       startNewDay: this.startNewDay,
       cancelNewDay: this.cancelNewDay,
       deleteChore: this.deleteChore,
-      deletePerson: this.deletePerson,
+      deletePerson: this.performDeletePerson,
       executeDeletePerson: this.executeDeletePerson,
       cancelDeletePerson: this.cancelDeletePerson,
       triggerConfetti: this.triggerConfetti,
