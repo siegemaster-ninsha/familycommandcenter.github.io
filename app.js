@@ -266,18 +266,25 @@ const app = createApp({
     
     async loadFamilyMembers(preserveOptimisticUpdates = false) {
       try {
+        console.log('👥 Loading family members, preserveOptimisticUpdates:', preserveOptimisticUpdates);
         const response = await this.apiCall(CONFIG.API.ENDPOINTS.FAMILY_MEMBERS);
+        console.log('👥 Family members API response:', response);
+        
         if (response.familyMembers && response.familyMembers.length > 0) {
           if (preserveOptimisticUpdates) {
+            console.log('👥 Merging with optimistic updates...');
             // Merge server data with existing optimistic updates
             response.familyMembers.forEach(serverMember => {
               const existingPerson = this.people.find(p => p.name === serverMember.name);
               if (existingPerson) {
+                console.log(`👥 Merging ${serverMember.name}: existing completedChores=${existingPerson.completedChores}, server completedChores=${serverMember.completedChores}`);
                 // Preserve optimistic completedChores count, but update other fields
                 existingPerson.earnings = serverMember.earnings || 0;
                 // Keep the existing completedChores if it's higher (optimistic update)
                 existingPerson.completedChores = Math.max(existingPerson.completedChores || 0, serverMember.completedChores || 0);
+                console.log(`👥 Result for ${serverMember.name}: completedChores=${existingPerson.completedChores}`);
               } else {
+                console.log(`👥 Adding new person from server: ${serverMember.name}`);
                 // New person from server
                 this.people.push({
                   id: serverMember.name.toLowerCase(),
@@ -289,6 +296,8 @@ const app = createApp({
               }
             });
           } else {
+            console.log('👥 Full refresh - replacing all family member data');
+            console.log('👥 Server data:', response.familyMembers.map(m => `${m.name}: completedChores=${m.completedChores}`));
             // Normal full refresh - replace all data
             this.people = response.familyMembers.map(member => ({
               id: member.name.toLowerCase(),
@@ -297,11 +306,12 @@ const app = createApp({
               completedChores: member.completedChores || 0,
               electronicsStatus: { status: 'allowed', message: 'Electronics allowed' }
             }));
+            console.log('👥 Final people data:', this.people.map(p => `${p.name}: completedChores=${p.completedChores}`));
           }
         } else {
           // No family members in backend - start with empty array
           this.people = [];
-          console.log('No family members found in backend, starting with empty family');
+          console.log('👥 No family members found in backend, starting with empty family');
         }
       } catch (error) {
         console.error('Failed to load family members:', error);
@@ -764,6 +774,10 @@ const app = createApp({
       try {
         this.newDayLoading = true;
         console.log('🌅 Starting new day...');
+        console.log('📊 Current state before new day:');
+        console.log('  - Chores count:', this.chores.length);
+        console.log('  - Chores:', this.chores.map(c => `${c.name} (${c.assignedTo})`));
+        console.log('  - People completed chores:', this.people.map(p => `${p.name}: ${p.completedChores}`));
         
         const response = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES_NEW_DAY, {
           method: 'POST',
@@ -772,10 +786,16 @@ const app = createApp({
           })
         });
         
-        console.log('✅ New day started:', response);
+        console.log('✅ New day API response:', response);
         
         // Reload all data to reflect changes
+        console.log('🔄 Reloading all data after new day...');
         await this.loadAllData();
+        
+        console.log('📊 State after reload:');
+        console.log('  - Chores count:', this.chores.length);
+        console.log('  - Chores:', this.chores.map(c => `${c.name} (${c.assignedTo})`));
+        console.log('  - People completed chores:', this.people.map(p => `${p.name}: ${p.completedChores}`));
         
         // Show success message with more detail
         const deletedCount = response.deletedChores || 0;
