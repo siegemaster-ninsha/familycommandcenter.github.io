@@ -450,7 +450,7 @@ const AppModals = Vue.defineComponent({
 
     <!-- Chore Details Modal -->
     <div v-if="showChoreDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+      <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
         <div class="flex items-center gap-3 mb-4">
           <div class="bg-blue-100 p-2 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-blue-600" viewBox="0 0 256 256">
@@ -473,8 +473,8 @@ const AppModals = Vue.defineComponent({
             <label class="block text-sm font-medium text-primary-custom mb-1">Chore Details</label>
             <textarea 
               v-model="choreDetailsForm.details"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
-              rows="4"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-vertical"
+              rows="6"
               placeholder="Add any specific instructions, requirements, or notes for this chore..."
             ></textarea>
             <p class="text-xs text-secondary-custom mt-1">Optional: Add specific details about how to complete this chore</p>

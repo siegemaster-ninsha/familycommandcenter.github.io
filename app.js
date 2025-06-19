@@ -602,6 +602,8 @@ const app = createApp({
             amount: this.newChore.amount,
             category: this.newChore.category
           }, 'unassigned', false);
+          // Close the original add chore modal
+          this.cancelAddChore();
           return;
         }
         

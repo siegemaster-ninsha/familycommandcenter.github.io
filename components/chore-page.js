@@ -135,7 +135,7 @@ const ChorePage = Vue.defineComponent({
                         {{ getCategoryLabel(chore.category) }}
                       </span>
                     </div>
-                    <p v-if="chore.details" class="text-white text-opacity-80 text-sm font-normal leading-normal line-clamp-2 mb-1">{{ chore.details }}</p>
+                    <p v-if="chore.details" class="text-white text-opacity-80 text-sm font-normal leading-normal mb-1">{{ chore.details }}</p>
                     <p v-if="chore.amount > 0" class="text-white text-opacity-90 text-sm font-normal leading-normal line-clamp-2">\${{ chore.amount.toFixed(2) }}</p>
                   </div>
               </div>
@@ -249,7 +249,7 @@ const ChorePage = Vue.defineComponent({
                           {{ getCategoryLabel(chore.category) }}
                         </span>
                       </div>
-                      <p v-if="chore.details" :class="chore.completed ? 'text-white opacity-50' : 'text-white text-opacity-80'" class="text-xs sm:text-sm font-normal leading-normal line-clamp-2 mb-1">
+                      <p v-if="chore.details" :class="chore.completed ? 'text-white opacity-50' : 'text-white text-opacity-80'" class="text-xs sm:text-sm font-normal leading-normal mb-1">
                         {{ chore.details }}
                       </p>
                       <p v-if="chore.amount > 0" :class="chore.completed ? 'text-white opacity-50' : 'text-white text-opacity-90'" class="text-xs sm:text-sm font-normal leading-normal line-clamp-2">
