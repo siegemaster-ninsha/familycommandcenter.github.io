@@ -176,6 +176,30 @@ const CONFIG = {
         textPrimary: '#24222D', // Dark charcoal for primary text
         textSecondary: '#9C7379' // Dusty rose/mauve for secondary text
       }
+    },
+    seafoam: {
+      id: 'seafoam',
+      name: 'Seafoam',
+      description: 'Calming seafoam green with soft ocean tones',
+      colors: {
+        primary: '#426E6F',     // Main seafoam teal
+        secondary: '#346F6F',   // Deeper teal for accents
+        success: '#50C878',     // Keep standard success green
+        textPrimary: '#1F2937', // Dark gray for primary text
+        textSecondary: '#6B7280' // Medium gray for secondary text
+      }
+    },
+    strikingElegance: {
+      id: 'strikingElegance',
+      name: 'Striking Elegance',
+      description: 'Sophisticated navy blue with warm gold accents',
+      colors: {
+        primary: '#030432',     // Deep navy blue
+        secondary: '#F2A249',   // Warm orange/gold
+        success: '#50C878',     // Keep standard success green
+        textPrimary: '#FFFFFF', // White text for dark theme
+        textSecondary: '#E5E7EB' // Light gray for secondary text
+      }
     }
   }
 };
@@ -218,7 +242,7 @@ const ThemeManager = {
   // detect if theme is dark based on text color brightness
   isDarkTheme(theme) {
     // Dark themes have light text colors
-    const darkThemes = ['darknight', 'cyberpunk', 'obsidian', 'deepforest', 'darkcrimson'];
+    const darkThemes = ['darknight', 'cyberpunk', 'obsidian', 'deepforest', 'darkcrimson', 'strikingElegance'];
     return darkThemes.includes(theme.id);
   },
 
