@@ -519,7 +519,7 @@ const ChorePage = Vue.defineComponent({
         case 'allowed': return 'bg-green-100 text-green-800';
         case 'restricted': return 'bg-yellow-100 text-yellow-800';
         case 'blocked': return 'bg-red-100 text-red-800';
-        default: return 'bg-slate-100 text-primary-custom';
+        default: return 'bg-green-100 text-green-800'; // Default to allowed styling
       }
     },
 
@@ -528,7 +528,7 @@ const ChorePage = Vue.defineComponent({
         case 'allowed': return '✅ Allowed';
         case 'restricted': return '⚠️ Limited';
         case 'blocked': return '🚫 Blocked';
-        default: return '❓ Unknown';
+        default: return '✅ Allowed'; // Default to allowed if status is undefined/unknown
       }
     },
 

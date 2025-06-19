@@ -338,6 +338,26 @@ const app = createApp({
         console.error('Failed to load electronics status:', error);
       }
     },
+
+    // Optimistically update electronics status for a person based on current chores
+    updateElectronicsStatusOptimistically(personName) {
+      const person = this.people.find(p => p.name === personName);
+      if (!person) return;
+
+      // Count incomplete electronics chores for this person
+      const incompleteElectronicsChores = this.chores.filter(chore => 
+        chore.assignedTo === personName && 
+        chore.category === 'game' && 
+        !chore.completed
+      );
+
+      const allowed = incompleteElectronicsChores.length === 0;
+      
+      person.electronicsStatus = {
+        status: allowed ? 'allowed' : 'blocked',
+        message: allowed ? 'Electronics allowed' : `${incompleteElectronicsChores.length} electronics task${incompleteElectronicsChores.length > 1 ? 's' : ''} remaining`
+      };
+    },
     
     async loadQuicklistChores() {
       try {
@@ -647,6 +667,13 @@ const app = createApp({
           }
           
           console.log('✅ Server confirmed chore creation');
+          
+          // Refresh electronics status in background if this was an electronics chore
+          if (choreData.category === 'game') {
+            this.loadElectronicsStatus().catch(error => {
+              console.warn('Failed to refresh electronics status:', error);
+            });
+          }
           
         } catch (error) {
           console.error('❌ Chore creation failed, rolling back optimistic update:', error);
@@ -1017,6 +1044,11 @@ const app = createApp({
           this.selectedQuicklistChore = null;
         }
         
+        // OPTIMISTIC ELECTRONICS STATUS UPDATE: Update electronics status if this was an electronics chore
+        if (chore.category === 'game' && chore.assignedTo && chore.assignedTo !== 'unassigned') {
+          this.updateElectronicsStatusOptimistically(chore.assignedTo);
+        }
+        
         console.log('✨ Optimistic UI updated - chore deleted');
         
         // Make API call in background
@@ -1075,6 +1107,11 @@ const app = createApp({
               // Chore was uncompleted - subtract earnings and decrement count
               person.earnings = Math.max(0, person.earnings - (chore.amount || 0));
               person.completedChores = Math.max(0, (person.completedChores || 0) - 1);
+            }
+            
+            // OPTIMISTIC ELECTRONICS STATUS UPDATE: Update electronics status if this is an electronics chore
+            if (chore.category === 'game') {
+              this.updateElectronicsStatusOptimistically(person.name);
             }
           }
         }
@@ -1215,6 +1252,11 @@ const app = createApp({
           this.selectedChoreId = null;
           this.selectedQuicklistChore = null;
           
+          // OPTIMISTIC ELECTRONICS STATUS UPDATE: Update electronics status if this is an electronics chore
+          if (newChore.category === 'game') {
+            this.updateElectronicsStatusOptimistically(assignTo);
+          }
+          
           console.log('✨ Optimistic UI updated - new chore added');
           
           // Now make API call in background
@@ -1245,6 +1287,7 @@ const app = createApp({
         } else {
           // OPTIMISTIC UPDATE: Move existing chore immediately
           const choreIndex = this.chores.findIndex(c => c.id === this.selectedChore.id);
+          const oldAssignedTo = this.chores[choreIndex]?.assignedTo;
           if (choreIndex !== -1) {
             // Update assignment immediately for instant UI feedback
             this.chores[choreIndex] = {
@@ -1252,6 +1295,16 @@ const app = createApp({
               assignedTo: assignTo,
               isOptimistic: true
             };
+            
+            // OPTIMISTIC ELECTRONICS STATUS UPDATE: Update electronics status for both old and new assignees if this is an electronics chore
+            if (this.chores[choreIndex].category === 'game') {
+              if (oldAssignedTo && oldAssignedTo !== 'unassigned') {
+                this.updateElectronicsStatusOptimistically(oldAssignedTo);
+              }
+              if (assignTo && assignTo !== 'unassigned') {
+                this.updateElectronicsStatusOptimistically(assignTo);
+              }
+            }
           }
           
           // Clear selection immediately for instant feedback
