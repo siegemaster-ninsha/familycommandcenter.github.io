@@ -153,18 +153,6 @@ const CONFIG = {
         textSecondary: '#6B7280'
       }
     },
-    darknight: {
-      id: 'darknight',
-      name: 'Dark Night',
-      description: 'Sophisticated dark theme with purple accents',
-      colors: {
-        primary: '#3C3C50',
-        secondary: '#28283C',
-        success: '#22C55E',
-        textPrimary: '#E5E7EB',
-        textSecondary: '#9CA3AF'
-      }
-    },
     cyberpunk: {
       id: 'cyberpunk',
       name: 'Cyberpunk',
@@ -175,42 +163,6 @@ const CONFIG = {
         success: '#10B981',
         textPrimary: '#F3F4F6',
         textSecondary: '#D1D5DB'
-      }
-    },
-    obsidian: {
-      id: 'obsidian',
-      name: 'Obsidian',
-      description: 'Pure dark elegance with subtle highlights',
-      colors: {
-        primary: '#374151',
-        secondary: '#4B5563',
-        success: '#059669',
-        textPrimary: '#F9FAFB',
-        textSecondary: '#E5E7EB'
-      }
-    },
-    deepforest: {
-      id: 'deepforest',
-      name: 'Deep Forest',
-      description: 'Dark forest greens with earthy tones',
-      colors: {
-        primary: '#064E3B',
-        secondary: '#065F46',
-        success: '#10B981',
-        textPrimary: '#ECFDF5',
-        textSecondary: '#A7F3D0'
-      }
-    },
-    darkcrimson: {
-      id: 'darkcrimson',
-      name: 'Dark Crimson',
-      description: 'Rich dark reds with warm undertones',
-      colors: {
-        primary: '#7F1D1D',
-        secondary: '#991B1B',
-        success: '#16A34A',
-        textPrimary: '#FEF2F2',
-        textSecondary: '#FECACA'
       }
     },
     vintageCharm: {
