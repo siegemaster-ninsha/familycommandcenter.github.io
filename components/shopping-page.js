@@ -719,7 +719,6 @@ const ShoppingPage = Vue.defineComponent({
         
         // Reload shopping items to get updated data
         await this.$parent.loadShoppingItems();
-        this.showSuccessMessage('Item removed successfully!');
       } catch (error) {
         console.error('Error removing item:', error);
         alert('Error removing item: ' + error.message);
@@ -926,7 +925,6 @@ const ShoppingPage = Vue.defineComponent({
         }
         
         await this.$parent.loadShoppingQuickItems(); // Reload quick items
-        this.showSuccessMessage('Quick item removed successfully!');
       } catch (error) {
         console.error('Error removing quick item:', error);
         alert('Error removing quick item: ' + error.message);
@@ -1031,7 +1029,6 @@ const ShoppingPage = Vue.defineComponent({
         }
         
         await this.$parent.loadStores(); // Reload stores
-        this.showSuccessMessage('Store removed successfully!');
       } catch (error) {
         console.error('Error removing store:', error);
         alert('Error removing store: ' + error.message);

@@ -1023,9 +1023,6 @@ const app = createApp({
         
         console.log('✅ Server confirmed chore deletion');
         
-        // Show success message
-        this.showSuccessMessage(`🗑️ "${chore.name}" deleted successfully`);
-        
         // Refresh data in background (non-blocking) to ensure consistency
         Promise.all([
           this.loadEarnings(),
