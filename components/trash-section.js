@@ -25,8 +25,6 @@ const TrashSection = Vue.defineComponent({
   `,
   inject: ['selectedChore'],
   methods: {
-
-
     async deleteSelectedChore() {
       if (!this.$parent.selectedChore || this.$parent.selectedChore.isNewFromQuicklist) {
         this.$parent.selectedChoreId = null;
@@ -34,20 +32,8 @@ const TrashSection = Vue.defineComponent({
         return;
       }
       
-      try {
-        await this.$parent.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${this.$parent.selectedChore.id}`, {
-          method: 'DELETE'
-        });
-        await this.$parent.loadChores();
-        await this.$parent.loadEarnings();
-        await this.$parent.loadElectronicsStatus();
-        
-        // Clear selection
-        this.$parent.selectedChoreId = null;
-        this.$parent.selectedQuicklistChore = null;
-      } catch (error) {
-        console.error('Failed to delete chore:', error);
-      }
+      // Use parent's optimized delete method
+      await this.$parent.deleteChore(this.$parent.selectedChore);
     }
   }
 });

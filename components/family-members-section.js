@@ -145,8 +145,6 @@ const FamilyMembersSection = Vue.defineComponent({
       }
     },
 
-
-
     selectChore(chore, event) {
       console.log('🎯 selectChore called for:', chore.name, 'Current selectedChoreId:', this.$parent.selectedChoreId);
       console.log('🎯 Event type:', event.type, 'Event target:', event.target.tagName);
@@ -175,8 +173,6 @@ const FamilyMembersSection = Vue.defineComponent({
         this.$parent.selectedQuicklistChore = null;
       }
     },
-
-
 
     async handleChoreCompletionChange(chore, event) {
       console.log('🔲 Checkbox changed for chore:', chore.name, 'to:', event.target.checked);
@@ -216,29 +212,8 @@ const FamilyMembersSection = Vue.defineComponent({
     },
 
     async handleChoreCompletion(chore) {
-      try {
-        await this.$parent.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/complete`, {
-          method: 'PUT',
-          body: JSON.stringify({ completed: chore.completed })
-        });
-        
-        if (chore.completed) {
-          this.$parent.triggerConfetti();
-          this.$parent.showSuccessMessage = true;
-          this.$parent.completedChoreMessage = `${chore.name} completed!`;
-          
-          setTimeout(() => {
-            this.$parent.showSuccessMessage = false;
-          }, 3000);
-        }
-        
-        await this.$parent.loadEarnings();
-        await this.$parent.loadElectronicsStatus();
-      } catch (error) {
-        console.error('Failed to update chore completion:', error);
-        // Revert the checkbox if API call failed
-        chore.completed = !chore.completed;
-      }
+      // Use the parent's optimized method instead of duplicating logic
+      await this.$parent.handleChoreCompletion(chore);
     }
   }
 });

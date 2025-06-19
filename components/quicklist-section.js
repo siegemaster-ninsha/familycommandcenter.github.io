@@ -117,6 +117,8 @@ const QuicklistSection = Vue.defineComponent({
         await this.$parent.loadQuicklistChores();
       } catch (error) {
         console.error('Failed to remove from quicklist:', error);
+        // Show user-friendly error message
+        this.$parent.showSuccessMessage(`❌ Failed to remove item from quicklist. Please try again.`);
       }
     }
   }

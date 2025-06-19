@@ -561,34 +561,9 @@ const app = createApp({
     },
     
     async executeDeletePerson() {
-      if (this.personToDelete) {
-        try {
-          // First, unassign all chores from this person
-          this.chores.forEach(chore => {
-            if (chore.assignedTo === this.personToDelete.name) {
-              chore.assignedTo = 'unassigned';
-              // Update the chore in the backend
-              this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/assign`, {
-                method: 'PUT',
-                body: JSON.stringify({ assignedTo: 'unassigned' })
-              }).catch(error => console.error('Failed to unassign chore:', error));
-            }
-          });
-          
-          // Remove the person from the array
-          const index = this.people.findIndex(p => p.id === this.personToDelete.id);
-          if (index > -1) {
-            this.people.splice(index, 1);
-          }
-          
-          // Reload data to ensure consistency
-          await this.loadAllData();
-        } catch (error) {
-          console.error('Failed to delete person:', error);
-        }
-        
-        this.cancelDeletePerson();
-      }
+      // This method is deprecated - use deletePerson() instead
+      console.warn('executeDeletePerson is deprecated, redirecting to deletePerson');
+      await this.deletePerson();
     },
     
     cancelDeletePerson() {
