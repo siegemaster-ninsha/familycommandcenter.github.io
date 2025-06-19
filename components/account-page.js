@@ -3,17 +3,17 @@ const AccountPage = Vue.defineComponent({
   template: `
     <div class="space-y-6">
       <!-- Account Overview -->
-      <div class="bg-white rounded-lg border border-gray-200 p-6">
+      <div class="rounded-lg border-2 p-6 shadow-lg" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em]">⚙️ Account Settings</h2>
           <div class="flex items-center gap-3">
-            <div class="bg-primary-100 p-2 rounded-full">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-primary-600" viewBox="0 0 256 256">
+            <div class="bg-gradient-to-br from-primary-500 to-primary-600 p-3 rounded-full shadow-md">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-white" viewBox="0 0 256 256">
                 <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
               </svg>
             </div>
             <div>
-              <h3 class="font-bold text-primary-custom">{{ currentUser?.name || 'User' }}</h3>
+              <h3 class="font-bold text-primary-custom text-lg">{{ currentUser?.name || 'User' }}</h3>
               <p class="text-sm text-secondary-custom">{{ currentUser?.email || 'user@example.com' }}</p>
             </div>
           </div>
@@ -27,7 +27,8 @@ const AccountPage = Vue.defineComponent({
               <input 
                 v-model="profileForm.name"
                 type="text" 
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                class="w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200 shadow-sm focus:shadow-md"
+                style="border-color: var(--color-border-card); background-color: var(--color-bg-card);"
                 placeholder="Enter your name"
               >
             </div>
@@ -36,7 +37,8 @@ const AccountPage = Vue.defineComponent({
               <input 
                 v-model="profileForm.email"
                 type="email" 
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                class="w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200 shadow-sm focus:shadow-md"
+                style="border-color: var(--color-border-card); background-color: var(--color-bg-card);"
                 placeholder="Enter your email"
               >
             </div>
@@ -48,7 +50,8 @@ const AccountPage = Vue.defineComponent({
               <input 
                 v-model="profileForm.familyName"
                 type="text" 
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                class="w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all duration-200 shadow-sm focus:shadow-md"
+                style="border-color: var(--color-border-card); background-color: var(--color-bg-card);"
                 placeholder="The Smith Family"
               >
             </div>
@@ -56,13 +59,14 @@ const AccountPage = Vue.defineComponent({
               <button
                 @click="updateProfile"
                 :disabled="profileLoading"
-                class="flex-1 bg-primary-500 text-white py-2 px-4 rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50"
+                class="flex-1 bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white py-3 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 shadow-md hover:shadow-lg touch-target min-h-[48px] font-medium"
               >
                 {{ profileLoading ? 'Saving...' : 'Save Changes' }}
               </button>
               <button
                 @click="resetProfile"
-                class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                class="px-4 py-3 border-2 rounded-lg hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md touch-target min-h-[48px] font-medium"
+                style="border-color: var(--color-border-card); color: var(--color-text-primary);"
               >
                 Reset
               </button>
@@ -72,19 +76,20 @@ const AccountPage = Vue.defineComponent({
       </div>
 
       <!-- Theme Selection -->
-      <div class="bg-white rounded-lg border border-gray-200 p-6">
+      <div class="rounded-lg border-2 p-6 shadow-lg" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <h3 class="text-primary-custom text-lg font-bold mb-4 flex items-center gap-2">
           🎨 Theme Selection
         </h3>
         <p class="text-secondary-custom text-sm mb-6">Choose your preferred color theme for the application.</p>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div
             v-for="theme in availableThemes"
             :key="theme.id"
             @click="selectTheme(theme.id)"
-            class="relative p-4 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md"
-            :class="selectedTheme === theme.id ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'"
+            class="relative p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 shadow-md hover:shadow-lg hover:scale-102"
+            :class="selectedTheme === theme.id ? 'border-primary-500 bg-primary-50' : 'hover:border-gray-300'"
+            :style="selectedTheme !== theme.id ? 'border-color: var(--color-border-card);' : ''"
           >
             <!-- Selected indicator -->
             <div 
@@ -155,7 +160,7 @@ const AccountPage = Vue.defineComponent({
               v-if="selectedTheme !== currentTheme"
               @click="applyTheme"
               :disabled="themeLoading"
-              class="bg-primary-500 text-white px-6 py-2 rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              class="bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md hover:shadow-lg touch-target min-h-[48px] font-medium"
             >
               <svg v-if="themeLoading" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -174,12 +179,12 @@ const AccountPage = Vue.defineComponent({
       </div>
 
       <!-- App Preferences -->
-      <div class="bg-white rounded-lg border border-gray-200 p-6">
+      <div class="rounded-lg border-2 p-6 shadow-lg" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <h3 class="text-primary-custom text-lg font-bold mb-4 flex items-center gap-2">
           📱 App Preferences
         </h3>
         
-        <div class="space-y-4">
+        <div class="space-y-6">
           <div class="flex items-center justify-between">
             <div>
               <label class="font-medium text-primary-custom">Confetti Animations</label>
@@ -230,7 +235,7 @@ const AccountPage = Vue.defineComponent({
           <button
             @click="savePreferences"
             :disabled="preferencesLoading"
-            class="bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50"
+            class="bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 disabled:opacity-50 shadow-md hover:shadow-lg touch-target min-h-[48px] font-medium"
           >
             {{ preferencesLoading ? 'Saving...' : 'Save Preferences' }}
           </button>
@@ -238,29 +243,29 @@ const AccountPage = Vue.defineComponent({
       </div>
 
       <!-- Data Management -->
-      <div class="bg-white rounded-lg border border-gray-200 p-6">
+      <div class="rounded-lg border-2 p-6 shadow-lg" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <h3 class="text-primary-custom text-lg font-bold mb-4 flex items-center gap-2">
           💾 Data Management
         </h3>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="p-4 border border-gray-200 rounded-lg">
-            <h4 class="font-medium text-primary-custom mb-2">Export Data</h4>
-            <p class="text-sm text-secondary-custom mb-3">Download all your family's chore and earnings data</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="p-6 border-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200" style="border-color: var(--color-border-card);">
+            <h4 class="font-medium text-primary-custom mb-3 text-lg">Export Data</h4>
+            <p class="text-sm text-secondary-custom mb-4">Download all your family's chore and earnings data</p>
             <button
               @click="exportData"
-              class="w-full bg-emerald-500 text-white py-2 px-4 rounded-lg hover:bg-emerald-600 transition-colors"
+              class="w-full bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white py-3 px-4 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg touch-target min-h-[48px] font-medium"
             >
               Export Data
             </button>
           </div>
           
-          <div class="p-4 border border-red-200 rounded-lg bg-red-50">
-            <h4 class="font-medium text-red-600 mb-2">Reset All Data</h4>
-            <p class="text-sm text-red-600 mb-3">Permanently delete all chores, family members, and earnings</p>
+          <div class="p-6 border-2 border-red-300 rounded-lg bg-red-50 shadow-md hover:shadow-lg transition-all duration-200">
+            <h4 class="font-medium text-red-600 mb-3 text-lg">Reset All Data</h4>
+            <p class="text-sm text-red-600 mb-4">Permanently delete all chores, family members, and earnings</p>
             <button
               @click="showResetConfirmation = true"
-              class="w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors"
+              class="w-full bg-red-500 hover:bg-red-600 active:bg-red-700 text-white py-3 px-4 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg touch-target min-h-[48px] font-medium"
             >
               Reset All Data
             </button>
@@ -294,13 +299,13 @@ const AccountPage = Vue.defineComponent({
             <button 
               @click="confirmReset"
               :disabled="resetLoading"
-              class="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
+              class="flex-1 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white py-3 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 shadow-md hover:shadow-lg touch-target min-h-[48px] font-medium"
             >
               {{ resetLoading ? 'Resetting...' : 'Yes, Reset Everything' }}
             </button>
             <button 
               @click="showResetConfirmation = false"
-              class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
+              class="flex-1 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-primary-custom py-3 px-4 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg touch-target min-h-[48px] font-medium"
             >
               Cancel
             </button>

@@ -65,10 +65,6 @@ const FamilyPage = Vue.defineComponent({
                 <span class="text-sm text-secondary-custom font-medium">Completed Chores:</span>
                 <span class="text-sm font-medium text-primary-custom">{{ person.completedChores || 0 }}</span>
               </div>
-              
-              <div class="mt-3 pt-3 border-t" style="border-color: var(--color-border-card);">
-                <p class="text-xs text-secondary-custom">{{ person.electronicsStatus.message }}</p>
-              </div>
             </div>
           </div>
         </div>
@@ -81,9 +77,6 @@ const FamilyPage = Vue.defineComponent({
           <p class="text-sm mt-2">Click "Add Member" to get started!</p>
         </div>
       </div>
-
-      <!-- Earnings Widget -->
-      <earnings-widget></earnings-widget>
     </div>
   `,
   inject: ['people', 'showAddPersonModal', 'confirmDeletePerson'],
