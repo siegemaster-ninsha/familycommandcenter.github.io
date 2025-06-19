@@ -39,6 +39,7 @@ const app = createApp({
       personToDelete: null,
       // New Day functionality
       showNewDayModal: false,
+      newDayLoading: false,
       // Spending modal
       showSpendingModal: false,
       selectedPerson: null,
@@ -734,7 +735,7 @@ const app = createApp({
     // New Day functionality
     async startNewDay() {
       try {
-        this.loading = true;
+        this.newDayLoading = true;
         console.log('🌅 Starting new day...');
         
         const response = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES_NEW_DAY, {
@@ -749,15 +750,17 @@ const app = createApp({
         // Reload all data to reflect changes
         await this.loadAllData();
         
-        // Show success message
-        this.showSuccessMessage(`🌅 New day started! ${response.createdChores || 0} chores created, earnings preserved.`);
+        // Show success message with more detail
+        const deletedCount = response.deletedChores || 0;
+        const createdCount = response.createdChores || 0;
+        this.showSuccessMessage(`🌅 New day started! ${deletedCount} old chores cleared, ${createdCount} new chores created, earnings preserved.`);
         
         this.showNewDayModal = false;
       } catch (error) {
         console.error('❌ Failed to start new day:', error);
-        this.error = `Failed to start new day: ${error.message}`;
+        this.showSuccessMessage(`❌ Failed to start new day: ${error.message}`);
       } finally {
-        this.loading = false;
+        this.newDayLoading = false;
       }
     },
 
@@ -1507,6 +1510,7 @@ const app = createApp({
       showAddPersonModal: Vue.computed(() => this.showAddPersonModal),
       showDeletePersonModal: Vue.computed(() => this.showDeletePersonModal),
       showNewDayModal: Vue.computed(() => this.showNewDayModal),
+      newDayLoading: Vue.computed(() => this.newDayLoading),
       showSpendingModal: Vue.computed(() => this.showSpendingModal),
       selectedPerson: Vue.computed(() => this.selectedPerson),
       spendAmount: Vue.computed(() => this.spendAmount),
