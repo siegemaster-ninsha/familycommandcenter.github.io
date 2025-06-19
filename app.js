@@ -536,9 +536,13 @@ const app = createApp({
     async deletePerson() {
       if (this.personToDelete) {
         try {
-          await this.apiCall(`${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${this.personToDelete.id}`, {
+          console.log(`🗑️ Deleting family member: ${this.personToDelete.name}`);
+          
+          await this.apiCall(`${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${this.personToDelete.name}`, {
             method: 'DELETE'
           });
+          
+          console.log(`✅ Successfully deleted family member: ${this.personToDelete.name}`);
           
           // Remove person from local array
           this.people = this.people.filter(p => p.id !== this.personToDelete.id);
@@ -547,6 +551,8 @@ const app = createApp({
           await this.loadAllData();
         } catch (error) {
           console.error('Failed to delete person:', error);
+          // Show error message to user
+          this.showSuccessMessage(`❌ Failed to delete ${this.personToDelete.name}: ${error.message}`);
         }
         
         this.personToDelete = null;
