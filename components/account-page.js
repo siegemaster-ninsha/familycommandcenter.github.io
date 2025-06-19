@@ -56,16 +56,18 @@ const AccountPage = Vue.defineComponent({
                 placeholder="The Smith Family"
               >
             </div>
-            <div>
-              <button
-                @click="updateProfile"
-                :disabled="profileLoading"
-                class="w-full bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white py-3 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 shadow-md hover:shadow-lg touch-target min-h-[48px] font-medium"
-              >
-                {{ profileLoading ? 'Saving...' : 'Save Changes' }}
-              </button>
-            </div>
           </div>
+        </div>
+        
+        <!-- Save Button at bottom -->
+        <div class="mt-6 flex justify-center">
+          <button
+            @click="updateProfile"
+            :disabled="profileLoading"
+            class="bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white py-3 px-8 rounded-lg transition-colors duration-200 disabled:opacity-50 shadow-md hover:shadow-lg touch-target min-h-[48px] font-medium"
+          >
+            {{ profileLoading ? 'Saving...' : 'Save Changes' }}
+          </button>
         </div>
       </div>
 
