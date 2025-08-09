@@ -1090,6 +1090,7 @@ const app = createApp({
           this.showSignupModal = false;
           this.showConfirmModal = true;
           this.authError = null;
+          this.authForm.username = result.username;
         } else {
           this.authError = 'Signup failed. Please try again.';
         }
@@ -1107,7 +1108,7 @@ const app = createApp({
         this.authError = null;
         
         const result = await authService.confirmSignUp(
-          this.authForm.email, 
+          this.authForm.username || this.authForm.email, 
           this.authForm.confirmationCode
         );
         
