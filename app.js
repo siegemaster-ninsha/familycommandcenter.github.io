@@ -10,7 +10,9 @@ const app = createApp({
       showSignupModal: false,
       showConfirmModal: false,
       authForm: {
+        mode: 'parent',
         email: '',
+        username: '',
         password: '',
         name: '',
         confirmationCode: ''
@@ -50,6 +52,13 @@ const app = createApp({
       newPerson: { name: '' },
       showDeletePersonModal: false,
       personToDelete: null,
+      // Child creation & parent invites
+      showCreateChildModal: false,
+      childForm: { username: '', password: '', displayName: '' },
+      showInviteModal: false,
+      inviteData: { token: '', expiresAt: null },
+      // Spending requests (for parents)
+      spendingRequests: [],
       // New Day functionality
       showNewDayModal: false,
       newDayLoading: false,
@@ -222,6 +231,18 @@ const app = createApp({
         }
         
         throw error;
+      }
+    },
+
+    async refreshCurrentUser() {
+      try {
+        const me = await authService.getCurrentUser();
+        if (me) {
+          this.currentUser = me;
+          this.accountId = me.accountId || this.accountId;
+        }
+      } catch (e) {
+        console.warn('Failed to refresh current user', e);
       }
     },
     
@@ -539,6 +560,69 @@ const app = createApp({
 
     openAddPersonModal() {
       this.showAddPersonModal = true;
+    },
+    
+    // Child management
+    openCreateChildModal() {
+      this.childForm = { username: '', password: '', displayName: '' };
+      this.showCreateChildModal = true;
+    },
+    async createChild() {
+      if (!this.childForm.username || !this.childForm.password) return;
+      try {
+        await this.apiCall(CONFIG.API.ENDPOINTS.FAMILY_CHILDREN, {
+          method: 'POST',
+          body: JSON.stringify({ username: this.childForm.username, password: this.childForm.password, displayName: this.childForm.displayName })
+        });
+        this.showCreateChildModal = false;
+        this.childForm = { username: '', password: '', displayName: '' };
+        alert('Child account created. Share the username and password with your child.');
+      } catch (e) {
+        console.error('Failed to create child', e);
+        alert('Failed to create child');
+      }
+    },
+    
+    // Parent invites
+    async createParentInvite() {
+      try {
+        const res = await this.apiCall(CONFIG.API.ENDPOINTS.PARENT_INVITE, { method: 'POST', body: JSON.stringify({}) });
+        this.inviteData = res;
+        this.showInviteModal = true;
+      } catch (e) {
+        console.error('Failed to create invite', e);
+        alert('Failed to create invite');
+      }
+    },
+    async acceptParentInvite(token) {
+      try {
+        await this.apiCall(CONFIG.API.ENDPOINTS.PARENT_ACCEPT_INVITE, { method: 'POST', body: JSON.stringify({ token }) });
+        await this.refreshCurrentUser();
+        await this.loadAllData();
+        alert('Invite accepted. You now have access to this account.');
+      } catch (e) {
+        console.error('Failed to accept invite', e);
+        alert('Failed to accept invite');
+      }
+    },
+    
+    // Spending requests (parent approval)
+    async loadSpendingRequests() {
+      try {
+        const res = await this.apiCall(CONFIG.API.ENDPOINTS.SPEND_REQUESTS);
+        this.spendingRequests = res?.requests || [];
+      } catch (e) {
+        console.warn('Failed to load spending requests', e);
+      }
+    },
+    async approveSpendingRequest(requestId) {
+      try {
+        await this.apiCall(`${CONFIG.API.ENDPOINTS.SPEND_REQUESTS}/${encodeURIComponent(requestId)}/approve`, { method: 'POST' });
+        await this.loadEarnings();
+        await this.loadSpendingRequests();
+      } catch (e) {
+        console.error('Failed to approve request', e);
+      }
     },
     
     confirmDeletePerson(person) {
@@ -961,7 +1045,8 @@ const app = createApp({
         this.authLoading = true;
         this.authError = null;
         
-        const result = await authService.signIn(this.authForm.email, this.authForm.password);
+        const username = this.authForm.mode === 'parent' ? this.authForm.email : this.authForm.username;
+        const result = await authService.signIn(username, this.authForm.password);
         
         if (result.success) {
           this.isAuthenticated = true;
@@ -971,6 +1056,8 @@ const app = createApp({
           
           console.log('✅ Login successful, loading user data...');
           
+          // Refresh current user (to include role & accountId)
+          await this.refreshCurrentUser();
           // Load user theme first to prevent flash of wrong theme
           await this.loadUserTheme();
           
@@ -1036,6 +1123,8 @@ const app = createApp({
             
             console.log('✅ Account confirmed and logged in, loading user data...');
             
+            // Refresh current user (to include role & accountId)
+            await this.refreshCurrentUser();
             // Load user theme first to prevent flash of wrong theme
             await this.loadUserTheme();
             
@@ -1569,36 +1658,36 @@ const app = createApp({
     },
 
     async confirmSpending() {
-      if (this.spendAmount <= 0 || this.spendAmount > this.selectedPerson.earnings) {
-        return;
-      }
-
+      if (this.spendAmount <= 0 || this.spendAmount > this.selectedPerson.earnings) return;
       try {
-        await this.apiCall(`${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${this.selectedPerson.name}/earnings`, {
-          method: 'PUT',
-          body: JSON.stringify({ 
-            amount: Number(this.spendAmount),
-            operation: 'subtract'
-          })
-        });
-
-        // Store values before closing modal
+        const requireApproval = !!this.accountSettings?.preferences?.requireApproval;
+        const isChild = this.currentUser?.role === 'child';
+        const canSpend = !!this.accountSettings?.preferences?.childPermissions?.canSpendMoney;
         const personName = this.selectedPerson.name;
         const spentAmount = this.spendAmount;
 
-        // Reload earnings data
-        await this.loadEarnings();
+        if (requireApproval && isChild && canSpend) {
+          // create spend request instead of immediate deduction
+          await this.apiCall(`${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${encodeURIComponent(personName)}/spend-requests`, {
+            method: 'POST',
+            body: JSON.stringify({ amount: Number(spentAmount) })
+          });
+          alert('Spend request submitted for approval.');
+          this.closeSpendingModal();
+          return;
+        }
 
-        // Show success message
+        // immediate deduction (parent or approval disabled)
+        await this.apiCall(`${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${encodeURIComponent(personName)}/earnings`, {
+          method: 'PUT',
+          body: JSON.stringify({ amount: Number(spentAmount), operation: 'subtract' })
+        });
+
+        await this.loadEarnings();
         this.triggerConfetti();
         this.showSuccessMessageFlag = true;
         this.completedChoreMessage = `${personName} spent $${spentAmount.toFixed(2)}!`;
-
-        setTimeout(() => {
-          this.showSuccessMessageFlag = false;
-        }, 3000);
-
-        // Close modal
+        setTimeout(() => { this.showSuccessMessageFlag = false; }, 3000);
         this.closeSpendingModal();
       } catch (error) {
         console.error('Error spending money:', error);
@@ -1664,8 +1753,19 @@ const app = createApp({
         // Load user theme first to prevent flash of wrong theme
         await this.loadUserTheme();
         
-        // Then load all other data
+      // Then load all other data
         await this.loadAllData();
+      // if invite token present, show accept prompt after load
+      const url = new URL(window.location.href);
+      const inviteToken = url.searchParams.get('invite');
+      if (inviteToken) {
+        const accept = confirm('You have been invited to join a family account. Accept invitation?');
+        if (accept) {
+          await this.acceptParentInvite(inviteToken);
+          url.searchParams.delete('invite');
+          window.history.replaceState({}, document.title, url.toString());
+        }
+      }
       } else {
         console.log('❌ User not authenticated - ready for login');
         this.isAuthenticated = false;
@@ -1702,6 +1802,7 @@ const app = createApp({
       // Preloaded account page data
       accountSettings: Vue.computed(() => this.accountSettings),
       accountId: Vue.computed(() => this.accountId),
+      spendingRequests: Vue.computed(() => this.spendingRequests || []),
       
       // Modal state computed values (readonly)
       showAddToQuicklistModal: Vue.computed(() => this.showAddToQuicklistModal),
@@ -1780,7 +1881,13 @@ const app = createApp({
       handleLogout: this.handleLogout,
       showLoginForm: this.showLoginForm,
       showSignupForm: this.showSignupForm,
-      closeAuthModals: this.closeAuthModals
+      closeAuthModals: this.closeAuthModals,
+      // Child/Parent invites
+      openCreateChildModal: this.openCreateChildModal,
+      createParentInvite: this.createParentInvite,
+      // Spending approvals
+      loadSpendingRequests: this.loadSpendingRequests,
+      approveSpendingRequest: this.approveSpendingRequest
     };
   }
 });

@@ -6,15 +6,31 @@ const FamilyPage = Vue.defineComponent({
       <div class="rounded-lg border-2 p-6 shadow-lg" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em]">👨‍👩‍👧‍👦 Family Members</h2>
-          <button
-            @click="$parent.openAddPersonModal()"
-            class="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg touch-target min-h-[48px]"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-              <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
-            </svg>
-            <span class="font-medium">Add Member</span>
-          </button>
+          <div class="flex gap-2">
+            <button
+              @click="$parent.openAddPersonModal()"
+              class="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg touch-target min-h-[48px]"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
+              </svg>
+              <span class="font-medium">Add Member</span>
+            </button>
+            <button
+              @click="$parent.openCreateChildModal?.()"
+              class="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 shadow-md touch-target min-h-[48px]"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M224,128a96,96,0,1,1-96-96A96.11,96.11,0,0,1,224,128Zm-104,8H88a8,8,0,0,0,0,16h32v32a8,8,0,0,0,16,0V152h32a8,8,0,0,0,0-16H136V120a8,8,0,0,0-16,0Z"></path></svg>
+              <span class="font-medium">Add Child</span>
+            </button>
+            <button
+              @click="$parent.createParentInvite?.()"
+              class="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 shadow-md touch-target min-h-[48px]"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M216,80V208a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V80L128,32Z"></path></svg>
+              <span class="font-medium">Invite Parent</span>
+            </button>
+          </div>
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -65,6 +81,26 @@ const FamilyPage = Vue.defineComponent({
                 <span class="text-sm text-secondary-custom font-medium">Completed Chores:</span>
                 <span class="text-sm font-medium text-primary-custom">{{ person.completedChores || 0 }}</span>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Spending Requests (Parents Only) -->
+        <div v-if="$parent.currentUser?.role === 'parent'" class="mt-8">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-primary-custom text-lg font-bold">💳 Spending Requests</h3>
+            <button @click="$parent.loadSpendingRequests()" class="text-sm px-3 py-1 border rounded hover:bg-gray-50">Refresh</button>
+          </div>
+          <div v-if="$parent.spendingRequests.length === 0" class="text-sm text-secondary-custom">No pending requests.</div>
+          <div v-else class="space-y-2">
+            <div v-for="req in $parent.spendingRequests" :key="req.id" class="flex items-center justify-between p-3 border rounded">
+              <div class="text-sm">
+                <span class="font-medium text-primary-custom">{{ req.name }}</span>
+                <span class="ml-2">requests to spend</span>
+                <span class="font-semibold text-red-600">\${{ Number(req.amount).toFixed(2) }}</span>
+                <span class="ml-2 text-xs text-secondary-custom">{{ new Date(req.createdAt).toLocaleString() }}</span>
+              </div>
+              <button @click="$parent.approveSpendingRequest(req.id)" class="px-3 py-1 bg-emerald-500 text-white rounded hover:bg-emerald-600">Approve</button>
             </div>
           </div>
         </div>

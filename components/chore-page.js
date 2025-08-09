@@ -255,6 +255,9 @@ const ChorePage = Vue.defineComponent({
                       <p v-if="chore.amount > 0" :class="chore.completed ? 'text-white opacity-50' : 'text-white text-opacity-90'" class="text-xs sm:text-sm font-normal leading-normal line-clamp-2">
                         \${{ chore.amount.toFixed(2) }}
                       </p>
+                      <div v-if="chore.isPendingApproval" class="mt-1 inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-yellow-100 text-yellow-800">
+                        <span>Pending approval</span>
+                      </div>
                     </div>
                 </div>
               </div>

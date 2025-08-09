@@ -40,7 +40,12 @@ const CONFIG = {
       STORES: '/stores',
       
       // Account Settings
-      ACCOUNT_SETTINGS: '/account-settings'
+      ACCOUNT_SETTINGS: '/account-settings',
+      // Membership & Invites & Spending
+      FAMILY_CHILDREN: '/family-members/children',
+      PARENT_INVITE: '/family-members/parents/invite',
+      PARENT_ACCEPT_INVITE: '/family-members/parents/accept-invite',
+      SPEND_REQUESTS: '/family-members/spend-requests'
     }
   },
 

@@ -283,13 +283,31 @@ const AppModals = Vue.defineComponent({
           <p class="text-red-600 text-sm">{{ authError }}</p>
         </div>
         <div class="space-y-4">
-          <div>
+          <div class="flex items-center gap-4">
+            <label class="flex items-center gap-2 text-sm">
+              <input type="radio" value="parent" v-model="authForm.mode"> Parent
+            </label>
+            <label class="flex items-center gap-2 text-sm">
+              <input type="radio" value="child" v-model="authForm.mode"> Child
+            </label>
+          </div>
+          <div v-if="authForm.mode === 'parent'">
             <label class="block text-sm font-medium text-primary-custom mb-1">Email</label>
             <input 
               v-model="authForm.email"
               type="email" 
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="Enter your email"
+              @keyup.enter="handleLogin"
+            >
+          </div>
+          <div v-else>
+            <label class="block text-sm font-medium text-primary-custom mb-1">Username</label>
+            <input 
+              v-model="authForm.username"
+              type="text" 
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              placeholder="Enter your username"
               @keyup.enter="handleLogin"
             >
           </div>
@@ -565,6 +583,55 @@ const AppModals = Vue.defineComponent({
           >
             Spend Money
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Child Modal -->
+    <div v-if="$parent.showCreateChildModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="bg-emerald-100 p-2 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-emerald-600" viewBox="0 0 256 256"><path d="M224,128a96,96,0,1,1-96-96A96.11,96.11,0,0,1,224,128Zm-104,8H88a8,8,0,0,0,0,16h32v32a8,8,0,0,0,16,0V152h32a8,8,0,0,0,0-16H136V120a8,8,0,0,0-16,0Z"></path></svg>
+          </div>
+          <h3 class="text-lg font-bold text-primary-custom">Add Child Account</h3>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-primary-custom mb-1">Username</label>
+            <input v-model="$parent.childForm.username" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Enter a username">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-primary-custom mb-1">Password</label>
+            <input v-model="$parent.childForm.password" type="password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Enter a password">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-primary-custom mb-1">Display Name (optional)</label>
+            <input v-model="$parent.childForm.displayName" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="e.g., Sam">
+          </div>
+        </div>
+        <div class="flex gap-3 mt-6">
+          <button @click="$parent.createChild" class="flex-1 bg-emerald-500 text-white py-2 px-4 rounded-lg hover:bg-emerald-600 transition-colors">Create</button>
+          <button @click="$parent.showCreateChildModal = false" class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invite Parent Modal -->
+    <div v-if="$parent.showInviteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="bg-indigo-100 p-2 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-indigo-600" viewBox="0 0 256 256"><path d="M224,80V208a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V80L128,32Z"></path></svg>
+          </div>
+          <h3 class="text-lg font-bold text-primary-custom">Invite Parent</h3>
+        </div>
+        <p class="text-sm text-secondary-custom mb-3">Share this link with the parent you want to invite. It will be valid for 7 days.</p>
+        <div class="bg-gray-50 rounded p-3 text-xs break-all mb-3">{{ location.origin }}?invite={{ $parent.inviteData.token }}</div>
+        <div class="text-xs text-secondary-custom mb-4">Expires: {{ new Date($parent.inviteData.expiresAt).toLocaleString() }}</div>
+        <div class="flex gap-3">
+          <button @click="navigator.clipboard.writeText(location.origin + '?invite=' + $parent.inviteData.token)" class="flex-1 bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors">Copy Link</button>
+          <button @click="$parent.showInviteModal = false" class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors">Close</button>
         </div>
       </div>
     </div>

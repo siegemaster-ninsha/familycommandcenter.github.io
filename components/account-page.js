@@ -68,6 +68,48 @@ const AccountPage = Vue.defineComponent({
           <div class="space-y-6">
             <div class="flex items-center justify-between">
               <div>
+                <label class="font-medium text-primary-custom">Require Parent Approval</label>
+                <p class="text-sm text-secondary-custom">Completed chores and spending require a parent's approval</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  v-model="preferences.requireApproval"
+                  class="sr-only peer"
+                >
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+              </label>
+            </div>
+
+            <div class="border rounded-lg p-4" style="border-color: var(--color-border-card);">
+              <h4 class="font-medium text-primary-custom mb-3">Child Permissions</h4>
+              <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <label class="font-medium text-primary-custom">Can mark chores complete</label>
+                    <p class="text-sm text-secondary-custom">Allow children to toggle completion on their chores</p>
+                  </div>
+                  <input type="checkbox" v-model="preferences.childPermissions.canCompleteChores">
+                </div>
+                <div class="flex items-center justify-between">
+                  <div>
+                    <label class="font-medium text-primary-custom">Can create/edit/delete chores</label>
+                    <p class="text-sm text-secondary-custom">Allow children to manage chores</p>
+                  </div>
+                  <input type="checkbox" v-model="preferences.childPermissions.canManageChores">
+                </div>
+                <div class="flex items-center justify-between">
+                  <div>
+                    <label class="font-medium text-primary-custom">Can spend money</label>
+                    <p class="text-sm text-secondary-custom">Allow children to spend from their ledger</p>
+                  </div>
+                  <input type="checkbox" v-model="preferences.childPermissions.canSpendMoney">
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <div>
                 <label class="font-medium text-primary-custom">Confetti Animations</label>
                 <p class="text-sm text-secondary-custom">Show celebration animations when completing chores</p>
               </div>
@@ -298,7 +340,13 @@ const AccountPage = Vue.defineComponent({
       preferences: {
         confettiEnabled: true,
         soundEnabled: false,
-        autoSave: true
+        autoSave: true,
+        requireApproval: false,
+        childPermissions: {
+          canCompleteChores: true,
+          canManageChores: false,
+          canSpendMoney: false
+        }
       },
       preferencesLoading: false,
       
