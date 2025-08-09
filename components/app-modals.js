@@ -627,10 +627,10 @@ const AppModals = Vue.defineComponent({
           <h3 class="text-lg font-bold text-primary-custom">Invite Parent</h3>
         </div>
         <p class="text-sm text-secondary-custom mb-3">Share this link with the parent you want to invite. It will be valid for 7 days.</p>
-        <div class="bg-gray-50 rounded p-3 text-xs break-all mb-3">{{ location.origin }}?invite={{ $parent.inviteData.token }}</div>
+        <div class="bg-gray-50 rounded p-3 text-xs break-all mb-3">{{ getInviteLink() }}</div>
         <div class="text-xs text-secondary-custom mb-4">Expires: {{ new Date($parent.inviteData.expiresAt).toLocaleString() }}</div>
         <div class="flex gap-3">
-          <button @click="navigator.clipboard.writeText(location.origin + '?invite=' + $parent.inviteData.token)" class="flex-1 bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors">Copy Link</button>
+          <button @click="copyInviteLink()" class="flex-1 bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors">Copy Link</button>
           <button @click="$parent.showInviteModal = false" class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors">Close</button>
         </div>
       </div>
@@ -657,6 +657,17 @@ const AppModals = Vue.defineComponent({
         case 'school': return '📚 School';
         case 'game': return '⚡ Electronics';
         default: return '🏠 Regular';
+      }
+    },
+    getInviteLink() {
+      const token = this.$parent?.inviteData?.token || '';
+      return `${window.location.origin}?invite=${token}`;
+    },
+    async copyInviteLink() {
+      try {
+        await navigator.clipboard.writeText(this.getInviteLink());
+      } catch (e) {
+        console.warn('failed to copy invite link', e);
       }
     }
   }
