@@ -1067,6 +1067,22 @@ const app = createApp({
           
           // Load all data for the newly authenticated user
           await this.loadAllData();
+
+          // if invite token present, prompt to accept now that user is authenticated
+          try {
+            const url = new URL(window.location.href);
+            const inviteToken = url.searchParams.get('invite');
+            if (inviteToken) {
+              const accept = confirm('You have been invited to join a family account. Accept invitation?');
+              if (accept) {
+                await this.acceptParentInvite(inviteToken);
+                url.searchParams.delete('invite');
+                window.history.replaceState({}, document.title, url.toString());
+              }
+            }
+          } catch (e) {
+            console.warn('failed to process invite token post-login', e);
+          }
         } else {
           this.authError = 'Login failed. Please check your credentials.';
         }
@@ -1135,6 +1151,22 @@ const app = createApp({
             
             // Load all data for the newly authenticated user
             await this.loadAllData();
+
+            // if invite token present, prompt to accept now that user is authenticated
+            try {
+              const url = new URL(window.location.href);
+              const inviteToken = url.searchParams.get('invite');
+              if (inviteToken) {
+                const accept = confirm('You have been invited to join a family account. Accept invitation?');
+                if (accept) {
+                  await this.acceptParentInvite(inviteToken);
+                  url.searchParams.delete('invite');
+                  window.history.replaceState({}, document.title, url.toString());
+                }
+              }
+            } catch (e) {
+              console.warn('failed to process invite token post-signup', e);
+            }
           } else {
             this.authError = 'Account confirmed but auto-login failed. Please log in manually.';
             this.showConfirmModal = false;

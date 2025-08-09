@@ -630,6 +630,7 @@ const AppModals = Vue.defineComponent({
         <div class="bg-gray-50 rounded p-3 text-xs break-all mb-3">{{ getInviteLink() }}</div>
         <div class="text-xs text-secondary-custom mb-4">Expires: {{ new Date($parent.inviteData.expiresAt).toLocaleString() }}</div>
         <div class="flex gap-3">
+          <button @click="shareInvite()" class="flex-1 bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors">Share</button>
           <button @click="copyInviteLink()" class="flex-1 bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors">Copy Link</button>
           <button @click="$parent.showInviteModal = false" class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors">Close</button>
         </div>
@@ -671,9 +672,32 @@ const AppModals = Vue.defineComponent({
     },
     async copyInviteLink() {
       try {
-        await navigator.clipboard.writeText(this.getInviteLink());
+        await navigator.clipboard.writeText(this.getInviteText());
       } catch (e) {
         console.warn('failed to copy invite link', e);
+      }
+    },
+    getInviteText() {
+      const familyName = this.$parent?.accountSettings?.profile?.familyName || this.$parent?.currentUser?.name || 'a family';
+      const link = this.getInviteLink();
+      return `You've been invited to join ${familyName}'s family on Family Command Center!\n\nAccept your invite: ${link}`;
+    },
+    async shareInvite() {
+      const text = this.getInviteText();
+      const link = this.getInviteLink();
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: 'Family Command Center Invite', text, url: link });
+        } else {
+          await navigator.clipboard.writeText(text);
+          alert('Invite text copied. Paste it into your message.');
+        }
+      } catch (e) {
+        console.warn('share failed', e);
+        try {
+          await navigator.clipboard.writeText(text);
+          alert('Invite text copied. Paste it into your message.');
+        } catch {}
       }
     }
   }
