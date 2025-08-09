@@ -661,7 +661,13 @@ const AppModals = Vue.defineComponent({
     },
     getInviteLink() {
       const token = this.$parent?.inviteData?.token || '';
-      return `${window.location.origin}?invite=${token}`;
+      const url = new URL(window.location.href);
+      // build a link that preserves the repo/site path (important for GitHub Pages project sites)
+      url.search = '';
+      url.hash = '';
+      // optional: drop trailing index.html for cleaner URL
+      const cleanPath = url.pathname.replace(/index\.html$/i, '');
+      return `${url.origin}${cleanPath}?invite=${token}`;
     },
     async copyInviteLink() {
       try {
