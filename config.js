@@ -53,8 +53,8 @@ const CONFIG = {
   // Updated with actual deployed Cognito values
   AUTH: {
     REGION: 'us-east-1',
-    USER_POOL_ID: 'us-east-1_gufFo8nak',
-    CLIENT_ID: '4qas7585dis9bg7i1ihampav99',
+    USER_POOL_ID: 'us-east-1_i0PF716dD',
+    CLIENT_ID: '39s0ga9m4baqusk8vnk5sal8kk',
     IDENTITY_POOL_ID: 'us-east-1:5e1cfec5-10da-46c5-a015-5f328f0b7748'
   },
 
