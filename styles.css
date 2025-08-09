@@ -630,7 +630,24 @@ input:focus, select:focus, textarea:focus {
 /* Modal overlays */
 .modal-overlay {
   background-color: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
+}
+
+/* ensure modal panels render opaque on iOS by promoting to own layer */
+.modal-panel {
+  background-color: #ffffff !important;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* fix iOS momentum scroll bleed-through under modals */
+body.modal-open {
+  position: fixed;
+  width: 100%;
+  overflow: hidden;
 }
 
 /* ===========================================

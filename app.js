@@ -586,12 +586,16 @@ const app = createApp({
     // Parent invites
     async createParentInvite() {
       try {
+        // lock scroll for iOS safari during modal
+        document.body.classList.add('modal-open');
         const res = await this.apiCall(CONFIG.API.ENDPOINTS.PARENT_INVITE, { method: 'POST', body: JSON.stringify({}) });
         this.inviteData = res;
         this.showInviteModal = true;
       } catch (e) {
         console.error('Failed to create invite', e);
         alert('Failed to create invite');
+      } finally {
+        // will remain locked while modal is open
       }
     },
     async acceptParentInvite(token) {

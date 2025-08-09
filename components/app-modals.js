@@ -2,8 +2,8 @@
 const AppModals = Vue.defineComponent({
   template: `
     <!-- Add to Quicklist Modal -->
-    <div v-if="showAddToQuicklistModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+    <div v-if="showAddToQuicklistModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="bg-purple-100 p-2 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-purple-600" viewBox="0 0 256 256">
@@ -74,8 +74,8 @@ const AppModals = Vue.defineComponent({
     </div>
 
     <!-- Add Person Modal -->
-    <div v-if="showAddPersonModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+    <div v-if="showAddPersonModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="bg-blue-100 p-2 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-blue-600" viewBox="0 0 256 256">
@@ -114,8 +114,8 @@ const AppModals = Vue.defineComponent({
     </div>
 
     <!-- Delete Person Confirmation Modal -->
-    <div v-if="showDeletePersonModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+    <div v-if="showDeletePersonModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="bg-red-100 p-2 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-red-600" viewBox="0 0 256 256">
@@ -146,8 +146,8 @@ const AppModals = Vue.defineComponent({
     </div>
 
     <!-- Add Chore Modal -->
-    <div v-if="showAddChoreModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+    <div v-if="showAddChoreModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <h3 class="text-lg font-bold text-primary-custom mb-4">Add New Chore</h3>
         <div class="space-y-4">
           <div>
@@ -222,8 +222,8 @@ const AppModals = Vue.defineComponent({
     </div>
 
     <!-- New Day Confirmation Modal -->
-    <div v-if="showNewDayModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+    <div v-if="showNewDayModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="bg-orange-100 p-2 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-orange-600" viewBox="0 0 256 256">
@@ -269,8 +269,8 @@ const AppModals = Vue.defineComponent({
     </div>
 
     <!-- Login Modal -->
-    <div v-if="showLoginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+    <div v-if="showLoginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="bg-blue-100 p-2 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-blue-600" viewBox="0 0 256 256">
@@ -349,8 +349,8 @@ const AppModals = Vue.defineComponent({
     </div>
 
     <!-- Signup Modal -->
-    <div v-if="showSignupModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+    <div v-if="showSignupModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="bg-green-100 p-2 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-green-600" viewBox="0 0 256 256">
@@ -419,8 +419,8 @@ const AppModals = Vue.defineComponent({
     </div>
 
     <!-- Email Confirmation Modal -->
-    <div v-if="showConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+    <div v-if="showConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="bg-yellow-100 p-2 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-yellow-600" viewBox="0 0 256 256">
@@ -467,8 +467,8 @@ const AppModals = Vue.defineComponent({
     </div>
 
     <!-- Chore Details Modal -->
-    <div v-if="showChoreDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+    <div v-if="showChoreDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+      <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4 modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="bg-blue-100 p-2 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-blue-600" viewBox="0 0 256 256">
@@ -516,8 +516,8 @@ const AppModals = Vue.defineComponent({
     </div>
 
     <!-- Spending Modal -->
-    <div v-if="showSpendingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 w-full max-w-sm mx-4">
+    <div v-if="showSpendingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+      <div class="bg-white rounded-lg p-6 w-full max-w-sm mx-4 modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="bg-red-100 p-2 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-red-600" viewBox="0 0 256 256">
@@ -588,8 +588,8 @@ const AppModals = Vue.defineComponent({
     </div>
 
     <!-- Create Child Modal -->
-    <div v-if="$parent.showCreateChildModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+    <div v-if="$parent.showCreateChildModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="bg-emerald-100 p-2 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-emerald-600" viewBox="0 0 256 256"><path d="M224,128a96,96,0,1,1-96-96A96.11,96.11,0,0,1,224,128Zm-104,8H88a8,8,0,0,0,0,16h32v32a8,8,0,0,0,16,0V152h32a8,8,0,0,0,0-16H136V120a8,8,0,0,0-16,0Z"></path></svg>
@@ -618,8 +618,8 @@ const AppModals = Vue.defineComponent({
     </div>
 
     <!-- Invite Parent Modal -->
-    <div v-if="$parent.showInviteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+    <div v-if="$parent.showInviteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="bg-indigo-100 p-2 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-indigo-600" viewBox="0 0 256 256"><path d="M224,80V208a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V80L128,32Z"></path></svg>

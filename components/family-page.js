@@ -17,14 +17,14 @@ const FamilyPage = Vue.defineComponent({
               <span class="font-medium">Add Member</span>
             </button>
             <button
-              @click="$parent.openCreateChildModal?.()"
+              @click="$parent.openCreateChildModal()"
               class="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 shadow-md touch-target min-h-[48px]"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M224,128a96,96,0,1,1-96-96A96.11,96.11,0,0,1,224,128Zm-104,8H88a8,8,0,0,0,0,16h32v32a8,8,0,0,0,16,0V152h32a8,8,0,0,0,0-16H136V120a8,8,0,0,0-16,0Z"></path></svg>
               <span class="font-medium">Add Child</span>
             </button>
             <button
-              @click="$parent.createParentInvite?.()"
+              @click="$parent.createParentInvite()"
               class="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 shadow-md touch-target min-h-[48px]"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M216,80V208a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V80L128,32Z"></path></svg>
