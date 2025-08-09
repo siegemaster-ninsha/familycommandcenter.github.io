@@ -2,7 +2,7 @@
 const AppModals = Vue.defineComponent({
   template: `
     <!-- Add to Quicklist Modal -->
-    <div v-if="showAddToQuicklistModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+    <div v-if="$parent.showAddToQuicklistModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="bg-purple-100 p-2 rounded-full">
@@ -74,7 +74,7 @@ const AppModals = Vue.defineComponent({
     </div>
 
     <!-- Add Person Modal -->
-    <div v-if="showAddPersonModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+    <div v-if="$parent.showAddPersonModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="bg-blue-100 p-2 rounded-full">
@@ -114,7 +114,7 @@ const AppModals = Vue.defineComponent({
     </div>
 
     <!-- Delete Person Confirmation Modal -->
-    <div v-if="showDeletePersonModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+    <div v-if="$parent.showDeletePersonModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="bg-red-100 p-2 rounded-full">
@@ -146,7 +146,7 @@ const AppModals = Vue.defineComponent({
     </div>
 
     <!-- Add Chore Modal -->
-    <div v-if="showAddChoreModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+    <div v-if="$parent.showAddChoreModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <h3 class="text-lg font-bold text-primary-custom mb-4">Add New Chore</h3>
         <div class="space-y-4">
@@ -222,7 +222,7 @@ const AppModals = Vue.defineComponent({
     </div>
 
     <!-- New Day Confirmation Modal -->
-    <div v-if="showNewDayModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+    <div v-if="$parent.showNewDayModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="bg-orange-100 p-2 rounded-full">
@@ -269,7 +269,7 @@ const AppModals = Vue.defineComponent({
     </div>
 
     <!-- Login Modal -->
-    <div v-if="showLoginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+    <div v-if="$parent.showLoginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="bg-blue-100 p-2 rounded-full">
@@ -349,7 +349,7 @@ const AppModals = Vue.defineComponent({
     </div>
 
     <!-- Signup Modal -->
-    <div v-if="showSignupModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+    <div v-if="$parent.showSignupModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="bg-green-100 p-2 rounded-full">
@@ -419,7 +419,7 @@ const AppModals = Vue.defineComponent({
     </div>
 
     <!-- Email Confirmation Modal -->
-    <div v-if="showConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+    <div v-if="$parent.showConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="bg-yellow-100 p-2 rounded-full">
@@ -467,7 +467,7 @@ const AppModals = Vue.defineComponent({
     </div>
 
     <!-- Chore Details Modal -->
-    <div v-if="showChoreDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+    <div v-if="$parent.showChoreDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
       <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4 modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="bg-blue-100 p-2 rounded-full">
@@ -516,7 +516,7 @@ const AppModals = Vue.defineComponent({
     </div>
 
     <!-- Spending Modal -->
-    <div v-if="showSpendingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
+    <div v-if="$parent.showSpendingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
       <div class="bg-white rounded-lg p-6 w-full max-w-sm mx-4 modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="bg-red-100 p-2 rounded-full">
