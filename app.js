@@ -653,6 +653,26 @@ const app = createApp({
         console.warn('failed to persist member chores enabled', e);
       }
     },
+    canRemoveMember(person) {
+      // cannot remove account creator (owner)
+      const ownerUserId = this.accountSettings?.userId;
+      return person?.userId ? person.userId !== ownerUserId : true;
+    },
+    async removeMember(person) {
+      try {
+        if (!confirm(`Remove ${person.displayName || person.name} from this account?`)) return;
+        // prefer membership removal by userId if available, else remove by family member name only
+        if (person.userId) {
+          await this.apiCall(`/family-members/memberships/${encodeURIComponent(person.userId)}`, { method: 'DELETE' });
+        }
+        // also remove family member card by name
+        await this.apiCall(`${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${encodeURIComponent(person.name)}`, { method: 'DELETE' });
+        // refresh
+        await this.loadFamilyMembers(true);
+      } catch (e) {
+        alert(e?.message || 'Failed to remove member');
+      }
+    },
     
     // Child management
     openCreateChildModal() {

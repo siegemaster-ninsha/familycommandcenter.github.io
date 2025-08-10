@@ -57,6 +57,12 @@ const FamilyPage = Vue.defineComponent({
                   <span :class="person.enabledForChores ? 'translate-x-5' : 'translate-x-1'" class="inline-block h-3 w-3 transform rounded-full bg-white transition-transform"></span>
                 </button>
               </label>
+              <button
+                v-if="$parent.canRemoveMember(person)"
+                @click="$parent.removeMember(person)"
+                class="ml-3 text-red-500 hover:text-red-600 text-xs border border-red-200 px-2 py-1 rounded"
+                title="Remove member from account"
+              >Remove</button>
             </div>
             
             <div class="space-y-3">
