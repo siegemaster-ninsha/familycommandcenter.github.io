@@ -305,6 +305,8 @@ const app = createApp({
         console.log('👥 Family members API response:', response);
         
         if (response.familyMembers && response.familyMembers.length > 0) {
+          // optionally filter for chores view based on account settings preferences
+          const membersChoresEnabled = this.accountSettings?.preferences?.membersChoresEnabled || {};
           if (preserveOptimisticUpdates) {
             console.log('👥 Merging with optimistic updates...');
             // Merge server data with existing optimistic updates
@@ -325,7 +327,8 @@ const app = createApp({
                   name: serverMember.name,
                   earnings: serverMember.earnings || 0,
                   completedChores: serverMember.completedChores || 0,
-                  electronicsStatus: { status: 'allowed', message: 'Electronics allowed' }
+                  electronicsStatus: { status: 'allowed', message: 'Electronics allowed' },
+                  enabledForChores: membersChoresEnabled[serverMember.name] !== false
                 });
               }
             });
@@ -338,7 +341,8 @@ const app = createApp({
               name: member.name,
               earnings: member.earnings || 0,
               completedChores: member.completedChores || 0,
-              electronicsStatus: { status: 'allowed', message: 'Electronics allowed' }
+              electronicsStatus: { status: 'allowed', message: 'Electronics allowed' },
+              enabledForChores: membersChoresEnabled[member.name] !== false
             }));
             console.log('👥 Final people data:', this.people.map(p => `${p.name}: completedChores=${p.completedChores}`));
           }
@@ -530,7 +534,8 @@ const app = createApp({
       if (this.newPerson.name.trim()) {
         try {
           const personData = {
-            name: this.newPerson.name.trim()
+            name: this.newPerson.name.trim(),
+            displayName: this.newPerson.displayName?.trim() || ''
           };
           
           await this.apiCall(CONFIG.API.ENDPOINTS.FAMILY_MEMBERS, {
@@ -542,6 +547,7 @@ const app = createApp({
           this.people.push({
             id: this.newPerson.name.trim().toLowerCase(),
             name: this.newPerson.name.trim(),
+            displayName: this.newPerson.displayName?.trim() || '',
             earnings: 0,
             electronicsStatus: { status: 'allowed', message: 'Electronics allowed' }
           });
@@ -555,11 +561,38 @@ const app = createApp({
     
     cancelAddPerson() {
       this.showAddPersonModal = false;
-      this.newPerson = { name: '' };
+      this.newPerson = { name: '', displayName: '' };
     },
 
     openAddPersonModal() {
       this.showAddPersonModal = true;
+      if (!this.newPerson) this.newPerson = { name: '', displayName: '' };
+    },
+    async updateFamilyMemberDisplayName(person) {
+      try {
+        await this.apiCall(CONFIG.API.ENDPOINTS.FAMILY_MEMBERS, {
+          method: 'POST',
+          body: JSON.stringify({ name: person.name, displayName: person.displayName || '' })
+        });
+      } catch (e) {
+        console.warn('failed to update display name', e);
+      }
+    },
+    updateMemberChoresEnabled(person) {
+      try {
+        // optimistically update preference map and persist to backend
+        const prefs = this.accountSettings?.preferences || {};
+        const current = { ...(prefs.membersChoresEnabled || {}) };
+        current[person.name] = !!person.enabledForChores;
+        this.accountSettings.preferences = { ...prefs, membersChoresEnabled: current };
+        // persist
+        this.apiCall(CONFIG.API.ENDPOINTS.ACCOUNT_SETTINGS, {
+          method: 'PUT',
+          body: JSON.stringify({ preferences: { membersChoresEnabled: current } })
+        }).catch(() => {});
+      } catch (e) {
+        console.warn('failed to persist member chores enabled', e);
+      }
     },
     
     // Child management
@@ -1890,7 +1923,8 @@ const app = createApp({
       confettiPieces: Vue.computed(() => this.confettiPieces),
       quicklistChores: Vue.computed(() => this.quicklistChores || []),
       choresByPerson: Vue.computed(() => this.choresByPerson || {}),
-      people: Vue.computed(() => this.people || []),
+      // expose only members enabled for chores on chores page by default; family page iterates over same array but includes toggle to change flag
+      people: Vue.computed(() => (this.people || []).filter(p => p.enabledForChores !== false)),
       personToDelete: Vue.computed(() => this.personToDelete),
       
       // Preloaded shopping page data

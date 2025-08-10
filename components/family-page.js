@@ -34,7 +34,7 @@ const FamilyPage = Vue.defineComponent({
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div 
+            <div 
             v-for="person in people" 
             :key="person.id"
             class="family-card border-2 rounded-lg p-4 transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-102"
@@ -46,10 +46,15 @@ const FamilyPage = Vue.defineComponent({
                   {{ person.name.charAt(0).toUpperCase() }}
                 </div>
                 <div>
-                  <h3 class="font-bold text-primary-custom text-lg">{{ person.name }}</h3>
+                  <h3 class="font-bold text-primary-custom text-lg">{{ person.displayName || person.name }}</h3>
                   <p class="text-sm text-secondary-custom">Family Member</p>
                 </div>
               </div>
+              <!-- enable for chores toggle -->
+              <label class="flex items-center gap-2 text-xs cursor-pointer select-none">
+                <input type="checkbox" v-model="person.enabledForChores" @change="$parent.updateMemberChoresEnabled(person)"/>
+                <span>enable for chores</span>
+              </label>
               <button
                 @click="handleDeletePerson(person)"
                 class="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-all duration-200 touch-target"
@@ -70,6 +75,10 @@ const FamilyPage = Vue.defineComponent({
                 >
                   {{ getElectronicsStatusText(person.electronicsStatus.status) }}
                 </span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-secondary-custom font-medium">Display Name:</span>
+                <input v-model="person.displayName" @blur="$parent.updateFamilyMemberDisplayName(person)" class="text-sm border rounded px-2 py-1 w-40" placeholder="optional" />
               </div>
               
               <div class="flex justify-between items-center">

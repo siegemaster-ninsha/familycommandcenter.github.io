@@ -283,7 +283,7 @@ const ChorePage = Vue.defineComponent({
           >
             <div class="flex items-center justify-between">
               <div class="flex flex-col">
-                <h3 class="font-bold text-white text-lg">{{ person.name }}</h3>
+                <h3 class="font-bold text-white text-lg">{{ person.displayName || person.name }}</h3>
                 <p class="text-sm text-white text-opacity-90">Total Earnings</p>
                 <p class="text-xs text-white text-opacity-80 mt-1">
                   {{ person.completedChores || 0 }} chores completed

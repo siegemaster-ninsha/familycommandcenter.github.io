@@ -95,6 +95,16 @@ const AppModals = Vue.defineComponent({
               @keyup.enter="addPerson"
             >
           </div>
+          <div>
+            <label class="block text-sm font-medium text-primary-custom mb-1">Display Name (optional)</label>
+            <input 
+              v-model="newPerson.displayName"
+              type="text" 
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              placeholder="Name to display on the board"
+              @keyup.enter="addPerson"
+            >
+          </div>
         </div>
         <div class="flex gap-3 mt-6">
           <button 
@@ -313,13 +323,19 @@ const AppModals = Vue.defineComponent({
           </div>
           <div>
             <label class="block text-sm font-medium text-primary-custom mb-1">Password</label>
-            <input 
-              v-model="authForm.password"
-              type="password" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="Enter your password"
-              @keyup.enter="handleLogin"
-            >
+            <div class="relative">
+              <input 
+                :type="showLoginPassword ? 'text' : 'password'"
+                v-model="authForm.password"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 pr-10"
+                placeholder="Enter your password"
+                @keyup.enter="handleLogin"
+              >
+              <button type="button" @click="showLoginPassword = !showLoginPassword" class="absolute inset-y-0 right-2 text-gray-500 hover:text-gray-700">
+                <span v-if="showLoginPassword">🙈</span>
+                <span v-else>👁️</span>
+              </button>
+            </div>
           </div>
         </div>
         <div class="flex flex-col gap-3 mt-6">
@@ -382,13 +398,28 @@ const AppModals = Vue.defineComponent({
             >
           </div>
           <div>
-            <label class="block text-sm font-medium text-primary-custom mb-1">Password</label>
+            <label class="block text-sm font-medium text-primary-custom mb-1">Display Name</label>
             <input 
-              v-model="authForm.password"
-              type="password" 
+              v-model="authForm.name"
+              type="text" 
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="Minimum 8 characters"
+              placeholder="How your name appears"
             >
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-primary-custom mb-1">Password</label>
+            <div class="relative">
+              <input 
+                :type="showSignupPassword ? 'text' : 'password'"
+                v-model="authForm.password"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 pr-10"
+                placeholder="Minimum 8 characters"
+              >
+              <button type="button" @click="showSignupPassword = !showSignupPassword" class="absolute inset-y-0 right-2 text-gray-500 hover:text-gray-700">
+                <span v-if="showSignupPassword">🙈</span>
+                <span v-else>👁️</span>
+              </button>
+            </div>
             <p class="text-xs text-gray-500 mt-1">Password must be at least 8 characters with uppercase, lowercase, and numbers.</p>
           </div>
         </div>
@@ -603,7 +634,13 @@ const AppModals = Vue.defineComponent({
           </div>
           <div>
             <label class="block text-sm font-medium text-primary-custom mb-1">Password</label>
-            <input v-model="$parent.childForm.password" type="password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Enter a password">
+            <div class="relative">
+              <input :type="showChildPassword ? 'text' : 'password'" v-model="$parent.childForm.password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 pr-10" placeholder="Enter a password">
+              <button type="button" @click="showChildPassword = !showChildPassword" class="absolute inset-y-0 right-2 text-gray-500 hover:text-gray-700">
+                <span v-if="showChildPassword">🙈</span>
+                <span v-else>👁️</span>
+              </button>
+            </div>
           </div>
           <div>
             <label class="block text-sm font-medium text-primary-custom mb-1">Display Name (optional)</label>
@@ -637,6 +674,13 @@ const AppModals = Vue.defineComponent({
       </div>
     </div>
   `,
+  data() {
+    return {
+      showLoginPassword: false,
+      showSignupPassword: false,
+      showChildPassword: false
+    };
+  },
   inject: [
     'showAddToQuicklistModal', 'newQuicklistChore',
     'showAddPersonModal', 'newPerson', 'showDeletePersonModal', 'personToDelete',
