@@ -201,17 +201,26 @@ const app = createApp({
     handleRealtimeMessage(msg) {
       if (!msg || !msg.type) return;
       switch (msg.type) {
-        case 'chore.created':
-          if (msg.data?.chore) {
-            if (!this.chores.some(c => c.id === msg.data.chore.id)) this.chores.push(msg.data.chore);
+        case 'chore.created': {
+          const created = msg.data?.chore;
+          if (!created) break;
+          // if an optimistic temp chore exists that matches this server-created chore, replace it
+          const tempIdx = this.chores.findIndex(c => c?.isOptimistic && c.name === created.name && c.assignedTo === created.assignedTo && c.amount === created.amount && c.category === created.category);
+          if (tempIdx >= 0) {
+            this.chores[tempIdx] = created;
+            break;
           }
+          // otherwise add only if we don't already have this id
+          if (!this.chores.some(c => c.id === created.id)) this.chores.push(created);
           break;
-        case 'chore.updated':
-          if (msg.data?.chore) {
-            const i = this.chores.findIndex(c => c.id === msg.data.chore.id);
-            if (i >= 0) this.chores[i] = msg.data.chore; else this.chores.push(msg.data.chore);
-          }
+        }
+        case 'chore.updated': {
+          const updated = msg.data?.chore;
+          if (!updated) break;
+          const i = this.chores.findIndex(c => c.id === updated.id);
+          if (i >= 0) this.chores[i] = updated; else this.chores.push(updated);
           break;
+        }
         case 'chore.deleted':
           if (msg.data?.id) this.chores = this.chores.filter(c => c.id !== msg.data.id);
           break;
