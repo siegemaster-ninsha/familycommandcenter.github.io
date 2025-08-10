@@ -174,6 +174,23 @@ const app = createApp({
       }
       
       return null;
+    },
+    // whether any modal is currently open (used to lock/unlock body scroll on mobile)
+    isAnyModalOpen() {
+      return (
+        this.showAddToQuicklistModal ||
+        this.showAddChoreModal ||
+        this.showAddPersonModal ||
+        this.showDeletePersonModal ||
+        this.showNewDayModal ||
+        this.showSpendingModal ||
+        this.showChoreDetailsModal ||
+        this.showLoginModal ||
+        this.showSignupModal ||
+        this.showConfirmModal ||
+        this.showInviteModal ||
+        this.showCreateChildModal
+      );
     }
   },
   methods: {
@@ -721,7 +738,10 @@ const app = createApp({
         console.error('Failed to create invite', e);
         alert('Failed to create invite');
       } finally {
-        // will remain locked while modal is open
+        // ensure lock only remains if modal actually opened
+        if (!this.showInviteModal) {
+          document.body.classList.remove('modal-open');
+        }
       }
     },
     async acceptParentInvite(token) {
@@ -1902,6 +1922,14 @@ const app = createApp({
   },
   
   watch: {
+    // toggle body scroll lock whenever any modal opens/closes
+    isAnyModalOpen(newVal) {
+      if (newVal) {
+        document.body.classList.add('modal-open');
+      } else {
+        document.body.classList.remove('modal-open');
+      }
+    },
     selectedChoreId(newVal, oldVal) {
       if (oldVal && !newVal) {
         console.log('Selection cleared! Previous chore:', oldVal);
