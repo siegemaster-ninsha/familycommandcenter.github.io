@@ -59,7 +59,7 @@ const AppModals = Vue.defineComponent({
         <div class="flex gap-3 mt-6">
           <button 
             @click="addToQuicklist"
-            class="flex-1 bg-purple-500 text-white py-2 px-4 rounded-lg hover:bg-purple-600 transition-colors"
+            class="flex-1 btn-secondary"
           >
             Add to Quicklist
           </button>
@@ -141,7 +141,7 @@ const AppModals = Vue.defineComponent({
         <div class="flex gap-3">
           <button 
             @click="executeDeletePerson"
-            class="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors"
+            class="flex-1 btn-error"
           >
             Remove Person
           </button>
@@ -259,7 +259,7 @@ const AppModals = Vue.defineComponent({
           <button 
             @click="startNewDay"
             :disabled="newDayLoading"
-            class="flex-1 bg-gradient-to-r from-orange-500 to-red-500 text-white py-2 px-4 rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            class="flex-1 btn-warning disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             <svg v-if="newDayLoading" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -427,7 +427,7 @@ const AppModals = Vue.defineComponent({
           <button 
             @click="handleSignup"
             :disabled="authLoading"
-            class="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50"
+            class="w-full btn-success disabled:opacity-50"
           >
             {{ authLoading ? 'Creating Account...' : 'Create Account' }}
           </button>
@@ -648,7 +648,7 @@ const AppModals = Vue.defineComponent({
           </div>
         </div>
         <div class="flex gap-3 mt-6">
-          <button @click="$parent.createChild" class="flex-1 bg-emerald-500 text-white py-2 px-4 rounded-lg hover:bg-emerald-600 transition-colors">Create</button>
+          <button @click="$parent.createChild" class="flex-1 btn-success">Create</button>
           <button @click="$parent.showCreateChildModal = false" class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
         </div>
       </div>
@@ -667,8 +667,8 @@ const AppModals = Vue.defineComponent({
         <div class="bg-gray-50 rounded p-3 text-xs break-all mb-3">{{ getInviteLink() }}</div>
         <div class="text-xs text-secondary-custom mb-4">Expires: {{ new Date($parent.inviteData.expiresAt).toLocaleString() }}</div>
         <div class="flex gap-3">
-          <button @click="shareInvite()" class="flex-1 bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors">Share</button>
-          <button @click="copyInviteLink()" class="flex-1 bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-600 transition-colors">Copy Link</button>
+          <button @click="shareInvite()" class="flex-1 btn-secondary">Share</button>
+          <button @click="copyInviteLink()" class="flex-1 btn-secondary">Copy Link</button>
           <button @click="$parent.showInviteModal = false" class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors">Close</button>
         </div>
       </div>

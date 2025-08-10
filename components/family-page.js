@@ -9,12 +9,12 @@ const FamilyPage = Vue.defineComponent({
     <div class="space-y-6 sm:space-y-8">
       <!-- Family Overview -->
       <div class="card">
-        <div class="card-header flex items-center justify-between gap-3 flex-wrap">
+        <div class="card-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
             <span>👨‍👩‍👧‍👦</span>
             <span>Family Members</span>
           </h2>
-          <div class="flex gap-2 sm:gap-3 flex-wrap w-full sm:w-auto">
+          <div class="flex gap-2 sm:gap-3 flex-wrap w-full sm:w-auto order-2 sm:order-none">
             <button
               @click="$parent.openAddPersonModal()"
               class="btn-primary touch-target w-full sm:w-auto"
@@ -67,7 +67,7 @@ const FamilyPage = Vue.defineComponent({
                 </span>
                 <div class="text-right">
                   <div class="text-xs text-secondary-custom">Earnings</div>
-                  <div class="text-sm font-bold text-emerald-600">\${{ person.earnings.toFixed(2) }}</div>
+                  <div class="text-sm font-bold text-success">\${{ person.earnings.toFixed(2) }}</div>
                 </div>
                 <button 
                   @click="toggleExpanded(person.id)"
@@ -101,7 +101,7 @@ const FamilyPage = Vue.defineComponent({
                 <div class="flex items-center justify-between">
                   <label class="inline-flex items-center gap-2 text-sm cursor-pointer select-none">
                     <span class="text-secondary-custom">Show on board</span>
-                    <button @click="person.enabledForChores=!person.enabledForChores; $parent.updateMemberChoresEnabled(person)" :class="person.enabledForChores ? 'bg-green-500' : 'bg-gray-300'" class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors">
+                    <button @click="person.enabledForChores=!person.enabledForChores; $parent.updateMemberChoresEnabled(person)" :class="person.enabledForChores ? 'bg-primary-500' : 'bg-gray-300'" class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors">
                       <span :class="person.enabledForChores ? 'translate-x-5' : 'translate-x-1'" class="inline-block h-3 w-3 transform rounded-full bg-white transition-transform"></span>
                     </button>
                   </label>

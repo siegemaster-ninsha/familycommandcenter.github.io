@@ -38,7 +38,7 @@ const ChorePage = Vue.defineComponent({
             <!-- Remove button -->
             <button
               @click.stop="removeFromQuicklist(quickChore.id)"
-              class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-6 h-6 sm:w-5 sm:h-5 flex items-center justify-center text-sm sm:text-xs sm:opacity-0 sm:group-hover:opacity-100 opacity-60 transition-opacity duration-200 hover:bg-red-600 touch-target"
+              class="absolute -top-1 -right-1 btn-error rounded-full w-6 h-6 sm:w-5 sm:h-5 flex items-center justify-center text-sm sm:text-xs sm:opacity-0 sm:group-hover:opacity-100 opacity-60 transition-opacity duration-200"
               title="Remove from quicklist"
             >
               ×
@@ -117,7 +117,7 @@ const ChorePage = Vue.defineComponent({
               <button
                 v-if="isChoreSelected(chore)"
                 @click.stop="deleteChore(chore)"
-                class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 transition-colors shadow-lg z-10 touch-target"
+                class="absolute -top-2 -right-2 btn-error rounded-full w-6 h-6 flex items-center justify-center text-sm transition-colors shadow-lg z-10 touch-target"
                 title="Delete chore"
               >
                 ×
@@ -215,7 +215,7 @@ const ChorePage = Vue.defineComponent({
                 <button
                   v-if="isChoreSelected(chore)"
                   @click.stop="deleteChore(chore)"
-                  class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 transition-colors shadow-lg z-10 touch-target"
+                  class="absolute -top-2 -right-2 btn-error rounded-full w-6 h-6 flex items-center justify-center text-sm transition-colors shadow-lg z-10 touch-target"
                   title="Delete chore"
                 >
                   ×

@@ -8,7 +8,7 @@ const TrashSection = Vue.defineComponent({
     >
       <div 
         @click="deleteSelectedChore"
-        class="bg-red-500 hover:bg-red-600 active:bg-red-700 text-white rounded-full p-4 sm:p-4 shadow-lg cursor-pointer transition-all duration-200 flex items-center justify-center size-20 sm:size-16 touch-target ring-4 ring-red-300 ring-opacity-75"
+        class="btn-error rounded-full p-4 sm:p-4 shadow-lg cursor-pointer transition-all duration-200 flex items-center justify-center size-20 sm:size-16 touch-target ring-4 ring-red-300 ring-opacity-75"
         title="Tap to delete selected chore"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256" class="sm:w-7 sm:h-7">

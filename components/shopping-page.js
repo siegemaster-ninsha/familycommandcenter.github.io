@@ -204,7 +204,7 @@ const ShoppingPage = Vue.defineComponent({
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button
             @click="clearCompleted"
-            class="flex items-center justify-center gap-2 bg-red-500 text-white px-4 py-3 rounded-lg hover:bg-red-600 transition-colors"
+            class="flex items-center justify-center gap-2 btn-error"
             :disabled="completedItems === 0 || actionLoading"
             :class="completedItems === 0 || actionLoading ? 'opacity-50 cursor-not-allowed' : ''"
           >
@@ -216,7 +216,7 @@ const ShoppingPage = Vue.defineComponent({
           
           <button
             @click="markAllComplete"
-            class="flex items-center justify-center gap-2 bg-green-500 text-white px-4 py-3 rounded-lg hover:bg-green-600 transition-colors"
+            class="flex items-center justify-center gap-2 btn-success"
             :disabled="pendingItems === 0 || actionLoading"
             :class="pendingItems === 0 || actionLoading ? 'opacity-50 cursor-not-allowed' : ''"
           >
@@ -374,7 +374,7 @@ const ShoppingPage = Vue.defineComponent({
               </button>
               <button
                 type="submit"
-                class="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+              class="flex-1 btn-success"
                 :disabled="!newItem.name || actionLoading"
               >
                 Add Item
