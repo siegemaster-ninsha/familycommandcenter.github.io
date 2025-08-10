@@ -664,11 +664,9 @@ const app = createApp({
         // prefer membership removal by userId if available, else remove by family member name only
         if (person.userId) {
           await this.apiCall(`/family-members/memberships/${encodeURIComponent(person.userId)}`, { method: 'DELETE' });
+        } else {
+          await this.apiCall(`/family-members/by-name/${encodeURIComponent(person.name)}`, { method: 'DELETE' });
         }
-        // also remove family member card by name (best-effort)
-        try {
-          await this.apiCall(`${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${encodeURIComponent(person.name)}`, { method: 'DELETE' });
-        } catch {}
         // refresh
         await this.loadFamilyMembers(false);
       } catch (e) {
