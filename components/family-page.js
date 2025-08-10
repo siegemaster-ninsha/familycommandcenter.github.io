@@ -2,7 +2,7 @@
 const FamilyPage = Vue.defineComponent({
   data() {
     return {
-      expandedCardId: null
+      expandedCards: {}
     };
   },
   template: `
@@ -69,45 +69,47 @@ const FamilyPage = Vue.defineComponent({
                   <div class="text-sm font-bold text-emerald-600">\${{ person.earnings.toFixed(2) }}</div>
                 </div>
                 <button 
-                  @click="expandedCardId = expandedCardId === person.id ? null : person.id"
+                  @click="toggleExpanded(person.id)"
                   class="btn-secondary touch-target px-3 py-2"
-                  :aria-expanded="expandedCardId === person.id"
+                  :aria-expanded="!!expandedCards[person.id]"
                   title="More actions"
                 >
-                  <svg v-if="expandedCardId !== person.id" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M128,160a8,8,0,0,1-5.66-2.34l-48-48a8,8,0,0,1,11.32-11.32L128,140.69l42.34-42.35a8,8,0,0,1,11.32,11.32l-48,48A8,8,0,0,1,128,160Z"></path></svg>
+                  <svg v-if="!expandedCards[person.id]" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M128,160a8,8,0,0,1-5.66-2.34l-48-48a8,8,0,0,1,11.32-11.32L128,140.69l42.34-42.35a8,8,0,0,1,11.32,11.32l-48,48A8,8,0,0,1,128,160Z"></path></svg>
                   <svg v-else xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M128,160a8,8,0,0,1-5.66-2.34l-48-48a8,8,0,0,1,11.32-11.32L128,140.69l42.34-42.35a8,8,0,0,1,11.32,11.32l-48,48A8,8,0,0,1,128,160Z" transform="rotate(180 128 128)"></path></svg>
                 </button>
               </div>
             </div>
 
             <!-- Expanded details -->
-            <div v-if="expandedCardId === person.id" class="mt-3 space-y-3">
-              <div class="flex items-center gap-2">
-                <span class="text-sm text-secondary-custom">Display name</span>
-                <input v-model="person.displayName" @blur="$parent.updateFamilyMemberDisplayName(person)" class="text-sm border rounded px-2 py-1 w-40" placeholder="optional" />
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-sm text-secondary-custom">Completed chores</span>
-                <span class="text-sm font-medium text-primary-custom">{{ person.completedChores || 0 }}</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <label class="inline-flex items-center gap-2 text-sm cursor-pointer select-none">
-                  <span class="text-secondary-custom">Show on board</span>
-                  <button @click="person.enabledForChores=!person.enabledForChores; $parent.updateMemberChoresEnabled(person)" :class="person.enabledForChores ? 'bg-green-500' : 'bg-gray-300'" class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors">
-                    <span :class="person.enabledForChores ? 'translate-x-5' : 'translate-x-1'" class="inline-block h-3 w-3 transform rounded-full bg-white transition-transform"></span>
-                  </button>
-                </label>
-                <div class="flex gap-2">
-                  <button v-if="$parent.currentUser?.role === 'parent'" @click="$parent.openSpendingModal(person)" class="btn-secondary">Spend</button>
-                  <button
-                    v-if="$parent.canRemoveMember(person)"
-                    @click="$parent.removeMember(person)"
-                    class="btn-error"
-                    title="Remove member from account"
-                  >Remove</button>
+            <transition name="slide-fade">
+              <div v-show="expandedCards[person.id]" class="mt-3 space-y-3">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm text-secondary-custom">Display name</span>
+                  <input v-model="person.displayName" @blur="$parent.updateFamilyMemberDisplayName(person)" class="text-sm border rounded px-2 py-1 w-40" placeholder="optional" />
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-secondary-custom">Completed chores</span>
+                  <span class="text-sm font-medium text-primary-custom">{{ person.completedChores || 0 }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <label class="inline-flex items-center gap-2 text-sm cursor-pointer select-none">
+                    <span class="text-secondary-custom">Show on board</span>
+                    <button @click="person.enabledForChores=!person.enabledForChores; $parent.updateMemberChoresEnabled(person)" :class="person.enabledForChores ? 'bg-green-500' : 'bg-gray-300'" class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors">
+                      <span :class="person.enabledForChores ? 'translate-x-5' : 'translate-x-1'" class="inline-block h-3 w-3 transform rounded-full bg-white transition-transform"></span>
+                    </button>
+                  </label>
+                  <div class="flex gap-2">
+                    <button v-if="$parent.currentUser?.role === 'parent'" @click="$parent.openSpendingModal(person)" class="btn-secondary">Spend</button>
+                    <button
+                      v-if="$parent.canRemoveMember(person)"
+                      @click="$parent.removeMember(person)"
+                      class="btn-error"
+                      title="Remove member from account"
+                    >Remove</button>
+                  </div>
                 </div>
               </div>
-            </div>
+            </transition>
           </div>
         </div>
 

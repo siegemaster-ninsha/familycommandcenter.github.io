@@ -932,6 +932,23 @@ body.modal-open {
   }
 }
 
+/* slide-fade transition for expandable cards */
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 180ms ease;
+}
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+  max-height: 0;
+}
+.slide-fade-enter-to,
+.slide-fade-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   .border-dashed {
