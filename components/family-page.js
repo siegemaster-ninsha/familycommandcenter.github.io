@@ -1,18 +1,23 @@
 // Family Page Component
 const FamilyPage = Vue.defineComponent({
+  data() {
+    return {
+      expandedCardId: null
+    };
+  },
   template: `
-    <div class="space-y-6">
+    <div class="space-y-6 sm:space-y-8">
       <!-- Family Overview -->
       <div class="card">
-        <div class="card-header flex items-center justify-between">
+        <div class="card-header flex items-center justify-between gap-3 flex-wrap">
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
             <span>👨‍👩‍👧‍👦</span>
             <span>Family Members</span>
           </h2>
-          <div class="flex gap-2">
+          <div class="flex gap-2 sm:gap-3 flex-wrap w-full sm:w-auto">
             <button
               @click="$parent.openAddPersonModal()"
-              class="btn-primary touch-target"
+              class="btn-primary touch-target w-full sm:w-auto"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
                 <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
@@ -21,14 +26,14 @@ const FamilyPage = Vue.defineComponent({
             </button>
             <button
               @click="$parent.openCreateChildModal()"
-              class="btn-success touch-target"
+              class="btn-success touch-target w-full sm:w-auto"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M224,128a96,96,0,1,1-96-96A96.11,96.11,0,0,1,224,128Zm-104,8H88a8,8,0,0,0,0,16h32v32a8,8,0,0,0,16,0V152h32a8,8,0,0,0,0-16H136V120a8,8,0,0,0-16,0Z"></path></svg>
               <span class="font-medium">Add Child</span>
             </button>
             <button
               @click="$parent.createParentInvite()"
-              class="btn-secondary touch-target"
+              class="btn-secondary touch-target w-full sm:w-auto"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M216,80V208a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V80L128,32Z"></path></svg>
               <span class="font-medium">Invite Parent</span>
@@ -36,13 +41,13 @@ const FamilyPage = Vue.defineComponent({
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <div 
             v-for="person in allPeople" 
             :key="person.id"
-            class="family-card card p-4 hover:shadow-md"
+            class="family-card card p-4 sm:p-5 hover:shadow-md"
           >
-            <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center justify-between mb-1">
               <div class="flex items-center gap-3">
                 <div class="family-avatar rounded-full w-10 h-10 flex items-center justify-center font-semibold text-white shadow">
                   {{ (person.displayName || person.name).charAt(0).toUpperCase() }}
@@ -52,59 +57,65 @@ const FamilyPage = Vue.defineComponent({
                   <p class="text-xs text-secondary-custom">{{ person.role || 'Family Member' }}</p>
                 </div>
               </div>
+              <div class="flex items-center gap-3">
+                <span 
+                  :class="getElectronicsStatusClass(person.electronicsStatus.status)"
+                  class="text-xs font-medium px-2 py-1 rounded-full"
+                >
+                  {{ getElectronicsStatusText(person.electronicsStatus.status) }}
+                </span>
+                <div class="text-right">
+                  <div class="text-xs text-secondary-custom">Earnings</div>
+                  <div class="text-sm font-bold text-emerald-600">\${{ person.earnings.toFixed(2) }}</div>
+                </div>
+                <button 
+                  @click="expandedCardId = expandedCardId === person.id ? null : person.id"
+                  class="btn-secondary touch-target px-3 py-2"
+                  :aria-expanded="expandedCardId === person.id"
+                  title="More actions"
+                >
+                  <svg v-if="expandedCardId !== person.id" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M128,160a8,8,0,0,1-5.66-2.34l-48-48a8,8,0,0,1,11.32-11.32L128,140.69l42.34-42.35a8,8,0,0,1,11.32,11.32l-48,48A8,8,0,0,1,128,160Z"></path></svg>
+                  <svg v-else xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M128,160a8,8,0,0,1-5.66-2.34l-48-48a8,8,0,0,1,11.32-11.32L128,140.69l42.34-42.35a8,8,0,0,1,11.32,11.32l-48,48A8,8,0,0,1,128,160Z" transform="rotate(180 128 128)"></path></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Expanded details -->
+            <div v-if="expandedCardId === person.id" class="mt-3 space-y-3">
               <div class="flex items-center gap-2">
-                <label class="inline-flex items-center gap-2 text-xs cursor-pointer select-none">
+                <span class="text-sm text-secondary-custom">Display name</span>
+                <input v-model="person.displayName" @blur="$parent.updateFamilyMemberDisplayName(person)" class="text-sm border rounded px-2 py-1 w-40" placeholder="optional" />
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-secondary-custom">Completed chores</span>
+                <span class="text-sm font-medium text-primary-custom">{{ person.completedChores || 0 }}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <label class="inline-flex items-center gap-2 text-sm cursor-pointer select-none">
                   <span class="text-secondary-custom">Show on board</span>
                   <button @click="person.enabledForChores=!person.enabledForChores; $parent.updateMemberChoresEnabled(person)" :class="person.enabledForChores ? 'bg-green-500' : 'bg-gray-300'" class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors">
                     <span :class="person.enabledForChores ? 'translate-x-5' : 'translate-x-1'" class="inline-block h-3 w-3 transform rounded-full bg-white transition-transform"></span>
                   </button>
                 </label>
-                <button
-                  v-if="$parent.canRemoveMember(person)"
-                  @click="$parent.removeMember(person)"
-                  class="text-xs px-2 py-1 rounded border border-red-200 text-red-600 hover:bg-red-50"
-                  title="Remove member from account"
-                >Remove</button>
-              </div>
-            </div>
-
-            <div class="space-y-3">
-              <div class="flex justify-between items-center">
-                <span class="text-sm text-secondary-custom font-medium">Electronics Status</span>
-                <span 
-                  :class="getElectronicsStatusClass(person.electronicsStatus.status)"
-                  class="text-sm font-medium px-2 py-1 rounded-full"
-                >
-                  {{ getElectronicsStatusText(person.electronicsStatus.status) }}
-                </span>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="text-sm text-secondary-custom">Display name</span>
-                <input v-model="person.displayName" @blur="$parent.updateFamilyMemberDisplayName(person)" class="text-sm border rounded px-2 py-1 w-40" placeholder="optional" />
-              </div>
-              
-              <div class="flex justify-between items-center">
-                <span class="text-sm text-secondary-custom font-medium">Total Earnings</span>
-                <span class="text-lg font-bold text-emerald-600">\${{ person.earnings.toFixed(2) }}</span>
-              </div>
-              
-              <div class="flex justify-between items-center">
-                <span class="text-sm text-secondary-custom font-medium">Completed Chores</span>
-                <span class="text-sm font-medium text-primary-custom">{{ person.completedChores || 0 }}</span>
-              </div>
-
-              <div v-if="$parent.currentUser?.role === 'parent'" class="pt-1">
-                <button @click="$parent.openSpendingModal(person)" class="btn-secondary w-full">Spend from \${{ person.earnings.toFixed(2) }}</button>
+                <div class="flex gap-2">
+                  <button v-if="$parent.currentUser?.role === 'parent'" @click="$parent.openSpendingModal(person)" class="btn-secondary">Spend</button>
+                  <button
+                    v-if="$parent.canRemoveMember(person)"
+                    @click="$parent.removeMember(person)"
+                    class="btn-error"
+                    title="Remove member from account"
+                  >Remove</button>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Spending Requests (Parents Only) -->
-        <div v-if="$parent.currentUser?.role === 'parent'" class="mt-6 card">
+        <div v-if="$parent.currentUser?.role === 'parent'" class="mt-6 sm:mt-8 card">
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-primary-custom text-lg font-bold">💳 Spending Requests</h3>
-            <button @click="$parent.loadSpendingRequests()" class="btn-secondary">Refresh</button>
+            <button @click="$parent.loadSpendingRequests()" class="btn-secondary touch-target">Refresh</button>
           </div>
           <div v-if="$parent.spendingRequests.length === 0" class="text-sm text-secondary-custom">No pending requests.</div>
           <div v-else class="space-y-2">
