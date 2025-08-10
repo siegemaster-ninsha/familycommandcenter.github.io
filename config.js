@@ -6,8 +6,8 @@ const CONFIG = {
   // Replace these URLs with your actual API Gateway endpoints after deployment
   API: {
     BASE_URL: 'https://cq5lvrvppd.execute-api.us-east-1.amazonaws.com',
-    // optional websocket base; if omitted, app derives from BASE_URL
-    WS_BASE: 'wss://cq5lvrvppd.execute-api.us-east-1.amazonaws.com',
+    // websocket base should point to the WebSocket ApiId, not the HTTP ApiId
+    WS_BASE: 'wss://kxpcn8baw8.execute-api.us-east-1.amazonaws.com',
     STAGE: 'dev',
     
     // API Endpoints
