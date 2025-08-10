@@ -48,6 +48,7 @@ const app = createApp({
       },
       // Person management
       people: [],
+      // manual add person removed
       showAddPersonModal: false,
       newPerson: { name: '' },
       showDeletePersonModal: false,
@@ -411,6 +412,9 @@ const app = createApp({
                 this.people.push({
                   id: serverMember.id || serverMember.name.toLowerCase(),
                   name: serverMember.name,
+                  displayName: serverMember.displayName || serverMember.name,
+                  userId: serverMember.userId || null,
+                  role: serverMember.role || null,
                   earnings: serverMember.earnings || 0,
                   completedChores: serverMember.completedChores || 0,
                   electronicsStatus: { status: 'allowed', message: 'Electronics allowed' },
@@ -425,6 +429,9 @@ const app = createApp({
             this.people = response.familyMembers.map(member => ({
               id: member.id || member.name.toLowerCase(),
               name: member.name,
+              displayName: member.displayName || member.name,
+              userId: member.userId || null,
+              role: member.role || null,
               earnings: member.earnings || 0,
               completedChores: member.completedChores || 0,
               electronicsStatus: { status: 'allowed', message: 'Electronics allowed' },
@@ -617,32 +624,7 @@ const app = createApp({
     
     // Person management methods
     async addPerson() {
-      if (this.newPerson.name.trim()) {
-        try {
-          const personData = {
-            name: this.newPerson.name.trim(),
-            displayName: this.newPerson.displayName?.trim() || ''
-          };
-          
-          await this.apiCall(CONFIG.API.ENDPOINTS.FAMILY_MEMBERS, {
-            method: 'POST',
-            body: JSON.stringify(personData)
-          });
-          
-          // Add person to local array
-          this.people.push({
-            id: this.newPerson.name.trim().toLowerCase(),
-            name: this.newPerson.name.trim(),
-            displayName: this.newPerson.displayName?.trim() || '',
-            earnings: 0,
-            electronicsStatus: { status: 'allowed', message: 'Electronics allowed' }
-          });
-          
-          this.cancelAddPerson();
-        } catch (error) {
-          console.error('Failed to add person:', error);
-        }
-      }
+      alert('Manual people are no longer supported. Use "Add Child" or "Invite Parent".');
     },
     
     cancelAddPerson() {
@@ -651,15 +633,17 @@ const app = createApp({
     },
 
     openAddPersonModal() {
-      this.showAddPersonModal = true;
-      if (!this.newPerson) this.newPerson = { name: '', displayName: '' };
+      alert('Manual people are no longer supported. Use "Add Child" or "Invite Parent".');
     },
     async updateFamilyMemberDisplayName(person) {
       try {
+        // require user-linked member to update profile; disallow for legacy/manual rows
+        if (!person?.userId) return;
         await this.apiCall(CONFIG.API.ENDPOINTS.FAMILY_MEMBERS, {
           method: 'POST',
-          body: JSON.stringify({ name: person.name, displayName: person.displayName || '' })
+          body: JSON.stringify({ userId: person.userId, displayName: person.displayName || person.name, name: person.displayName || person.name })
         });
+        await this.loadFamilyMembers(false);
       } catch (e) {
         console.warn('failed to update display name', e);
       }

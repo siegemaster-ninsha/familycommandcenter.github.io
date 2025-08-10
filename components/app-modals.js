@@ -73,55 +73,7 @@ const AppModals = Vue.defineComponent({
       </div>
     </div>
 
-    <!-- Add Person Modal -->
-    <div v-if="$parent.showAddPersonModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
-      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="bg-blue-100 p-2 rounded-full">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-blue-600" viewBox="0 0 256 256">
-              <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
-            </svg>
-          </div>
-          <h3 class="text-lg font-bold text-primary-custom">Add Family Member</h3>
-        </div>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-primary-custom mb-1">Name</label>
-            <input 
-              v-model="newPerson.name"
-              type="text" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="Enter person's name"
-              @keyup.enter="addPerson"
-            >
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-primary-custom mb-1">Display Name (optional)</label>
-            <input 
-              v-model="newPerson.displayName"
-              type="text" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="Name to display on the board"
-              @keyup.enter="addPerson"
-            >
-          </div>
-        </div>
-        <div class="flex gap-3 mt-6">
-          <button 
-            @click="addPerson"
-            class="flex-1 bg-primary-500 text-white py-2 px-4 rounded-lg hover:bg-primary-600 transition-colors"
-          >
-            Add Person
-          </button>
-          <button 
-            @click="cancelAddPerson"
-            class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
+    
 
     <!-- Delete Person Confirmation Modal -->
     <div v-if="$parent.showDeletePersonModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">

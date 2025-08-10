@@ -16,15 +16,6 @@ const FamilyPage = Vue.defineComponent({
           </h2>
           <div class="flex gap-2 sm:gap-3 flex-wrap w-full sm:w-auto order-2 sm:order-none">
             <button
-              @click="$parent.openAddPersonModal()"
-              class="btn-primary touch-target w-full sm:w-auto"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-                <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
-              </svg>
-              <span class="font-medium">Add Member</span>
-            </button>
-            <button
               @click="$parent.openCreateChildModal()"
               class="btn-success touch-target w-full sm:w-auto"
             >
@@ -90,7 +81,7 @@ const FamilyPage = Vue.defineComponent({
               leave-to-class="opacity-0 -translate-y-2 max-h-0"
             >
               <div v-show="expandedCards[person.id]" class="mt-3 pt-2 sm:pt-3 space-y-3 overflow-hidden">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" v-if="person.userId">
                   <span class="text-sm text-secondary-custom">Display name</span>
                   <input v-model="person.displayName" @blur="$parent.updateFamilyMemberDisplayName(person)" class="text-sm border rounded px-2 py-1 w-40" placeholder="optional" />
                 </div>
@@ -146,12 +137,12 @@ const FamilyPage = Vue.defineComponent({
             <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
           </svg>
           <p class="text-lg font-medium">No family members added yet.</p>
-          <p class="text-sm mt-2">Click "Add Member" to get started!</p>
+          <p class="text-sm mt-2">Use "Add Child" or "Invite Parent" to get started.</p>
         </div>
       </div>
     </div>
   `,
-  inject: ['allPeople', 'showAddPersonModal', 'confirmDeletePerson'],
+  inject: ['allPeople', 'confirmDeletePerson'],
   methods: {
     toggleExpanded(id) {
       if (!id) return;
