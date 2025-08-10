@@ -394,24 +394,8 @@ const app = createApp({
             console.log('👥 Final people data:', this.people.map(p => `${p.name}: completedChores=${p.completedChores}`));
           }
         } else {
-          // No family members from backend - fallback to memberships to populate UI
-          const membersChoresEnabled = this.accountSettings?.preferences?.membersChoresEnabled || {};
-          const memberships = this.currentUser?.memberships || [];
-          const currentAccount = this.accountId;
-          const fallback = memberships
-            .filter(m => !currentAccount || m.accountId === currentAccount)
-            .map(m => ({
-              id: (m.userId || m.role || Math.random().toString(36)).toLowerCase(),
-              name: m.role === 'child' ? 'Child' : 'Parent',
-              displayName: this.accountSettings?.profile?.displayName || this.currentUser?.name || '',
-              earnings: 0,
-              completedChores: 0,
-              electronicsStatus: { status: 'allowed', message: 'Electronics allowed' },
-              role: m.role,
-              enabledForChores: membersChoresEnabled[(this.accountSettings?.profile?.displayName || this.currentUser?.name || 'Parent')] !== false
-            }));
-          this.people = fallback;
-          console.log('👥 Fallback people from memberships:', this.people);
+          // backend returned no family members; show empty state without synthesizing placeholders
+          this.people = [];
         }
         console.log('[debug] AFTER loadFamilyMembers() people:', (this.people || []).map(p => ({ name: p.name, userId: p.userId, role: p.role, enabledForChores: p.enabledForChores, completedChores: p.completedChores })));
       } catch (error) {
