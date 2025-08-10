@@ -152,6 +152,11 @@ const FamilyPage = Vue.defineComponent({
   `,
   inject: ['allPeople', 'showAddPersonModal', 'confirmDeletePerson'],
   methods: {
+    toggleExpanded(id) {
+      if (!id) return;
+      const current = !!this.expandedCards[id];
+      this.$set ? this.$set(this.expandedCards, id, !current) : (this.expandedCards = { ...this.expandedCards, [id]: !current });
+    },
     handleDeletePerson(person) {
       this.confirmDeletePerson(person);
     },
