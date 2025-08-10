@@ -96,7 +96,9 @@ const CONFIG = {
       colors: {
         primary: '#4A90E2',
         secondary: '#7B68EE',
-        success: '#50C878',
+        success: '#22C55E',
+        warning: '#F59E0B',
+        error: '#EF4444',
         textPrimary: '#2D3748',
         textSecondary: '#718096'
       }
@@ -108,7 +110,9 @@ const CONFIG = {
       colors: {
         primary: '#22C55E',
         secondary: '#16A34A',
-        success: '#15803D',
+        success: '#16A34A',
+        warning: '#CA8A04',
+        error: '#DC2626',
         textPrimary: '#1F2937',
         textSecondary: '#6B7280'
       }
@@ -121,6 +125,8 @@ const CONFIG = {
         primary: '#F97316',
         secondary: '#EA580C',
         success: '#22C55E',
+        warning: '#F59E0B',
+        error: '#EF4444',
         textPrimary: '#1F2937',
         textSecondary: '#6B7280'
       }
@@ -133,6 +139,8 @@ const CONFIG = {
         primary: '#8B5CF6',
         secondary: '#A855F7',
         success: '#22C55E',
+        warning: '#F59E0B',
+        error: '#F43F5E',
         textPrimary: '#1F2937',
         textSecondary: '#6B7280'
       }
@@ -145,6 +153,8 @@ const CONFIG = {
         primary: '#EC4899',
         secondary: '#F43F5E',
         success: '#22C55E',
+        warning: '#FB923C',
+        error: '#EF4444',
         textPrimary: '#1F2937',
         textSecondary: '#6B7280'
       }
@@ -157,6 +167,8 @@ const CONFIG = {
         primary: '#1E40AF',
         secondary: '#3730A3',
         success: '#22C55E',
+        warning: '#F59E0B',
+        error: '#EF4444',
         textPrimary: '#1F2937',
         textSecondary: '#6B7280'
       }
@@ -169,6 +181,8 @@ const CONFIG = {
         primary: '#8B5CF6',
         secondary: '#A855F7',
         success: '#10B981',
+        warning: '#F59E0B',
+        error: '#F43F5E',
         textPrimary: '#F3F4F6',
         textSecondary: '#D1D5DB'
       }
@@ -180,7 +194,9 @@ const CONFIG = {
       colors: {
         primary: '#7B3947',     // Deep burgundy/wine red
         secondary: '#EB615F',   // Coral/salmon pink 
-        success: '#A59A7E',     // Olive/tan for success states
+        success: '#84CC16',     // Muted lime for success
+        warning: '#D97706',
+        error: '#DC2626',
         textPrimary: '#24222D', // Dark charcoal for primary text
         textSecondary: '#9C7379' // Dusty rose/mauve for secondary text
       }
@@ -192,7 +208,9 @@ const CONFIG = {
       colors: {
         primary: '#426E6F',     // Main seafoam teal
         secondary: '#346F6F',   // Deeper teal for accents
-        success: '#50C878',     // Keep standard success green
+        success: '#10B981',
+        warning: '#F59E0B',
+        error: '#EF4444',
         textPrimary: '#1F2937', // Dark gray for primary text
         textSecondary: '#6B7280' // Medium gray for secondary text
       }
@@ -204,9 +222,53 @@ const CONFIG = {
       colors: {
         primary: '#030432',     // Deep navy blue
         secondary: '#F2A249',   // Warm orange/gold
-        success: '#50C878',     // Keep standard success green
+        success: '#10B981',
+        warning: '#F59E0B',
+        error: '#F43F5E',
         textPrimary: '#FFFFFF', // White text for dark theme
         textSecondary: '#E5E7EB' // Light gray for secondary text
+      }
+    },
+    aurora: {
+      id: 'aurora',
+      name: 'Aurora',
+      description: 'Crisp teal with indigo accents',
+      colors: {
+        primary: '#0EA5E9',
+        secondary: '#6366F1',
+        success: '#10B981',
+        warning: '#F59E0B',
+        error: '#EF4444',
+        textPrimary: '#0F172A',
+        textSecondary: '#475569'
+      }
+    },
+    blossom: {
+      id: 'blossom',
+      name: 'Blossom',
+      description: 'Soft rose with deep indigo',
+      colors: {
+        primary: '#F472B6',
+        secondary: '#4338CA',
+        success: '#22C55E',
+        warning: '#F59E0B',
+        error: '#DC2626',
+        textPrimary: '#1F2937',
+        textSecondary: '#6B7280'
+      }
+    },
+    carbon: {
+      id: 'carbon',
+      name: 'Carbon',
+      description: 'Modern dark with electric blue',
+      colors: {
+        primary: '#111827',
+        secondary: '#2563EB',
+        success: '#10B981',
+        warning: '#F59E0B',
+        error: '#F43F5E',
+        textPrimary: '#F9FAFB',
+        textSecondary: '#D1D5DB'
       }
     }
   }
@@ -280,13 +342,15 @@ const ThemeManager = {
     root.style.setProperty('--color-success-500', theme.colors.success);
     root.style.setProperty('--color-success-600', this.darkenColor(theme.colors.success, 10));
 
-    // Warning colors (use secondary color for warning states)
-    root.style.setProperty('--color-warning-500', theme.colors.secondary);
-    root.style.setProperty('--color-warning-600', this.darkenColor(theme.colors.secondary, 10));
+    // Warning colors (prefer explicit theme warning; fallback to secondary)
+    const warnBase = theme.colors.warning || theme.colors.secondary;
+    root.style.setProperty('--color-warning-500', warnBase);
+    root.style.setProperty('--color-warning-600', this.darkenColor(warnBase, 10));
 
-    // Error colors (use darkened primary color for error states)
-    root.style.setProperty('--color-error-500', this.darkenColor(theme.colors.primary, 15));
-    root.style.setProperty('--color-error-600', this.darkenColor(theme.colors.primary, 25));
+    // Error colors (prefer explicit theme error; fallback to darkened primary)
+    const errorBase = theme.colors.error || this.darkenColor(theme.colors.primary, 15);
+    root.style.setProperty('--color-error-500', errorBase);
+    root.style.setProperty('--color-error-600', this.darkenColor(errorBase, 10));
 
     // Text colors
     root.style.setProperty('--color-text-primary', theme.colors.textPrimary);
@@ -352,8 +416,8 @@ const ThemeManager = {
     root.style.setProperty('--gradient-primary', `linear-gradient(135deg, ${theme.colors.primary}, ${this.darkenColor(theme.colors.primary, 10)})`);
     root.style.setProperty('--gradient-secondary', `linear-gradient(135deg, ${theme.colors.secondary}, ${this.darkenColor(theme.colors.secondary, 10)})`);
     root.style.setProperty('--gradient-success', `linear-gradient(135deg, ${theme.colors.success}, ${this.darkenColor(theme.colors.success, 10)})`);
-    root.style.setProperty('--gradient-warning', `linear-gradient(135deg, ${theme.colors.secondary}, ${this.darkenColor(theme.colors.secondary, 10)})`);
-    root.style.setProperty('--gradient-error', `linear-gradient(135deg, ${this.darkenColor(theme.colors.primary, 15)}, ${this.darkenColor(theme.colors.primary, 25)})`);
+    root.style.setProperty('--gradient-warning', `linear-gradient(135deg, ${warnBase}, ${this.darkenColor(warnBase, 10)})`);
+    root.style.setProperty('--gradient-error', `linear-gradient(135deg, ${errorBase}, ${this.darkenColor(errorBase, 10)})`);
 
     // RGB versions for Tailwind opacity support
     root.style.setProperty('--color-primary-50', this.hexToRgb(this.lightenColor(theme.colors.primary, 45)));

@@ -200,21 +200,14 @@ const AccountPage = Vue.defineComponent({
               ●
             </div>
             
-            <!-- Theme preview -->
+            <!-- Theme preview: brand + semantic tokens -->
             <div class="mb-3">
               <div class="flex gap-2 mb-2">
-                <div 
-                  class="w-8 h-8 rounded-full border-2 border-white shadow-sm"
-                  :style="{ backgroundColor: theme.colors.primary }"
-                ></div>
-                <div 
-                  class="w-8 h-8 rounded-full border-2 border-white shadow-sm"
-                  :style="{ backgroundColor: theme.colors.secondary }"
-                ></div>
-                <div 
-                  class="w-8 h-8 rounded-full border-2 border-white shadow-sm"
-                  :style="{ backgroundColor: theme.colors.success }"
-                ></div>
+                <div class="w-8 h-8 rounded-full border-2 border-white shadow-sm" :style="{ backgroundColor: theme.colors.primary }"></div>
+                <div class="w-8 h-8 rounded-full border-2 border-white shadow-sm" :style="{ backgroundColor: theme.colors.secondary }"></div>
+                <div class="w-8 h-8 rounded-full border-2 border-white shadow-sm" :style="{ backgroundColor: theme.colors.success || '#22C55E' }"></div>
+                <div class="w-8 h-8 rounded-full border-2 border-white shadow-sm" :style="{ backgroundColor: theme.colors.warning || theme.colors.secondary }"></div>
+                <div class="w-8 h-8 rounded-full border-2 border-white shadow-sm" :style="{ backgroundColor: theme.colors.error || theme.colors.primary }"></div>
               </div>
               <div class="text-sm font-medium text-primary-custom">{{ theme.name }}</div>
               <div class="text-xs text-secondary-custom">{{ theme.description }}</div>
