@@ -589,7 +589,9 @@ const ShoppingPage = Vue.defineComponent({
     'shoppingQuickItems', 
     'stores',
     // shared api helper
-    'apiCall'
+    'apiCall',
+    // app loading state for top-level loading gate
+    'loading'
   ],
   async mounted() {
     // Data is now preloaded by parent component - no need to load on mount!
