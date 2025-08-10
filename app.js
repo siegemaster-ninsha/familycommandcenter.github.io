@@ -1041,7 +1041,19 @@ const app = createApp({
       this.selectedChoreId = null;
       this.selectedQuicklistChore = null;
       
-      // Show login modal
+      // if an invite token is present, guide to signup instead of login
+      try {
+        const url = new URL(window.location.href);
+        const inviteToken = this.pendingInviteToken || url.searchParams.get('invite');
+        if (inviteToken) {
+          this.pendingInviteToken = inviteToken;
+          this.showSignupForm();
+          return;
+        }
+      } catch (e) {
+        // ignore url parsing errors
+      }
+      // default to login modal
       this.showLoginModal = true;
     },
 
