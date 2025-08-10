@@ -674,6 +674,8 @@ const app = createApp({
           method: 'POST',
           body: JSON.stringify({ username: this.childForm.username, password: this.childForm.password, displayName: this.childForm.displayName })
         });
+        // refresh family members to reflect the new child immediately
+        await this.loadFamilyMembers(false);
         this.showCreateChildModal = false;
         this.childForm = { username: '', password: '', displayName: '' };
         alert('Child account created. Share the username and password with your child.');
