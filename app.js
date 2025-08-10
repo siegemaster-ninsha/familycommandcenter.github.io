@@ -2135,6 +2135,9 @@ const app = createApp({
       // Spending approvals
       loadSpendingRequests: this.loadSpendingRequests,
       approveSpendingRequest: this.approveSpendingRequest
+      ,
+      // shared api helper
+      apiCall: this.apiCall
     };
   }
 });

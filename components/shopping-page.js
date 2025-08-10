@@ -243,7 +243,7 @@ const ShoppingPage = Vue.defineComponent({
       <!-- Store Management -->
       <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em]">🏪 Store Management</h2>
+          <h2 class="text-primary-custom text-[22px] font-bold leading.tight tracking-[-0.015em]">🏪 Store Management</h2>
           <button
             @click="showAddStoreModal = true"
             class="flex items-center gap-2 bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-colors"
@@ -272,7 +272,7 @@ const ShoppingPage = Vue.defineComponent({
           >
             <div class="flex items-center gap-2">
               <div 
-                class="flex items-center justify-center w-6 h-6 rounded-full text-sm font-bold text-white bg-white bg-opacity-20"
+                class="flex items-center justify-center w-6 h-6 rounded-full text-sm font-bold text.white bg-white bg-opacity-20"
               >
                 {{ getStoreInitial(store.name) }}
               </div>
@@ -358,7 +358,7 @@ const ShoppingPage = Vue.defineComponent({
                 <input
                   v-model="newItem.notes"
                   type="text"
-                  class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus.border-blue-500"
                   placeholder="Any special notes"
                 >
               </div>
@@ -447,7 +447,7 @@ const ShoppingPage = Vue.defineComponent({
                   class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">No Store Selected</option>
-                  <option v-for="store in stores" :key="store.id" :value="store.name">
+                  <option v.for="store in stores" :key="store.id" :value="store.name">
                     {{ store.name }}
                   </option>
                 </select>
@@ -475,7 +475,7 @@ const ShoppingPage = Vue.defineComponent({
       </div>
 
       <!-- Add Store Modal -->
-      <div v-if="showAddStoreModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div v-if="showAddStoreModal" class="fixed inset-0 bg-black bg-opacity-50 flex items.center justify-center z-50">
         <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
           <h3 class="text-lg font-bold mb-4">Add Store</h3>
           
@@ -587,7 +587,9 @@ const ShoppingPage = Vue.defineComponent({
     // Preloaded data from parent
     'shoppingItems',
     'shoppingQuickItems', 
-    'stores'
+    'stores',
+    // shared api helper
+    'apiCall'
   ],
   async mounted() {
     // Data is now preloaded by parent component - no need to load on mount!
@@ -598,13 +600,10 @@ const ShoppingPage = Vue.defineComponent({
   },
   methods: {
     // === API Methods ===
-    // Data reloading methods (now trigger parent to reload)
     async reloadShoppingItems() {
       this.localLoading = true;
       this.error = null;
-      
       try {
-        // Reload data in parent component
         await this.$parent.loadShoppingItems();
       } catch (error) {
         console.error('Error reloading shopping items:', error);
@@ -617,9 +616,7 @@ const ShoppingPage = Vue.defineComponent({
     async reloadQuickItems() {
       this.quickLoading = true;
       this.quickError = null;
-      
       try {
-        // Reload data in parent component
         await this.$parent.loadShoppingQuickItems();
       } catch (error) {
         console.error('Error reloading quick items:', error);
@@ -631,38 +628,18 @@ const ShoppingPage = Vue.defineComponent({
 
     async addItem() {
       this.actionLoading = true;
-      
       try {
-        const authHeader = authService.getAuthHeader();
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-        
-        if (authHeader) {
-          headers.Authorization = authHeader;
-        }
-        
-        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS), {
+        await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS, {
           method: 'POST',
-          headers,
           body: JSON.stringify(this.newItem)
         });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        // Reload shopping items to get updated data
         await this.$parent.loadShoppingItems();
-        
-        // Reset form and close modal
         this.newItem = { name: '', category: 'General', quantity: '', notes: '', store: '' };
         this.showAddItemModal = false;
         this.showSuccessMessage('Item added successfully!');
       } catch (error) {
         console.error('Error adding item:', error);
-        alert('Error adding item: ' + error.message);
+        alert('Error adding item: ' + (error?.message || 'unknown error'));
       } finally {
         this.actionLoading = false;
       }
@@ -670,89 +647,39 @@ const ShoppingPage = Vue.defineComponent({
 
     async toggleItem(itemId) {
       try {
-        const authHeader = authService.getAuthHeader();
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-        
-        if (authHeader) {
-          headers.Authorization = authHeader;
-        }
-        
-        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS + '/' + itemId + '/toggle'), {
-          method: 'PUT',
-          headers
+        await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_ITEMS}/${itemId}/toggle`, {
+          method: 'PUT'
         });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        // Reload shopping items to get updated data
         await this.$parent.loadShoppingItems();
       } catch (error) {
         console.error('Error toggling item:', error);
-        alert('Error updating item: ' + error.message);
+        alert('Error updating item: ' + (error?.message || 'unknown error'));
       }
     },
 
     async removeItem(itemId) {
       try {
-        const authHeader = authService.getAuthHeader();
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-        
-        if (authHeader) {
-          headers.Authorization = authHeader;
-        }
-        
-        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS + '/' + itemId), {
-          method: 'DELETE',
-          headers
+        await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_ITEMS}/${itemId}`, {
+          method: 'DELETE'
         });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        // Reload shopping items to get updated data
         await this.$parent.loadShoppingItems();
       } catch (error) {
         console.error('Error removing item:', error);
-        alert('Error removing item: ' + error.message);
+        alert('Error removing item: ' + (error?.message || 'unknown error'));
       }
     },
 
     async clearCompleted() {
       this.actionLoading = true;
-      
       try {
-        const authHeader = authService.getAuthHeader();
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-        
-        if (authHeader) {
-          headers.Authorization = authHeader;
-        }
-        
-        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS_CLEAR_COMPLETED), {
-          method: 'POST',
-          headers
+        const data = await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS_CLEAR_COMPLETED, {
+          method: 'POST'
         });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        await this.$parent.loadShoppingItems(); // Reload the list
+        await this.$parent.loadShoppingItems();
         this.showSuccessMessage(`${data.clearedCount} completed items cleared!`);
       } catch (error) {
         console.error('Error clearing completed items:', error);
-        alert('Error clearing completed items: ' + error.message);
+        alert('Error clearing completed items: ' + (error?.message || 'unknown error'));
       } finally {
         this.actionLoading = false;
       }
@@ -760,69 +687,32 @@ const ShoppingPage = Vue.defineComponent({
 
     async markAllComplete() {
       this.actionLoading = true;
-      
       try {
-        const authHeader = authService.getAuthHeader();
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-        
-        if (authHeader) {
-          headers.Authorization = authHeader;
-        }
-        
-        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS_MARK_ALL_COMPLETE), {
-          method: 'POST',
-          headers
+        const data = await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS_MARK_ALL_COMPLETE, {
+          method: 'POST'
         });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        await this.$parent.loadShoppingItems(); // Reload the list
+        await this.$parent.loadShoppingItems();
         this.showSuccessMessage(`${data.updatedCount} items marked as complete!`);
       } catch (error) {
         console.error('Error marking all items complete:', error);
-        alert('Error marking all items complete: ' + error.message);
+        alert('Error marking all items complete: ' + (error?.message || 'unknown error'));
       } finally {
         this.actionLoading = false;
       }
     },
 
     async clearAll() {
-      if (!confirm('Are you sure you want to clear all items?')) {
-        return;
-      }
-      
+      if (!confirm('Are you sure you want to clear all items?')) return;
       this.actionLoading = true;
-      
       try {
-        const authHeader = authService.getAuthHeader();
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-        
-        if (authHeader) {
-          headers.Authorization = authHeader;
-        }
-        
-        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS_CLEAR_ALL), {
-          method: 'POST',
-          headers
+        const data = await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS_CLEAR_ALL, {
+          method: 'POST'
         });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        await this.$parent.loadShoppingItems(); // Reload the list
+        await this.$parent.loadShoppingItems();
         this.showSuccessMessage(`${data.clearedCount} items cleared!`);
       } catch (error) {
         console.error('Error clearing all items:', error);
-        alert('Error clearing all items: ' + error.message);
+        alert('Error clearing all items: ' + (error?.message || 'unknown error'));
       } finally {
         this.actionLoading = false;
       }
@@ -831,37 +721,18 @@ const ShoppingPage = Vue.defineComponent({
     // === Quick List Methods ===
     async addQuickItem() {
       this.quickActionLoading = true;
-      
       try {
-        const authHeader = authService.getAuthHeader();
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-        
-        if (authHeader) {
-          headers.Authorization = authHeader;
-        }
-        
-        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS), {
+        await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS, {
           method: 'POST',
-          headers,
           body: JSON.stringify(this.newQuickItem)
         });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        await this.$parent.loadShoppingQuickItems(); // Reload quick items
-        
-        // Reset form and close modal
+        await this.$parent.loadShoppingQuickItems();
         this.newQuickItem = { name: '', category: 'General', defaultQuantity: '', defaultNotes: '', defaultStore: '' };
         this.showAddQuickItemModal = false;
         this.showSuccessMessage('Quick item added successfully!');
       } catch (error) {
         console.error('Error adding quick item:', error);
-        alert('Error adding quick item: ' + error.message);
+        alert('Error adding quick item: ' + (error?.message || 'unknown error'));
       } finally {
         this.quickActionLoading = false;
       }
@@ -869,169 +740,78 @@ const ShoppingPage = Vue.defineComponent({
 
     async addQuickItemToList(quickItemId) {
       this.quickActionLoading = true;
-      
       try {
-        const authHeader = authService.getAuthHeader();
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-        
-        if (authHeader) {
-          headers.Authorization = authHeader;
-        }
-        
-        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS + '/' + quickItemId + '/add-to-list'), {
-          method: 'POST',
-          headers
+        await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS}/${quickItemId}/add-to-list`, {
+          method: 'POST'
         });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        await this.$parent.loadShoppingItems(); // Reload shopping items
+        await this.$parent.loadShoppingItems();
         this.showSuccessMessage('Item added to shopping list!');
       } catch (error) {
         console.error('Error adding quick item to list:', error);
-        alert('Error adding item to list: ' + error.message);
+        alert('Error adding item to list: ' + (error?.message || 'unknown error'));
       } finally {
         this.quickActionLoading = false;
       }
     },
 
     async removeQuickItem(quickItemId) {
-      if (!confirm('Are you sure you want to remove this quick item?')) {
-        return;
-      }
-      
+      if (!confirm('Are you sure you want to remove this quick item?')) return;
       try {
-        const authHeader = authService.getAuthHeader();
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-        
-        if (authHeader) {
-          headers.Authorization = authHeader;
-        }
-        
-        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS + '/' + quickItemId), {
-          method: 'DELETE',
-          headers
+        await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS}/${quickItemId}`, {
+          method: 'DELETE'
         });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        await this.$parent.loadShoppingQuickItems(); // Reload quick items
+        await this.$parent.loadShoppingQuickItems();
       } catch (error) {
         console.error('Error removing quick item:', error);
-        alert('Error removing quick item: ' + error.message);
+        alert('Error removing quick item: ' + (error?.message || 'unknown error'));
       }
     },
 
     async initializeQuickItems() {
       this.quickLoading = true;
-      
       try {
-        const authHeader = authService.getAuthHeader();
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-        
-        if (authHeader) {
-          headers.Authorization = authHeader;
-        }
-        
-        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS_INITIALIZE), {
-          method: 'POST',
-          headers
+        await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS_INITIALIZE, {
+          method: 'POST'
         });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        await this.$parent.loadShoppingQuickItems(); // Reload quick items
-        // this.showSuccessMessage('Default quick items loaded!');
+        await this.$parent.loadShoppingQuickItems();
       } catch (error) {
         console.error('Error initializing quick items:', error);
-        alert('Error loading default items: ' + error.message);
+        alert('Error loading default items: ' + (error?.message || 'unknown error'));
       } finally {
         this.quickLoading = false;
       }
     },
 
     // === Store Management Methods ===
-
     async addStore() {
       this.storeLoading = true;
-      
       try {
-        const authHeader = authService.getAuthHeader();
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-        
-        if (authHeader) {
-          headers.Authorization = authHeader;
-        }
-        
-        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.STORES), {
+        await this.apiCall(CONFIG.API.ENDPOINTS.STORES, {
           method: 'POST',
-          headers,
           body: JSON.stringify(this.newStore)
         });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        await this.$parent.loadStores(); // Reload stores
-        
-        // Reset form and close modal
+        await this.$parent.loadStores();
         this.newStore = { name: '' };
         this.showAddStoreModal = false;
         this.showSuccessMessage('Store added successfully!');
       } catch (error) {
         console.error('Error adding store:', error);
-        alert('Error adding store: ' + error.message);
+        alert('Error adding store: ' + (error?.message || 'unknown error'));
       } finally {
         this.storeLoading = false;
       }
     },
 
     async removeStore(storeId) {
-      if (!confirm('Are you sure you want to remove this store?')) {
-        return;
-      }
-      
+      if (!confirm('Are you sure you want to remove this store?')) return;
       try {
-        const authHeader = authService.getAuthHeader();
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-        
-        if (authHeader) {
-          headers.Authorization = authHeader;
-        }
-        
-        const response = await fetch(CONFIG.getApiUrl(CONFIG.API.ENDPOINTS.STORES + '/' + storeId), {
-          method: 'DELETE',
-          headers
+        await this.apiCall(`${CONFIG.API.ENDPOINTS.STORES}/${storeId}`, {
+          method: 'DELETE'
         });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        await this.$parent.loadStores(); // Reload stores
+        await this.$parent.loadStores();
       } catch (error) {
         console.error('Error removing store:', error);
-        alert('Error removing store: ' + error.message);
+        alert('Error removing store: ' + (error?.message || 'unknown error'));
       }
     },
 
@@ -1059,40 +839,19 @@ const ShoppingPage = Vue.defineComponent({
       }, 3000);
     },
 
-    // Get the first letter of store name for the badge
     getStoreInitial(storeName) {
       return storeName ? storeName.charAt(0).toUpperCase() : '';
     },
 
-    // Generate a consistent color for each store based on its name
     getStoreColor(storeName) {
-      if (!storeName) return '#6b7280'; // gray-500 default
-      
-      // Predefined color palette for stores
-      const colors = [
-        '#ef4444', // red-500
-        '#f97316', // orange-500
-        '#eab308', // yellow-500
-        '#22c55e', // green-500
-        '#06b6d4', // cyan-500
-        '#3b82f6', // blue-500
-        '#8b5cf6', // violet-500
-        '#ec4899', // pink-500
-        '#f59e0b', // amber-500
-        '#10b981', // emerald-500
-        '#6366f1', // indigo-500
-        '#84cc16'  // lime-500
-      ];
-      
-      // Generate a consistent hash from the store name
+      if (!storeName) return '#6b7280';
+      const colors = ['#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#8b5cf6','#ec4899','#f59e0b','#10b981','#6366f1','#84cc16'];
       let hash = 0;
       for (let i = 0; i < storeName.length; i++) {
         const char = storeName.charCodeAt(i);
         hash = ((hash << 5) - hash) + char;
-        hash = hash & hash; // Convert to 32-bit integer
+        hash = hash & hash;
       }
-      
-      // Use the hash to pick a color consistently
       const colorIndex = Math.abs(hash) % colors.length;
       return colors[colorIndex];
     }
