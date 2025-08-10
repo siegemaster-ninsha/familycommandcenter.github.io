@@ -185,8 +185,8 @@ const app = createApp({
         }
         const token = authService.idToken || authService.accessToken;
         if (!token) return;
-        const wsBase = (CONFIG.WS_BASE || CONFIG.API.BASE_URL).replace('https://', 'wss://');
-        const stage = CONFIG.STAGE || 'dev';
+        const wsBase = (CONFIG.API.WS_BASE || CONFIG.API.BASE_URL).replace('https://', 'wss://');
+        const stage = CONFIG.API.STAGE || 'dev';
         const url = wsBase.replace(/\/$/, '') + `/${stage}?token=${encodeURIComponent(token)}`;
         const s = new WebSocket(url);
         this.socket = s;
