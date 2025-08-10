@@ -1660,6 +1660,10 @@ const app = createApp({
     showSuccessMessage(message) {
       console.log('🎉 showSuccessMessage called with:', message);
       console.trace('showSuccessMessage call stack:');
+      // suppress generic auth-required notices when signup modal is already being shown for invite flow
+      if (this.showSignupModal && typeof message === 'string' && /authentication required/i.test(message)) {
+        return;
+      }
       this.completedChoreMessage = message;
       this.showSuccessMessageFlag = true;
       setTimeout(() => {
