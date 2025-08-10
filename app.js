@@ -292,7 +292,20 @@ const app = createApp({
         const me = await authService.getCurrentUser();
         if (me) {
           this.currentUser = me;
-          this.accountId = me.accountId || this.accountId;
+        }
+        // enrich with server-side account and role if missing
+        if (!this.currentUser?.accountId) {
+          try {
+            const res = await this.apiCall(CONFIG.API.ENDPOINTS.AUTH_ME);
+            if (res && (res.accountId || res.role)) {
+              this.currentUser = { ...this.currentUser, role: res.role, memberships: res.memberships };
+              this.accountId = res.accountId || this.accountId;
+            }
+          } catch (e) {
+            // keep minimal identity if /auth/me is unavailable
+          }
+        } else {
+          this.accountId = this.currentUser.accountId || this.accountId;
         }
       } catch (e) {
         console.warn('Failed to refresh current user', e);
@@ -641,8 +654,10 @@ const app = createApp({
         const current = { ...(prefs.membersChoresEnabled || {}) };
         current[person.name] = !!person.enabledForChores;
         this.accountSettings.preferences = { ...prefs, membersChoresEnabled: current };
-        // persist
-        this.apiCall(CONFIG.API.ENDPOINTS.ACCOUNT_SETTINGS, {
+        const accountId = this.accountId || this.accountSettings?.accountId;
+        if (!accountId) return; // cannot persist without account id
+        // persist to the correct endpoint: /account-settings/{accountId}/preferences
+        this.apiCall(`${CONFIG.API.ENDPOINTS.ACCOUNT_SETTINGS}/${encodeURIComponent(accountId)}/preferences`, {
           method: 'PUT',
           body: JSON.stringify({ preferences: { membersChoresEnabled: current } })
         }).catch(() => {});
