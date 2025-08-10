@@ -57,6 +57,7 @@ const app = createApp({
       childForm: { username: '', password: '', displayName: '' },
       showInviteModal: false,
       inviteData: { token: '', expiresAt: null },
+      pendingInviteToken: null,
       // Spending requests (for parents)
       spendingRequests: [],
       // New Day functionality
@@ -182,6 +183,7 @@ const app = createApp({
         const authHeader = authService.getAuthHeader();
         const headers = {
           'Content-Type': 'application/json',
+          ...(this.accountId && { 'X-Account-Id': this.accountId }),
           ...options.headers
         };
         
@@ -1072,13 +1074,14 @@ const app = createApp({
           // if invite token present, prompt to accept now that user is authenticated
           try {
             const url = new URL(window.location.href);
-            const inviteToken = url.searchParams.get('invite');
+            const inviteToken = this.pendingInviteToken || url.searchParams.get('invite');
             if (inviteToken) {
               const accept = confirm('You have been invited to join a family account. Accept invitation?');
               if (accept) {
                 await this.acceptParentInvite(inviteToken);
                 url.searchParams.delete('invite');
                 window.history.replaceState({}, document.title, url.toString());
+                this.pendingInviteToken = null;
               }
             }
           } catch (e) {
@@ -1112,6 +1115,12 @@ const app = createApp({
           this.showConfirmModal = true;
           this.authError = null;
           this.authForm.username = result.username;
+          // preserve pending invite token across confirmation
+          try {
+            const url = new URL(window.location.href);
+            const inviteToken = url.searchParams.get('invite');
+            if (inviteToken) this.pendingInviteToken = inviteToken;
+          } catch {}
         } else {
           this.authError = 'Signup failed. Please try again.';
         }
@@ -1156,13 +1165,14 @@ const app = createApp({
             // if invite token present, prompt to accept now that user is authenticated
             try {
               const url = new URL(window.location.href);
-              const inviteToken = url.searchParams.get('invite');
+              const inviteToken = this.pendingInviteToken || url.searchParams.get('invite');
               if (inviteToken) {
                 const accept = confirm('You have been invited to join a family account. Accept invitation?');
                 if (accept) {
                   await this.acceptParentInvite(inviteToken);
                   url.searchParams.delete('invite');
                   window.history.replaceState({}, document.title, url.toString());
+                  this.pendingInviteToken = null;
                 }
               }
             } catch (e) {
@@ -1808,6 +1818,19 @@ const app = createApp({
         console.log('❌ User not authenticated - ready for login');
         this.isAuthenticated = false;
         this.loading = false;
+
+        // if an invite is present and user is unauthenticated, guide them to create an account
+        try {
+          const url = new URL(window.location.href);
+          const inviteToken = url.searchParams.get('invite');
+          if (inviteToken) {
+            this.pendingInviteToken = inviteToken;
+            // default to signup flow for invited users
+            this.showSignupForm();
+          }
+        } catch (e) {
+          console.warn('failed to detect pending invite while unauthenticated', e);
+        }
       }
     } catch (error) {
       console.error('❌ Error during app initialization:', error);
