@@ -81,8 +81,15 @@ const FamilyPage = Vue.defineComponent({
             </div>
 
             <!-- Expanded details -->
-            <transition name="slide-fade">
-              <div v-show="expandedCards[person.id]" class="mt-3 space-y-3">
+            <transition 
+              enter-active-class="transition-all duration-200 ease-out" 
+              enter-from-class="opacity-0 -translate-y-2 max-h-0" 
+              enter-to-class="opacity-100 translate-y-0 max-h-[320px]" 
+              leave-active-class="transition-all duration-150 ease-in" 
+              leave-from-class="opacity-100 translate-y-0 max-h-[320px]" 
+              leave-to-class="opacity-0 -translate-y-2 max-h-0"
+            >
+              <div v-show="expandedCards[person.id]" class="mt-3 space-y-3 overflow-hidden">
                 <div class="flex items-center gap-2">
                   <span class="text-sm text-secondary-custom">Display name</span>
                   <input v-model="person.displayName" @blur="$parent.updateFamilyMemberDisplayName(person)" class="text-sm border rounded px-2 py-1 w-40" placeholder="optional" />
