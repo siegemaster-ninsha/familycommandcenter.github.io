@@ -41,13 +41,13 @@ const FamilyPage = Vue.defineComponent({
           </div>
         </div>
 
-        <div class="flex flex-wrap gap-4 sm:gap-6">
+        <div class="flex flex-wrap gap-4 sm:gap-6 items-stretch">
           <div 
             v-for="person in allPeople" 
             :key="person.id"
             class="w-full md:w-1/2 lg:w-1/3"
           >
-            <div class="family-card card p-4 sm:p-5 hover:shadow-md h-full">
+            <div class="family-card card p-4 sm:p-5 hover:shadow-md h-full overflow-hidden">
             <div class="flex items-center justify-between mb-1 min-h-[52px]">
               <div class="flex items-center gap-3">
                 <div class="family-avatar rounded-full w-10 h-10 flex items-center justify-center font-semibold text-white shadow">
@@ -58,7 +58,7 @@ const FamilyPage = Vue.defineComponent({
                   <p class="text-xs text-secondary-custom">{{ person.role || 'Family Member' }}</p>
                 </div>
               </div>
-              <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-end max-w-[55%] ml-2">
                 <span 
                   :class="getElectronicsStatusClass(person.electronicsStatus.status)"
                   class="text-xs font-medium px-2 py-1 rounded-full"
@@ -71,12 +71,11 @@ const FamilyPage = Vue.defineComponent({
                 </div>
                 <button 
                   @click="toggleExpanded(person.id)"
-                  class="btn-secondary touch-target px-3 py-2"
+                  class="btn-secondary touch-target px-3 py-2 shrink-0"
                   :aria-expanded="!!expandedCards[person.id]"
                   title="More actions"
                 >
-                  <svg v-if="!expandedCards[person.id]" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M128,160a8,8,0,0,1-5.66-2.34l-48-48a8,8,0,0,1,11.32-11.32L128,140.69l42.34-42.35a8,8,0,0,1,11.32,11.32l-48,48A8,8,0,0,1,128,160Z"></path></svg>
-                  <svg v-else xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M128,160a8,8,0,0,1-5.66-2.34l-48-48a8,8,0,0,1,11.32-11.32L128,140.69l42.34-42.35a8,8,0,0,1,11.32,11.32l-48,48A8,8,0,0,1,128,160Z" transform="rotate(180 128 128)"></path></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256" :class="[expandedCards[person.id] ? 'rotate-180' : 'rotate-0', 'transition-transform duration-200']"><path d="M128,160a8,8,0,0,1-5.66-2.34l-48-48a8,8,0,0,1,11.32-11.32L128,140.69l42.34-42.35a8,8,0,0,1,11.32,11.32l-48,48A8,8,0,0,1,128,160Z"></path></svg>
                 </button>
               </div>
             </div>
@@ -90,7 +89,7 @@ const FamilyPage = Vue.defineComponent({
               leave-from-class="opacity-100 translate-y-0 max-h-[320px]" 
               leave-to-class="opacity-0 -translate-y-2 max-h-0"
             >
-              <div v-show="expandedCards[person.id]" class="mt-3 space-y-3 overflow-hidden">
+              <div v-show="expandedCards[person.id]" class="mt-3 pt-2 sm:pt-3 space-y-3 overflow-hidden">
                 <div class="flex items-center gap-2">
                   <span class="text-sm text-secondary-custom">Display name</span>
                   <input v-model="person.displayName" @blur="$parent.updateFamilyMemberDisplayName(person)" class="text-sm border rounded px-2 py-1 w-40" placeholder="optional" />
