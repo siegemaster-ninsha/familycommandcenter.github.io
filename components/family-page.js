@@ -41,19 +41,20 @@ const FamilyPage = Vue.defineComponent({
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div class="flex flex-wrap gap-4 sm:gap-6">
           <div 
             v-for="person in allPeople" 
             :key="person.id"
-            class="family-card card p-4 sm:p-5 hover:shadow-md"
+            class="w-full md:w-1/2 lg:w-1/3"
           >
-            <div class="flex items-center justify-between mb-1">
+            <div class="family-card card p-4 sm:p-5 hover:shadow-md h-full">
+            <div class="flex items-center justify-between mb-1 min-h-[52px]">
               <div class="flex items-center gap-3">
                 <div class="family-avatar rounded-full w-10 h-10 flex items-center justify-center font-semibold text-white shadow">
                   {{ (person.displayName || person.name).charAt(0).toUpperCase() }}
                 </div>
                 <div>
-                  <h3 class="font-semibold text-primary-custom text-base">{{ person.displayName || person.name }}</h3>
+                  <h3 class="font-semibold text-primary-custom text-base truncate max-w-[160px] sm:max-w-[200px]">{{ person.displayName || person.name }}</h3>
                   <p class="text-xs text-secondary-custom">{{ person.role || 'Family Member' }}</p>
                 </div>
               </div>
@@ -117,6 +118,7 @@ const FamilyPage = Vue.defineComponent({
                 </div>
               </div>
             </transition>
+            </div>
           </div>
         </div>
 
