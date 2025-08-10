@@ -600,6 +600,12 @@ const app = createApp({
     },
     async acceptParentInvite(token) {
       try {
+        // ensure we have a valid auth header at accept time; if not, route to signup
+        if (!authService.getAuthHeader()) {
+          this.pendingInviteToken = token;
+          this.showSignupForm();
+          return;
+        }
         await this.apiCall(CONFIG.API.ENDPOINTS.PARENT_ACCEPT_INVITE, { method: 'POST', body: JSON.stringify({ token }) });
         await this.refreshCurrentUser();
         await this.loadAllData();
@@ -1087,12 +1093,18 @@ const app = createApp({
             const inviteToken = this.pendingInviteToken || url.searchParams.get('invite');
             if (inviteToken) {
               const accept = confirm('You have been invited to join a family account. Accept invitation?');
-              if (accept) {
-                await this.acceptParentInvite(inviteToken);
-                url.searchParams.delete('invite');
-                window.history.replaceState({}, document.title, url.toString());
-                this.pendingInviteToken = null;
-              }
+          if (accept) {
+            // ensure valid auth before attempting accept to avoid immediate 401 popup
+            if (!authService.getAuthHeader()) {
+              this.pendingInviteToken = inviteToken;
+              this.showSignupForm();
+            } else {
+              await this.acceptParentInvite(inviteToken);
+              this.pendingInviteToken = null;
+            }
+            url.searchParams.delete('invite');
+            window.history.replaceState({}, document.title, url.toString());
+          }
             }
           } catch (e) {
             console.warn('failed to process invite token post-login', e);
@@ -1817,15 +1829,27 @@ const app = createApp({
         
       // Then load all other data
         await this.loadAllData();
-      // if invite token present, show accept prompt after load
+      // if invite token present, show accept prompt after load (only if still authenticated)
       const url = new URL(window.location.href);
       const inviteToken = url.searchParams.get('invite');
       if (inviteToken) {
-        const accept = confirm('You have been invited to join a family account. Accept invitation?');
-        if (accept) {
-          await this.acceptParentInvite(inviteToken);
-          url.searchParams.delete('invite');
-          window.history.replaceState({}, document.title, url.toString());
+        // if auth was cleared during load due to 401s, pivot to signup flow instead of prompting accept
+        if (!this.isAuthenticated || !authService.getAuthHeader()) {
+          this.pendingInviteToken = inviteToken;
+          this.showSignupForm();
+        } else {
+          const accept = confirm('You have been invited to join a family account. Accept invitation?');
+          if (accept) {
+            // prevent auth-required popup by deferring accept until after data loads and ensuring auth header exists
+            if (!authService.getAuthHeader()) {
+              this.pendingInviteToken = inviteToken;
+              this.showSignupForm();
+            } else {
+              await this.acceptParentInvite(inviteToken);
+            }
+            url.searchParams.delete('invite');
+            window.history.replaceState({}, document.title, url.toString());
+          }
         }
       }
       } else {
