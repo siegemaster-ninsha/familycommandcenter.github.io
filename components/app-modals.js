@@ -668,7 +668,7 @@ const AppModals = Vue.defineComponent({
       url.hash = '';
       // optional: drop trailing index.html for cleaner URL
       const cleanPath = url.pathname.replace(/index\.html$/i, '');
-      return `${url.origin}${cleanPath}?invite=${token}`;
+      return `${url.origin}${cleanPath}?invite=${encodeURIComponent(token)}`;
     },
     async copyInviteLink() {
       try {

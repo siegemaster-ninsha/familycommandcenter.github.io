@@ -606,7 +606,8 @@ const app = createApp({
         alert('Invite accepted. You now have access to this account.');
       } catch (e) {
         console.error('Failed to accept invite', e);
-        alert('Failed to accept invite');
+        const message = e?.message || 'Failed to accept invite';
+        alert(message);
       }
     },
     
