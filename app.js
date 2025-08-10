@@ -364,12 +364,13 @@ const app = createApp({
                 existingPerson.earnings = serverMember.earnings || 0;
                 // Keep the existing completedChores if it's higher (optimistic update)
                 existingPerson.completedChores = Math.max(existingPerson.completedChores || 0, serverMember.completedChores || 0);
+                if (serverMember.id) existingPerson.id = serverMember.id;
                 console.log(`👥 Result for ${serverMember.name}: completedChores=${existingPerson.completedChores}`);
               } else {
                 console.log(`👥 Adding new person from server: ${serverMember.name}`);
                 // New person from server
                 this.people.push({
-                  id: serverMember.name.toLowerCase(),
+                  id: serverMember.id || serverMember.name.toLowerCase(),
                   name: serverMember.name,
                   earnings: serverMember.earnings || 0,
                   completedChores: serverMember.completedChores || 0,
@@ -383,7 +384,7 @@ const app = createApp({
             console.log('👥 Server data:', response.familyMembers.map(m => `${m.name}: completedChores=${m.completedChores}`));
             // Normal full refresh - replace all data
             this.people = response.familyMembers.map(member => ({
-              id: member.name.toLowerCase(),
+              id: member.id || member.name.toLowerCase(),
               name: member.name,
               earnings: member.earnings || 0,
               completedChores: member.completedChores || 0,
