@@ -332,7 +332,8 @@ class AuthService {
    * get authorization header value
    */
   getAuthHeader() {
-    return this.accessToken ? `Bearer ${this.accessToken}` : null;
+    // use ID token since backend validates audience against the app client ID
+    return this.idToken ? `Bearer ${this.idToken}` : null;
   }
 
   /**

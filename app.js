@@ -187,9 +187,7 @@ const app = createApp({
           ...options.headers
         };
         
-        if (authHeader) {
-          headers.Authorization = authHeader;
-        }
+        if (authHeader) headers.Authorization = authHeader;
         
         const response = await fetch(url, {
           headers,
