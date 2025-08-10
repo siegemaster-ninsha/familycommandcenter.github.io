@@ -90,7 +90,11 @@ const app = createApp({
       accountId: null,
       
       loading: true,
-      error: null
+      error: null,
+      // realtime
+      socket: null,
+      socketConnected: false,
+      socketRetryMs: 1000
     }
   },
   computed: {
@@ -173,6 +177,46 @@ const app = createApp({
     }
   },
   methods: {
+    initWebsocket() {
+      try {
+        if (this.socket) {
+          try { this.socket.close(); } catch {}
+          this.socket = null;
+        }
+        const token = authService.idToken || authService.accessToken;
+        if (!token) return;
+        const wsBase = (CONFIG.WS_BASE || CONFIG.API.BASE_URL).replace('https://', 'wss://');
+        const stage = CONFIG.STAGE || 'dev';
+        const url = wsBase.replace(/\/$/, '') + `/${stage}?token=${encodeURIComponent(token)}`;
+        const s = new WebSocket(url);
+        this.socket = s;
+        s.onopen = () => { this.socketConnected = true; this.socketRetryMs = 1000; };
+        s.onclose = () => { this.socketConnected = false; const d = Math.min(this.socketRetryMs, 30000); setTimeout(() => this.initWebsocket(), d); this.socketRetryMs *= 2; };
+        s.onerror = () => { try { s.close(); } catch {} };
+        s.onmessage = (e) => {
+          try { const msg = JSON.parse(e.data); this.handleRealtimeMessage(msg); } catch {}
+        };
+      } catch (e) { console.warn('ws init failed', e); }
+    },
+    handleRealtimeMessage(msg) {
+      if (!msg || !msg.type) return;
+      switch (msg.type) {
+        case 'chore.created':
+          if (msg.data?.chore) {
+            if (!this.chores.some(c => c.id === msg.data.chore.id)) this.chores.push(msg.data.chore);
+          }
+          break;
+        case 'chore.updated':
+          if (msg.data?.chore) {
+            const i = this.chores.findIndex(c => c.id === msg.data.chore.id);
+            if (i >= 0) this.chores[i] = msg.data.chore; else this.chores.push(msg.data.chore);
+          }
+          break;
+        case 'chore.deleted':
+          if (msg.data?.id) this.chores = this.chores.filter(c => c.id !== msg.data.id);
+          break;
+      }
+    },
     // API helper methods
     async apiCall(endpoint, options = {}) {
       try {
@@ -1862,6 +1906,7 @@ const app = createApp({
         
       // Then load all other data
         await this.loadAllData();
+        this.initWebsocket();
       // if invite token present, show accept prompt after load (only if still authenticated)
       const url = new URL(window.location.href);
       const inviteToken = url.searchParams.get('invite');
@@ -1924,7 +1969,10 @@ const app = createApp({
       quicklistChores: Vue.computed(() => this.quicklistChores || []),
       choresByPerson: Vue.computed(() => this.choresByPerson || {}),
       // expose only members enabled for chores on chores page by default; family page iterates over same array but includes toggle to change flag
+      // filtered list for boards (Chores page)
       people: Vue.computed(() => (this.people || []).filter(p => p.enabledForChores !== false)),
+      // unfiltered list for Family page management
+      allPeople: Vue.computed(() => this.people || []),
       personToDelete: Vue.computed(() => this.personToDelete),
       
       // Preloaded shopping page data

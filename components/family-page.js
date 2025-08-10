@@ -34,36 +34,29 @@ const FamilyPage = Vue.defineComponent({
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div 
-            v-for="person in people" 
+          <div 
+            v-for="person in $parent.allPeople" 
             :key="person.id"
-            class="family-card border-2 rounded-lg p-4 transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-102"
+            class="family-card border rounded-xl p-4 transition-all duration-200 shadow-sm hover:shadow-md"
             style="border-color: var(--color-border-card);"
           >
-            <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center justify-between mb-2">
               <div class="flex items-center gap-3">
-                <div class="family-avatar rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg text-white bg-gradient-to-br from-primary-500 to-primary-600 shadow-md">
-                  {{ person.name.charAt(0).toUpperCase() }}
+                <div class="family-avatar rounded-full w-10 h-10 flex items-center justify-center font-semibold text-white bg-gradient-to-br from-primary-500 to-primary-600 shadow">
+                  {{ (person.displayName || person.name).charAt(0).toUpperCase() }}
                 </div>
                 <div>
-                  <h3 class="font-bold text-primary-custom text-lg">{{ person.displayName || person.name }}</h3>
-                  <p class="text-sm text-secondary-custom">Family Member</p>
+                  <h3 class="font-semibold text-primary-custom text-base">{{ person.displayName || person.name }}</h3>
+                  <p class="text-xs text-secondary-custom">{{ person.role || 'Family Member' }}</p>
                 </div>
               </div>
               <!-- enable for chores toggle -->
-              <label class="flex items-center gap-2 text-xs cursor-pointer select-none">
-                <input type="checkbox" v-model="person.enabledForChores" @change="$parent.updateMemberChoresEnabled(person)"/>
-                <span>enable for chores</span>
+              <label class="inline-flex items-center gap-2 text-xs cursor-pointer select-none">
+                <span class="text-secondary-custom">Show on board</span>
+                <button @click="person.enabledForChores=!person.enabledForChores; $parent.updateMemberChoresEnabled(person)" :class="person.enabledForChores ? 'bg-green-500' : 'bg-gray-300'" class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors">
+                  <span :class="person.enabledForChores ? 'translate-x-5' : 'translate-x-1'" class="inline-block h-3 w-3 transform rounded-full bg-white transition-transform"></span>
+                </button>
               </label>
-              <button
-                @click="handleDeletePerson(person)"
-                class="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-all duration-200 touch-target"
-                title="Remove family member"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256">
-                  <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
-                </svg>
-              </button>
             </div>
             
             <div class="space-y-3">
@@ -76,8 +69,8 @@ const FamilyPage = Vue.defineComponent({
                   {{ getElectronicsStatusText(person.electronicsStatus.status) }}
                 </span>
               </div>
-              <div class="flex justify-between items-center">
-                <span class="text-sm text-secondary-custom font-medium">Display Name:</span>
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-secondary-custom">Display name</span>
                 <input v-model="person.displayName" @blur="$parent.updateFamilyMemberDisplayName(person)" class="text-sm border rounded px-2 py-1 w-40" placeholder="optional" />
               </div>
               
