@@ -30,7 +30,7 @@ const ChorePage = Vue.defineComponent({
           <div 
             v-for="quickChore in quicklistChores" 
             :key="quickChore.id"
-            :class="[getQuicklistChoreClasses(quickChore), quickChore.isOptimistic ? 'optimistic-update' : '']"
+            :class="getQuicklistChoreClasses(quickChore)"
             :style="getQuicklistChoreStyle(quickChore)"
             @click="selectQuicklistChore(quickChore, $event)"
             @touchend="selectQuicklistChore(quickChore, $event)"
@@ -108,7 +108,7 @@ const ChorePage = Vue.defineComponent({
             <div 
               v-for="chore in choresByPerson.unassigned" 
               :key="chore.id"
-              :class="[getChoreClasses(chore), chore.isOptimistic ? 'optimistic-update' : '', 'relative']"
+              :class="getChoreClasses(chore)"
               :style="getChoreStyle(chore)"
               @click.stop="selectChore(chore, $event)"
               @touchend.stop="selectChore(chore, $event)"
@@ -161,6 +161,8 @@ const ChorePage = Vue.defineComponent({
         </div>
       </div>
 
+      
+
       <!-- Family Members & Assigned Chores -->
       <div class="rounded-lg border p-6 shadow-md" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">👨‍👩‍👧‍👦 Family Members</h2>
@@ -207,7 +209,7 @@ const ChorePage = Vue.defineComponent({
               <div 
                 v-for="chore in choresByPerson[person.name]" 
                 :key="chore.id"
-                :class="[getChoreClasses(chore), chore.isOptimistic ? 'optimistic-update' : '', 'relative']"
+                :class="getChoreClasses(chore)"
                 :style="getChoreStyle(chore)"
                 @click.stop="selectChore(chore, $event)"
               >
@@ -330,7 +332,7 @@ const ChorePage = Vue.defineComponent({
       const baseClasses = "quicklist-card relative group flex items-center gap-3 sm:gap-2 px-4 py-4 sm:px-3 sm:py-2 rounded-lg shadow-md cursor-pointer chore-item touch-feedback touch-target min-h-[68px] sm:min-h-[56px] border";
       const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       const hoverClasses = isTouch ? "" : "hover:shadow-lg hover:scale-105";
-      const selectedClasses = this.isChoreSelected(quickChore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10 shadow-xl" : `${hoverClasses}`;
+      const selectedClasses = (window.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, quickChore)) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10 shadow-xl" : `${hoverClasses}`;
       
       return `${baseClasses} ${selectedClasses}`;
     },
@@ -381,7 +383,6 @@ const ChorePage = Vue.defineComponent({
     },
 
 
-
     async removeFromQuicklist(quicklistId) {
       try {
         await this.$parent.apiCall(`${CONFIG.API.ENDPOINTS.QUICKLIST}/${quicklistId}`, {
@@ -400,7 +401,7 @@ const ChorePage = Vue.defineComponent({
       const categoryClasses = this.getCategoryStyle(chore.category, isUnassigned).background;
       const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       const hoverClasses = isTouch ? "" : "hover:shadow-lg hover:scale-102";
-      const selectedClasses = this.isChoreSelected(chore) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10 shadow-xl" : `${hoverClasses}`;
+      const selectedClasses = (window.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, chore)) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10 shadow-xl" : `${hoverClasses}`;
       
       return `${baseClasses} ${categoryClasses} ${selectedClasses}`;
     },
@@ -411,10 +412,7 @@ const ChorePage = Vue.defineComponent({
     },
 
     isChoreSelected(chore) {
-      if (this.$parent.selectedQuicklistChore && chore.name === this.$parent.selectedQuicklistChore.name) {
-        return true;
-      }
-      return this.$parent.selectedChoreId && chore.id === this.$parent.selectedChoreId;
+      return window.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, chore) || false;
     },
 
     selectChore(chore, event) {
@@ -453,7 +451,6 @@ const ChorePage = Vue.defineComponent({
         this.forceRepaintOnMobile();
       });
     },
-
 
 
     async deleteSelectedChore() {
@@ -497,28 +494,11 @@ const ChorePage = Vue.defineComponent({
     },
 
     getCategoryIcon(category) {
-      switch(category) {
-        case 'school':
-          return `<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-            <path d="M208,24H72A32,32,0,0,0,40,56V224a8,8,0,0,0,8,8H192a8,8,0,0,0,0-16H56a16,16,0,0,1,16-16H208a8,8,0,0,0,8-8V32A8,8,0,0,0,208,24ZM72,40H200V184H72a31.82,31.82,0,0,0-16,4.29V56A16,16,0,0,1,72,40Z"></path>
-          </svg>`;
-        case 'game':
-          return `<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-            <path d="M192,88h16a8,8,0,0,1,0,16H192a8,8,0,0,1,0-16ZM48,104H64a8,8,0,0,0,0-16H48a8,8,0,0,0,0,16ZM208,40H48A24,24,0,0,0,24,64V192a24,24,0,0,0,24,24H208a24,24,0,0,0,24-24V64A24,24,0,0,0,208,40ZM216,192a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V64a8,8,0,0,1,8-8H208a8,8,0,0,1,8,8V192Z"></path>
-          </svg>`;
-        default:
-          return `<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-            <path d="M218.83,103.77l-80-75.48a1.14,1.14,0,0,1-.11-.11,16,16,0,0,0-21.53,0l-.11.11L37.17,103.77A8,8,0,0,0,32,110.62V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V110.62A8,8,0,0,0,218.83,103.77ZM208,208H48V115.54L128,44.77,208,115.54V208ZM112,176V136a8,8,0,0,1,8-8h16a8,8,0,0,1,8,8v40a8,8,0,0,1-16,0V144H120v32a8,8,0,0,1-16,0Z"></path>
-          </svg>`;
-      }
+      return window.Helpers?.getCategoryIcon?.(category) || '';
     },
 
     getCategoryLabel(category) {
-      switch(category) {
-        case 'school': return '📚 School';
-        case 'game': return '⚡ Electronics';
-        default: return '🏠 Regular';
-      }
+      return window.Helpers?.getCategoryLabel?.(category) || '';
     },
 
     getElectronicsStatusClass(status) {
