@@ -2112,6 +2112,8 @@ const app = createApp({
       
       // Spending modal methods
       openSpendingModal: this.openSpendingModal,
+      // allow children like EarningsWidget to open the global spending modal without $parent
+      openSpendingModal: this.openSpendingModal,
       closeSpendingModal: this.closeSpendingModal,
       addDigit: this.addDigit,
       addDecimal: this.addDecimal,
