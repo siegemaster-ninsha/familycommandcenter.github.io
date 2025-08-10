@@ -35,7 +35,7 @@ const FamilyPage = Vue.defineComponent({
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div 
-            v-for="person in $parent.allPeople" 
+            v-for="person in allPeople" 
             :key="person.id"
             class="family-card border rounded-xl p-4 transition-all duration-200 shadow-sm hover:shadow-md"
             style="border-color: var(--color-border-card);"
@@ -107,7 +107,7 @@ const FamilyPage = Vue.defineComponent({
           </div>
         </div>
         
-        <div v-if="people.length === 0" class="text-center py-12 text-secondary-custom">
+        <div v-if="allPeople.length === 0" class="text-center py-12 text-secondary-custom">
           <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="mx-auto mb-4 opacity-50" viewBox="0 0 256 256">
             <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
           </svg>
@@ -117,7 +117,7 @@ const FamilyPage = Vue.defineComponent({
       </div>
     </div>
   `,
-  inject: ['people', 'showAddPersonModal', 'confirmDeletePerson'],
+  inject: ['allPeople', 'showAddPersonModal', 'confirmDeletePerson'],
   methods: {
     handleDeletePerson(person) {
       this.confirmDeletePerson(person);
