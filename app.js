@@ -345,8 +345,10 @@ const app = createApp({
     async loadFamilyMembers(preserveOptimisticUpdates = false) {
       try {
         console.log('👥 Loading family members, preserveOptimisticUpdates:', preserveOptimisticUpdates);
+        console.log('[debug] BEFORE loadFamilyMembers() people:', (this.people || []).map(p => ({ name: p.name, userId: p.userId, role: p.role, enabledForChores: p.enabledForChores })));
         const response = await this.apiCall(CONFIG.API.ENDPOINTS.FAMILY_MEMBERS);
         console.log('👥 Family members API response:', response);
+        console.log('[debug] server familyMembers snapshot:', (response.familyMembers || []).map(m => ({ name: m.name, userId: m.userId, role: m.role, completedChores: m.completedChores })));
         
         if (response.familyMembers && response.familyMembers.length > 0) {
           // optionally filter for chores view based on account settings preferences
@@ -410,6 +412,7 @@ const app = createApp({
           this.people = fallback;
           console.log('👥 Fallback people from memberships:', this.people);
         }
+        console.log('[debug] AFTER loadFamilyMembers() people:', (this.people || []).map(p => ({ name: p.name, userId: p.userId, role: p.role, enabledForChores: p.enabledForChores, completedChores: p.completedChores })));
       } catch (error) {
         console.error('Failed to load family members:', error);
         // Don't clear people array on error, keep existing
@@ -756,25 +759,30 @@ const app = createApp({
     async performDeletePerson() {
       if (this.personToDelete) {
         try {
-          console.log(`🗑️ Deleting family member: ${this.personToDelete.name}`);
-          
-          await this.apiCall(`${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${this.personToDelete.name}`, {
-            method: 'DELETE'
-          });
-          
-          console.log(`✅ Successfully deleted family member: ${this.personToDelete.name}`);
-          
+          const name = this.personToDelete.name;
+          const userId = this.personToDelete.userId;
+          console.log(`🗑️ Removing person via modal: name=${name}, userId=${userId || 'none'}`);
+
+          // if we know the Cognito userId, remove the account membership first to prevent auto re-creation
+          if (userId) {
+            await this.apiCall(`/family-members/memberships/${encodeURIComponent(userId)}`, { method: 'DELETE' });
+          } else {
+            // fallback: delete the family member card by visible name
+            await this.apiCall(`/family-members/by-name/${encodeURIComponent(name)}`, { method: 'DELETE' });
+          }
+
+          console.log(`✅ Removal complete for: ${name}`);
+
           // Remove person from local array
           this.people = this.people.filter(p => p.id !== this.personToDelete.id);
-          
-          // Reload data to update any affected chores
+
+          // Reload data to ensure both pages reflect removal
           await this.loadAllData();
         } catch (error) {
           console.error('Failed to delete person:', error);
-          // Show error message to user
           this.showSuccessMessage(`❌ Failed to delete ${this.personToDelete.name}: ${error.message}`);
         }
-        
+
         this.personToDelete = null;
         this.showDeletePersonModal = false;
       }
