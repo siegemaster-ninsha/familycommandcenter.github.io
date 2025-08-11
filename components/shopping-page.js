@@ -243,7 +243,7 @@ const ShoppingPage = Vue.defineComponent({
       <!-- Store Management -->
       <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-primary-custom text-[22px] font-bold leading.tight tracking-[-0.015em]">🏪 Store Management</h2>
+          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em]">🏪 Store Management</h2>
           <button
             @click="showAddStoreModal = true"
             class="flex items-center gap-2 bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-colors"
@@ -272,7 +272,7 @@ const ShoppingPage = Vue.defineComponent({
           >
             <div class="flex items-center gap-2">
               <div 
-                class="flex items-center justify-center w-6 h-6 rounded-full text-sm font-bold text.white bg-white bg-opacity-20"
+                class="flex items-center justify-center w-6 h-6 rounded-full text-sm font-bold text-white bg-white bg-opacity-20"
               >
                 {{ getStoreInitial(store.name) }}
               </div>
@@ -475,7 +475,7 @@ const ShoppingPage = Vue.defineComponent({
       </div>
 
       <!-- Add Store Modal -->
-      <div v-if="showAddStoreModal" class="fixed inset-0 bg-black bg-opacity-50 flex items.center justify-center z-50">
+      <div v-if="showAddStoreModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
           <h3 class="text-lg font-bold mb-4">Add Store</h3>
           
