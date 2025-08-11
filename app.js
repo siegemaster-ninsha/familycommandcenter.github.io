@@ -2054,6 +2054,17 @@ const app = createApp({
       selectedChore: Vue.computed(() => this.selectedChore),
       selectedChoreId: Vue.toRef(this, 'selectedChoreId'),
       selectedQuicklistChore: Vue.toRef(this, 'selectedQuicklistChore'),
+      // lightweight selection store for centralized selection handling
+      selectionStore: {
+        state: {
+          selectedChore: Vue.computed(() => this.selectedChore),
+          selectedChoreId: Vue.toRef(this, 'selectedChoreId'),
+          selectedQuicklistChore: Vue.toRef(this, 'selectedQuicklistChore')
+        },
+        selectChore: (chore) => this.handleChoreClick(chore),
+        selectQuicklist: (quickChore) => this.handleQuicklistChoreClick(quickChore),
+        clear: () => { this.selectedChoreId = null; this.selectedQuicklistChore = null; }
+      },
       showSuccessMessage: Vue.computed(() => this.showSuccessMessageFlag),
       completedChoreMessage: Vue.computed(() => this.completedChoreMessage),
       showConfetti: Vue.computed(() => this.showConfetti),

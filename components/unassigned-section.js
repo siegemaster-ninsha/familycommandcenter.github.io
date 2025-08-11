@@ -62,7 +62,7 @@ const UnassignedSection = Vue.defineComponent({
       </div>
     </div>
   `,
-  inject: ['choresByPerson', 'showAddChoreModal', 'assignSelectedChore', 'selectedChore', 'handleChoreClick', 'openAddChoreModal'],
+  inject: ['choresByPerson', 'showAddChoreModal', 'assignSelectedChore', 'selectedChore', 'handleChoreClick', 'openAddChoreModal', 'selectionStore'],
   methods: {
     getChoreClasses(chore) {
       const baseClasses = "flex items-center gap-3 sm:gap-4 px-3 sm:px-4 min-h-[96px] sm:min-h-[72px] py-4 sm:py-2 justify-between mb-3 sm:mb-2 rounded-lg shadow-sm cursor-pointer border-l-4 transition-all duration-200 touch-target";
@@ -125,7 +125,7 @@ const UnassignedSection = Vue.defineComponent({
       }
       
       if (event && event.type === 'touchend') event.preventDefault();
-      const handler = this.handleChoreClick || this.$parent?.handleChoreClick;
+      const handler = this.selectionStore?.selectChore || this.handleChoreClick || this.$parent?.handleChoreClick;
       if (typeof handler === 'function') {
         handler(chore);
       } else {

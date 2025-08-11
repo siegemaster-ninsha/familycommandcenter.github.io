@@ -632,6 +632,8 @@ input:focus, select:focus, textarea:focus {
   background-color: rgba(0, 0, 0, 0.5);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
+  /* ensure overlay receives touches but doesn't allow events to bleed through */
+  pointer-events: auto;
 }
 
 /* ensure modal panels render opaque on iOS by promoting to own layer */
@@ -641,6 +643,7 @@ input:focus, select:focus, textarea:focus {
   transform: translateZ(0);
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+  pointer-events: auto;
 }
 
 /* fix iOS momentum scroll bleed-through under modals */
@@ -807,6 +810,11 @@ body.modal-open {
     border-color: inherit !important;
     transform: inherit !important;
     color: inherit !important;
+  }
+
+  /* preserve modal overlay backdrop on first tap in iOS safari where :hover can stick */
+  .modal-overlay:hover {
+    background-color: rgba(0, 0, 0, 0.5) !important;
   }
   
   /* Specifically disable common hover classes used throughout the app */

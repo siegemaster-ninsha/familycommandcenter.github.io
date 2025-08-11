@@ -304,7 +304,7 @@ const ChorePage = Vue.defineComponent({
     'people', 'choresByPerson', 'selectedChore', 'selectedChoreId', 'selectedQuicklistChore',
     'quicklistChores', 'loading', 'error',
     'showAddChoreModal', 'showAddToQuicklistModal',
-    'handleChoreClick', 'handleQuicklistChoreClick'
+    'handleChoreClick', 'handleQuicklistChoreClick', 'selectionStore'
   ],
   data() {
     return {
@@ -357,7 +357,7 @@ const ChorePage = Vue.defineComponent({
 
     onQuicklistClick(quickChore, event) {
       if (event && event.type === 'touchend') event.preventDefault();
-      const handler = this.handleQuicklistChoreClick || this.$parent?.handleQuicklistChoreClick;
+      const handler = this.selectionStore?.selectQuicklist || this.handleQuicklistChoreClick || this.$parent?.handleQuicklistChoreClick;
       if (typeof handler === 'function') {
         handler(quickChore);
       } else {
@@ -406,7 +406,7 @@ const ChorePage = Vue.defineComponent({
       if (this.$parent.selectedChore && this.$parent.selectedChoreId !== chore.id && chore.assignedTo && chore.assignedTo !== 'unassigned') {
         this.assignSelectedChore(chore.assignedTo); return;
       }
-      const handler = this.handleChoreClick || this.$parent?.handleChoreClick;
+      const handler = this.selectionStore?.selectChore || this.handleChoreClick || this.$parent?.handleChoreClick;
       if (typeof handler === 'function') {
         handler(chore);
       } else {

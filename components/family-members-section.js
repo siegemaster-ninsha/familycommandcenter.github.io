@@ -75,7 +75,7 @@ const FamilyMembersSection = Vue.defineComponent({
     </div>
   `,
   inject: [
-    'choresByPerson', 'people', 'assignSelectedChore', 'handleChoreClick'
+    'choresByPerson', 'people', 'assignSelectedChore', 'handleChoreClick', 'selectionStore'
   ],
   methods: {
     getDropZoneClasses(person) {
@@ -139,7 +139,7 @@ const FamilyMembersSection = Vue.defineComponent({
         return;
       }
       if (event && event.type === 'touchend') event.preventDefault();
-      const handler = this.handleChoreClick || this.$parent?.handleChoreClick;
+      const handler = this.selectionStore?.selectChore || this.handleChoreClick || this.$parent?.handleChoreClick;
       if (typeof handler === 'function') {
         handler(chore);
       } else {
