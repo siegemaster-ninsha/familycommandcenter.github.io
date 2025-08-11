@@ -358,7 +358,7 @@ const ShoppingPage = Vue.defineComponent({
                 <input
                   v-model="newItem.notes"
                   type="text"
-                  class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus.border-blue-500"
+                  class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Any special notes"
                 >
               </div>
@@ -447,7 +447,7 @@ const ShoppingPage = Vue.defineComponent({
                   class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">No Store Selected</option>
-                  <option v.for="store in stores" :key="store.id" :value="store.name">
+                  <option v-for="store in stores" :key="store.id" :value="store.name">
                     {{ store.name }}
                   </option>
                 </select>
