@@ -222,16 +222,21 @@ const ChorePage = Vue.defineComponent({
                 >
                   ×
                 </button>
-                <!-- Completion checkbox -->
-                <div class="shrink-0 flex items-center" @click.stop @change.stop @mousedown.stop @mouseup.stop>
-                  <input 
-                    type="checkbox" 
-                    :checked="chore.completed"
-                    @click.stop
-                    @change="handleChoreCompletionToggle(chore, $event)"
-                    class="w-5 h-5 sm:w-4 sm:h-4 text-green-600 rounded focus:ring-green-500 focus:border-[#ced2e9] focus:outline-none touch-target"
-                  >
-                </div>
+                 <!-- Completion + approval UI -->
+                 <div class="shrink-0 flex items-center gap-2" @click.stop @change.stop @mousedown.stop @mouseup.stop>
+                   <input 
+                     type="checkbox" 
+                     :checked="chore.completed"
+                     @click.stop
+                     @change="handleChoreCompletionToggle(chore, $event)"
+                     class="w-5 h-5 sm:w-4 sm:h-4 text-green-600 rounded focus:ring-green-500 focus:border-[#ced2e9] focus:outline-none touch-target"
+                   >
+                   <button
+                     v-if="$parent.currentUser?.role === 'parent' && chore.isPendingApproval"
+                     @click.stop="$parent.approveChore(chore)"
+                     class="px-2 py-1 text-xs rounded bg-emerald-500 text-white hover:bg-emerald-600"
+                   >Approve</button>
+                 </div>
                 
                 <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
                   <div

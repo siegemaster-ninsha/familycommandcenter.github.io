@@ -1544,82 +1544,90 @@ const app = createApp({
     async handleChoreCompletion(chore) {
       console.log('🚀 Optimistically handling chore completion for:', chore.name, 'Current state:', chore.completed);
       
+      const requireApproval = !!this.accountSettings?.preferences?.requireApproval;
+      
       // Store original state for potential rollback
       const originalCompleted = chore.completed;
-      const originalEarnings = this.people.map(p => ({ name: p.name, earnings: p.earnings, completedChores: p.completedChores }));
+      const originalSnapshots = this.people.map(p => ({ name: p.name, earnings: p.earnings, completedChores: p.completedChores }));
       
       try {
-        // OPTIMISTIC UPDATE: Update earnings and completed chores count immediately if assigned
+        // OPTIMISTIC UPDATE when assigned
         if (chore.assignedTo && chore.assignedTo !== 'unassigned') {
           const person = this.people.find(p => p.name === chore.assignedTo);
           if (person) {
-            if (chore.completed) {
-              // Chore was completed - add earnings and increment count
-              person.earnings += chore.amount || 0;
-              person.completedChores = (person.completedChores || 0) + 1;
+            if (requireApproval) {
+              // with approval required, only adjust completed count, do not change earnings
+              if (chore.completed) {
+                person.completedChores = (person.completedChores || 0) + 1;
+              } else {
+                person.completedChores = Math.max(0, (person.completedChores || 0) - 1);
+              }
             } else {
-              // Chore was uncompleted - subtract earnings and decrement count
-              person.earnings = Math.max(0, person.earnings - (chore.amount || 0));
-              person.completedChores = Math.max(0, (person.completedChores || 0) - 1);
+              // immediate earnings change when approval not required
+              if (chore.completed) {
+                person.earnings += chore.amount || 0;
+                person.completedChores = (person.completedChores || 0) + 1;
+              } else {
+                person.earnings = Math.max(0, person.earnings - (chore.amount || 0));
+                person.completedChores = Math.max(0, (person.completedChores || 0) - 1);
+              }
             }
             
-            // OPTIMISTIC ELECTRONICS STATUS UPDATE: Update electronics status if this is an electronics chore
             if (chore.category === 'game') {
               this.updateElectronicsStatusOptimistically(person.name);
             }
           }
         }
         
-        console.log('✨ Optimistic UI updated - earnings and completed count');
-        
-        // Show success message and trigger confetti immediately for completed chores
         if (chore.completed) {
           this.triggerConfetti();
-          this.showSuccessMessage(`🎉 Great job! "${chore.name}" completed!`);
+          this.showSuccessMessage(requireApproval ? `✅ "${chore.name}" marked complete. Pending parent approval.` : `🎉 Great job! "${chore.name}" completed!`);
         } else {
-          // Clear any success message for uncompleted chores
           this.showSuccessMessageFlag = false;
           this.completedChoreMessage = '';
         }
         
-        // Make API call in background
         await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/complete`, {
           method: 'PUT',
           body: JSON.stringify({ completed: chore.completed })
         });
         
-        console.log('✅ Server confirmed chore completion');
-        
-        // Refresh data in background (non-blocking) to ensure consistency
+        // refresh to ensure consistency
         Promise.all([
           this.loadEarnings(),
           this.loadElectronicsStatus(),
-          this.loadFamilyMembers(true) // Preserve optimistic updates
-        ]).catch(error => {
-          console.warn('Background data refresh failed:', error);
-        });
-        
+          this.loadFamilyMembers(true)
+        ]).catch(error => console.warn('Background data refresh failed:', error));
       } catch (error) {
         console.error('❌ Chore completion failed, rolling back optimistic update:', error);
-        
-        // ROLLBACK: Restore original state
         chore.completed = originalCompleted;
-        
-        // Restore original earnings
-        originalEarnings.forEach(original => {
+        originalSnapshots.forEach(original => {
           const person = this.people.find(p => p.name === original.name);
           if (person) {
             person.earnings = original.earnings;
             person.completedChores = original.completedChores;
           }
         });
-        
-        // Clear any success messages
         this.showSuccessMessageFlag = false;
         this.completedChoreMessage = '';
-        
-        // Show error message
         this.showSuccessMessage(`❌ Failed to update "${chore.name}". Please try again.`);
+      }
+    },
+
+    async approveChore(chore) {
+      if (!chore || !chore.id) return;
+      try {
+        await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/approve`, { method: 'PUT' });
+        // update local chore instance if present
+        chore.isPendingApproval = false;
+        chore.approved = true;
+        // reload earnings since approval transfers money
+        await this.loadEarnings();
+        await this.loadFamilyMembers(true);
+        this.showSuccessMessage(`✅ Approved "${chore.name}"`);
+      } catch (error) {
+        console.error('failed to approve chore', error);
+        this.showSuccessMessage('❌ Failed to approve chore');
       }
     },
     

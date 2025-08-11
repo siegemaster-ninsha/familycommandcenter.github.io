@@ -89,21 +89,42 @@ const AccountPage = Vue.defineComponent({
                     <label class="font-medium text-primary-custom">Can mark chores complete</label>
                     <p class="text-sm text-secondary-custom">Allow children to toggle completion on their chores</p>
                   </div>
-                  <input type="checkbox" v-model="preferences.childPermissions.canCompleteChores">
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      v-model="preferences.childPermissions.canCompleteChores"
+                      class="sr-only peer"
+                    >
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+                  </label>
                 </div>
                 <div class="flex items-center justify-between">
                   <div>
                     <label class="font-medium text-primary-custom">Can create/edit/delete chores</label>
                     <p class="text-sm text-secondary-custom">Allow children to manage chores</p>
                   </div>
-                  <input type="checkbox" v-model="preferences.childPermissions.canManageChores">
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      v-model="preferences.childPermissions.canManageChores"
+                      class="sr-only peer"
+                    >
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+                  </label>
                 </div>
                 <div class="flex items-center justify-between">
                   <div>
                     <label class="font-medium text-primary-custom">Can spend money</label>
                     <p class="text-sm text-secondary-custom">Allow children to spend from their ledger</p>
                   </div>
-                  <input type="checkbox" v-model="preferences.childPermissions.canSpendMoney">
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      v-model="preferences.childPermissions.canSpendMoney"
+                      class="sr-only peer"
+                    >
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+                  </label>
                 </div>
               </div>
             </div>

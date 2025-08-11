@@ -48,7 +48,7 @@ const FamilyMembersSection = Vue.defineComponent({
                   <p v-if="chore.amount > 0" class="text-[#47569e] text-xs font-normal leading-normal">\${{ chore.amount.toFixed(2) }}</p>
                 </div>
               </div>
-              <div class="shrink-0 flex items-center" @click.stop @change.stop @mousedown.stop @mouseup.stop>
+              <div class="shrink-0 flex items-center gap-2" @click.stop @change.stop @mousedown.stop @mouseup.stop>
                 <div class="flex size-10 sm:size-6 items-center justify-center p-2 sm:p-0">
                   <input
                     type="checkbox"
@@ -60,6 +60,11 @@ const FamilyMembersSection = Vue.defineComponent({
                     class="h-5 w-5 sm:h-4 sm:w-4 rounded border-[#ced2e9] border-2 bg-transparent text-[#607afb] checked:bg-[#607afb] checked:border-[#607afb] checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:border-[#ced2e9] focus:outline-none touch-target"
                   />
                 </div>
+                <button
+                  v-if="$parent.currentUser?.role === 'parent' && chore.isPendingApproval"
+                  @click.stop="$parent.approveChore(chore)"
+                  class="px-2 py-1 text-xs rounded bg-emerald-500 text-white hover:bg-emerald-600"
+                >Approve</button>
               </div>
             </div>
             
