@@ -345,7 +345,14 @@ const app = createApp({
           return;
         }
         
-        // Load all data for all pages in parallel for instant page switching
+        // load account settings first so X-Account-Id header is available for all subsequent calls (children/coparents see the same list)
+        try {
+          await this.loadAccountSettings();
+        } catch (e) {
+          console.warn('account settings load failed; proceeding with defaults', e);
+        }
+        
+        // Load remaining data in parallel
         await Promise.all([
           // Core chore page data
           this.loadChores(),
@@ -357,10 +364,7 @@ const app = createApp({
           // Shopping page data
           this.loadShoppingItems(),
           this.loadShoppingQuickItems(),
-          this.loadStores(),
-          
-          // Account page data
-          this.loadAccountSettings()
+          this.loadStores()
         ]);
         console.log('✅ All application data loaded successfully');
       } catch (error) {
