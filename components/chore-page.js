@@ -32,8 +32,8 @@ const ChorePage = Vue.defineComponent({
             :key="quickChore.id"
             :class="getQuicklistChoreClasses(quickChore)"
             :style="getQuicklistChoreStyle(quickChore)"
-            @click="handleQuicklistChoreClick(quickChore)"
-            @touchend="handleQuicklistChoreClick(quickChore)"
+            @click="onQuicklistClick(quickChore, $event)"
+            @touchend="onQuicklistClick(quickChore, $event)"
           >
             <!-- Remove button -->
             <button
@@ -303,7 +303,8 @@ const ChorePage = Vue.defineComponent({
   inject: [
     'people', 'choresByPerson', 'selectedChore', 'selectedChoreId', 'selectedQuicklistChore',
     'quicklistChores', 'loading', 'error',
-    'showAddChoreModal', 'showAddToQuicklistModal'
+    'showAddChoreModal', 'showAddToQuicklistModal',
+    'handleChoreClick', 'handleQuicklistChoreClick'
   ],
   data() {
     return {
@@ -346,40 +347,14 @@ const ChorePage = Vue.defineComponent({
       };
     },
 
-    handleQuicklistChoreClick(quickChore) {
-      // For touch devices, prevent any hover-related delays
-      if (event && event.type === 'touchend') {
-        event.preventDefault();
-      }
-      
-      // Check if the same quicklist chore is already selected
-      if (this.$parent.selectedQuicklistChore && 
-          this.$parent.selectedQuicklistChore.name === quickChore.name) {
-        // Clicking the same quicklist chore deselects it
-        console.log('Deselecting quicklist chore:', quickChore.name);
-        this.$parent.selectedQuicklistChore = null;
-        this.$parent.selectedChoreId = null;
+    onQuicklistClick(quickChore, event) {
+      if (event && event.type === 'touchend') event.preventDefault();
+      const handler = this.handleQuicklistChoreClick || this.$parent?.handleQuicklistChoreClick;
+      if (typeof handler === 'function') {
+        handler(quickChore);
       } else {
-        // Create a new chore instance from the quicklist template
-        const newChore = {
-          name: quickChore.name,
-          amount: quickChore.amount,
-          category: quickChore.category,
-          assignedTo: 'unassigned',
-          completed: false,
-          isNewFromQuicklist: true
-        };
-        // Clear any existing regular chore selection
-        this.$parent.selectedChoreId = null;
-        this.$parent.selectedQuicklistChore = newChore;
-        console.log('Quicklist chore selected:', newChore.name);
+        console.warn('handleQuicklistChoreClick not available');
       }
-      
-      // Force re-render on mobile to ensure selection styling appears
-      this.$nextTick(() => {
-        this.$forceUpdate();
-        this.forceRepaintOnMobile();
-      });
     },
 
 
@@ -423,7 +398,12 @@ const ChorePage = Vue.defineComponent({
       if (this.$parent.selectedChore && this.$parent.selectedChoreId !== chore.id && chore.assignedTo && chore.assignedTo !== 'unassigned') {
         this.assignSelectedChore(chore.assignedTo); return;
       }
-      this.handleChoreClick(chore);
+      const handler = this.handleChoreClick || this.$parent?.handleChoreClick;
+      if (typeof handler === 'function') {
+        handler(chore);
+      } else {
+        console.warn('handleChoreClick not available');
+      }
       this.$nextTick(() => { this.$forceUpdate(); this.forceRepaintOnMobile(); });
     },
 

@@ -125,7 +125,12 @@ const UnassignedSection = Vue.defineComponent({
       }
       
       if (event && event.type === 'touchend') event.preventDefault();
-      this.handleChoreClick(chore);
+      const handler = this.handleChoreClick || this.$parent?.handleChoreClick;
+      if (typeof handler === 'function') {
+        handler(chore);
+      } else {
+        console.warn('handleChoreClick not available');
+      }
     },
 
 

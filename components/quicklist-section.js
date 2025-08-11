@@ -71,7 +71,12 @@ const QuicklistSection = Vue.defineComponent({
     },
     
     selectQuicklistChore(quickChore) {
-      this.handleQuicklistChoreClick(quickChore);
+      const handler = this.handleQuicklistChoreClick || this.$parent?.handleQuicklistChoreClick;
+      if (typeof handler === 'function') {
+        handler(quickChore);
+      } else {
+        console.warn('handleQuicklistChoreClick not available');
+      }
       console.log('Quicklist chore selected:', quickChore.name);
     },
     
