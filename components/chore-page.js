@@ -32,8 +32,8 @@ const ChorePage = Vue.defineComponent({
             :key="quickChore.id"
             :class="getQuicklistChoreClasses(quickChore)"
             :style="getQuicklistChoreStyle(quickChore)"
-            @click="selectQuicklistChore(quickChore, $event)"
-            @touchend="selectQuicklistChore(quickChore, $event)"
+            @click="handleQuicklistChoreClick(quickChore)"
+            @touchend="handleQuicklistChoreClick(quickChore)"
           >
             <!-- Remove button -->
             <button
@@ -346,7 +346,7 @@ const ChorePage = Vue.defineComponent({
       };
     },
 
-    selectQuicklistChore(quickChore, event) {
+    handleQuicklistChoreClick(quickChore) {
       // For touch devices, prevent any hover-related delays
       if (event && event.type === 'touchend') {
         event.preventDefault();
@@ -416,40 +416,15 @@ const ChorePage = Vue.defineComponent({
     },
 
     selectChore(chore, event) {
-      console.log('selectChore called for:', chore.name, 'Current selectedChoreId:', this.$parent.selectedChoreId);
-      
-      // For touch devices, prevent any hover-related delays
       if (event && event.type === 'touchend') {
         event.preventDefault();
       }
-      
-      // Special case: If we have a different chore selected and we click on a chore that's assigned to someone
-      if (this.$parent.selectedChore && 
-          this.$parent.selectedChoreId !== chore.id && 
-          chore.assignedTo && 
-          chore.assignedTo !== 'unassigned') {
-        console.log('Assigning selected chore to:', chore.assignedTo);
-        this.assignSelectedChore(chore.assignedTo);
-        return;
+      // cross-assign if different chore selected and target has assignee
+      if (this.$parent.selectedChore && this.$parent.selectedChoreId !== chore.id && chore.assignedTo && chore.assignedTo !== 'unassigned') {
+        this.assignSelectedChore(chore.assignedTo); return;
       }
-      
-      if (this.$parent.selectedChoreId === chore.id) {
-        // Clicking the same chore deselects it
-        console.log('Deselecting chore:', chore.name);
-        this.$parent.selectedChoreId = null;
-        this.$parent.selectedQuicklistChore = null;
-      } else {
-        // Select the chore
-        console.log('Selecting chore:', chore.name, 'ID:', chore.id);
-        this.$parent.selectedChoreId = chore.id;
-        this.$parent.selectedQuicklistChore = null;
-      }
-      
-      // Force re-render on mobile to ensure selection styling appears
-      this.$nextTick(() => {
-        this.$forceUpdate();
-        this.forceRepaintOnMobile();
-      });
+      this.handleChoreClick(chore);
+      this.$nextTick(() => { this.$forceUpdate(); this.forceRepaintOnMobile(); });
     },
 
 

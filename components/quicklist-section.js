@@ -53,7 +53,7 @@ const QuicklistSection = Vue.defineComponent({
       </div>
     </div>
   `,
-  inject: ['quicklistChores', 'showAddToQuicklistModal'],
+  inject: ['quicklistChores', 'showAddToQuicklistModal', 'handleQuicklistChoreClick'],
   methods: {
     getQuicklistChoreClasses(quickChore) {
       const baseClasses = "relative group flex items-center gap-3 sm:gap-2 bg-white px-4 py-4 sm:px-3 sm:py-2 rounded-lg shadow-sm cursor-pointer border-l-4 border-purple-500 transition-all duration-200 touch-target min-h-[68px] sm:min-h-[56px]";
@@ -71,19 +71,8 @@ const QuicklistSection = Vue.defineComponent({
     },
     
     selectQuicklistChore(quickChore) {
-      // Create a new chore instance from the quicklist template
-      const newChore = {
-        name: quickChore.name,
-        amount: quickChore.amount,
-        category: quickChore.category,
-        assignedTo: 'unassigned',
-        completed: false,
-        isNewFromQuicklist: true
-      };
-      // Clear any existing regular chore selection
-      this.$parent.selectedChoreId = null;
-      this.$parent.selectedQuicklistChore = newChore;
-      console.log('Quicklist chore selected:', newChore.name);
+      this.handleQuicklistChoreClick(quickChore);
+      console.log('Quicklist chore selected:', quickChore.name);
     },
     
     async removeFromQuicklist(quicklistId) {

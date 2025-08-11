@@ -75,7 +75,7 @@ const FamilyMembersSection = Vue.defineComponent({
     </div>
   `,
   inject: [
-    'choresByPerson', 'people', 'assignSelectedChore'
+    'choresByPerson', 'people', 'assignSelectedChore', 'handleChoreClick'
   ],
   methods: {
     getDropZoneClasses(person) {
@@ -133,29 +133,13 @@ const FamilyMembersSection = Vue.defineComponent({
       console.log('🎯 selectChore called for:', chore.name, 'Current selectedChoreId:', this.$parent.selectedChoreId);
       console.log('🎯 Event type:', event.type, 'Event target:', event.target.tagName);
       console.trace('🎯 selectChore call stack');
-      
-      // Special case: If we have a different chore selected and we click on a chore that's assigned to someone,
-      // assign the selected chore to that person
-      if (this.$parent.selectedChore && 
-          this.$parent.selectedChoreId !== chore.id && 
-          chore.assignedTo && 
-          chore.assignedTo !== 'unassigned') {
+      if (this.$parent.selectedChore && this.$parent.selectedChoreId !== chore.id && chore.assignedTo && chore.assignedTo !== 'unassigned') {
         console.log('Assigning selected chore to:', chore.assignedTo);
         this.assignSelectedChore(chore.assignedTo);
         return;
       }
-      
-      if (this.$parent.selectedChoreId === chore.id) {
-        // Clicking the same chore deselects it
-        console.log('Deselecting chore:', chore.name);
-        this.$parent.selectedChoreId = null;
-        this.$parent.selectedQuicklistChore = null;
-      } else {
-        // Select the chore
-        console.log('Selecting chore:', chore.name, 'ID:', chore.id);
-        this.$parent.selectedChoreId = chore.id;
-        this.$parent.selectedQuicklistChore = null;
-      }
+      if (event && event.type === 'touchend') event.preventDefault();
+      this.handleChoreClick(chore);
     },
 
     async handleChoreCompletionChange(chore, event) {

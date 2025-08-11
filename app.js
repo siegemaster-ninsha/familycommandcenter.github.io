@@ -2032,6 +2032,8 @@ const app = createApp({
       loading: Vue.computed(() => this.loading),
       error: Vue.computed(() => this.error),
       selectedChore: Vue.computed(() => this.selectedChore),
+      selectedChoreId: Vue.toRef(this, 'selectedChoreId'),
+      selectedQuicklistChore: Vue.toRef(this, 'selectedQuicklistChore'),
       showSuccessMessage: Vue.computed(() => this.showSuccessMessageFlag),
       completedChoreMessage: Vue.computed(() => this.completedChoreMessage),
       showConfetti: Vue.computed(() => this.showConfetti),
@@ -2086,6 +2088,8 @@ const app = createApp({
       // Provide methods that child components need
       loadAllData: this.loadAllData,
       assignSelectedChore: this.assignSelectedChore,
+      handleChoreClick: this.handleChoreClick,
+      handleQuicklistChoreClick: this.handleQuicklistChoreClick,
       setCurrentPage: this.setCurrentPage,
       confirmDeletePerson: this.confirmDeletePerson,
       addChore: this.addChore,
