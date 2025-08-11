@@ -61,7 +61,7 @@ const ChorePage = Vue.defineComponent({
           <!-- Add to Quicklist button -->
           <div class="flex items-center justify-center">
             <button
-              @click="$parent.showAddToQuicklistModal = true"
+              @click="openAddToQuicklistModal()"
               class="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white px-4 py-3 sm:px-3 sm:py-2 rounded-lg transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center"
               title="Add new chore to quicklist"
             >
@@ -148,7 +148,7 @@ const ChorePage = Vue.defineComponent({
           <!-- Add new chore button -->
           <div class="flex items-center justify-center" :class="choresByPerson.unassigned.length === 0 ? 'mt-4' : 'mt-4'">
             <button
-              @click="$parent.showAddChoreModal = true"
+            @click="openAddChoreModal()"
               class="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white px-4 py-3 sm:px-4 sm:py-2 rounded-lg transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center shadow-md hover:shadow-lg"
               title="Add new chore to unassigned"
             >
@@ -316,6 +316,14 @@ const ChorePage = Vue.defineComponent({
     await this.loadQuicklistChores();
   },
   methods: {
+    openAddToQuicklistModal() {
+      const fn = this.$parent?.openAddToQuicklistModal || this.openAddToQuicklistModal;
+      if (typeof fn === 'function') fn();
+    },
+    openAddChoreModal() {
+      const fn = this.$parent?.openAddChoreModal || this.openAddChoreModal;
+      if (typeof fn === 'function') fn();
+    },
     // Quicklist methods
     async loadQuicklistChores() {
       this.quicklistLoading = true;

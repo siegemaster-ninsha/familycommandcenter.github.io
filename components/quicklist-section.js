@@ -53,7 +53,7 @@ const QuicklistSection = Vue.defineComponent({
       </div>
     </div>
   `,
-  inject: ['quicklistChores', 'showAddToQuicklistModal', 'handleQuicklistChoreClick'],
+  inject: ['quicklistChores', 'showAddToQuicklistModal', 'handleQuicklistChoreClick', 'openAddToQuicklistModal'],
   methods: {
     getQuicklistChoreClasses(quickChore) {
       const baseClasses = "relative group flex items-center gap-3 sm:gap-2 bg-white px-4 py-4 sm:px-3 sm:py-2 rounded-lg shadow-sm cursor-pointer border-l-4 border-purple-500 transition-all duration-200 touch-target min-h-[68px] sm:min-h-[56px]";

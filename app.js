@@ -305,6 +305,26 @@ const app = createApp({
       }
     },
 
+    // modal open/close helpers (standardized)
+    openAddChoreModal() {
+      this.showAddChoreModal = true;
+    },
+    closeAddChoreModal() {
+      this.showAddChoreModal = false;
+    },
+    openAddToQuicklistModal() {
+      this.showAddToQuicklistModal = true;
+    },
+    closeAddToQuicklistModal() {
+      this.showAddToQuicklistModal = false;
+    },
+    closeCreateChildModal() {
+      this.showCreateChildModal = false;
+    },
+    closeInviteModal() {
+      this.showInviteModal = false;
+    },
+
     async refreshCurrentUser() {
       try {
         const me = await authService.getCurrentUser();
@@ -2100,6 +2120,12 @@ const app = createApp({
       addToQuicklist: this.addToQuicklist,
       cancelAddToQuicklist: this.cancelAddToQuicklist,
       openChoreDetailsModal: this.openChoreDetailsModal,
+      openAddChoreModal: this.openAddChoreModal,
+      closeAddChoreModal: this.closeAddChoreModal,
+      openAddToQuicklistModal: this.openAddToQuicklistModal,
+      closeAddToQuicklistModal: this.closeAddToQuicklistModal,
+      closeCreateChildModal: this.closeCreateChildModal,
+      closeInviteModal: this.closeInviteModal,
       confirmChoreDetails: this.confirmChoreDetails,
       cancelChoreDetails: this.cancelChoreDetails,
       startNewDay: this.startNewDay,
