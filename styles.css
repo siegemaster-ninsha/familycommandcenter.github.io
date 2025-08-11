@@ -634,6 +634,8 @@ input:focus, select:focus, textarea:focus {
   backdrop-filter: blur(4px);
   /* ensure overlay receives touches but doesn't allow events to bleed through */
   pointer-events: auto;
+  /* lock overlay color on touch devices when :hover sticks */
+  --overlay-bg: rgba(0, 0, 0, 0.5);
 }
 
 /* ensure modal panels render opaque on iOS by promoting to own layer */
@@ -815,6 +817,9 @@ body.modal-open {
   /* preserve modal overlay backdrop on first tap in iOS safari where :hover can stick */
   .modal-overlay:hover {
     background-color: rgba(0, 0, 0, 0.5) !important;
+  }
+  .modal-panel:hover {
+    background-color: #ffffff !important;
   }
   
   /* Specifically disable common hover classes used throughout the app */
