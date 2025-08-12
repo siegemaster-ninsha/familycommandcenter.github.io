@@ -71,11 +71,12 @@ const AccountPage = Vue.defineComponent({
                 <label class="font-medium text-primary-custom">Require Parent Approval</label>
                 <p class="text-sm text-secondary-custom">Completed chores and spending require a parent's approval</p>
               </div>
-              <label class="relative inline-flex items-center cursor-pointer">
+              <label class="relative inline-flex items-center cursor-pointer" :class="isChild ? 'opacity-60 cursor-not-allowed' : ''">
                 <input 
                   type="checkbox" 
                   v-model="preferences.requireApproval"
                   class="sr-only peer"
+                  :disabled="isChild"
                 >
                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
               </label>
@@ -89,11 +90,12 @@ const AccountPage = Vue.defineComponent({
                     <label class="font-medium text-primary-custom">Can mark chores complete</label>
                     <p class="text-sm text-secondary-custom">Allow children to toggle completion on their chores</p>
                   </div>
-                  <label class="relative inline-flex items-center cursor-pointer">
+                  <label class="relative inline-flex items-center cursor-pointer" :class="isChild ? 'opacity-60 cursor-not-allowed' : ''">
                     <input 
                       type="checkbox" 
                       v-model="preferences.childPermissions.canCompleteChores"
                       class="sr-only peer"
+                      :disabled="isChild"
                     >
                     <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
                   </label>
@@ -103,11 +105,12 @@ const AccountPage = Vue.defineComponent({
                     <label class="font-medium text-primary-custom">Can create/edit/delete chores</label>
                     <p class="text-sm text-secondary-custom">Allow children to manage chores</p>
                   </div>
-                  <label class="relative inline-flex items-center cursor-pointer">
+                  <label class="relative inline-flex items-center cursor-pointer" :class="isChild ? 'opacity-60 cursor-not-allowed' : ''">
                     <input 
                       type="checkbox" 
                       v-model="preferences.childPermissions.canManageChores"
                       class="sr-only peer"
+                      :disabled="isChild"
                     >
                     <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
                   </label>
@@ -117,11 +120,12 @@ const AccountPage = Vue.defineComponent({
                     <label class="font-medium text-primary-custom">Can spend money</label>
                     <p class="text-sm text-secondary-custom">Allow children to spend from their ledger</p>
                   </div>
-                  <label class="relative inline-flex items-center cursor-pointer">
+                  <label class="relative inline-flex items-center cursor-pointer" :class="isChild ? 'opacity-60 cursor-not-allowed' : ''">
                     <input 
                       type="checkbox" 
                       v-model="preferences.childPermissions.canSpendMoney"
                       class="sr-only peer"
+                      :disabled="isChild"
                     >
                     <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
                   </label>
@@ -134,11 +138,12 @@ const AccountPage = Vue.defineComponent({
                 <label class="font-medium text-primary-custom">Confetti Animations</label>
                 <p class="text-sm text-secondary-custom">Show celebration animations when completing chores</p>
               </div>
-              <label class="relative inline-flex items-center cursor-pointer">
+              <label class="relative inline-flex items-center cursor-pointer" :class="isChild ? 'opacity-60 cursor-not-allowed' : ''">
                 <input 
                   type="checkbox" 
                   v-model="preferences.confettiEnabled"
                   class="sr-only peer"
+                  :disabled="isChild"
                 >
                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
               </label>
@@ -149,11 +154,12 @@ const AccountPage = Vue.defineComponent({
                 <label class="font-medium text-primary-custom">Sound Effects</label>
                 <p class="text-sm text-secondary-custom">Play sounds for task completion and other actions</p>
               </div>
-              <label class="relative inline-flex items-center cursor-pointer">
+              <label class="relative inline-flex items-center cursor-pointer" :class="isChild ? 'opacity-60 cursor-not-allowed' : ''">
                 <input 
                   type="checkbox" 
                   v-model="preferences.soundEnabled"
                   class="sr-only peer"
+                  :disabled="isChild"
                 >
                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
               </label>
@@ -164,11 +170,12 @@ const AccountPage = Vue.defineComponent({
                 <label class="font-medium text-primary-custom">Auto-save Changes</label>
                 <p class="text-sm text-secondary-custom">Automatically save changes without confirmation</p>
               </div>
-              <label class="relative inline-flex items-center cursor-pointer">
+              <label class="relative inline-flex items-center cursor-pointer" :class="isChild ? 'opacity-60 cursor-not-allowed' : ''">
                 <input 
                   type="checkbox" 
                   v-model="preferences.autoSave"
                   class="sr-only peer"
+                  :disabled="isChild"
                 >
                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
               </label>
@@ -389,6 +396,9 @@ const AccountPage = Vue.defineComponent({
     }
   },
   methods: {
+    get isChild() {
+      return this.currentUser?.role === 'child';
+    },
     syncAccountSettings() {
       // Sync preloaded account settings to local state
       if (this.accountSettings.theme) {
@@ -432,7 +442,9 @@ const AccountPage = Vue.defineComponent({
     },
     
     loadCurrentTheme() {
-      this.currentTheme = localStorage.getItem('selectedTheme') || 'default';
+      // prefer user-specific theme provided with account settings
+      const userTheme = this.accountSettings?.userTheme || localStorage.getItem('selectedTheme');
+      this.currentTheme = userTheme || 'default';
       this.selectedTheme = this.currentTheme;
     },
     
@@ -656,7 +668,7 @@ const AccountPage = Vue.defineComponent({
               headers.Authorization = authHeader;
             }
             
-            const response = await fetch(`${CONFIG.API.BASE_URL}/account-settings/${this.accountId}/theme`, {
+            const response = await fetch(`${CONFIG.API.BASE_URL}/account-settings/theme`, {
               method: 'PUT',
               headers,
               body: JSON.stringify({ theme: themeId })

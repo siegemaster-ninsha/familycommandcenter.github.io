@@ -607,6 +607,12 @@ const app = createApp({
         const response = await this.apiCall(CONFIG.API.ENDPOINTS.ACCOUNT_SETTINGS);
         this.accountSettings = response;
         this.accountId = response?.accountId || null;
+        // apply user-specific theme if present
+        const userTheme = response?.userTheme;
+        if (userTheme) {
+          ThemeManager.applyTheme(userTheme);
+          localStorage.setItem('selectedTheme', userTheme);
+        }
         console.log('✅ Account settings loaded:', this.accountSettings);
       } catch (error) {
         console.error('Failed to load account settings:', error);

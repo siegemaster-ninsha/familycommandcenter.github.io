@@ -154,39 +154,8 @@ const FamilyMembersSection = Vue.defineComponent({
 
     async handleChoreCompletionChange(chore, event) {
       console.log('🔲 Checkbox changed for chore:', chore.name, 'to:', event.target.checked);
-      console.log('🔲 Current selectedChoreId before:', this.$parent.selectedChoreId);
-      
-      // Update the chore's completed status first
       chore.completed = event.target.checked;
-      
-      try {
-        await this.$parent.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/complete`, {
-          method: 'PUT',
-          body: JSON.stringify({ completed: chore.completed })
-        });
-        
-        console.log('🔲 Current selectedChoreId after API call:', this.$parent.selectedChoreId);
-        
-        if (chore.completed) {
-          this.$parent.triggerConfetti();
-          this.$parent.showSuccessMessage = true;
-          this.$parent.completedChoreMessage = `${chore.name} completed!`;
-          
-          setTimeout(() => {
-            this.$parent.showSuccessMessage = false;
-          }, 3000);
-        }
-        
-        console.log('🔲 Current selectedChoreId before loadEarnings:', this.$parent.selectedChoreId);
-        await this.$parent.loadEarnings();
-        console.log('🔲 Current selectedChoreId after loadEarnings:', this.$parent.selectedChoreId);
-        await this.$parent.loadElectronicsStatus();
-        console.log('🔲 Current selectedChoreId after loadElectronicsStatus:', this.$parent.selectedChoreId);
-      } catch (error) {
-        console.error('Failed to update chore completion:', error);
-        // Revert the checkbox if API call failed
-        chore.completed = !chore.completed;
-      }
+      await this.$parent.handleChoreCompletion(chore);
     },
 
     async handleChoreCompletion(chore) {
