@@ -645,7 +645,9 @@ const AppModals = Vue.defineComponent({
     'executeDeletePerson', 'cancelDeletePerson',
     'confirmChoreDetails', 'cancelChoreDetails',
     'closeSpendingModal', 'addDigit', 'addDecimal', 'clearSpendAmount', 'confirmSpending',
-    'handleLogin', 'handleSignup', 'handleConfirmSignup', 'showLoginForm', 'showSignupForm', 'closeAuthModals'
+    'handleLogin', 'handleSignup', 'handleConfirmSignup', 'showLoginForm', 'showSignupForm', 'closeAuthModals',
+    // add child / invite parent modals
+    'showCreateChildModal', 'showInviteModal', 'closeCreateChildModal', 'closeInviteModal'
   ],
   methods: {
     // Use injected methods directly - they're already bound to the parent context
