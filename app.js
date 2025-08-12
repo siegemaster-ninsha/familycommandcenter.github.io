@@ -2111,6 +2111,9 @@ const app = createApp({
       newDayLoading: Vue.computed(() => this.newDayLoading),
       showSpendingModal: Vue.computed(() => this.showSpendingModal),
       showChoreDetailsModal: Vue.computed(() => this.showChoreDetailsModal),
+      // add child / invite parent modal flags
+      showCreateChildModal: Vue.computed(() => this.showCreateChildModal),
+      showInviteModal: Vue.computed(() => this.showInviteModal),
       selectedPerson: Vue.computed(() => this.selectedPerson),
       spendAmount: Vue.computed(() => this.spendAmount),
       spendAmountString: Vue.computed(() => this.spendAmountString),
