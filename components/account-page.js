@@ -344,8 +344,6 @@ const AccountPage = Vue.defineComponent({
   inject: ['currentUser'],
   data() {
     return {
-      accountSettings: null,
-      accountId: null,
       
       profileForm: {
         name: '',
