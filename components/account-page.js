@@ -395,10 +395,12 @@ const AccountPage = Vue.defineComponent({
       this.syncAccountSettings();
     }
   },
-  methods: {
-    get isChild() {
+  computed: {
+    isChild() {
       return this.currentUser?.role === 'child';
-    },
+    }
+  },
+  methods: {
     syncAccountSettings() {
       // Sync preloaded account settings to local state
       if (this.accountSettings.theme) {
