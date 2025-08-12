@@ -99,8 +99,6 @@ const ChorePage = Vue.defineComponent({
             <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-secondary-custom py-6 flex flex-col items-center justify-center">
               <p class="text-sm px-2">No unassigned chores</p>
               <p class="text-xs mt-2 px-2">Create new chores here - they'll be available for any family member to pick up</p>
-              
-              <p v-if="selectedChore" class="text-xs mt-2 text-secondary-custom px-2">Tap here to move selected chore to unassigned</p>
             </div>
           
             <!-- Container for chores -->
@@ -139,9 +137,7 @@ const ChorePage = Vue.defineComponent({
                     <p v-if="chore.amount > 0" class="text-white text-opacity-90 text-sm font-normal leading-normal line-clamp-2">\${{ chore.amount.toFixed(2) }}</p>
                   </div>
               </div>
-              <div class="flex items-center gap-2 shrink-0">
-                <span class="text-xs text-white px-2 py-1 rounded bg-white bg-opacity-20">Tap to select</span>
-              </div>
+              <div class="flex items-center gap-2 shrink-0"></div>
             </div>
           </div>
           

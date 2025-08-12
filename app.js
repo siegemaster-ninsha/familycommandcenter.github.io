@@ -331,16 +331,16 @@ const app = createApp({
         if (me) {
           this.currentUser = me;
         }
-        // enrich with server-side account and role if missing
-        if (!this.currentUser?.accountId) {
+        // enrich with server-side account and role when missing
+        if (!this.currentUser?.role || !this.currentUser?.accountId) {
           try {
             const res = await this.apiCall(CONFIG.API.ENDPOINTS.AUTH_ME);
             if (res && (res.accountId || res.role)) {
-              this.currentUser = { ...this.currentUser, role: res.role, memberships: res.memberships };
+              this.currentUser = { ...this.currentUser, role: res.role || this.currentUser?.role, memberships: res.memberships };
               this.accountId = res.accountId || this.accountId;
             }
           } catch (e) {
-            // keep minimal identity if /auth/me is unavailable
+            // ignore if /auth/me unavailable
           }
         } else {
           this.accountId = this.currentUser.accountId || this.accountId;

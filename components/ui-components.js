@@ -36,33 +36,9 @@ const AppErrorState = Vue.defineComponent({
   inject: ['error', 'loadAllData']
 });
 
-// Selection Info Component
+// Selection Info Component (disabled per UX request)
 const AppSelectionInfo = Vue.defineComponent({
-  template: `
-    <div v-if="!loading && !error && selectedChore" class="mx-4 mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2 text-blue-800">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256">
-            <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-40a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176ZM112,84a12,12,0,1,1,12,12A12,12,0,0,1,112,84Z"></path>
-          </svg>
-          <span class="text-sm font-medium">
-            Selected: <strong>{{ selectedChore.name }}</strong> - 
-            <span v-if="selectedChore.isNewFromQuicklist">Click on a family member to assign.</span>
-            <span v-else>Click on a family member or the trash can to move/delete.</span>
-          </span>
-        </div>
-        <button 
-          @click="clearSelection"
-          class="text-blue-600 hover:text-blue-800 p-1 rounded-full hover:bg-blue-100 transition-colors"
-          title="Clear selection"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-            <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
-          </svg>
-        </button>
-      </div>
-    </div>
-  `,
+  template: `<div></div>`,
   inject: ['loading', 'error', 'selectedChore'],
   methods: {
     clearSelection() {
