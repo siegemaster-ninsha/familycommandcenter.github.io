@@ -695,25 +695,43 @@ const app = createApp({
         console.warn('failed to update display name', e);
       }
     },
-    updateMemberChoresEnabled(person) {
+    async updateMemberChoresEnabled(person) {
       try {
-        // optimistically update preference map and persist to backend
+        // Ensure we know the account first
+        if (!this.accountId && !this.accountSettings?.accountId) {
+          try { await this.loadAccountSettings(); } catch {}
+        }
+
+        // Optimistically update local state
         const prefs = this.accountSettings?.preferences || {};
         const current = { ...(prefs.membersChoresEnabled || {}) };
-        // Write both userId and name keys for backward compatibility
         const enabled = !!person.enabledForChores;
+        // Write both userId and name keys for stability across backfills
         if (person.userId) current[person.userId] = enabled;
         if (person.name) current[person.name] = enabled;
-        this.accountSettings.preferences = { ...prefs, membersChoresEnabled: current };
+        this.accountSettings = {
+          ...(this.accountSettings || {}),
+          preferences: { ...prefs, membersChoresEnabled: current }
+        };
+
         const accountId = this.accountId || this.accountSettings?.accountId;
-        if (!accountId) return; // cannot persist without account id
-        // persist to the correct endpoint: /account-settings/{accountId}/preferences
-        this.apiCall(`${CONFIG.API.ENDPOINTS.ACCOUNT_SETTINGS}/${encodeURIComponent(accountId)}/preferences`, {
+        if (!accountId) {
+          console.warn('Cannot persist member visibility: missing accountId');
+          return;
+        }
+
+        // Persist and await to avoid silent failures on quick refresh
+        const res = await this.apiCall(`${CONFIG.API.ENDPOINTS.ACCOUNT_SETTINGS}/${encodeURIComponent(accountId)}/preferences`, {
           method: 'PUT',
           body: JSON.stringify({ preferences: { membersChoresEnabled: current } })
-        }).catch(() => {});
+        });
+        // Sync local cache with server echo
+        if (res && res.preferences) {
+          this.accountSettings.preferences = res.preferences;
+        }
       } catch (e) {
         console.warn('failed to persist member chores enabled', e);
+        this.showSuccessMessage('❌ Failed to save board visibility.');
       }
     },
     canRemoveMember(person) {
