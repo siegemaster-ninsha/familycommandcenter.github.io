@@ -4,7 +4,10 @@ const ChorePage = Vue.defineComponent({
     <div class="space-y-6">
       <!-- Quicklist Section -->
       <div class="rounded-lg border-2 p-6 shadow-lg" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
-        <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">⚡ Quicklist</h2>
+        <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M13.5 4.5a.75.75 0 00-1.312-.53L6 12h3.75L8.25 19.5a.75.75 0 001.312.53L18 12h-3.75L13.5 4.5z"/></svg>
+          Quicklist
+        </h2>
         <p class="text-secondary-custom text-sm mb-4 text-center">Tap these common chores to assign them quickly</p>
         
         <!-- Loading state -->
@@ -476,10 +479,10 @@ const ChorePage = Vue.defineComponent({
 
     getElectronicsStatusText(status) {
       switch(status) {
-        case 'allowed': return '✅ Allowed';
-        case 'restricted': return '⚠️ Limited';
-        case 'blocked': return '🚫 Blocked';
-        default: return '✅ Allowed'; // Default to allowed if status is undefined/unknown
+        case 'allowed': return 'Allowed';
+        case 'restricted': return 'Limited';
+        case 'blocked': return 'Blocked';
+        default: return 'Allowed'; // Default to allowed if status is undefined/unknown
       }
     },
 

@@ -1609,7 +1609,7 @@ const app = createApp({
         });
         
         // Show error message
-        this.showSuccessMessage(`❌ Failed to delete "${chore.name}". Please try again.`);
+        this.showSuccessMessage(`Failed to delete "${chore.name}". Please try again.`);
       }
     },
     
@@ -1653,7 +1653,7 @@ const app = createApp({
         
         if (chore.completed) {
           this.triggerConfetti();
-          this.showSuccessMessage(requireApproval ? `✅ "${chore.name}" marked complete. Pending parent approval.` : `🎉 Great job! "${chore.name}" completed!`);
+          this.showSuccessMessage(requireApproval ? `"${chore.name}" marked complete. Pending parent approval.` : `Great job! "${chore.name}" completed!`);
         } else {
           this.showSuccessMessageFlag = false;
           this.completedChoreMessage = '';
@@ -1682,7 +1682,7 @@ const app = createApp({
         });
         this.showSuccessMessageFlag = false;
         this.completedChoreMessage = '';
-        this.showSuccessMessage(`❌ Failed to update "${chore.name}". Please try again.`);
+        this.showSuccessMessage(`Failed to update "${chore.name}". Please try again.`);
       }
     },
 
@@ -1696,10 +1696,10 @@ const app = createApp({
         // reload earnings since approval transfers money
         await this.loadEarnings();
         await this.loadFamilyMembers(true);
-        this.showSuccessMessage(`✅ Approved "${chore.name}"`);
+        this.showSuccessMessage(`Approved "${chore.name}"`);
       } catch (error) {
         console.error('failed to approve chore', error);
-        this.showSuccessMessage('❌ Failed to approve chore');
+        this.showSuccessMessage('Failed to approve chore');
       }
     },
     

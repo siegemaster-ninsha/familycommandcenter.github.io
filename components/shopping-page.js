@@ -5,7 +5,10 @@ const ShoppingPage = Vue.defineComponent({
       <!-- Shopping List -->
       <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em]">🛒 Shopping List</h2>
+          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M2.25 3a.75.75 0 000 1.5h1.386l2.68 9.381A2.25 2.25 0 008.5 15h7.19a2.25 2.25 0 002.134-1.5l2.1-6A.75.75 0 0019.25 6H6.343L5.79 3.987A1.5 1.5 0 004.386 3H2.25z"/><path d="M8.75 20.5a1.25 1.25 0 11-2.5 0 1.25 1.25 0 012.5 0zm10 0a1.25 1.25 0 11-2.5 0 1.25 1.25 0 012.5 0z"/></svg>
+            Shopping List
+          </h2>
           <button
             @click="showAddItemModal = true"
             class="hidden sm:flex items-center gap-2 btn-primary touch-target"
@@ -52,7 +55,9 @@ const ShoppingPage = Vue.defineComponent({
                 >
                   {{ getStoreInitial(storeName) }}
                 </div>
-                <span v-else>🏪</span>
+                <span v-else class="inline-flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-secondary-custom"><path d="M3.375 3a.375.375 0 00-.375.375v2.25c0 .621.504 1.125 1.125 1.125h15.75A1.125 1.125 0 0021 5.625v-2.25A.375.375 0 0020.625 3H3.375z"/><path fill-rule="evenodd" d="M3 8.25A2.25 2.25 0 015.25 6h13.5A2.25 2.25 0 0121 8.25v9A2.25 2.25 0 0118.75 19.5H5.25A2.25 2.25 0 013 17.25v-9zm3 3a.75.75 0 01.75-.75h2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-.75.75H6.75a.75.75 0 01-.75-.75v-2.25z" clip-rule="evenodd"/></svg>
+                </span>
                 {{ storeName || 'No Store Selected' }}
                 <span class="text-sm font-normal text-secondary-custom">({{ items.length }} items)</span>
               </h3>
@@ -80,7 +85,10 @@ const ShoppingPage = Vue.defineComponent({
                     {{ item.name }}
                   </span>
                   <div class="text-base sm:text-sm text-white text-opacity-90 flex items-center gap-2 mt-1">
-                    <span>{{ getCategoryIcon(item.category) }} {{ item.category }}</span>
+                    <span class="inline-flex items-center gap-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 opacity-90"><path d="M2.25 12a9.75 9.75 0 1119.5 0 9.75 9.75 0 01-19.5 0zm7.53-3.28a.75.75 0 10-1.06 1.06L10.94 12l-2.22 2.22a.75.75 0 101.06 1.06L12 13.06l2.22 2.22a.75.75 0 101.06-1.06L13.06 12l2.22-2.22a.75.75 0 10-1.06-1.06L12 10.94 9.78 8.72z"/></svg>
+                      <span>{{ item.category }}</span>
+                    </span>
                     <span v-if="item.quantity">• Qty: {{ item.quantity }}</span>
                     <span v-if="item.notes">• {{ item.notes }}</span>
                   </div>
@@ -109,7 +117,10 @@ const ShoppingPage = Vue.defineComponent({
       <!-- Quick List -->
       <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em]">⚡ Quick List</h2>
+          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M13.5 4.5a.75.75 0 00-1.312-.53L6 12h3.75L8.25 19.5a.75.75 0 001.312.53L18 12h-3.75L13.5 4.5z"/></svg>
+            Quick List
+          </h2>
           <div class="flex gap-2">
             <button
               @click="showAddQuickItemModal = true"
@@ -148,7 +159,7 @@ const ShoppingPage = Vue.defineComponent({
           <div
             v-for="quickItem in quickItems"
             :key="quickItem.id"
-            class="relative flex flex-col items-center gap-2 p-3 rounded-lg group cursor-pointer transition-all duration-200 hover:shadow-md"
+            :class="['relative flex flex-col items-center gap-2 p-3 rounded-lg group cursor-pointer transition-all duration-200 hover:shadow-md', quickItem.defaultStore ? 'pb-7' : '']"
             style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
             @click="addQuickItemToList(quickItem.id)"
           >
@@ -172,7 +183,10 @@ const ShoppingPage = Vue.defineComponent({
               ×
             </button>
             
-            <div class="text-2xl">{{ getCategoryIcon(quickItem.category) }}</div>
+            <div class="text-2xl text-white opacity-90">
+              <!-- generic item icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7"><path d="M3 6.75A2.25 2.25 0 015.25 4.5h13.5A2.25 2.25 0 0121 6.75v10.5A2.25 2.25 0 0118.75 19.5H5.25A2.25 2.25 0 013 17.25V6.75zm3 0a.75.75 0 01.75-.75h10.5a.75.75 0 01.75.75V9H6V6.75z"/></svg>
+            </div>
             <div class="text-sm font-medium text-white text-center">{{ quickItem.name }}</div>
             <div class="text-xs text-white text-opacity-90 text-center">{{ quickItem.category }}</div>
             <div v-if="quickItem.defaultQuantity" class="text-xs text-white text-opacity-80">{{ quickItem.defaultQuantity }}</div>
@@ -182,7 +196,10 @@ const ShoppingPage = Vue.defineComponent({
               v-if="quickItem.defaultStore" 
               class="absolute bottom-1 left-1 right-1 text-xs text-center bg-white bg-opacity-20 text-white px-1 py-0.5 rounded sm:opacity-0 sm:group-hover:opacity-100 opacity-75 transition-opacity duration-200"
             >
-              🏪 {{ quickItem.defaultStore }}
+              <span class="inline-flex items-center gap-1 justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M3.375 3a.375.375 0 00-.375.375v2.25c0 .621.504 1.125 1.125 1.125h15.75A1.125 1.125 0 0021 5.625v-2.25A.375.375 0 0020.625 3H3.375z"/><path fill-rule="evenodd" d="M3 8.25A2.25 2.25 0 015.25 6h13.5A2.25 2.25 0 0121 8.25v9A2.25 2.25 0 0118.75 19.5H5.25A2.25 2.25 0 013 17.25v-9zm3 3a.75.75 0 01.75-.75h2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-.75.75H6.75a.75.75 0 01-.75-.75v-2.25z" clip-rule="evenodd"/></svg>
+                <span>{{ quickItem.defaultStore }}</span>
+              </span>
             </div>
           </div>
           
@@ -198,7 +215,10 @@ const ShoppingPage = Vue.defineComponent({
 
       <!-- Quick Actions -->
       <div class="hidden sm:block rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
-        <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">⚡ Quick Actions</h2>
+        <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M13.5 4.5a.75.75 0 00-1.312-.53L6 12h3.75L8.25 19.5a.75.75 0 001.312.53L18 12h-3.75L13.5 4.5z"/></svg>
+          Quick Actions
+        </h2>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button
@@ -242,7 +262,10 @@ const ShoppingPage = Vue.defineComponent({
       <!-- Store Management -->
       <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em]">🏪 Store Management</h2>
+          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M2.25 6.75A2.25 2.25 0 014.5 4.5h15a2.25 2.25 0 012.25 2.25V9H2.25V6.75z"/><path d="M2.25 9.75h19.5v8.25A1.5 1.5 0 0120.25 19.5H3.75a1.5 1.5 0 01-1.5-1.5V9.75z"/></svg>
+            Store Management
+          </h2>
           <div class="flex items-center gap-2">
             <button 
               class="btn-secondary touch-target sm:hidden"
@@ -843,20 +866,8 @@ const ShoppingPage = Vue.defineComponent({
     },
 
     // === Helper Methods ===
-    getCategoryIcon(category) {
-      const icons = {
-        'Dairy': '🥛',
-        'Bakery': '🍞',
-        'Produce': '🥬',
-        'Meat': '🥩',
-        'Frozen': '🧊',
-        'Pantry': '🥫',
-        'Household': '🧹',
-        'Personal Care': '🧴',
-        'General': '📦'
-      };
-      return icons[category] || '📦';
-    },
+    // Deprecated: previously returned emoji; now unused and returns empty to avoid emojis in UI
+    getCategoryIcon() { return '' },
 
     showSuccessMessage(message) {
       this.successMessage = message;

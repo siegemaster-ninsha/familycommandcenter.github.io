@@ -19,9 +19,9 @@
 
   function getCategoryLabel(category) {
     switch (category) {
-      case 'school': return '📚 School';
-      case 'game': return '⚡ Electronics';
-      default: return '🏠 Regular';
+      case 'school': return 'School';
+      case 'game': return 'Electronics';
+      default: return 'Regular';
     }
   }
 

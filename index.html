@@ -79,7 +79,8 @@
               <h2 class="text-primary-custom text-base sm:text-lg font-bold leading-tight tracking-[-0.015em]">Family Hub</h2>
             </div>
             <div class="flex flex-1 justify-end gap-4 sm:gap-8">
-              <div class="flex items-center gap-4 sm:gap-9">
+              <!-- Desktop/Tablet nav -->
+              <div class="hidden sm:flex items-center gap-4 sm:gap-9">
                 <a 
                   :class="currentPage === 'chores' ? 'text-primary-500 font-bold border-b-2 border-primary-500 pb-1' : 'text-primary-custom hover:text-primary-500'"
                   class="text-xs sm:text-sm font-medium leading-normal transition-colors cursor-pointer py-2 px-1 min-h-[44px] flex items-center touch-target"
@@ -107,9 +108,24 @@
                   class="text-xs sm:text-sm font-medium leading-normal transition-colors cursor-pointer py-2 px-1 min-h-[44px] flex items-center touch-target"
                   @click="setCurrentPage('account')"
                 >
-                  <span class="hidden sm:inline">Account</span>
-                  <span class="sm:hidden">⚙️</span>
+                  <span>Account</span>
                 </a>
+              </div>
+
+              <!-- Mobile compact selector -->
+              <div class="sm:hidden flex items-center">
+                <label for="mobile-nav" class="sr-only">Navigate</label>
+                <select
+                  id="mobile-nav"
+                  class="min-h-[40px] rounded-md border border-gray-300 bg-white/80 backdrop-blur px-2 py-1 text-sm focus:border-primary-500 focus:ring-primary-500"
+                  :value="currentPage"
+                  @change="setCurrentPage($event.target.value)"
+                >
+                  <option value="chores">Chores</option>
+                  <option value="family">Family</option>
+                  <option value="shopping">Shop</option>
+                  <option value="account">Account</option>
+                </select>
               </div>
 
               

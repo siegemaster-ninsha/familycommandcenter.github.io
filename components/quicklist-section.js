@@ -2,7 +2,10 @@
 const QuicklistSection = Vue.defineComponent({
   template: `
     <div class="mb-6 sm:mb-8">
-      <h2 class="text-[#0d0f1c] text-lg sm:text-[22px] font-bold leading-tight tracking-[-0.015em] px-2 sm:px-4 pb-3 pt-5">⚡ Quicklist</h2>
+      <h2 class="text-[#0d0f1c] text-lg sm:text-[22px] font-bold leading-tight tracking-[-0.015em] px-2 sm:px-4 pb-3 pt-5 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M13.5 4.5a.75.75 0 00-1.312-.53L6 12h3.75L8.25 19.5a.75.75 0 001.312.53L18 12h-3.75L13.5 4.5z"/></svg>
+        Quicklist
+      </h2>
       <div class="bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-dashed border-purple-300 rounded-lg mx-2 sm:mx-4 p-3 sm:p-4">
         <p class="text-[#47569e] text-sm mb-4 sm:mb-3 text-center px-2">Select these common chores to assign them quickly</p>
         
@@ -89,7 +92,7 @@ const QuicklistSection = Vue.defineComponent({
       } catch (error) {
         console.error('Failed to remove from quicklist:', error);
         // Show user-friendly error message
-        this.$parent.showSuccessMessage(`❌ Failed to remove item from quicklist. Please try again.`);
+        this.$parent.showSuccessMessage(`Failed to remove item from quicklist. Please try again.`);
       }
     }
   }
