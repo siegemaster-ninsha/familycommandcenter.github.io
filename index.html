@@ -66,7 +66,7 @@
       >
         <div class="layout-container flex h-full grow flex-col">
           <!-- Header Component -->
-          <header class="flex items-center justify-between whitespace-nowrap border-b border-solid px-4 sm:px-6 lg:px-10 py-3" style="border-bottom-color: var(--color-border-card);">
+          <header class="header-bar flex items-center justify-between whitespace-nowrap border-b border-solid px-4 sm:px-6 lg:px-10 py-3" style="border-bottom-color: var(--color-border-card);">
             <div class="flex items-center gap-2 sm:gap-4 text-primary-custom">
               <div class="size-4">
                 <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -124,7 +124,7 @@
                   <span>{{ currentPage === 'chores' ? 'Chores' : currentPage === 'family' ? 'Family' : currentPage === 'shopping' ? 'Shop' : 'Account' }}</span>
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" :class="['w-4 h-4 transition-transform', mobileNavOpen ? 'rotate-180' : 'rotate-0']"><path d="M6.75 9l5.25 5.25L17.25 9"/></svg>
                 </button>
-                <div v-if="mobileNavOpen" class="nav-menu absolute right-0 mt-2 w-40 z-20">
+                <div v-if="mobileNavOpen" class="nav-menu absolute right-0 mt-2 w-40 z-50">
                   <button class="nav-item" @click="setCurrentPage('chores'); mobileNavOpen=false">Chores</button>
                   <button class="nav-item" @click="setCurrentPage('family'); mobileNavOpen=false">Family</button>
                   <button class="nav-item" @click="setCurrentPage('shopping'); mobileNavOpen=false">Shop</button>
@@ -134,7 +134,7 @@
 
               
               <!-- User Info and Settings -->
-              <div v-if="isAuthenticated && currentUser" class="flex items-center gap-2 sm:gap-4">
+              <div v-if="isAuthenticated && currentUser" class="header-actions flex items-center gap-2 sm:gap-4">
                 <!-- User Avatar/Info -->
                 <div class="card flex items-center gap-2 sm:gap-3 px-3 py-2">
                   <div class="avatar">

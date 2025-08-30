@@ -2040,6 +2040,12 @@ const app = createApp({
   
   async mounted() {
     try {
+      // Close mobile nav when clicking outside the mobile nav container
+      document.addEventListener('click', (e) => {
+        try {
+          if (!e.target.closest('.mobile-nav')) this.mobileNavOpen = false;
+        } catch {}
+      });
       // Debug initial success message state
       console.log('🔍 Initial success message state:', {
         showSuccessMessageFlag: this.showSuccessMessageFlag,

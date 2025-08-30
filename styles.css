@@ -1228,9 +1228,9 @@ button.rounded-full[title*="Delete"] svg {
   background: var(--color-bg-card);
   color: var(--color-text-primary);
   border: 1px solid var(--color-border-card);
-  border-radius: var(--radius-lg);
-  padding: 8px 12px;
-  min-height: 40px;
+  border-radius: var(--radius-xl);
+  padding: 10px 12px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -1247,7 +1247,7 @@ button.rounded-full[title*="Delete"] svg {
   background: var(--color-bg-card);
   border: 1px solid var(--color-border-card);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
 }
 
@@ -1257,13 +1257,26 @@ button.rounded-full[title*="Delete"] svg {
   color: var(--color-text-primary);
   background: transparent;
   border: none;
-  padding: 10px 12px;
+  padding: 12px 12px;
   font-size: 0.95rem;
   cursor: pointer;
 }
+
+.nav-item + .nav-item { border-top: 1px solid var(--color-border-card); }
 
 @media (hover: hover) {
   .nav-item:hover {
     background: var(--color-bg-card-hover);
   }
+}
+
+/* Header action button sizing to align with nav */
+.header-bar .btn-error {
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: var(--radius-xl);
+}
+
+@media (max-width: 640px) {
+  .header-bar .btn-error { min-height: 44px !important; padding: 10px 14px !important; }
 }
