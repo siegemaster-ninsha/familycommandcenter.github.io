@@ -350,27 +350,34 @@ const app = createApp({
       }
     },
     
-    // Data loading methods
-    async loadAllData() {
+  // Data loading methods
+  async loadAllData() {
+    try {
+      this.loading = true;
+      this.error = null;
+      console.log('🔄 Starting to load all application data...');
+      console.log('🌐 API Base URL:', CONFIG.API.BASE_URL);
+      
+      // check authentication first
+      if (!this.isAuthenticated) {
+        console.log('🔒 User not authenticated, skipping data load');
+        this.loading = false;
+        return;
+      }
+      
+      // ensure we have latest accountId/role from server before loading settings
       try {
-        this.loading = true;
-        this.error = null;
-        console.log('🔄 Starting to load all application data...');
-        console.log('🌐 API Base URL:', CONFIG.API.BASE_URL);
-        
-        // check authentication first
-        if (!this.isAuthenticated) {
-          console.log('🔒 User not authenticated, skipping data load');
-          this.loading = false;
-          return;
-        }
-        
-        // load account settings first so X-Account-Id header is available for all subsequent calls (children/coparents see the same list)
-        try {
-          await this.loadAccountSettings();
-        } catch (e) {
-          console.warn('account settings load failed; proceeding with defaults', e);
-        }
+        await this.refreshCurrentUser();
+      } catch (e) {
+        console.warn('refreshCurrentUser failed; continuing', e);
+      }
+
+      // load account settings first so X-Account-Id header is available for all subsequent calls (children/coparents see the same list)
+      try {
+        await this.loadAccountSettings();
+      } catch (e) {
+        console.warn('account settings load failed; proceeding with defaults', e);
+      }
         
         // Load remaining data in parallel
         await Promise.all([
@@ -2017,8 +2024,9 @@ const app = createApp({
         this.isAuthenticated = true;
         this.currentUser = authService.currentUser;
         console.log('✅ User is authenticated:', this.currentUser);
-        
-        // Load user theme first to prevent flash of wrong theme
+        // Fetch current user/memberships to prime X-Account-Id before settings/theme
+        try { await this.refreshCurrentUser(); } catch (e) { console.warn('initial refreshCurrentUser failed', e); }
+        // Load user theme first (now able to honor account when applicable)
         await this.loadUserTheme();
         
       // Then load all other data
