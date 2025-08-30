@@ -87,12 +87,10 @@ const ShoppingPage = Vue.defineComponent({
                 </div>
                 <button
                   @click.stop="removeItem(item.id)"
-                  class="text-red-300 hover:text-red-100 p-2 rounded transition-colors bg-red-500 bg-opacity-20 hover:bg-opacity-30 touch-target"
+                  class="btn-icon btn-icon--danger"
                   title="Remove item"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-                    <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
-                  </svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13.41 12l4.3-4.29a1 1 0 10-1.42-1.42L12 10.59 7.71 6.29a1 1 0 10-1.42 1.42L10.59 12l-4.3 4.29a1 1 0 101.42 1.42L12 13.41l4.29 4.3a1 1 0 001.42-1.42z"/></svg>
                 </button>
               </div>
             </div>
