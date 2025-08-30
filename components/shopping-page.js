@@ -3,7 +3,7 @@ const ShoppingPage = Vue.defineComponent({
   template: `
     <div class="space-y-6 pb-24 sm:pb-0">
       <!-- Shopping List -->
-      <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
+      <div class="hidden sm:block rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em]">🛒 Shopping List</h2>
           <button
@@ -62,7 +62,7 @@ const ShoppingPage = Vue.defineComponent({
               <div 
                 v-for="item in items" 
                 :key="item.id"
-                class="flex items-center gap-3 p-3 rounded-lg transition-colors cursor-pointer"
+                class="flex items-center gap-3 p-4 sm:p-3 rounded-lg transition-colors cursor-pointer"
                 @click="toggleItem(item.id)"
                 style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
               >
@@ -75,11 +75,11 @@ const ShoppingPage = Vue.defineComponent({
                 <div class="flex-1">
                   <span 
                     :class="item.completed ? 'line-through text-white opacity-60' : 'text-white'"
-                    class="font-medium"
+                    class="font-medium text-lg sm:text-base"
                   >
                     {{ item.name }}
                   </span>
-                  <div class="text-sm text-white text-opacity-90 flex items-center gap-2 mt-1">
+                  <div class="text-base sm:text-sm text-white text-opacity-90 flex items-center gap-2 mt-1">
                     <span>{{ getCategoryIcon(item.category) }} {{ item.category }}</span>
                     <span v-if="item.quantity">• Qty: {{ item.quantity }}</span>
                     <span v-if="item.notes">• {{ item.notes }}</span>
@@ -188,7 +188,7 @@ const ShoppingPage = Vue.defineComponent({
             </div>
           </div>
           
-          <div v-if="quickItems.length === 0" class="col-span-full text-center py-8 text-secondary-custom">
+          <div v-if="quickItems.length === 0" class="col-span-full text-center py-4 sm:py-8 text-secondary-custom">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="mx-auto mb-2 opacity-50" viewBox="0 0 256 256">
               <path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128Z"></path>
             </svg>
@@ -245,18 +245,29 @@ const ShoppingPage = Vue.defineComponent({
       <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em]">🏪 Store Management</h2>
-          <button
-            @click="showAddStoreModal = true"
-            class="flex items-center gap-2 bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-colors"
-            :disabled="storeLoading"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-              <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
-            </svg>
-            Add Store
-          </button>
+          <div class="flex items-center gap-2">
+            <button 
+              class="btn-secondary touch-target sm:hidden"
+              @click="storeExpandedMobile = !storeExpandedMobile"
+              :aria-expanded="storeExpandedMobile"
+              title="Toggle store management"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256" :class="[storeExpandedMobile ? 'rotate-180' : 'rotate-0', 'transition-transform duration-200']"><path d="M128,160a8,8,0,0,1-5.66-2.34l-48-48a8,8,0,0,1,11.32-11.32L128,140.69l42.34-42.35a8,8,0,0,1,11.32,11.32l-48,48A8,8,0,0,1,128,160Z"></path></svg>
+            </button>
+            <button
+              @click="showAddStoreModal = true"
+              class="flex items-center gap-2 btn-primary touch-target"
+              :disabled="storeLoading"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
+              </svg>
+              Add Store
+            </button>
+          </div>
         </div>
         
+        <div :class="(storeExpandedMobile ? 'block' : 'hidden') + ' sm:block'">
         <!-- Store loading state -->
         <div v-if="storeLoading" class="text-center py-4">
           <div class="spinner-border animate-spin inline-block w-6 h-6 border-4 rounded-full border-primary-500 border-t-transparent"></div>
@@ -294,6 +305,7 @@ const ShoppingPage = Vue.defineComponent({
             <p>No stores added yet.</p>
             <p class="text-sm mt-1">Click "Add Store" to get started!</p>
           </div>
+        </div>
         </div>
       </div>
 
@@ -551,6 +563,7 @@ const ShoppingPage = Vue.defineComponent({
       localLoading: false,
       quickLoading: false,
       storeLoading: false,
+      storeExpandedMobile: false,
       actionLoading: false,
       quickActionLoading: false,
       error: null,
