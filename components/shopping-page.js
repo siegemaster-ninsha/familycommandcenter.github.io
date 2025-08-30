@@ -199,7 +199,7 @@ const ShoppingPage = Vue.defineComponent({
       </div>
 
       <!-- Quick Actions -->
-      <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
+      <div class="hidden sm:block rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4">⚡ Quick Actions</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
