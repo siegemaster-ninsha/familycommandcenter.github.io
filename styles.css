@@ -1013,10 +1013,10 @@ body.modal-open {
 /* Uniformize existing circular remove/delete buttons without touching markup */
 button.rounded-full[title*="Remove"],
 button.rounded-full[title*="Delete"] {
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1024,28 +1024,22 @@ button.rounded-full[title*="Delete"] {
   background: var(--gradient-error) !important;
   color: #fff !important;
   border: none;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md); /* subtle depth */
   padding: 0;
-  font-size: 0; /* hide any placeholder text like 'A-' */
-}
-
-button.rounded-full[title*="Remove"]::before,
-button.rounded-full[title*="Delete"]::before {
-  content: '×';
-  font-size: 18px;
-  line-height: 1;
+  font-size: 16px; /* ensure the × character is visible */
+  line-height: 1;  /* vertical centering */
+  font-weight: 700;
+  opacity: 1 !important; /* avoid inconsistent transparency */
 }
 
 button.rounded-full[title*="Remove"] svg,
 button.rounded-full[title*="Delete"] svg {
-  width: 18px; height: 18px;
+  width: 16px; height: 16px;
 }
 
 @media (max-width: 640px) {
   button.rounded-full[title*="Remove"],
-  button.rounded-full[title*="Delete"] { width: 36px; height: 36px; }
-  button.rounded-full[title*="Remove"]::before,
-  button.rounded-full[title*="Delete"]::before { font-size: 20px; }
+  button.rounded-full[title*="Delete"] { width: 32px; height: 32px; min-width: 32px; min-height: 32px; font-size: 18px; }
 }
 
 .btn-icon svg { width: 18px; height: 18px; }
