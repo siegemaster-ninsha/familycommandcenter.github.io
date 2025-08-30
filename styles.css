@@ -869,6 +869,28 @@ body.modal-open {
 
 /* Mobile-specific improvements */
 @media (max-width: 640px) {
+  /* Dramatically larger buttons on mobile for readability */
+  .btn-primary,
+  .btn-secondary,
+  .btn-success,
+  .btn-warning,
+  .btn-error {
+    font-size: 1.25rem; /* ~20px (was 14px) */
+    min-height: 64px;   /* larger touch target */
+    padding: 16px 20px; /* increase visual weight */
+    border-radius: var(--radius-xl);
+  }
+
+  /* Scale icons inside buttons to match increased text size */
+  .btn-primary svg,
+  .btn-secondary svg,
+  .btn-success svg,
+  .btn-warning svg,
+  .btn-error svg {
+    width: 1.25em;
+    height: 1.25em;
+  }
+
   /* Sticky bottom action bar for key actions */
   .mobile-sticky-actions {
     position: fixed;
