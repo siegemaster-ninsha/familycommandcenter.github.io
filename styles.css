@@ -1178,6 +1178,11 @@ button.rounded-full[title*="Delete"] svg {
   position: relative;
 }
 
+/* When a chore is selected, keep the highlight to the outer card only */
+.selected-chore .bg-white.bg-opacity-20 { background-color: transparent !important; }
+/* Fallback for utility class order variations */
+.selected-chore [class*="bg-white"][class*="bg-opacity-20"] { background-color: transparent !important; }
+
 /* Enhanced mobile selected state */
 @media (max-width: 640px) {
   .selected-chore {

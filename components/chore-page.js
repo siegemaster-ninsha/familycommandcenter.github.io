@@ -385,7 +385,7 @@ const ChorePage = Vue.defineComponent({
       const categoryClasses = this.getCategoryStyle(chore.category, isUnassigned).background;
       const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
       const hoverClasses = isTouch ? "" : "hover:shadow-lg hover:scale-102";
-      const selectedClasses = (window.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, chore)) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10 shadow-xl" : `${hoverClasses}`;
+      const selectedClasses = (window.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, chore)) ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10 shadow-xl selected-chore" : `${hoverClasses}`;
       
       return `${baseClasses} ${categoryClasses} ${selectedClasses}`;
     },
