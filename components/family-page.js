@@ -89,8 +89,8 @@ const FamilyPage = Vue.defineComponent({
                   <span class="text-sm text-secondary-custom">Completed chores</span>
                   <span class="text-sm font-medium text-primary-custom">{{ person.completedChores || 0 }}</span>
                 </div>
-                <div class="flex items-center justify-between">
-                  <label class="inline-flex items-center gap-2 text-sm cursor-pointer select-none">
+                <div class="card-actions">
+                  <label class="toggle-row text-sm cursor-pointer select-none">
                     <span class="text-secondary-custom">Show on board</span>
                     <button 
                       @click="person.enabledForChores=!person.enabledForChores; $parent.updateMemberChoresEnabled(person)"

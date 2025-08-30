@@ -1060,11 +1060,19 @@ button.rounded-full[title*="Delete"] svg {
 .toggle-switch {
   position: relative;
   width: 44px;
-  height: 26px;
+  height: 26px; /* ensure pill, not a circle */
   border-radius: 9999px;
   background: var(--color-neutral-300);
   transition: background-color var(--transition-fast);
   flex: none;
+  padding: 0;                /* reset default button padding */
+  border: none;              /* remove default borders */
+  appearance: none;          /* cross‑browser reset */
+  -webkit-appearance: none;  /* iOS Safari reset */
+  display: inline-block;
+  vertical-align: middle;
+  box-sizing: content-box;   /* keep explicit size */
+  overflow: hidden;
 }
 .toggle-switch .knob {
   position: absolute;
@@ -1079,6 +1087,21 @@ button.rounded-full[title*="Delete"] svg {
 }
 .toggle-switch.on { background: var(--color-primary-500); }
 .toggle-switch.on .knob { transform: translateX(18px); }
+
+.toggle-switch:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+/* Family card actions layout - mobile friendly */
+.card-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.toggle-row { display: inline-flex; align-items: center; gap: 10px; }
+.toggle-row > span { color: var(--color-text-secondary); }
+
+@media (max-width: 640px) {
+  .card-actions { flex-wrap: wrap; row-gap: 12px; }
+  .toggle-row { width: 100%; justify-content: space-between; }
+}
 
 /* Tablet optimizations */
 @media (min-width: 641px) and (max-width: 1024px) {
