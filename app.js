@@ -80,6 +80,8 @@ const app = createApp({
       showSuccessMessageFlag: false,
       completedChoreMessage: '',
       quicklistChores: [],
+      // Mobile nav state
+      mobileNavOpen: false,
       
       // Shopping page data (preloaded for instant page switching)
       shoppingItems: [],

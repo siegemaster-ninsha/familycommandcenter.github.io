@@ -112,20 +112,24 @@
                 </a>
               </div>
 
-              <!-- Mobile compact selector -->
-              <div class="sm:hidden flex items-center">
-                <label for="mobile-nav" class="sr-only">Navigate</label>
-                <select
-                  id="mobile-nav"
-                  class="min-h-[40px] rounded-md border border-gray-300 bg-white/80 backdrop-blur px-2 py-1 text-sm focus:border-primary-500 focus:ring-primary-500"
-                  :value="currentPage"
-                  @change="setCurrentPage($event.target.value)"
+              <!-- Mobile compact dropdown (custom, themed) -->
+              <div class="sm:hidden relative">
+                <button
+                  class="nav-trigger"
+                  @click="mobileNavOpen = !mobileNavOpen"
+                  :aria-expanded="mobileNavOpen"
+                  aria-haspopup="true"
+                  type="button"
                 >
-                  <option value="chores">Chores</option>
-                  <option value="family">Family</option>
-                  <option value="shopping">Shop</option>
-                  <option value="account">Account</option>
-                </select>
+                  <span>{{ currentPage === 'chores' ? 'Chores' : currentPage === 'family' ? 'Family' : currentPage === 'shopping' ? 'Shop' : 'Account' }}</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" :class="['w-4 h-4 transition-transform', mobileNavOpen ? 'rotate-180' : 'rotate-0']"><path d="M6.75 9l5.25 5.25L17.25 9"/></svg>
+                </button>
+                <div v-if="mobileNavOpen" class="nav-menu absolute right-0 mt-2 w-40 z-20">
+                  <button class="nav-item" @click="setCurrentPage('chores'); mobileNavOpen=false">Chores</button>
+                  <button class="nav-item" @click="setCurrentPage('family'); mobileNavOpen=false">Family</button>
+                  <button class="nav-item" @click="setCurrentPage('shopping'); mobileNavOpen=false">Shop</button>
+                  <button class="nav-item" @click="setCurrentPage('account'); mobileNavOpen=false">Account</button>
+                </div>
               </div>
 
               
