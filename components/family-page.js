@@ -92,8 +92,12 @@ const FamilyPage = Vue.defineComponent({
                 <div class="flex items-center justify-between">
                   <label class="inline-flex items-center gap-2 text-sm cursor-pointer select-none">
                     <span class="text-secondary-custom">Show on board</span>
-                    <button @click="person.enabledForChores=!person.enabledForChores; $parent.updateMemberChoresEnabled(person)" :class="person.enabledForChores ? 'bg-primary-500' : 'bg-gray-300'" class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors">
-                      <span :class="person.enabledForChores ? 'translate-x-5' : 'translate-x-1'" class="inline-block h-3 w-3 transform rounded-full bg-white transition-transform"></span>
+                    <button 
+                      @click="person.enabledForChores=!person.enabledForChores; $parent.updateMemberChoresEnabled(person)"
+                      :class="['toggle-switch', person.enabledForChores && 'on']"
+                      aria-label="Toggle show on board"
+                    >
+                      <span class="knob"></span>
                     </button>
                   </label>
                   <div class="flex gap-2">

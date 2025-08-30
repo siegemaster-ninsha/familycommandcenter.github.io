@@ -869,6 +869,19 @@ body.modal-open {
 
 /* Mobile-specific improvements */
 @media (max-width: 640px) {
+  /* Reduce visual noise on mobile */
+  body {
+    background-image: none;
+  }
+  [style*="--color-border-card"] {
+    border-color: var(--color-neutral-200) !important;
+    box-shadow: none !important;
+  }
+  .card {
+    box-shadow: none;
+    border-color: var(--color-neutral-200);
+  }
+
   /* Dramatically larger buttons on mobile for readability */
   .btn-primary,
   .btn-secondary,
@@ -961,6 +974,98 @@ body.modal-open {
     user-select: none;
   }
 }
+
+/* ===========================================
+   STANDARD ICON BUTTONS
+   =========================================== */
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: none;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Uniformize existing circular remove/delete buttons without touching markup */
+button.rounded-full[title*="Remove"],
+button.rounded-full[title*="Delete"] {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--gradient-error) !important;
+  color: #fff !important;
+  border: none;
+  box-shadow: var(--shadow-sm);
+  padding: 0;
+  font-size: 0; /* hide any placeholder text like 'A-' */
+}
+
+button.rounded-full[title*="Remove"]::before,
+button.rounded-full[title*="Delete"]::before {
+  content: '×';
+  font-size: 18px;
+  line-height: 1;
+}
+
+button.rounded-full[title*="Remove"] svg,
+button.rounded-full[title*="Delete"] svg {
+  width: 18px; height: 18px;
+}
+
+@media (max-width: 640px) {
+  button.rounded-full[title*="Remove"],
+  button.rounded-full[title*="Delete"] { width: 36px; height: 36px; }
+  button.rounded-full[title*="Remove"]::before,
+  button.rounded-full[title*="Delete"]::before { font-size: 20px; }
+}
+
+.btn-icon svg { width: 18px; height: 18px; }
+
+.btn-icon--danger {
+  background: var(--gradient-error);
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .btn-icon { width: 36px; height: 36px; }
+  .btn-icon svg { width: 20px; height: 20px; }
+}
+
+/* ===========================================
+   TOGGLE SWITCH (uniform across app)
+   =========================================== */
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 26px;
+  border-radius: 9999px;
+  background: var(--color-neutral-300);
+  transition: background-color var(--transition-fast);
+  flex: none;
+}
+.toggle-switch .knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+.toggle-switch.on { background: var(--color-primary-500); }
+.toggle-switch.on .knob { transform: translateX(18px); }
 
 /* Tablet optimizations */
 @media (min-width: 641px) and (max-width: 1024px) {
