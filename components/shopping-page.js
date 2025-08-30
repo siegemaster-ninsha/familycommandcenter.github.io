@@ -139,7 +139,7 @@ const ShoppingPage = Vue.defineComponent({
         
         <!-- Quick loading state -->
         <div v-if="quickLoading" class="text-center py-4">
-          <div class="spinner-border animate-spin inline-block w-6 h-6 border-4 rounded-full border-primary-500 border-t-transparent"></div>
+          <div class="spinner-border animate-spin inline-block w-6 h-6 border-4 rounded-full" style="border-color: var(--color-primary-500); border-top-color: transparent;"></div>
           <p class="text-secondary-custom mt-2 text-sm">Loading quick items...</p>
         </div>
         
@@ -313,8 +313,9 @@ const ShoppingPage = Vue.defineComponent({
             </div>
             <button
               @click="removeStore(store.id)"
-              class="text-red-300 hover:text-red-100 p-1 rounded transition-colors bg-red-500 bg-opacity-20 hover:bg-opacity-30"
+              class="p-1 rounded transition-colors"
               title="Remove store"
+              style="color: var(--color-error-600); background: color-mix(in srgb, var(--color-error-50) 70%, transparent);"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256">
                 <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
@@ -548,7 +549,7 @@ const ShoppingPage = Vue.defineComponent({
       </div>
 
       <!-- Success Message -->
-      <div v-if="showSuccess" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+      <div v-if="showSuccess" class="fixed top-4 right-4 text-white px-6 py-3 rounded-lg shadow-lg z-50" style="background: var(--color-success-600);">
         {{ successMessage }}
       </div>
 
@@ -882,8 +883,18 @@ const ShoppingPage = Vue.defineComponent({
     },
 
     getStoreColor(storeName) {
-      if (!storeName) return '#6b7280';
-      const colors = ['#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#8b5cf6','#ec4899','#f59e0b','#10b981','#6366f1','#84cc16'];
+      if (!storeName) return getComputedStyle(document.documentElement).getPropertyValue('--color-neutral-500') || '#6b7280';
+      const root = getComputedStyle(document.documentElement);
+      const palette = [
+        root.getPropertyValue('--color-primary-500').trim(),
+        root.getPropertyValue('--color-secondary-500').trim(),
+        root.getPropertyValue('--color-success-600').trim(),
+        root.getPropertyValue('--color-warning-600').trim(),
+        root.getPropertyValue('--color-error-600').trim(),
+        root.getPropertyValue('--color-primary-600').trim(),
+        root.getPropertyValue('--color-secondary-600').trim()
+      ].filter(Boolean);
+      const colors = palette.length ? palette : ['#4A90E2','#7B68EE','#22c55e','#ea580c','#dc2626','#3a7bc8','#6d5ce6'];
       let hash = 0;
       for (let i = 0; i < storeName.length; i++) {
         const char = storeName.charCodeAt(i);

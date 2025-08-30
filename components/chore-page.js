@@ -228,7 +228,8 @@ const ChorePage = Vue.defineComponent({
                      :checked="chore.completed"
                      @click.stop
                      @change="handleChoreCompletionToggle(chore, $event)"
-                     class="w-5 h-5 sm:w-4 sm:h-4 text-green-600 rounded focus:ring-green-500 focus:border-[#ced2e9] focus:outline-none touch-target"
+                     class="w-5 h-5 sm:w-4 sm:h-4 rounded focus:outline-none touch-target text-current checked:bg-current checked:border-current"
+                     :style="{ color: 'var(--color-success-600)', borderColor: 'var(--color-border-card)' }"
                    >
                    <button
                      v-if="$parent.currentUser?.role === 'parent' && chore.isPendingApproval"

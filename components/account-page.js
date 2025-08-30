@@ -302,12 +302,12 @@ const AccountPage = Vue.defineComponent({
             </button>
           </div>
           
-          <div class="p-6 border-2 border-red-300 rounded-lg bg-red-50 shadow-md hover:shadow-lg transition-all duration-200">
-            <h4 class="font-medium text-red-600 mb-3 text-lg">Reset All Data</h4>
-            <p class="text-sm text-red-600 mb-4">Permanently delete all chores, family members, and earnings</p>
+          <div class="p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-200" style="background: var(--color-error-50); border: 2px solid var(--color-error-600);">
+            <h4 class="font-medium mb-3 text-lg" style="color: var(--color-error-700);">Reset All Data</h4>
+            <p class="text-sm mb-4" style="color: var(--color-error-700);">Permanently delete all chores, family members, and earnings</p>
             <button
               @click="showResetConfirmation = true"
-              class="w-full bg-red-500 hover:bg-red-600 active:bg-red-700 text-white py-3 px-4 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg touch-target min-h-[48px] font-medium"
+              class="w-full btn-error"
             >
               Reset All Data
             </button>

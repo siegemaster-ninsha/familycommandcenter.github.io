@@ -6,8 +6,8 @@ const AppLoadingState = Vue.defineComponent({
   template: `
     <div v-if="loading" class="flex items-center justify-center py-20">
       <div class="text-center">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#607afb]"></div>
-        <p class="text-[#47569e] mt-2">Loading Family Command Center...</p>
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2" style="border-color: var(--color-primary-500);"></div>
+        <p class="mt-2 text-secondary-custom">Loading Family Command Center...</p>
       </div>
     </div>
   `,

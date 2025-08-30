@@ -2,17 +2,18 @@
 const UnassignedSection = Vue.defineComponent({
   template: `
     <div class="mb-6 sm:mb-8">
-      <h2 class="text-[#0d0f1c] text-lg sm:text-[22px] font-bold leading-tight tracking-[-0.015em] px-2 sm:px-4 pb-3 pt-5">Unassigned Chores</h2>
+      <h2 class="text-primary-custom text-lg sm:text-[22px] font-bold leading-tight tracking-[-0.015em] px-2 sm:px-4 pb-3 pt-5">Unassigned Chores</h2>
       <div 
-        class="min-h-[120px] sm:min-h-[100px] bg-[#f0f2f8] border-2 border-dashed border-[#ced2e9] rounded-lg mx-2 sm:mx-4 p-3 sm:p-4"
-        :class="[selectedChore ? 'cursor-pointer hover:bg-[#e8eaf2] hover:border-[#b8bdd1]' : '']"
+        class="min-h-[120px] sm:min-h-[100px] rounded-lg mx-2 sm:mx-4 p-3 sm:p-4 border-2 border-dashed"
+        :style="{ background: 'var(--color-bg-card)', borderColor: 'var(--color-border-card)' }"
+        :class="[selectedChore ? 'cursor-pointer' : '']"
         @click="selectedChore ? assignSelectedChore('unassigned') : null"
       >
         <!-- Empty state when no chores -->
-                  <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-[#47569e] py-6 sm:py-6 flex flex-col items-center justify-center">
+                  <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-secondary-custom py-6 sm:py-6 flex flex-col items-center justify-center">
             <p class="text-sm px-2">No unassigned chores</p>
             <p class="text-xs mt-2 px-2">Create new chores here - they'll be available for any family member to pick up</p>
-            <p v-if="selectedChore" class="text-xs mt-2 text-blue-600 px-2">Tap here to move selected chore to unassigned</p>
+            <p v-if="selectedChore" class="text-xs mt-2 text-primary-600 px-2">Tap here to move selected chore to unassigned</p>
           </div>
         
         <!-- Container for chores and add button -->
@@ -32,16 +33,16 @@ const UnassignedSection = Vue.defineComponent({
               </div>
               <div class="flex flex-col justify-center min-w-0 flex-1">
                 <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
-                  <p class="text-[#0d0f1c] text-base sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1">{{ chore.name }}</p>
+                  <p class="text-primary-custom text-base sm:text-base font-medium leading-normal line-clamp-2 sm:line-clamp-1">{{ chore.name }}</p>
                   <span class="text-xs px-2 py-1 rounded-full self-start sm:self-center shrink-0" :class="getCategoryStyle(chore.category).badge">
                     {{ getCategoryLabel(chore.category) }}
                   </span>
                 </div>
-                <p v-if="chore.amount > 0" class="text[#47569e] text-sm font-normal leading-normal line-clamp-2">\${{ chore.amount.toFixed(2) }}</p>
+                <p v-if="chore.amount > 0" class="text-secondary-custom text-sm font-normal leading-normal line-clamp-2">\${{ chore.amount.toFixed(2) }}</p>
               </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-              <span class="text-xs text-[#47569e] bg-white px-2 py-1 rounded">Tap to select</span>
+              <span class="text-xs text-secondary-custom bg-white px-2 py-1 rounded">Tap to select</span>
             </div>
           </div>
         </div>
@@ -50,7 +51,8 @@ const UnassignedSection = Vue.defineComponent({
         <div class="flex items-center justify-center" :class="choresByPerson.unassigned.length === 0 ? 'mt-4' : ''">
           <button
             @click="openAddChoreModal()"
-            class="flex items-center gap-2 bg-blue-100 hover:bg-blue-200 active:bg-blue-300 text-blue-700 px-4 py-3 sm:px-4 sm:py-2 rounded-lg border-2 border-dashed border-blue-300 transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center"
+            class="flex items-center gap-2 px-4 py-3 sm:px-4 sm:py-2 rounded-lg border-2 border-dashed transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center"
+            :style="{ background: 'var(--color-primary-50)', color: 'var(--color-primary-700)', borderColor: 'var(--color-primary-300)' }"
             title="Add new chore to unassigned"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">

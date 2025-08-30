@@ -3,7 +3,7 @@ const FamilyMembersSection = Vue.defineComponent({
   template: `
     <div class="mb-6">
       <div class="flex items-center justify-between px-2 sm:px-4 pb-3 pt-5">
-        <h2 class="text-[#0d0f1c] text-lg sm:text-[22px] font-bold leading-tight tracking-[-0.015em]">Family Members</h2>
+        <h2 class="text-primary-custom text-lg sm:text-[22px] font-bold leading-tight tracking-[-0.015em]">Family Members</h2>
       </div>
       
       <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
@@ -16,7 +16,7 @@ const FamilyMembersSection = Vue.defineComponent({
           :data-person="person.name"
         >
           <div class="flex items-center justify-between px-3 sm:px-4 pb-3 pt-4 sm:pt-5">
-            <h3 class="text-[#0d0f1c] text-lg sm:text-[20px] font-bold leading-tight tracking-[-0.015em]">{{ person.name }}</h3>
+            <h3 class="text-primary-custom text-lg sm:text-[20px] font-bold leading-tight tracking-[-0.015em]">{{ person.name }}</h3>
             <div class="flex items-center gap-2">
               <div class="text-xs px-2 py-1 rounded-full" 
                    :class="person.electronicsStatus.status === 'allowed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
@@ -40,12 +40,12 @@ const FamilyMembersSection = Vue.defineComponent({
                 </div>
                 <div class="flex flex-col justify-center min-w-0 flex-1">
                   <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
-                    <p class="text-[#0d0f1c] text-sm sm:text-sm font-medium leading-normal line-clamp-2 sm:line-clamp-1">{{ chore.name }}</p>
+                    <p class="text-primary-custom text-sm sm:text-sm font-medium leading-normal line-clamp-2 sm:line-clamp-1">{{ chore.name }}</p>
                     <span class="text-xs px-2 py-1 rounded-full self-start sm:self-center shrink-0" :class="getCategoryStyle(chore.category).badge">
                       {{ getCategoryLabel(chore.category) }}
                     </span>
                   </div>
-                  <p v-if="chore.amount > 0" class="text-[#47569e] text-xs font-normal leading-normal">\${{ chore.amount.toFixed(2) }}</p>
+                  <p v-if="chore.amount > 0" class="text-secondary-custom text-xs font-normal leading-normal">\${{ chore.amount.toFixed(2) }}</p>
                 </div>
               </div>
               <div class="shrink-0 flex items-center gap-2" @click.stop @change.stop @mousedown.stop @mouseup.stop>
@@ -57,7 +57,8 @@ const FamilyMembersSection = Vue.defineComponent({
                     @click.stop
                     @mousedown.stop
                     @mouseup.stop
-                    class="h-5 w-5 sm:h-4 sm:w-4 rounded border-[#ced2e9] border-2 bg-transparent text-[#607afb] checked:bg-[#607afb] checked:border-[#607afb] checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:border-[#ced2e9] focus:outline-none touch-target"
+                    class="h-5 w-5 sm:h-4 sm:w-4 rounded border-2 bg-transparent text-current checked:bg-current checked:border-current checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:outline-none touch-target"
+                    :style="{ borderColor: 'var(--color-border-card)', color: 'var(--color-primary-500)' }"
                   />
                 </div>
                 <button
@@ -69,9 +70,9 @@ const FamilyMembersSection = Vue.defineComponent({
             </div>
             
             <!-- Assignment zone indicator -->
-            <div v-if="choresByPerson[person.name].length === 0" class="text-center text-[#47569e] py-8 sm:py-8 border-2 border-dashed border-[#ced2e9] rounded-lg bg-[#f8f9fc] min-h-[80px] flex flex-col items-center justify-center">
+            <div v-if="choresByPerson[person.name].length === 0" class="text-center text-secondary-custom py-8 sm:py-8 border-2 border-dashed rounded-lg min-h-[80px] flex flex-col items-center justify-center" :style="{ background: 'var(--color-bg-card)', borderColor: 'var(--color-border-card)' }">
               <p class="text-sm px-2">No chores assigned to {{ person.name }}</p>
-              <p v-if="selectedChore" class="text-xs mt-2 text-blue-600 px-2">Tap here to assign selected chore</p>
+              <p v-if="selectedChore" class="text-xs mt-2 text-primary-600 px-2">Tap here to assign selected chore</p>
             </div>
           </div>
         </div>
@@ -119,8 +120,8 @@ const FamilyMembersSection = Vue.defineComponent({
           };
         default:
           return {
-            background: 'bg-[#f8f9fc] border-l-gray-300',
-            icon: 'text-[#0d0f1c]',
+            background: 'bg-gray-50 border-l-gray-300',
+            icon: 'text-primary-custom',
             badge: 'bg-gray-100 text-gray-800'
           };
       }

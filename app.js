@@ -1716,11 +1716,15 @@ const app = createApp({
       this.confettiPieces = [];
       this.showConfetti = true;
       
-      // Confetti colors for variety
+      // Confetti colors from theme tokens
+      const root = getComputedStyle(document.documentElement);
+      const token = (v, fb) => (root.getPropertyValue(v) || '').trim() || fb;
       const colors = [
-        '#607afb', '#34d399', '#fbbf24', '#f87171', '#a78bfa', 
-        '#fb7185', '#60a5fa', '#4ade80', '#facc15', '#f472b6',
-        '#06b6d4', '#8b5cf6', '#ef4444', '#10b981', '#f59e0b'
+        token('--color-primary-500', '#4A90E2'),
+        token('--color-secondary-500', '#7B68EE'),
+        token('--color-success-600', '#22c55e'),
+        token('--color-warning-600', '#ea580c'),
+        token('--color-error-600', '#dc2626')
       ];
       
       // Create explosive confetti pieces - 10x the celebration! 🎉

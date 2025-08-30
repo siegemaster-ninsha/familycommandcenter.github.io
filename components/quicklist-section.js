@@ -2,12 +2,12 @@
 const QuicklistSection = Vue.defineComponent({
   template: `
     <div class="mb-6 sm:mb-8">
-      <h2 class="text-[#0d0f1c] text-lg sm:text-[22px] font-bold leading-tight tracking-[-0.015em] px-2 sm:px-4 pb-3 pt-5 flex items-center gap-2">
+      <h2 class="text-primary-custom text-lg sm:text-[22px] font-bold leading-tight tracking-[-0.015em] px-2 sm:px-4 pb-3 pt-5 flex items-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M13.5 4.5a.75.75 0 00-1.312-.53L6 12h3.75L8.25 19.5a.75.75 0 001.312.53L18 12h-3.75L13.5 4.5z"/></svg>
         Quicklist
       </h2>
       <div class="bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-dashed border-purple-300 rounded-lg mx-2 sm:mx-4 p-3 sm:p-4">
-        <p class="text-[#47569e] text-sm mb-4 sm:mb-3 text-center px-2">Select these common chores to assign them quickly</p>
+        <p class="text-secondary-custom text-sm mb-4 sm:mb-3 text-center px-2">Select these common chores to assign them quickly</p>
         
         <div class="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-2 justify-center">
           <div 
@@ -31,8 +31,8 @@ const QuicklistSection = Vue.defineComponent({
             >
             </div>
             <div class="flex flex-col flex-1 min-w-0">
-              <p class="text-[#0d0f1c] text-sm font-medium leading-tight line-clamp-2 sm:line-clamp-1">{{ quickChore.name }}</p>
-              <p v-if="quickChore.amount > 0" class="text-[#47569e] text-xs">\${{ quickChore.amount.toFixed(2) }}</p>
+              <p class="text-primary-custom text-sm font-medium leading-tight line-clamp-2 sm:line-clamp-1">{{ quickChore.name }}</p>
+              <p v-if="quickChore.amount > 0" class="text-secondary-custom text-xs">\${{ quickChore.amount.toFixed(2) }}</p>
             </div>
             <span class="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-800 shrink-0 self-start sm:self-center">
               {{ getCategoryLabel(quickChore.category) }}

@@ -83,7 +83,7 @@ const EarningsWidget = Vue.defineComponent({
               </div>
               <span class="text-base font-medium text-primary-custom">{{ person.name }}</span>
             </div>
-            <span class="font-bold earnings-text text-lg">\${{ person.earnings.toFixed(2) }}</span>
+            <span class="badge badge-success">\${{ person.earnings.toFixed(2) }}</span>
           </div>
         </div>
       </div>

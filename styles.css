@@ -157,6 +157,9 @@
   --transition-fast: 150ms ease-in-out;
   --transition-normal: 200ms ease-in-out;
   --transition-slow: 300ms ease-in-out;
+  
+  /* Focus */
+  --color-focus-ring: var(--color-primary-500);
 }
 
 /* ===========================================
@@ -515,6 +518,21 @@
   background: linear-gradient(135deg, var(--color-success-500), var(--color-primary-500));
 }
 
+/* Badge utilities */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 9999px;
+  font-weight: var(--font-weight-medium);
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+.badge-success { background: var(--color-success-50); color: var(--color-success-700); border: 1px solid rgba(34,197,94,0.2); }
+.badge-warning { background: var(--color-warning-50); color: var(--color-warning-700); border: 1px solid rgba(234,88,12,0.2); }
+.badge-error   { background: var(--color-error-50);   color: var(--color-error-700);   border: 1px solid rgba(220,38,38,0.2); }
+
 /* Unassigned Chores */
 .unassigned-area {
   background: var(--color-unassigned-bg);
@@ -685,7 +703,7 @@ body.modal-open {
   position: absolute;
   width: 10px;
   height: 10px;
-  background: #607afb;
+  background: var(--color-primary-500);
   animation: confetti-fall 3s linear forwards;
 }
 
@@ -975,7 +993,7 @@ body.modal-open {
   button:focus,
   input:focus,
   .touch-target:focus {
-    outline: 2px solid #607afb;
+    outline: 2px solid var(--color-focus-ring);
     outline-offset: 2px;
   }
   
@@ -992,6 +1010,16 @@ body.modal-open {
     -ms-user-select: none;
     user-select: none;
   }
+}
+
+/* Consistent focus ring across button variants */
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.btn-success:focus-visible,
+.btn-warning:focus-visible,
+.btn-error:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
 }
 
 /* ===========================================
