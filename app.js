@@ -561,7 +561,13 @@ const app = createApp({
     async loadUserTheme() {
       try {
         console.log('🎨 Loading user theme from account settings...');
-        const response = await this.apiCall(CONFIG.API.ENDPOINTS.ACCOUNT_SETTINGS);
+        let response;
+        try {
+          response = await window.SettingsClient.get(headerAccountId, { ifNoneMatch: this.accountSettings?.updatedAt });
+        } catch (e) {
+          console.warn('SettingsClient.get failed, falling back to apiCall', e?.message || e);
+          response = await this.apiCall(CONFIG.API.ENDPOINTS.ACCOUNT_SETTINGS);
+        }
         
         console.log('🎨 Account settings response:', response);
         

@@ -43,8 +43,10 @@
   }
 
   window.SettingsClient = {
-    async get(accountId) {
-      return call(CONFIG.API.ENDPOINTS.ACCOUNT_SETTINGS, { method: 'GET' }, accountId);
+    async get(accountId, opts = {}) {
+      const headers = {};
+      if (opts.ifNoneMatch) headers['If-None-Match'] = opts.ifNoneMatch;
+      return call(CONFIG.API.ENDPOINTS.ACCOUNT_SETTINGS, { method: 'GET', headers }, accountId);
     },
     async updateProfile(accountId, profilePartial, opts = {}) {
       const headers = {};
