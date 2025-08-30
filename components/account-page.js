@@ -560,23 +560,16 @@ const AccountPage = Vue.defineComponent({
               headers.Authorization = authHeader;
             }
             
-            const response = await fetch(`${CONFIG.API.BASE_URL}/account-settings/${this.accountId}/profile`, {
-              method: 'PUT',
-              headers,
-              body: JSON.stringify({ 
-                profile: {
-                  name: this.profileForm.name,
-                  email: this.profileForm.email,
-                  familyName: this.profileForm.familyName
-                }
-              })
-            });
-
-            if (response.ok) {
-              await this.$parent.loadAccountSettings(); // Reload account settings
+            // Use the correct endpoint to update profile fields as part of account settings
+            try {
+              await window.SettingsClient.updateProfile(this.accountId, {
+                displayName: this.profileForm.name,
+                familyName: this.profileForm.familyName
+              }, { ifMatch: this.$parent.accountSettings?.updatedAt });
+              await this.$parent.loadAccountSettings();
               console.log('✅ Profile saved to backend');
-            } else {
-              console.warn('Failed to save profile to backend, using localStorage');
+            } catch (e) {
+              console.warn('Failed to save profile to backend, using localStorage', e);
             }
           } catch (error) {
             console.warn('Backend unavailable, using localStorage:', error);
@@ -613,17 +606,12 @@ const AccountPage = Vue.defineComponent({
               headers.Authorization = authHeader;
             }
             
-            const response = await fetch(`${CONFIG.API.BASE_URL}/account-settings/${this.accountId}/preferences`, {
-              method: 'PUT',
-              headers,
-              body: JSON.stringify({ preferences: this.preferences })
-            });
-
-            if (response.ok) {
-              await this.$parent.loadAccountSettings(); // Reload account settings
+            try {
+              await window.SettingsClient.updatePreferences(this.accountId, this.preferences, { ifMatch: this.$parent.accountSettings?.updatedAt });
+              await this.$parent.loadAccountSettings();
               console.log('✅ Preferences saved to backend');
-            } else {
-              console.warn('Failed to save preferences to backend, using localStorage');
+            } catch (e) {
+              console.warn('Failed to save preferences to backend, using localStorage', e);
             }
           } catch (error) {
             console.warn('Backend unavailable, using localStorage:', error);
@@ -721,17 +709,12 @@ const AccountPage = Vue.defineComponent({
               headers.Authorization = authHeader;
             }
             
-            const response = await fetch(`${CONFIG.API.BASE_URL}/account-settings/${this.accountId}/preferences`, {
-              method: 'PUT',
-              headers,
-              body: JSON.stringify({ preferences: this.preferences })
-            });
-
-            if (response.ok) {
-              await this.$parent.loadAccountSettings(); // Reload account settings
+            try {
+              await window.SettingsClient.updatePreferences(this.accountId, this.preferences, { ifMatch: this.$parent.accountSettings?.updatedAt });
+              await this.$parent.loadAccountSettings();
               console.log('✅ Preferences saved to backend');
-            } else {
-              console.warn('Failed to save preferences to backend, using localStorage');
+            } catch (e) {
+              console.warn('Failed to save preferences to backend, using localStorage', e);
             }
           } catch (error) {
             console.warn('Backend unavailable, using localStorage:', error);

@@ -626,6 +626,7 @@ const app = createApp({
         const response = await this.apiCall(CONFIG.API.ENDPOINTS.ACCOUNT_SETTINGS);
         this.accountSettings = response;
         this.accountId = response?.accountId || null;
+        console.log('⚙️ Account settings updatedAt:', this.accountSettings?.updatedAt, 'prefs keys:', Object.keys(this.accountSettings?.preferences || {}));
         // apply user-specific theme if present
         const userTheme = response?.userTheme;
         if (userTheme) {
@@ -722,14 +723,19 @@ const app = createApp({
           return;
         }
 
-        // Persist and await to avoid silent failures on quick refresh
-        const res = await this.apiCall(`${CONFIG.API.ENDPOINTS.ACCOUNT_SETTINGS}/${encodeURIComponent(accountId)}/preferences`, {
-          method: 'PUT',
-          body: JSON.stringify({ preferences: { membersChoresEnabled: current } })
-        });
+        // Prefer granular endpoint with optional OCC
+        const memberKey = person.userId || person.name;
+        let res;
+        try {
+          res = await window.SettingsClient.updateMemberVisibility(accountId, memberKey, enabled, { ifMatch: this.accountSettings?.updatedAt });
+        } catch (e) {
+          // fallback to bulk partial update
+          res = await window.SettingsClient.updatePreferences(accountId, { membersChoresEnabled: current }, { ifMatch: this.accountSettings?.updatedAt });
+        }
         // Sync local cache with server echo
         if (res && res.preferences) {
           this.accountSettings.preferences = res.preferences;
+          this.accountSettings.updatedAt = res.updatedAt || this.accountSettings.updatedAt;
         }
       } catch (e) {
         console.warn('failed to persist member chores enabled', e);
