@@ -10,7 +10,28 @@
     if (auth) headers.Authorization = auth;
     if (accountId) headers['X-Account-Id'] = accountId;
 
+    // Verbose debug request log
+    try {
+      console.debug('[SettingsClient] request', {
+        url: `${base()}${path}`,
+        method: (options.method || 'GET').toUpperCase(),
+        headers: { ...(headers || {}) },
+        accountId,
+        bodyPreview: options.body ? (options.body.toString().slice(0, 256)) : undefined
+      });
+    } catch {}
+
     const res = await fetch(`${base()}${path}`, { ...options, headers });
+
+    // Verbose debug response log
+    try {
+      console.debug('[SettingsClient] response', {
+        url: `${base()}${path}`,
+        status: res.status,
+        etag: res.headers?.get && res.headers.get('ETag'),
+        ok: res.ok
+      });
+    } catch {}
     if (!res.ok) {
       let msg = `${res.status} ${res.statusText}`;
       try { const j = await res.json(); if (j && j.error) msg = j.error; } catch {}
@@ -60,4 +81,3 @@
     }
   };
 })();
-

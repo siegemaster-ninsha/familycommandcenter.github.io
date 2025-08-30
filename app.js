@@ -418,7 +418,7 @@ const app = createApp({
         console.log('👥 Loading family members, preserveOptimisticUpdates:', preserveOptimisticUpdates);
         console.log('[debug] BEFORE loadFamilyMembers() people:', (this.people || []).map(p => ({ name: p.name, userId: p.userId, role: p.role, enabledForChores: p.enabledForChores })));
         const response = await this.apiCall(CONFIG.API.ENDPOINTS.FAMILY_MEMBERS);
-        console.log('👥 Family members API response:', response);
+        console.log('👥 Family members API response count:', (response?.familyMembers || []).length);
         console.log('[debug] server familyMembers snapshot:', (response.familyMembers || []).map(m => ({ name: m.name, userId: m.userId, role: m.role, completedChores: m.completedChores })));
         
         if (response.familyMembers && response.familyMembers.length > 0) {
@@ -427,11 +427,16 @@ const app = createApp({
           const resolveEnabled = (member) => {
             // Prefer stable userId when available; fallback to name
             if (member && member.userId && Object.prototype.hasOwnProperty.call(membersChoresEnabled, member.userId)) {
-              return membersChoresEnabled[member.userId] !== false;
+              const val = membersChoresEnabled[member.userId] !== false;
+              console.debug('[Visibility] resolve', { member: member.name, userId: member.userId, via: 'userId', value: val });
+              return val;
             }
             if (member && member.name && Object.prototype.hasOwnProperty.call(membersChoresEnabled, member.name)) {
-              return membersChoresEnabled[member.name] !== false;
+              const val = membersChoresEnabled[member.name] !== false;
+              console.debug('[Visibility] resolve', { member: member.name, via: 'name', value: val });
+              return val;
             }
+            console.debug('[Visibility] resolve', { member: member?.name, via: 'default', value: true });
             return true;
           };
           if (preserveOptimisticUpdates) {
@@ -622,11 +627,17 @@ const app = createApp({
     // Account page data loading methods
     async loadAccountSettings() {
       try {
-        console.log('⚙️ Loading account settings...');
+        const headerAccountId = this.accountId || this.accountSettings?.accountId || null;
+        console.log('⚙️ Loading account settings...', { headerAccountId });
         const response = await this.apiCall(CONFIG.API.ENDPOINTS.ACCOUNT_SETTINGS);
         this.accountSettings = response;
         this.accountId = response?.accountId || null;
-        console.log('⚙️ Account settings updatedAt:', this.accountSettings?.updatedAt, 'prefs keys:', Object.keys(this.accountSettings?.preferences || {}));
+        console.log('⚙️ Account settings loaded meta', {
+          apiAccountId: this.accountSettings?.accountId,
+          updatedAt: this.accountSettings?.updatedAt,
+          prefKeys: Object.keys(this.accountSettings?.preferences || {}),
+          membersChoresEnabled: this.accountSettings?.preferences?.membersChoresEnabled || {}
+        });
         // apply user-specific theme if present
         const userTheme = response?.userTheme;
         if (userTheme) {
@@ -725,10 +736,12 @@ const app = createApp({
 
         // Prefer granular endpoint with optional OCC
         const memberKey = person.userId || person.name;
+        console.debug('[Visibility] persist start', { accountId, memberKey, enabled, before: { ...(this.accountSettings?.preferences?.membersChoresEnabled || {}) } });
         let res;
         try {
           res = await window.SettingsClient.updateMemberVisibility(accountId, memberKey, enabled, { ifMatch: this.accountSettings?.updatedAt });
         } catch (e) {
+          console.warn('[Visibility] granular failed; falling back to bulk', e?.message || e);
           // fallback to bulk partial update
           res = await window.SettingsClient.updatePreferences(accountId, { membersChoresEnabled: current }, { ifMatch: this.accountSettings?.updatedAt });
         }
@@ -736,6 +749,7 @@ const app = createApp({
         if (res && res.preferences) {
           this.accountSettings.preferences = res.preferences;
           this.accountSettings.updatedAt = res.updatedAt || this.accountSettings.updatedAt;
+          console.debug('[Visibility] persist done', { updatedAt: this.accountSettings.updatedAt, after: res.preferences?.membersChoresEnabled || {} });
         }
       } catch (e) {
         console.warn('failed to persist member chores enabled', e);
