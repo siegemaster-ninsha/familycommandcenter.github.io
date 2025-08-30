@@ -128,7 +128,7 @@ const FamilyPage = Vue.defineComponent({
               <div class="text-sm">
                 <span class="font-medium text-primary-custom">{{ req.name }}</span>
                 <span class="ml-2">requests to spend</span>
-                <span class="font-semibold text-red-600">\${{ Number(req.amount).toFixed(2) }}</span>
+                <span class="font-semibold" style="color: var(--color-error-700);">\${{ Number(req.amount).toFixed(2) }}</span>
                 <span class="ml-2 text-xs text-secondary-custom">{{ new Date(req.createdAt).toLocaleString() }}</span>
               </div>
               <button @click="$parent.approveSpendingRequest(req.id)" class="btn-success">Approve</button>

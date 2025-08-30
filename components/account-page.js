@@ -49,14 +49,14 @@ const AccountPage = Vue.defineComponent({
             </div>
             <div>
               <label class="block text-sm font-medium text-secondary-custom mb-2">Email</label>
-              <input 
-                v-model="profileForm.email"
-                type="email" 
-                readonly
-                class="w-full px-4 py-3 border-2 rounded-lg cursor-not-allowed opacity-60 bg-gray-100"
-                style="border-color: var(--color-border-card);"
-                placeholder="Enter your email"
-              >
+                <input 
+                  v-model="profileForm.email"
+                  type="email" 
+                  readonly
+                  class="w-full px-4 py-3 border-2 rounded-lg cursor-not-allowed opacity-60"
+                  style="border-color: var(--color-border-card); background-color: var(--color-neutral-100);"
+                  placeholder="Enter your email"
+                >
             </div>
           </div>
           
@@ -93,7 +93,7 @@ const AccountPage = Vue.defineComponent({
                   class="sr-only peer"
                   :disabled="isChild"
                 >
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+                <div class="w-11 h-6 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500" style="background-color: var(--color-neutral-200);"></div>
               </label>
             </div>
 
@@ -160,7 +160,7 @@ const AccountPage = Vue.defineComponent({
                   class="sr-only peer"
                   :disabled="isChild"
                 >
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+                <div class="w-11 h-6 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500" style="background-color: var(--color-neutral-200);"></div>
               </label>
             </div>
             
@@ -176,7 +176,7 @@ const AccountPage = Vue.defineComponent({
                   class="sr-only peer"
                   :disabled="isChild"
                 >
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+                <div class="w-11 h-6 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500" style="background-color: var(--color-neutral-200);"></div>
               </label>
             </div>
             
@@ -192,7 +192,7 @@ const AccountPage = Vue.defineComponent({
                   class="sr-only peer"
                   :disabled="isChild"
                 >
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+                <div class="w-11 h-6 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500" style="background-color: var(--color-neutral-200);"></div>
               </label>
             </div>
           </div>
@@ -237,7 +237,8 @@ const AccountPage = Vue.defineComponent({
             <!-- Currently applied indicator -->
             <div 
               v-if="currentTheme === theme.id && currentTheme !== selectedTheme"
-              class="absolute top-2 left-2 bg-emerald-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+              class="absolute top-2 left-2 text-white rounded-full w-6 h-6 flex items-center justify-center"
+              style="background: var(--color-primary-500);"
               title="Currently applied theme"
             >
               ●
@@ -291,12 +292,12 @@ const AccountPage = Vue.defineComponent({
         </h3>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="p-6 border-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200" style="border-color: var(--color-border-card);">
-            <h4 class="font-medium text-primary-custom mb-3 text-lg">Export Data</h4>
-            <p class="text-sm text-secondary-custom mb-4">Download all your family's chore and earnings data</p>
+            <div class="p-6 border-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200" style="border-color: var(--color-border-card);">
+              <h4 class="font-medium text-primary-custom mb-3 text-lg">Export Data</h4>
+              <p class="text-sm text-secondary-custom mb-4">Download all your family's chore and earnings data</p>
             <button
               @click="exportData"
-              class="w-full bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white py-3 px-4 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg touch-target min-h-[48px] font-medium"
+              class="w-full btn-success touch-target min-h-[48px] font-medium"
             >
               Export Data
             </button>
@@ -319,8 +320,8 @@ const AccountPage = Vue.defineComponent({
       <div v-if="showResetConfirmation" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
           <div class="flex items-center gap-3 mb-4">
-            <div class="bg-red-100 p-2 rounded-full">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-red-600" viewBox="0 0 256 256">
+            <div class="p-2 rounded-full" style="background: var(--color-error-50);">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" style="color: var(--color-error-700);">
                 <path d="M236.8,188.09,149.35,36.22h0a24.76,24.76,0,0,0-42.7,0L19.2,188.09a23.51,23.51,0,0,0,0,23.72A24.35,24.35,0,0,0,40.55,224h174.9a24.35,24.35,0,0,0,21.33-12.19A23.51,23.51,0,0,0,236.8,188.09ZM222.93,203.8a8.5,8.5,0,0,1-7.48,4.2H40.55a8.5,8.5,0,0,1-7.48-4.2,7.59,7.59,0,0,1,0-7.72L120.52,44.21a8.75,8.75,0,0,1,15,0l87.45,151.87A7.59,7.59,0,0,1,222.93,203.8Z"></path>
               </svg>
             </div>
@@ -335,13 +336,13 @@ const AccountPage = Vue.defineComponent({
             <li>• All earnings and transaction history</li>
             <li>• All shopping lists and quick items</li>
           </ul>
-          <p class="text-red-600 font-medium mb-6">This action cannot be undone!</p>
+          <p class="font-medium mb-6" style="color: var(--color-error-700);">This action cannot be undone!</p>
           
           <div class="flex gap-3">
             <button 
               @click="confirmReset"
               :disabled="resetLoading"
-              class="flex-1 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white py-3 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 shadow-md hover:shadow-lg touch-target min-h-[48px] font-medium"
+              class="flex-1 btn-error touch-target min-h-[48px] font-medium"
             >
               {{ resetLoading ? 'Resetting...' : 'Yes, Reset Everything' }}
             </button>

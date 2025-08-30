@@ -17,14 +17,14 @@ const AppLoadingState = Vue.defineComponent({
 // Error State Component
 const AppErrorState = Vue.defineComponent({
   template: `
-      <div v-if="error" class="mx-4 mb-8 bg-red-50 border border-red-200 rounded-lg p-4">
+      <div v-if="error" class="mx-4 mb-8 rounded-lg p-4" style="background: var(--color-error-50); border: 1px solid var(--color-error-600);">
       <div class="flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="text-red-600" viewBox="0 0 256 256">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256" style="color: var(--color-error-700);">
           <path d="M236.8,188.09,149.35,36.22h0a24.76,24.76,0,0,0-42.7,0L19.2,188.09a23.51,23.51,0,0,0,0,23.72A24.35,24.35,0,0,0,40.55,224h174.9a24.35,24.35,0,0,0,21.33-12.19A23.51,23.51,0,0,0,236.8,188.09ZM128,184a12,12,0,1,1,12-12A12,12,0,0,1,128,184Zm12-32a8,8,0,0,1-16,0V120a8,8,0,0,1,16,0Z"></path>
         </svg>
-        <p class="text-red-800 font-medium">Failed to load data</p>
+        <p class="font-medium" style="color: var(--color-error-700);">Failed to load data</p>
       </div>
-      <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+      <p class="text-sm mt-1" style="color: var(--color-error-700);">{{ error }}</p>
         <button 
           @click="loadAllData" 
           class="mt-3 btn-error text-sm"

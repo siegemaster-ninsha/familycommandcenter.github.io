@@ -6,7 +6,7 @@ const QuicklistSection = Vue.defineComponent({
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M13.5 4.5a.75.75 0 00-1.312-.53L6 12h3.75L8.25 19.5a.75.75 0 001.312.53L18 12h-3.75L13.5 4.5z"/></svg>
         Quicklist
       </h2>
-      <div class="bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-dashed border-purple-300 rounded-lg mx-2 sm:mx-4 p-3 sm:p-4">
+      <div class="rounded-lg mx-2 sm:mx-4 p-3 sm:p-4 border-2 border-dashed" :style="{ background: 'var(--color-bg-card)', borderColor: 'var(--color-border-card)' }">
         <p class="text-secondary-custom text-sm mb-4 sm:mb-3 text-center px-2">Select these common chores to assign them quickly</p>
         
         <div class="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-2 justify-center">
@@ -26,7 +26,8 @@ const QuicklistSection = Vue.defineComponent({
             </button>
             
             <div
-              class="flex items-center justify-center rounded-lg bg-purple-100 shrink-0 size-10 sm:size-8 text-purple-600"
+              class="flex items-center justify-center rounded-lg shrink-0 size-10 sm:size-8"
+              :style="{ background: 'var(--color-primary-50)', color: 'var(--color-primary-600)' }"
               v-html="getCategoryIcon(quickChore.category)"
             >
             </div>
@@ -34,7 +35,7 @@ const QuicklistSection = Vue.defineComponent({
               <p class="text-primary-custom text-sm font-medium leading-tight line-clamp-2 sm:line-clamp-1">{{ quickChore.name }}</p>
               <p v-if="quickChore.amount > 0" class="text-secondary-custom text-xs">\${{ quickChore.amount.toFixed(2) }}</p>
             </div>
-            <span class="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-800 shrink-0 self-start sm:self-center">
+            <span class="text-xs px-2 py-1 rounded-full shrink-0 self-start sm:self-center" :style="{ background: 'var(--color-primary-50)', color: 'var(--color-primary-800)' }">
               {{ getCategoryLabel(quickChore.category) }}
             </span>
           </div>
@@ -43,7 +44,8 @@ const QuicklistSection = Vue.defineComponent({
           <div class="flex items-center justify-center mt-2 sm:mt-0">
             <button
               @click="$parent.showAddToQuicklistModal = true"
-              class="flex items-center gap-2 bg-purple-100 hover:bg-purple-200 active:bg-purple-300 text-purple-700 px-4 py-3 sm:px-3 sm:py-2 rounded-lg border-2 border-dashed border-purple-300 transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center"
+              class="flex items-center gap-2 px-4 py-3 sm:px-3 sm:py-2 rounded-lg border-2 border-dashed transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center"
+              :style="{ background: 'var(--color-primary-50)', color: 'var(--color-primary-700)', borderColor: 'var(--color-primary-300)' }"
               title="Add new chore to quicklist"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
@@ -59,7 +61,7 @@ const QuicklistSection = Vue.defineComponent({
   inject: ['quicklistChores', 'showAddToQuicklistModal', 'handleQuicklistChoreClick', 'openAddToQuicklistModal'],
   methods: {
     getQuicklistChoreClasses(quickChore) {
-      const baseClasses = "relative group flex items-center gap-3 sm:gap-2 bg-white px-4 py-4 sm:px-3 sm:py-2 rounded-lg shadow-sm cursor-pointer border-l-4 border-purple-500 transition-all duration-200 touch-target min-h-[68px] sm:min-h-[56px]";
+      const baseClasses = "relative group flex items-center gap-3 sm:gap-2 bg-white px-4 py-4 sm:px-3 sm:py-2 rounded-lg shadow-sm cursor-pointer border-l-4 border-primary-500 transition-all duration-200 touch-target min-h-[68px] sm:min-h-[56px]";
       const selected = window.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, quickChore) || false;
       const selectedClasses = selected ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : "hover:shadow-md hover:scale-105 active:scale-95";
       return `${baseClasses} ${selectedClasses}`;

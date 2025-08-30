@@ -5,8 +5,8 @@ const AppModals = Vue.defineComponent({
     <div v-if="showAddToQuicklistModal" class="fixed inset-0 flex items-center justify-center z-50 modal-overlay" :style="{ backgroundColor: 'rgba(0,0,0,0.5)' }">
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
-          <div class="bg-purple-100 p-2 rounded-full">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-purple-600" viewBox="0 0 256 256">
+          <div class="p-2 rounded-full" style="background: var(--color-primary-50);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" style="color: var(--color-primary-600);">
               <path d="M200,32H163.74a47.92,47.92,0,0,0-71.48,0H56A16,16,0,0,0,40,48V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V48A16,16,0,0,0,200,32Zm-72,0a32,32,0,0,1,32,32H96A32,32,0,0,1,128,32Zm72,184H56V48H72V64a8,8,0,0,0,8,8H176a8,8,0,0,0,8-8V48h16V216Z"></path>
             </svg>
           </div>
@@ -18,7 +18,8 @@ const AppModals = Vue.defineComponent({
             <input 
               v-model="newQuicklistChore.name"
               type="text" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              style="border-color: var(--color-border-card)"
               placeholder="Enter chore name"
             >
           </div>
@@ -29,7 +30,8 @@ const AppModals = Vue.defineComponent({
               type="number" 
               step="0.25"
               min="0"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              style="border-color: var(--color-border-card)"
               placeholder="0.00"
             >
           </div>
@@ -37,7 +39,8 @@ const AppModals = Vue.defineComponent({
             <label class="block text-sm font-medium text-primary-custom mb-1">Chore Type</label>
             <select 
               v-model="newQuicklistChore.category"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              style="border-color: var(--color-border-card)"
             >
               <option value="regular">🏠 Regular Chore</option>
               <option value="school">📚 School Chore</option>
@@ -49,7 +52,8 @@ const AppModals = Vue.defineComponent({
               <input 
                 type="checkbox" 
                 v-model="newQuicklistChore.isDetailed"
-                class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                class="w-4 h-4 rounded"
+                style="color: var(--color-primary-600)"
               >
               <span class="text-sm font-medium text-primary-custom">Requires details when assigned</span>
             </label>
@@ -79,8 +83,8 @@ const AppModals = Vue.defineComponent({
     <div v-if="showDeletePersonModal" class="fixed inset-0 flex items-center justify-center z-50 modal-overlay" :style="{ backgroundColor: 'rgba(0,0,0,0.5)' }">
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
-          <div class="bg-red-100 p-2 rounded-full">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-red-600" viewBox="0 0 256 256">
+          <div class="p-2 rounded-full" style="background: var(--color-error-50);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" style="color: var(--color-error-700);">
               <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
             </svg>
           </div>
@@ -99,7 +103,7 @@ const AppModals = Vue.defineComponent({
           </button>
           <button 
             @click="cancelDeletePerson"
-            class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
+            class="flex-1 btn-secondary"
           >
             Cancel
           </button>
@@ -117,7 +121,8 @@ const AppModals = Vue.defineComponent({
             <input 
               v-model="newChore.name"
               type="text" 
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              style="border-color: var(--color-border-card)"
               placeholder="Enter chore name"
             >
           </div>
@@ -187,17 +192,17 @@ const AppModals = Vue.defineComponent({
     <div v-if="showNewDayModal" class="fixed inset-0 flex items-center justify-center z-50 modal-overlay" :style="{ backgroundColor: 'rgba(0,0,0,0.5)' }">
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
-          <div class="bg-orange-100 p-2 rounded-full">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-orange-600" viewBox="0 0 256 256">
+          <div class="p-2 rounded-full" style="background: var(--color-warning-50);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" style="color: var(--color-warning-700);">
               <path d="M128,40a88,88,0,1,0,88,88A88.1,88.1,0,0,0,128,40Zm0,160a72,72,0,1,1,72-72A72.08,72.08,0,0,1,128,200ZM164.49,99.51a8,8,0,0,1,0,11.31L137.66,138.34a8,8,0,0,1-11.32,0L99.51,111.51a8,8,0,0,1,11.31-11.31L128,117.37l21.18-21.18A8,8,0,0,1,164.49,99.51Z"></path>
             </svg>
           </div>
           <h3 class="text-lg font-bold text-primary-custom">Start New Day</h3>
         </div>
         <div class="space-y-4 mb-6">
-          <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
-            <h4 class="font-medium text-orange-800 mb-2">🌅 What happens when you start a new day:</h4>
-            <ul class="text-sm text-orange-700 space-y-1">
+          <div class="rounded-lg p-4" style="background: var(--color-warning-50); border: 1px solid color-mix(in srgb, var(--color-warning-600) 20%, white);">
+            <h4 class="font-medium mb-2" style="color: var(--color-warning-700);">🌅 What happens when you start a new day:</h4>
+            <ul class="text-sm space-y-1" style="color: var(--color-warning-700);">
               <li>• All current chores will be deleted</li>
               <li>• Family members' earnings will be <strong>preserved</strong></li>
               <li>• The board will be cleared for fresh daily chores</li>
@@ -234,15 +239,15 @@ const AppModals = Vue.defineComponent({
     <div v-if="showLoginModal" class="fixed inset-0 flex items-center justify-center z-50 modal-overlay" :style="{ backgroundColor: 'rgba(0,0,0,0.5)' }">
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
-          <div class="bg-blue-100 p-2 rounded-full">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-blue-600" viewBox="0 0 256 256">
+          <div class="p-2 rounded-full" style="background: var(--color-primary-50);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" style="color: var(--color-primary-600);">
               <path d="M141.66,133.66l-40,40A8,8,0,0,1,88,168V136H24a8,8,0,0,1,0-16H88V88a8,8,0,0,1,13.66-5.66l40,40A8,8,0,0,1,141.66,133.66ZM192,32H136a8,8,0,0,0,0,16h56V208H136a8,8,0,0,0,0,16h56a16,16,0,0,0,16-16V48A16,16,0,0,0,192,32Z"></path>
             </svg>
           </div>
           <h3 class="text-lg font-bold text-primary-custom">Sign In</h3>
         </div>
-        <div v-if="authError" class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-          <p class="text-red-600 text-sm">{{ authError }}</p>
+        <div v-if="authError" class="rounded-lg p-3 mb-4" style="background: var(--color-error-50); border: 1px solid var(--color-error-600);">
+          <p class="text-sm" style="color: var(--color-error-700);">{{ authError }}</p>
         </div>
         <div class="space-y-4">
           <div class="flex items-center gap-4">
@@ -320,15 +325,15 @@ const AppModals = Vue.defineComponent({
     <div v-if="showSignupModal" class="fixed inset-0 flex items-center justify-center z-50 modal-overlay" :style="{ backgroundColor: 'rgba(0,0,0,0.5)' }">
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
-          <div class="bg-green-100 p-2 rounded-full">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-green-600" viewBox="0 0 256 256">
+          <div class="p-2 rounded-full" style="background: var(--color-success-50);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" style="color: var(--color-success-600);">
               <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
             </svg>
           </div>
           <h3 class="text-lg font-bold text-primary-custom">Create Account</h3>
         </div>
-        <div v-if="authError" class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-          <p class="text-red-600 text-sm">{{ authError }}</p>
+        <div v-if="authError" class="rounded-lg p-3 mb-4" style="background: var(--color-error-50); border: 1px solid var(--color-error-600);">
+          <p class="text-sm" style="color: var(--color-error-700);">{{ authError }}</p>
         </div>
         <div class="space-y-4">
           <div>
@@ -405,15 +410,15 @@ const AppModals = Vue.defineComponent({
    <div v-if="showConfirmModal" class="fixed inset-0 flex items-center justify-center z-50 modal-overlay" :style="{ backgroundColor: 'rgba(0,0,0,0.5)' }">
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
-          <div class="bg-yellow-100 p-2 rounded-full">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-yellow-600" viewBox="0 0 256 256">
+          <div class="p-2 rounded-full" style="background: var(--color-warning-50);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" style="color: var(--color-warning-700);">
               <path d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48ZM203.43,64,128,133.15,52.57,64ZM216,192H40V74.19l82.59,75.71a8,8,0,0,0,10.82,0L216,74.19V192Z"></path>
             </svg>
           </div>
           <h3 class="text-lg font-bold text-primary-custom">Confirm Email</h3>
         </div>
-        <div v-if="authError" class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-          <p class="text-red-600 text-sm">{{ authError }}</p>
+        <div v-if="authError" class="rounded-lg p-3 mb-4" style="background: var(--color-error-50); border: 1px solid var(--color-error-600);">
+          <p class="text-sm" style="color: var(--color-error-700);">{{ authError }}</p>
         </div>
         <p class="text-secondary-custom mb-4">
           We've sent a confirmation code to <strong>{{ authForm.email }}</strong>. 
@@ -453,17 +458,17 @@ const AppModals = Vue.defineComponent({
     <div v-if="showChoreDetailsModal" class="fixed inset-0 flex items-center justify-center z-50 modal-overlay" :style="{ backgroundColor: 'rgba(0,0,0,0.5)' }">
       <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4 modal-panel">
         <div class="flex items-center gap-3 mb-4">
-          <div class="bg-blue-100 p-2 rounded-full">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-blue-600" viewBox="0 0 256 256">
+          <div class="p-2 rounded-full" style="background: var(--color-primary-50);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" style="color: var(--color-primary-600);">
               <path d="M208,24H72A32,32,0,0,0,40,56V224a8,8,0,0,0,8,8H192a8,8,0,0,0,0-16H56a16,16,0,0,1,16-16H208a8,8,0,0,0,8-8V32A8,8,0,0,0,208,24ZM72,40H200V184H72a31.82,31.82,0,0,0-16,4.29V56A16,16,0,0,1,72,40Z"></path>
             </svg>
           </div>
           <h3 class="text-lg font-bold text-primary-custom">Add Chore Details</h3>
         </div>
         <div class="mb-4">
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <p class="text-blue-800 font-medium">{{ choreDetailsForm.name }}</p>
-            <div class="flex items-center gap-4 text-sm text-blue-600 mt-1">
+          <div class="rounded-lg p-3" style="background: var(--color-primary-50); border: 1px solid var(--color-primary-200);">
+            <p class="font-medium" style="color: var(--color-primary-700);">{{ choreDetailsForm.name }}</p>
+            <div class="flex items-center gap-4 text-sm mt-1" style="color: var(--color-primary-600);">
               <span>\${{ choreDetailsForm.amount.toFixed(2) }}</span>
               <span>{{ getCategoryLabel(choreDetailsForm.category) }}</span>
             </div>
@@ -502,8 +507,8 @@ const AppModals = Vue.defineComponent({
     <div v-if="showSpendingModal" class="fixed inset-0 flex items-center justify-center z-50 modal-overlay" :style="{ backgroundColor: 'rgba(0,0,0,0.5)' }">
       <div class="bg-white rounded-lg p-6 w-full max-w-sm mx-4 modal-panel">
         <div class="flex items-center gap-3 mb-4">
-          <div class="bg-red-100 p-2 rounded-full">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-red-600" viewBox="0 0 256 256">
+          <div class="p-2 rounded-full" style="background: var(--color-error-50);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" style="color: var(--color-error-700);">
               <path d="M224,48H32A16,16,0,0,0,16,64V192a16,16,0,0,0,16,16H224a16,16,0,0,0,16-16V64A16,16,0,0,0,224,48ZM32,64H224V88H32ZM32,192V104H224v88Z"></path>
             </svg>
           </div>
@@ -545,7 +550,8 @@ const AppModals = Vue.defineComponent({
           </button>
           <button
             @click="clearSpendAmount"
-            class="bg-red-100 hover:bg-red-200 text-red-600 font-bold py-3 px-4 rounded-lg transition-colors"
+            class="font-bold py-3 px-4 rounded-lg transition-colors"
+            style="background: var(--color-error-50); color: var(--color-error-700);"
           >
             Clear
           </button>
@@ -562,7 +568,7 @@ const AppModals = Vue.defineComponent({
           <button
             @click="confirmSpending"
             :disabled="spendAmount <= 0 || spendAmount > selectedPerson?.earnings"
-            class="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+            class="flex-1 px-4 py-2 btn-error disabled:bg-[color:var(--color-neutral-300)] disabled:cursor-not-allowed"
           >
             Spend Money
           </button>
@@ -574,8 +580,8 @@ const AppModals = Vue.defineComponent({
     <div v-if="showCreateChildModal" class="fixed inset-0 flex items-center justify-center z-50 modal-overlay" :style="{ backgroundColor: 'rgba(0,0,0,0.5)' }">
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
-          <div class="bg-emerald-100 p-2 rounded-full">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-emerald-600" viewBox="0 0 256 256"><path d="M224,128a96,96,0,1,1-96-96A96.11,96.11,0,0,1,224,128Zm-104,8H88a8,8,0,0,0,0,16h32v32a8,8,0,0,0,16,0V152h32a8,8,0,0,0,0-16H136V120a8,8,0,0,0-16,0Z"></path></svg>
+          <div class="p-2 rounded-full" style="background: var(--color-success-50);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" style="color: var(--color-success-600)"><path d="M224,128a96,96,0,1,1-96-96A96.11,96.11,0,0,1,224,128Zm-104,8H88a8,8,0,0,0,0,16h32v32a8,8,0,0,0,16,0V152h32a8,8,0,0,0,0-16H136V120a8,8,0,0,0-16,0Z"></path></svg>
           </div>
           <h3 class="text-lg font-bold text-primary-custom">Add Child Account</h3>
         </div>

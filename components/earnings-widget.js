@@ -19,19 +19,19 @@ const EarningsWidget = Vue.defineComponent({
       
       <!-- Compact view (single row) -->
       <div v-if="compact && !individualsOnly" class="grid grid-cols-3 gap-3 text-center">
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <div class="rounded-lg p-3" style="background: var(--color-primary-50); border: 1px solid var(--color-primary-200);">
           <div class="text-lg font-bold text-primary-500 mb-1">{{ people.length }}</div>
           <div class="text-xs text-primary-600">Members</div>
         </div>
         
-        <div class="bg-purple-50 border border-purple-200 rounded-lg p-3">
-          <div class="text-lg font-bold text-purple-600 mb-1">{{ activeMembers }}</div>
-          <div class="text-xs text-purple-700">Active</div>
+        <div class="rounded-lg p-3" style="background: var(--color-secondary-100); border: 1px solid var(--color-secondary-200);">
+          <div class="text-lg font-bold" style="color: var(--color-secondary-600);">{{ activeMembers }}</div>
+          <div class="text-xs" style="color: var(--color-secondary-600);">Active</div>
         </div>
         
-        <div class="bg-orange-50 border border-orange-200 rounded-lg p-3">
-          <div class="text-lg font-bold text-orange-600 mb-1">\${{ averageEarnings.toFixed(2) }}</div>
-          <div class="text-xs text-orange-700">Average</div>
+        <div class="rounded-lg p-3" style="background: var(--color-warning-50); border: 1px solid color-mix(in srgb, var(--color-warning-600) 20%, white);">
+          <div class="text-lg font-bold" style="color: var(--color-warning-700);">\${{ averageEarnings.toFixed(2) }}</div>
+          <div class="text-xs" style="color: var(--color-warning-700);">Average</div>
         </div>
       </div>
       
@@ -44,25 +44,25 @@ const EarningsWidget = Vue.defineComponent({
           <div class="text-sm earnings-text">Total Family Earnings</div>
         </div>
         
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+        <div class="rounded-lg p-4 text-center" style="background: var(--color-primary-50); border: 1px solid var(--color-primary-200);">
           <div class="text-2xl font-bold text-primary-500 mb-1">
             {{ people.length }}
           </div>
           <div class="text-sm text-primary-600">Family Members</div>
         </div>
         
-        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
-          <div class="text-2xl font-bold text-purple-600 mb-1">
+        <div class="rounded-lg p-4 text-center" style="background: var(--color-secondary-100); border: 1px solid var(--color-secondary-200);">
+          <div class="text-2xl font-bold" style="color: var(--color-secondary-600);">
             {{ activeMembers }}
           </div>
-          <div class="text-sm text-purple-700">Members with Earnings</div>
+          <div class="text-sm" style="color: var(--color-secondary-600);">Members with Earnings</div>
         </div>
         
-        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
-          <div class="text-2xl font-bold text-orange-600 mb-1">
+        <div class="rounded-lg p-4 text-center" style="background: var(--color-warning-50); border: 1px solid color-mix(in srgb, var(--color-warning-600) 20%, white);">
+          <div class="text-2xl font-bold" style="color: var(--color-warning-700);">
             \${{ averageEarnings.toFixed(2) }}
           </div>
-          <div class="text-sm text-orange-700">Average Earnings</div>
+          <div class="text-sm" style="color: var(--color-warning-700);">Average Earnings</div>
         </div>
       </div>
       

@@ -83,15 +83,15 @@ const UnassignedSection = Vue.defineComponent({
       switch(category) {
         case 'school':
           return {
-            background: 'bg-blue-50 border-l-blue-500',
-            icon: 'text-blue-600',
-            badge: 'bg-blue-100 text-blue-800'
+            background: 'bg-primary-50 border-l-primary-500',
+            icon: 'text-primary-600',
+            badge: 'bg-primary-100 text-primary-800'
           };
         case 'game':
           return {
-            background: 'bg-green-50 border-l-green-500',
-            icon: 'text-green-600',
-            badge: 'bg-green-100 text-green-800'
+            background: 'bg-success-50 border-l-success-600',
+            icon: 'text-[color:var(--color-success-600)]',
+            badge: 'bg-[color:var(--color-success-50)] text-[color:var(--color-success-700)]'
           };
         default:
           return {

@@ -18,8 +18,8 @@ const FamilyMembersSection = Vue.defineComponent({
           <div class="flex items-center justify-between px-3 sm:px-4 pb-3 pt-4 sm:pt-5">
             <h3 class="text-primary-custom text-lg sm:text-[20px] font-bold leading-tight tracking-[-0.015em]">{{ person.name }}</h3>
             <div class="flex items-center gap-2">
-              <div class="text-xs px-2 py-1 rounded-full" 
-                   :class="person.electronicsStatus.status === 'allowed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+              <div class="text-xs px-2 py-1 rounded-full"
+                   :style="person.electronicsStatus.status === 'allowed' ? { background: 'var(--color-success-50)', color: 'var(--color-success-700)' } : { background: 'var(--color-error-50)', color: 'var(--color-error-700)' }">
                 {{ person.electronicsStatus.message }}
               </div>
             </div>
@@ -64,7 +64,7 @@ const FamilyMembersSection = Vue.defineComponent({
                 <button
                   v-if="$parent.currentUser?.role === 'parent' && chore.isPendingApproval"
                   @click.stop="$parent.approveChore(chore)"
-                  class="px-2 py-1 text-xs rounded bg-emerald-500 text-white hover:bg-emerald-600"
+                  class="px-2 py-1 text-xs rounded btn-success"
                 >Approve</button>
               </div>
             </div>
@@ -86,7 +86,7 @@ const FamilyMembersSection = Vue.defineComponent({
   methods: {
     getDropZoneClasses(person) {
       const baseClasses = "bg-white rounded-lg shadow-sm border transition-all duration-200";
-      const highlightClasses = this.$parent.selectedChore ? "ring-2 ring-green-400 ring-opacity-50 bg-green-50" : "";
+      const highlightClasses = this.$parent.selectedChore ? "ring-2 ring-success-600 ring-opacity-50 bg-success-50" : "";
       
       return `${baseClasses} ${highlightClasses}`;
     },
@@ -108,15 +108,15 @@ const FamilyMembersSection = Vue.defineComponent({
       switch(category) {
         case 'school':
           return {
-            background: 'bg-blue-50 border-l-blue-500',
-            icon: 'text-blue-600',
-            badge: 'bg-blue-100 text-blue-800'
+            background: 'bg-primary-50 border-l-primary-500',
+            icon: 'text-primary-600',
+            badge: 'bg-primary-100 text-primary-800'
           };
         case 'game':
           return {
-            background: 'bg-green-50 border-l-green-500',
-            icon: 'text-green-600',
-            badge: 'bg-green-100 text-green-800'
+            background: 'bg-success-50 border-l-success-600',
+            icon: 'text-success-600',
+            badge: 'bg-success-50 text-success-700'
           };
         default:
           return {

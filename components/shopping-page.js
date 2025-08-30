@@ -28,7 +28,7 @@ const ShoppingPage = Vue.defineComponent({
         </div>
         
         <!-- Error state -->
-        <div v-else-if="error" class="text-center py-8 text-red-600">
+          <div v-else-if="error" class="text-center py-8" style="color: var(--color-error-700);">
           <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="mx-auto mb-3" viewBox="0 0 256 256">
             <path d="M236.8,188.09,149.35,36.22h0a24.76,24.76,0,0,0-42.7,0L19.2,188.09a23.51,23.51,0,0,0,0,23.72A24.35,24.35,0,0,0,40.55,224h174.9a24.35,24.35,0,0,0,21.33-12.19A23.51,23.51,0,0,0,236.8,188.09ZM222.93,203.8a8.5,8.5,0,0,1-7.48,4.2H40.55a8.5,8.5,0,0,1-7.48-4.2,7.59,7.59,0,0,1,0-7.72L120.52,44.21a8.75,8.75,0,0,1,15,0l87.45,151.87A7.59,7.59,0,0,1,222.93,203.8Z"></path>
           </svg>
@@ -75,7 +75,7 @@ const ShoppingPage = Vue.defineComponent({
                   type="checkbox" 
                   :checked="item.completed"
                   @change.stop="toggleItem(item.id)"
-                  class="sm:w-5 sm:h-5 w-6 h-6 text-emerald-600 rounded focus:ring-emerald-500 touch-target"
+                  class="sm:w-5 sm:h-5 w-6 h-6 rounded focus:ring-success-600 touch-target text-success-600"
                 >
                 <div class="flex-1">
                   <span 
@@ -144,7 +144,7 @@ const ShoppingPage = Vue.defineComponent({
         </div>
         
         <!-- Quick error state -->
-        <div v-else-if="quickError" class="text-center py-4 text-red-600">
+          <div v-else-if="quickError" class="text-center py-4" style="color: var(--color-error-700);">
           <p class="text-sm">{{ quickError }}</p>
           <button 
             @click="loadQuickItems"
@@ -176,7 +176,8 @@ const ShoppingPage = Vue.defineComponent({
             <!-- Delete button (top-right corner) -->
             <button
               @click.stop="removeQuickItem(quickItem.id)"
-              class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-6 h-6 sm:w-5 sm:h-5 flex items-center justify-center text-sm sm:text-xs sm:opacity-0 sm:group-hover:opacity-100 opacity-60 transition-opacity duration-200 hover:bg-red-600 touch-target"
+              class="absolute -top-1 -right-1 text-white rounded-full w-6 h-6 sm:w-5 sm:h-5 flex items-center justify-center text-sm sm:text-xs sm:opacity-0 sm:group-hover:opacity-100 opacity-60 transition-opacity duration-200 touch-target"
+              style="background: var(--color-error-600)"
               title="Remove quick item"
               :disabled="quickActionLoading"
             >
@@ -220,7 +221,7 @@ const ShoppingPage = Vue.defineComponent({
           Quick Actions
         </h2>
         
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button
             @click="clearCompleted"
             class="flex items-center justify-center gap-2 btn-error touch-target"
@@ -343,7 +344,8 @@ const ShoppingPage = Vue.defineComponent({
                 <input
                   v-model="newItem.name"
                   type="text"
-                  class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  style="border-color: var(--color-border-card)"
                   placeholder="Enter item name"
                   required
                 >
@@ -353,7 +355,8 @@ const ShoppingPage = Vue.defineComponent({
                 <label class="block text-sm font-medium mb-1">Category</label>
                 <select
                   v-model="newItem.category"
-                  class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  style="border-color: var(--color-border-card)"
                 >
                   <option value="General">General</option>
                   <option value="Dairy">Dairy</option>
@@ -371,7 +374,8 @@ const ShoppingPage = Vue.defineComponent({
                 <label class="block text-sm font-medium mb-1">Store</label>
                 <select
                   v-model="newItem.store"
-                  class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  style="border-color: var(--color-border-card)"
                 >
                   <option value="">No Store Selected</option>
                   <option v-for="store in stores" :key="store.id" :value="store.name">{{ store.name }}</option>
@@ -383,7 +387,8 @@ const ShoppingPage = Vue.defineComponent({
                 <input
                   v-model="newItem.quantity"
                   type="text"
-                  class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  style="border-color: var(--color-border-card)"
                   placeholder="e.g., 2 lbs, 1 gallon"
                 >
               </div>
@@ -393,7 +398,8 @@ const ShoppingPage = Vue.defineComponent({
                 <input
                   v-model="newItem.notes"
                   type="text"
-                  class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  style="border-color: var(--color-border-card)"
                   placeholder="Any special notes"
                 >
               </div>
@@ -403,7 +409,8 @@ const ShoppingPage = Vue.defineComponent({
               <button
                 type="button"
                 @click="showAddItemModal = false"
-                class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
+                style="border-color: var(--color-border-card)"
               >
                 Cancel
               </button>
@@ -431,7 +438,8 @@ const ShoppingPage = Vue.defineComponent({
                 <input
                   v-model="newQuickItem.name"
                   type="text"
-                  class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  style="border-color: var(--color-border-card)"
                   placeholder="Enter item name"
                   required
                 >
@@ -441,7 +449,8 @@ const ShoppingPage = Vue.defineComponent({
                 <label class="block text-sm font-medium mb-1">Category</label>
                 <select
                   v-model="newQuickItem.category"
-                  class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  style="border-color: var(--color-border-card)"
                 >
                   <option value="General">General</option>
                   <option value="Dairy">Dairy</option>
@@ -460,7 +469,8 @@ const ShoppingPage = Vue.defineComponent({
                 <input
                   v-model="newQuickItem.defaultQuantity"
                   type="text"
-                  class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  style="border-color: var(--color-border-card)"
                   placeholder="e.g., 2 lbs, 1 gallon"
                 >
               </div>
@@ -470,7 +480,8 @@ const ShoppingPage = Vue.defineComponent({
                 <input
                   v-model="newQuickItem.defaultNotes"
                   type="text"
-                  class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  style="border-color: var(--color-border-card)"
                   placeholder="Any default notes"
                 >
               </div>
@@ -479,7 +490,8 @@ const ShoppingPage = Vue.defineComponent({
                 <label class="block text-sm font-medium mb-1">Default Store</label>
                 <select
                   v-model="newQuickItem.defaultStore"
-                  class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  style="border-color: var(--color-border-card)"
                 >
                   <option value="">No Store Selected</option>
                   <option v-for="store in stores" :key="store.id" :value="store.name">
@@ -493,7 +505,8 @@ const ShoppingPage = Vue.defineComponent({
               <button
                 type="button"
                 @click="showAddQuickItemModal = false"
-                class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
+                style="border-color: var(--color-border-card)"
               >
                 Cancel
               </button>
@@ -521,7 +534,8 @@ const ShoppingPage = Vue.defineComponent({
                 <input
                   v-model="newStore.name"
                   type="text"
-                  class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  style="border-color: var(--color-border-card)"
                   placeholder="Enter store name"
                   required
                 >
@@ -532,7 +546,8 @@ const ShoppingPage = Vue.defineComponent({
               <button
                 type="button"
                 @click="showAddStoreModal = false"
-                class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
+                style="border-color: var(--color-border-card)"
               >
                 Cancel
               </button>

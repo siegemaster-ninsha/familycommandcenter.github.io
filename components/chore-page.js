@@ -17,7 +17,7 @@ const ChorePage = Vue.defineComponent({
         </div>
         
         <!-- Error state -->
-        <div v-else-if="quicklistError" class="text-center py-8 text-red-600">
+        <div v-else-if="quicklistError" class="text-center py-8" style="color: var(--color-error-700);">
           <p class="font-medium">Error loading quicklist</p>
           <p class="text-sm mt-1">{{ quicklistError }}</p>
           <button 
@@ -234,7 +234,7 @@ const ChorePage = Vue.defineComponent({
                    <button
                      v-if="$parent.currentUser?.role === 'parent' && chore.isPendingApproval"
                      @click.stop="$parent.approveChore(chore)"
-                     class="px-2 py-1 text-xs rounded bg-emerald-500 text-white hover:bg-emerald-600"
+                     class="px-2 py-1 text-xs rounded btn-success"
                    >Approve</button>
                  </div>
                 
@@ -262,7 +262,7 @@ const ChorePage = Vue.defineComponent({
                       <p v-if="chore.amount > 0" :class="chore.completed ? 'text-white opacity-50' : 'text-white text-opacity-90'" class="text-xs sm:text-sm font-normal leading-normal line-clamp-2">
                         \${{ chore.amount.toFixed(2) }}
                       </p>
-                      <div v-if="chore.isPendingApproval" class="mt-1 inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-yellow-100 text-yellow-800">
+                      <div v-if="chore.isPendingApproval" class="mt-1 inline-flex items-center gap-1 text-xs px-2 py-1 rounded" style="background: var(--color-warning-50); color: var(--color-warning-700);">
                         <span>Pending approval</span>
                       </div>
                     </div>
@@ -471,10 +471,10 @@ const ChorePage = Vue.defineComponent({
 
     getElectronicsStatusClass(status) {
       switch(status) {
-        case 'allowed': return 'bg-green-100 text-green-800';
-        case 'restricted': return 'bg-yellow-100 text-yellow-800';
-        case 'blocked': return 'bg-red-100 text-red-800';
-        default: return 'bg-green-100 text-green-800'; // Default to allowed styling
+        case 'allowed': return 'badge badge-success';
+        case 'restricted': return 'badge badge-warning';
+        case 'blocked': return 'badge badge-error';
+        default: return 'badge badge-success';
       }
     },
 
