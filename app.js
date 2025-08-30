@@ -82,6 +82,13 @@ const app = createApp({
       quicklistChores: [],
       // Mobile nav state
       mobileNavOpen: false,
+      // Nav items (extensible)
+      navItems: [
+        { key: 'chores', label: 'Chores' },
+        { key: 'family', label: 'Family' },
+        { key: 'shopping', label: 'Shopping' },
+        { key: 'account', label: 'Account' }
+      ],
       
       // Shopping page data (preloaded for instant page switching)
       shoppingItems: [],
@@ -2297,7 +2304,8 @@ function checkAndRegisterComponents() {
     'FamilyPageComponent',
     'ShoppingPageComponent',
     'ChorePageComponent',
-    'AccountPageComponent'
+    'AccountPageComponent',
+    'NavMenuComponent'
   ];
   
   const missingComponents = requiredComponents.filter(comp => !window[comp]);
@@ -2348,6 +2356,9 @@ function checkAndRegisterComponents() {
   
   console.log('📦 Registering account-page');
   app.component('account-page', window.AccountPageComponent);
+
+  console.log('📦 Registering nav-menu');
+  app.component('nav-menu', window.NavMenuComponent);
 
   console.log('✅ All components registered, mounting app...');
   

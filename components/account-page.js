@@ -5,7 +5,10 @@ const AccountPage = Vue.defineComponent({
       <!-- Account Overview -->
       <div class="rounded-lg border-2 p-6 shadow-lg" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <div class="flex items-center justify-between mb-6">
-          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em]">⚙️ Account Settings</h2>
+          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M11.25 1.5a.75.75 0 01.75.75V6a.75.75 0 01-1.5 0V2.25a.75.75 0 01.75-.75zM4.72 4.72a.75.75 0 011.06 0l2.475 2.475a.75.75 0 11-1.06 1.06L4.72 5.78a.75.75 0 010-1.06zM1.5 12a.75.75 0 01.75-.75H6a.75.75 0 010 1.5H2.25A.75.75 0 011.5 12zm3.22 7.28a.75.75 0 001.06 0l2.475-2.475a.75.75 0 10-1.06-1.06L4.72 18.22a.75.75 0 000 1.06zM12 17.25a.75.75 0 01.75.75V21.75a.75.75 0 11-1.5 0V18a.75.75 0 01.75-.75zm7.28-12.53a.75.75 0 00-1.06 0l-2.475 2.475a.75.75 0 101.06 1.06l2.475-2.475a.75.75 0 000-1.06zM21.75 11.25a.75.75 0 010 1.5H18a.75.75 0 010-1.5h3.75zM19.28 18.22a.75.75 0 01-1.06 1.06l-2.475-2.475a.75.75 0 111.06-1.06l2.475 2.475z"/></svg>
+            Account Settings
+          </h2>
           <div class="flex items-center gap-3">
             <div class="bg-gradient-to-br from-primary-500 to-primary-600 p-3 rounded-full shadow-md">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-white" viewBox="0 0 256 256">
@@ -16,6 +19,18 @@ const AccountPage = Vue.defineComponent({
               <h3 class="font-bold text-primary-custom text-lg">{{ currentUser?.name || 'User' }}</h3>
               <p class="text-sm text-secondary-custom">{{ currentUser?.email || 'user@example.com' }}</p>
             </div>
+            <button 
+              @click="$parent.handleLogout()"
+              :disabled="$parent.authLoading"
+              :class="['btn-error ml-2', $parent.authLoading && 'loading']"
+              :title="$parent.authLoading ? 'Signing out...' : 'Sign Out'"
+            >
+              <svg v-if="$parent.authLoading" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span v-else>Sign Out</span>
+            </button>
           </div>
         </div>
 
