@@ -417,6 +417,16 @@ const app = createApp({
         if (response.familyMembers && response.familyMembers.length > 0) {
           // optionally filter for chores view based on account settings preferences
           const membersChoresEnabled = this.accountSettings?.preferences?.membersChoresEnabled || {};
+          const resolveEnabled = (member) => {
+            // Prefer stable userId when available; fallback to name
+            if (member && member.userId && Object.prototype.hasOwnProperty.call(membersChoresEnabled, member.userId)) {
+              return membersChoresEnabled[member.userId] !== false;
+            }
+            if (member && member.name && Object.prototype.hasOwnProperty.call(membersChoresEnabled, member.name)) {
+              return membersChoresEnabled[member.name] !== false;
+            }
+            return true;
+          };
           if (preserveOptimisticUpdates) {
             console.log('👥 Merging with optimistic updates...');
             // Merge server data with existing optimistic updates
@@ -442,7 +452,7 @@ const app = createApp({
                   earnings: serverMember.earnings || 0,
                   completedChores: serverMember.completedChores || 0,
                   electronicsStatus: { status: 'allowed', message: 'Electronics allowed' },
-                  enabledForChores: membersChoresEnabled[serverMember.name] !== false
+                  enabledForChores: resolveEnabled(serverMember)
                 });
               }
             });
@@ -459,7 +469,7 @@ const app = createApp({
               earnings: member.earnings || 0,
               completedChores: member.completedChores || 0,
               electronicsStatus: { status: 'allowed', message: 'Electronics allowed' },
-              enabledForChores: membersChoresEnabled[member.name] !== false
+              enabledForChores: resolveEnabled(member)
             }));
             console.log('👥 Final people data:', this.people.map(p => `${p.name}: completedChores=${p.completedChores}`));
           }
@@ -683,7 +693,10 @@ const app = createApp({
         // optimistically update preference map and persist to backend
         const prefs = this.accountSettings?.preferences || {};
         const current = { ...(prefs.membersChoresEnabled || {}) };
-        current[person.name] = !!person.enabledForChores;
+        // Write both userId and name keys for backward compatibility
+        const enabled = !!person.enabledForChores;
+        if (person.userId) current[person.userId] = enabled;
+        if (person.name) current[person.name] = enabled;
         this.accountSettings.preferences = { ...prefs, membersChoresEnabled: current };
         const accountId = this.accountId || this.accountSettings?.accountId;
         if (!accountId) return; // cannot persist without account id
