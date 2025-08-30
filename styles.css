@@ -805,13 +805,12 @@ body.modal-open {
     min-width: 48px;
   }
   
-  /* Disable all hover effects on touch devices to prevent double-tap issues */
+  /* Disable problematic hover effects on touch to avoid sticky hover,
+     but do NOT reset background-color or text color which can hide content */
   *:hover {
-    background-color: inherit !important;
     box-shadow: inherit !important;
     border-color: inherit !important;
     transform: inherit !important;
-    color: inherit !important;
   }
 
   /* preserve modal overlay backdrop on first tap in iOS safari where :hover can stick */
