@@ -1,14 +1,14 @@
 // Shopping Page Component
 const ShoppingPage = Vue.defineComponent({
   template: `
-    <div class="space-y-6">
+    <div class="space-y-6 pb-24 sm:pb-0">
       <!-- Shopping List -->
       <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em]">🛒 Shopping List</h2>
           <button
             @click="showAddItemModal = true"
-            class="flex items-center gap-2 bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-colors"
+            class="hidden sm:flex items-center gap-2 btn-primary touch-target"
             :disabled="loading"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
@@ -63,13 +63,14 @@ const ShoppingPage = Vue.defineComponent({
                 v-for="item in items" 
                 :key="item.id"
                 class="flex items-center gap-3 p-3 rounded-lg transition-colors cursor-pointer"
+                @click="toggleItem(item.id)"
                 style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
               >
                 <input 
                   type="checkbox" 
                   :checked="item.completed"
-                  @change="toggleItem(item.id)"
-                  class="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500"
+                  @change.stop="toggleItem(item.id)"
+                  class="sm:w-5 sm:h-5 w-6 h-6 text-emerald-600 rounded focus:ring-emerald-500 touch-target"
                 >
                 <div class="flex-1">
                   <span 
@@ -85,8 +86,8 @@ const ShoppingPage = Vue.defineComponent({
                   </div>
                 </div>
                 <button
-                  @click="removeItem(item.id)"
-                  class="text-red-300 hover:text-red-100 p-1 rounded transition-colors bg-red-500 bg-opacity-20 hover:bg-opacity-30"
+                  @click.stop="removeItem(item.id)"
+                  class="text-red-300 hover:text-red-100 p-2 rounded transition-colors bg-red-500 bg-opacity-20 hover:bg-opacity-30 touch-target"
                   title="Remove item"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
@@ -204,7 +205,7 @@ const ShoppingPage = Vue.defineComponent({
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button
             @click="clearCompleted"
-            class="flex items-center justify-center gap-2 btn-error"
+            class="flex items-center justify-center gap-2 btn-error touch-target"
             :disabled="completedItems === 0 || actionLoading"
             :class="completedItems === 0 || actionLoading ? 'opacity-50 cursor-not-allowed' : ''"
           >
@@ -216,7 +217,7 @@ const ShoppingPage = Vue.defineComponent({
           
           <button
             @click="markAllComplete"
-            class="flex items-center justify-center gap-2 btn-success"
+            class="flex items-center justify-center gap-2 btn-success touch-target"
             :disabled="pendingItems === 0 || actionLoading"
             :class="pendingItems === 0 || actionLoading ? 'opacity-50 cursor-not-allowed' : ''"
           >
@@ -228,7 +229,7 @@ const ShoppingPage = Vue.defineComponent({
           
           <button
             @click="clearAll"
-            class="flex items-center justify-center gap-2 bg-primary-500 text-white px-4 py-3 rounded-lg hover:bg-primary-600 transition-colors"
+            class="flex items-center justify-center gap-2 btn-primary touch-target"
             :disabled="shoppingItems.length === 0 || actionLoading"
             :class="shoppingItems.length === 0 || actionLoading ? 'opacity-50 cursor-not-allowed' : ''"
           >
@@ -516,6 +517,31 @@ const ShoppingPage = Vue.defineComponent({
       <!-- Success Message -->
       <div v-if="showSuccess" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
         {{ successMessage }}
+      </div>
+
+      <!-- Mobile Sticky Action Bar -->
+      <div class="mobile-sticky-actions sm:hidden">
+        <button 
+          class="btn-secondary flex-1 touch-target"
+          @click="clearCompleted"
+          :disabled="completedItems === 0 || actionLoading"
+        >
+          Clear Completed
+        </button>
+        <button 
+          class="btn-success flex-1 touch-target"
+          @click="markAllComplete"
+          :disabled="pendingItems === 0 || actionLoading"
+        >
+          Complete All
+        </button>
+        <button 
+          class="btn-primary flex-1 touch-target"
+          @click="showAddItemModal = true"
+          :disabled="loading"
+        >
+          Add Item
+        </button>
       </div>
     </div>
   `,
