@@ -1056,37 +1056,53 @@ button.rounded-full[title*="Delete"] svg {
 
 /* ===========================================
    TOGGLE SWITCH (uniform across app)
+   Uses CSS variables for sizing so variants stay centered
    =========================================== */
 .toggle-switch {
+  /* Size variables */
+  --ts-width: 44px;
+  --ts-height: 26px;
+  --ts-padding: 3px;
+  --ts-knob: calc(var(--ts-height) - var(--ts-padding) * 2);
+  --ts-translate-x: calc(var(--ts-width) - var(--ts-knob) - var(--ts-padding) * 2);
+
   position: relative;
-  width: 44px;
-  height: 26px; /* ensure pill, not a circle */
+  width: var(--ts-width);
+  height: var(--ts-height);
   border-radius: 9999px;
   background: var(--color-neutral-300);
   transition: background-color var(--transition-fast);
   flex: none;
-  padding: 0;                /* reset default button padding */
-  border: none;              /* remove default borders */
-  appearance: none;          /* cross‑browser reset */
-  -webkit-appearance: none;  /* iOS Safari reset */
+  padding: 0;
+  border: none;
+  appearance: none;
+  -webkit-appearance: none;
   display: inline-block;
   vertical-align: middle;
-  box-sizing: content-box;   /* keep explicit size */
+  box-sizing: content-box;
   overflow: hidden;
 }
 .toggle-switch .knob {
   position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 20px;
-  height: 20px;
+  top: 50%;
+  left: var(--ts-padding);
+  width: var(--ts-knob);
+  height: var(--ts-knob);
   border-radius: 50%;
   background: #fff;
   transition: transform var(--transition-fast);
   box-shadow: var(--shadow-sm);
+  transform: translate(0, -50%);
 }
 .toggle-switch.on { background: var(--color-primary-500); }
-.toggle-switch.on .knob { transform: translateX(18px); }
+.toggle-switch.on .knob { transform: translate(var(--ts-translate-x), -50%); }
+
+/* Small variant for tighter UIs (e.g., family cards on mobile) */
+.toggle-switch--sm {
+  --ts-width: 36px;
+  --ts-height: 22px;
+  --ts-padding: 3px;
+}
 
 .toggle-switch:focus-visible {
   outline: 2px solid var(--color-primary-500);

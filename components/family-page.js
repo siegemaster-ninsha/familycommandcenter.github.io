@@ -94,7 +94,7 @@ const FamilyPage = Vue.defineComponent({
                     <span class="text-secondary-custom">Show on board</span>
                     <button 
                       @click="person.enabledForChores=!person.enabledForChores; $parent.updateMemberChoresEnabled(person)"
-                      :class="['toggle-switch', person.enabledForChores && 'on']"
+                      :class="['toggle-switch', 'toggle-switch--sm', person.enabledForChores && 'on']"
                       aria-label="Toggle show on board"
                     >
                       <span class="knob"></span>
