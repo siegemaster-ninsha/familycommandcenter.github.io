@@ -919,6 +919,25 @@ body.modal-open {
     z-index: 50;
   }
 
+  /* Floating Add Button (FAB) for shopping */
+  .fab-add-item {
+    position: fixed;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    width: 56px;
+    height: 56px;
+    border-radius: 9999px;
+    background: var(--gradient-success);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-lg);
+    border: none;
+    z-index: 60;
+  }
+  .fab-add-item:active { transform: scale(0.96); }
+
   /* Ensure minimum touch target size */
   .touch-target {
     min-height: 48px;

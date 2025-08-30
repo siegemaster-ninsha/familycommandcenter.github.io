@@ -529,30 +529,18 @@ const ShoppingPage = Vue.defineComponent({
         {{ successMessage }}
       </div>
 
-      <!-- Mobile Sticky Action Bar -->
-      <div class="mobile-sticky-actions sm:hidden">
-        <button 
-          class="btn-secondary flex-1 touch-target"
-          @click="clearCompleted"
-          :disabled="completedItems === 0 || actionLoading"
-        >
-          Clear Completed
-        </button>
-        <button 
-          class="btn-success flex-1 touch-target"
-          @click="markAllComplete"
-          :disabled="pendingItems === 0 || actionLoading"
-        >
-          Complete All
-        </button>
-        <button 
-          class="btn-primary flex-1 touch-target"
-          @click="showAddItemModal = true"
-          :disabled="loading"
-        >
-          Add Item
-        </button>
-      </div>
+      <!-- Mobile Floating Add Button (FAB) -->
+      <button 
+        class="fab-add-item sm:hidden"
+        @click="showAddItemModal = true"
+        :disabled="loading"
+        aria-label="Add item"
+        title="Add item"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+          <path d="M13 11h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H5a1 1 0 110-2h6V5a1 1 0 112 0v6z"/>
+        </svg>
+      </button>
     </div>
   `,
   data() {
