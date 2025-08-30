@@ -446,6 +446,8 @@ const app = createApp({
                 // Keep the existing completedChores if it's higher (optimistic update)
                 existingPerson.completedChores = Math.max(existingPerson.completedChores || 0, serverMember.completedChores || 0);
                 if (serverMember.id) existingPerson.id = serverMember.id;
+                // Always refresh board visibility from account preferences
+                existingPerson.enabledForChores = resolveEnabled(serverMember);
                 console.log(`👥 Result for ${serverMember.name}: completedChores=${existingPerson.completedChores}`);
               } else {
                 console.log(`👥 Adding new person from server: ${serverMember.name}`);
