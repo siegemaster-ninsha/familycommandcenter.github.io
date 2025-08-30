@@ -1280,3 +1280,8 @@ button.rounded-full[title*="Delete"] svg {
 @media (max-width: 640px) {
   .header-bar .btn-error { min-height: 44px !important; padding: 10px 14px !important; }
 }
+/* Ensure header (and dropdown) sits above content */
+.header-bar {
+  position: relative;
+  z-index: 60;
+}
