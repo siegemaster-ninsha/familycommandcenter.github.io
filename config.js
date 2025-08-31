@@ -270,6 +270,20 @@ const CONFIG = {
         textPrimary: '#F9FAFB',
         textSecondary: '#D1D5DB'
       }
+    },
+    modernMinimal: {
+      id: 'modernMinimal',
+      name: 'Modern Minimal',
+      description: 'Clean indigo primary with cyan accents',
+      colors: {
+        primary: '#4F46E5',      // Indigo 600
+        secondary: '#06B6D4',    // Cyan 500
+        success: '#10B981',      // Emerald 500
+        warning: '#F59E0B',      // Amber 500
+        error: '#EF4444',        // Red 500
+        textPrimary: '#0F172A',  // Slate 900
+        textSecondary: '#475569' // Slate 600
+      }
     }
   }
 };
