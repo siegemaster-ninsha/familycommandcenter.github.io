@@ -284,6 +284,314 @@ const CONFIG = {
         textPrimary: '#0F172A',  // Slate 900
         textSecondary: '#475569' // Slate 600
       }
+    },
+    warmGrayBlue: {
+      id: 'warmGrayBlue',
+      name: 'Warm Gray + Blue',
+      description: 'Neutral warm grays with crisp blue accents',
+      colors: {
+        primary: '#2563EB',      // Blue 600
+        secondary: '#6B7280',    // Gray 500 (warm gray accent)
+        success: '#10B981',
+        warning: '#D97706',
+        error: '#DC2626',
+        textPrimary: '#1F2937',  // Gray 800
+        textSecondary: '#6B7280' // Gray 500
+      }
+    },
+    tealSand: {
+      id: 'tealSand',
+      name: 'Teal + Sand',
+      description: 'Relaxed teal with warm sand accents',
+      colors: {
+        primary: '#0D9488',      // Teal 600
+        secondary: '#F59E0B',    // Amber 500 (sand accent)
+        success: '#10B981',
+        warning: '#CA8A04',
+        error: '#DC2626',
+        textPrimary: '#1F2937',
+        textSecondary: '#6B7280'
+      }
+    },
+    nocturne: {
+      id: 'nocturne',
+      name: 'Nocturne',
+      description: 'Dark, understated surfaces with vivid blue accents',
+      colors: {
+        primary: '#0B1220',      // very dark navy for surfaces
+        secondary: '#3B82F6',    // Blue 500 accent
+        success: '#22C55E',
+        warning: '#F59E0B',
+        error: '#EF4444',
+        textPrimary: '#F3F4F6',  // light text
+        textSecondary: '#D1D5DB'
+      }
+    },
+    orken: {
+      id: 'orken',
+      name: 'ORKEN',
+      description: 'High-contrast orange with clean neutrals',
+      colors: {
+        primary: '#FF6B01',
+        secondary: '#353535',
+        success: '#22C55E',
+        warning: '#F59E0B',
+        error: '#EF4444',
+        textPrimary: '#353535',
+        textSecondary: '#6B7280'
+      }
+    },
+    manaMate: {
+      id: 'manaMate',
+      name: 'Mana Yerba Mate',
+      description: 'Sunny yellow with navy and soft accents',
+      colors: {
+        primary: '#FFD372',
+        secondary: '#2C3D73',
+        success: '#10B981',
+        warning: '#F59E0B',
+        error: '#EF4444',
+        textPrimary: '#1F2937',
+        textSecondary: '#475569'
+      }
+    },
+    mammutBaikal: {
+      id: 'mammutBaikal',
+      name: 'Mammut Expedition',
+      description: 'Deep blue with safety orange',
+      colors: {
+        primary: '#114AB1',
+        secondary: '#E4580B',
+        success: '#10B981',
+        warning: '#F59E0B',
+        error: '#EF4444',
+        textPrimary: '#0F172A',
+        textSecondary: '#475569'
+      }
+    },
+    kaffestuggu: {
+      id: 'kaffestuggu',
+      name: 'Kaffestuggu',
+      description: 'Calm pastels and cozy neutrals',
+      colors: {
+        primary: '#F2BFA4',
+        secondary: '#F5E7DE',
+        success: '#10B981',
+        warning: '#F59E0B',
+        error: '#EF4444',
+        textPrimary: '#1F2937',
+        textSecondary: '#6B7280'
+      }
+    },
+    advillains: {
+      id: 'advillains',
+      name: 'Advillains',
+      description: 'Energetic yellows with modern neutrals',
+      colors: {
+        primary: '#ECC232',
+        secondary: '#BDBCB8',
+        success: '#10B981',
+        warning: '#F59E0B',
+        error: '#EF4444',
+        textPrimary: '#1F2937',
+        textSecondary: '#6B7280'
+      }
+    },
+    adobeBowie: {
+      id: 'adobeBowie',
+      name: 'Adobe × Bowie',
+      description: 'Bold red with soft sand',
+      colors: {
+        primary: '#F02F34',
+        secondary: '#E7D3BB',
+        success: '#10B981',
+        warning: '#F59E0B',
+        error: '#EF4444',
+        textPrimary: '#1F2937',
+        textSecondary: '#6B7280'
+      }
+    },
+    historyBlockchain: {
+      id: 'historyBlockchain',
+      name: 'History of Blockchain',
+      description: 'Purple with deep midnight',
+      colors: {
+        primary: '#6552D0',
+        secondary: '#17203D',
+        success: '#10B981',
+        warning: '#F59E0B',
+        error: '#EF4444',
+        textPrimary: '#F3F4F6',
+        textSecondary: '#D1D5DB'
+      }
+    },
+    deduxer: {
+      id: 'deduxer',
+      name: 'Deduxer Studio',
+      description: 'Royal purple with modern gray',
+      colors: {
+        primary: '#6552D0',
+        secondary: '#A5A5A5',
+        success: '#10B981',
+        warning: '#F59E0B',
+        error: '#EF4444',
+        textPrimary: '#1F2937',
+        textSecondary: '#6B7280'
+      }
+    },
+    tiktokPartners: {
+      id: 'tiktokPartners',
+      name: 'TikTok Partners',
+      description: 'Black base with neon cyan and hot pink',
+      colors: {
+        primary: '#000000',
+        secondary: '#74F0ED',
+        success: '#10B981',
+        warning: '#F59E0B',
+        error: '#EA445A',
+        textPrimary: '#F3F4F6',
+        textSecondary: '#D1D5DB'
+      }
+    },
+    boldByNature: {
+      id: 'boldByNature',
+      name: 'Bold by Nature',
+      description: 'Forest green with citrus and leaf',
+      colors: {
+        primary: '#172D13',
+        secondary: '#D76F30',
+        success: '#6BB77B',
+        warning: '#F59E0B',
+        error: '#EF4444',
+        textPrimary: '#F3F4F6',
+        textSecondary: '#D1D5DB'
+      }
+    },
+    amour: {
+      id: 'amour',
+      name: 'Amour',
+      description: 'Mint teal with coral and gold',
+      colors: {
+        primary: '#5AC3B0',
+        secondary: '#DE5935',
+        success: '#10B981',
+        warning: '#F7CD46',
+        error: '#EF4444',
+        textPrimary: '#1F2937',
+        textSecondary: '#6B7280'
+      }
+    },
+    authenticBrief: {
+      id: 'authenticBrief',
+      name: 'The Authentic Brief',
+      description: 'Beige base with aqua and magenta accents',
+      colors: {
+        primary: '#5EBEC4',
+        secondary: '#F92C85',
+        success: '#10B981',
+        warning: '#F59E0B',
+        error: '#EF4444',
+        textPrimary: '#0F172A',
+        textSecondary: '#475569'
+      }
+    },
+    transformFestival: {
+      id: 'transformFestival',
+      name: 'Transform Festival',
+      description: 'Lime neon with bright lilac',
+      colors: {
+        primary: '#ABF62D',
+        secondary: '#D6A3FB',
+        success: '#10B981',
+        warning: '#F59E0B',
+        error: '#EF4444',
+        textPrimary: '#0F172A',
+        textSecondary: '#475569'
+      }
+    },
+    bankyfy: {
+      id: 'bankyfy',
+      name: 'Bankyfy',
+      description: 'Golden hues with bright blue',
+      colors: {
+        primary: '#FECD45',
+        secondary: '#2568FB',
+        success: '#10B981',
+        warning: '#F59E0B',
+        error: '#EF4444',
+        textPrimary: '#0F172A',
+        textSecondary: '#475569'
+      }
+    },
+    sigurd: {
+      id: 'sigurd',
+      name: 'Sigurd Lewerentz',
+      description: 'Gray-blue with stark black and white',
+      colors: {
+        primary: '#A0AECD',
+        secondary: '#000000',
+        success: '#10B981',
+        warning: '#F59E0B',
+        error: '#EF4444',
+        textPrimary: '#000000',
+        textSecondary: '#6B7280'
+      }
+    },
+    golfspace: {
+      id: 'golfspace',
+      name: 'GolfSpace',
+      description: 'Deep gray with lime accent',
+      colors: {
+        primary: '#6E6E6E',
+        secondary: '#BCFD4C',
+        success: '#10B981',
+        warning: '#F59E0B',
+        error: '#EF4444',
+        textPrimary: '#0F172A',
+        textSecondary: '#475569'
+      }
+    },
+    studioSimpatico: {
+      id: 'studioSimpatico',
+      name: 'Studio Simpatico',
+      description: 'Navy base with vivid orange and soft accents',
+      colors: {
+        primary: '#1A2238',
+        secondary: '#FF6A3D',
+        success: '#10B981',
+        warning: '#F4DB7D',
+        error: '#EF4444',
+        textPrimary: '#F3F4F6',
+        textSecondary: '#D1D5DB'
+      }
+    },
+    uglyDrinks: {
+      id: 'uglyDrinks',
+      name: 'Ugly Drinks',
+      description: 'Cyan with deep navy',
+      colors: {
+        primary: '#00ABE1',
+        secondary: '#161F6D',
+        success: '#10B981',
+        warning: '#F59E0B',
+        error: '#EF4444',
+        textPrimary: '#0F172A',
+        textSecondary: '#475569'
+      }
+    },
+    distinction: {
+      id: 'distinction',
+      name: 'Distinction',
+      description: 'All-black base with rainbow accents',
+      colors: {
+        primary: '#000000',
+        secondary: '#2CCCC3',
+        success: '#22C55E',
+        warning: '#F59E0B',
+        error: '#E60576',
+        textPrimary: '#F3F4F6',
+        textSecondary: '#D1D5DB'
+      }
     }
   }
 };
@@ -326,7 +634,7 @@ const ThemeManager = {
   // detect if theme is dark based on text color brightness
   isDarkTheme(theme) {
     // Dark themes have light text colors
-    const darkThemes = ['darknight', 'cyberpunk', 'obsidian', 'deepforest', 'darkcrimson', 'strikingElegance'];
+    const darkThemes = ['darknight', 'cyberpunk', 'obsidian', 'deepforest', 'darkcrimson', 'strikingElegance', 'nocturne', 'carbon', 'tiktokPartners', 'distinction', 'historyBlockchain', 'studioSimpatico', 'boldByNature'];
     return darkThemes.includes(theme.id);
   },
 
