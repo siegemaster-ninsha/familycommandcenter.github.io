@@ -6,7 +6,7 @@ const ShoppingPage = Vue.defineComponent({
       <div class="w-full">
         <div class="w-full block rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
           <!-- Header with title and buttons -->
-          <div class="mb-6">
+          <div class="mb-6 sm:mb-8">
             <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2 mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974a1.125 1.125 0 0 1 1.119 1.257Z" />
@@ -79,7 +79,7 @@ const ShoppingPage = Vue.defineComponent({
             <div
               v-for="item in flatShoppingItems"
               :key="item.id"
-              class="flex items-center gap-3 p-3 sm:p-4 rounded-lg transition-all duration-300 hover:bg-opacity-80 transform"
+              class="flex items-center gap-4 p-4 sm:p-4 rounded-lg transition-all duration-300 hover:bg-opacity-80 transform"
               :class="[
                 item.isToggling ? 'opacity-75 pointer-events-none scale-98' : 'cursor-pointer hover:shadow-md hover:scale-102',
                 item.completed ? 'bg-opacity-75' : 'bg-opacity-100'
@@ -162,7 +162,7 @@ const ShoppingPage = Vue.defineComponent({
 
       <!-- Quick List -->
       <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center justify-between mb-4 sm:mb-6">
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M13.5 4.5a.75.75 0 00-1.312-.53L6 12h3.75L8.25 19.5a.75.75 0 001.312.53L18 12h-3.75L13.5 4.5z"/></svg>
             Quick List
@@ -205,7 +205,7 @@ const ShoppingPage = Vue.defineComponent({
           <div
             v-for="quickItem in quickItems"
             :key="quickItem.id"
-            class="flex items-center gap-3 p-4 sm:p-3 rounded-lg transition-colors cursor-pointer"
+            class="flex items-center gap-4 p-4 sm:p-4 rounded-lg transition-colors cursor-pointer"
             style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
             @click="addQuickItemToList(quickItem.id)"
           >
@@ -317,7 +317,7 @@ const ShoppingPage = Vue.defineComponent({
 
       <!-- Store Management -->
       <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center justify-between mb-4 sm:mb-6">
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.25A2.25 2.25 0 0 1 0 18.75V10.5a2.25 2.25 0 0 1 1.5-2.122l8.25-3.06a2.25 2.25 0 0 1 1.5 0l8.25 3.06A2.25 2.25 0 0 1 21 10.5v8.25A2.25 2.25 0 0 1 18.75 21H13.5Z" />
