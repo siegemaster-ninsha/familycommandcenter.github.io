@@ -12,27 +12,23 @@ const ShoppingPage = Vue.defineComponent({
             Shopping List
           </h2>
           <div class="flex items-center gap-2">
-            <!-- Sort by Store Toggle -->
             <div class="flex items-center gap-2">
-              <span class="text-xs sm:text-sm text-secondary-custom">Sort by Store</span>
               <button
-                @click="toggleViewMode"
-                class="relative inline-flex h-4 w-7 sm:h-6 sm:w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                :class="viewMode === 'byStore' ? 'bg-primary-600' : 'bg-gray-200'"
-                :disabled="loading"
-                :title="viewMode === 'byStore' ? 'Switch to flat list view' : 'Switch to grouped by store view'"
+                @click="clearCompleted"
+                class="hidden sm:flex items-center gap-2 btn-warning touch-target"
+                :disabled="completedItems === 0 || loading"
+                :class="completedItems === 0 || loading ? 'opacity-50 cursor-not-allowed' : ''"
               >
-                <span
-                  class="inline-block h-2.5 w-2.5 sm:h-4 sm:w-4 transform rounded-full bg-white transition-transform"
-                  :class="viewMode === 'byStore' ? 'translate-x-3 sm:translate-x-6' : 'translate-x-1'"
-                />
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                  <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
+                </svg>
+                Clear Completed
               </button>
-            </div>
-            <button
-              @click="showAddItemModal = true"
-              class="hidden sm:flex items-center gap-2 btn-primary touch-target"
-              :disabled="loading"
-            >
+              <button
+                @click="showAddItemModal = true"
+                class="hidden sm:flex items-center gap-2 btn-primary touch-target"
+                :disabled="loading"
+              >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
                 <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
               </svg>
@@ -62,165 +58,77 @@ const ShoppingPage = Vue.defineComponent({
           </button>
         </div>
         
-        <!-- Shopping items - conditional rendering based on view mode -->
-        <div v-else>
-          <!-- Grouped by store view -->
-          <div v-if="viewMode === 'byStore'" class="space-y-6">
-            <!-- Items grouped by store - only show in store view mode -->
-            <div v-for="(items, storeName) in itemsByStore" :key="storeName" class="space-y-3">
-              <div class="flex items-center justify-between border-b pb-2" style="border-color: var(--color-border-card);">
-                <h3 class="text-lg font-bold text-primary-custom flex items-center gap-2">
-                  <div
-                    v-if="storeName !== 'No Store Selected'"
-                    class="flex items-center justify-center w-6 h-6 rounded-full text-sm font-bold text-white"
-                    :style="{ backgroundColor: getStoreColor(storeName) }"
-                  >
-                    {{ getStoreInitial(storeName) }}
-                  </div>
-                  <span v-else class="inline-flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-secondary-custom">
+        <!-- Shopping items - All Items view -->
+        <div v-else class="space-y-3">
+          <div class="flex items-center justify-between border-b pb-2 mb-4" style="border-color: var(--color-border-card);">
+            <h3 class="text-lg font-bold text-primary-custom">All Items</h3>
+            <span class="text-sm font-normal text-secondary-custom">({{ shoppingItems.length }} items)</span>
+          </div>
+
+          <div class="space-y-2">
+            <div
+              v-for="item in flatShoppingItems"
+              :key="item.id"
+              class="flex items-center gap-3 p-4 sm:p-3 rounded-lg transition-colors cursor-pointer"
+              @click="toggleItem(item.id)"
+              style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
+            >
+              <input
+                type="checkbox"
+                :checked="item.completed"
+                @change.stop="toggleItem(item.id)"
+                class="sm:w-5 sm:h-5 w-6 h-6 rounded focus:ring-success-600 touch-target text-success-600"
+              >
+              <div class="flex-1">
+                <span
+                  :class="item.completed ? 'line-through text-white opacity-60' : 'text-white'"
+                  class="font-medium text-lg sm:text-base"
+                >
+                  {{ item.name }}
+                </span>
+                <div class="text-base sm:text-sm text-white text-opacity-90 flex items-center gap-2 mt-1">
+                  <span class="inline-flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 opacity-90"><path d="M2.25 12a9.75 9.75 0 1119.5 0 9.75 9.75 0 01-19.5 0zm7.53-3.28a.75.75 0 10-1.06 1.06L10.94 12l-2.22 2.22a.75.75 0 101.06 1.06L12 13.06l2.22 2.22a.75.75 0 101.06-1.06L13.06 12l2.22-2.22a.75.75 0 10-1.06-1.06L12 10.94 9.78 8.72z"/></svg>
+                    <span>{{ item.category }}</span>
+                  </span>
+                  <span v-if="item.quantity">• Qty: {{ item.quantity }}</span>
+                  <span v-if="item.notes">• {{ item.notes }}</span>
+                  <span v-if="item.store" class="inline-flex items-center gap-1 text-xs bg-white bg-opacity-20 px-2 py-1 rounded">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.25A2.25 2.25 0 0 1 0 18.75V10.5a2.25 2.25 0 0 1 1.5-2.122l8.25-3.06a2.25 2.25 0 0 1 1.5 0l8.25 3.06A2.25 2.25 0 0 1 21 10.5v8.25A2.25 2.25 0 0 1 18.75 21H13.5Z" />
                     </svg>
+                    {{ item.store }}
                   </span>
-                  {{ storeName || 'No Store Selected' }}
-                  <span class="text-sm font-normal text-secondary-custom">({{ items.length }} items)</span>
-                </h3>
-              </div>
-
-              <div class="space-y-2">
-                <div
-                  v-for="item in items"
-                  :key="item.id"
-                  class="flex items-center gap-3 p-4 sm:p-3 rounded-lg transition-colors cursor-pointer"
-                  @click="toggleItem(item.id)"
-                  style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
-                >
-                  <input
-                    type="checkbox"
-                    :checked="item.completed"
-                    @change.stop="toggleItem(item.id)"
-                    class="sm:w-5 sm:h-5 w-6 h-6 rounded focus:ring-success-600 touch-target text-success-600"
-                  >
-                  <div class="flex-1">
-                    <span
-                      :class="item.completed ? 'line-through text-white opacity-60' : 'text-white'"
-                      class="font-medium text-lg sm:text-base"
-                    >
-                      {{ item.name }}
-                    </span>
-                    <div class="text-base sm:text-sm text-white text-opacity-90 flex items-center gap-2 mt-1">
-                      <span class="inline-flex items-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 opacity-90"><path d="M2.25 12a9.75 9.75 0 1119.5 0 9.75 9.75 0 01-19.5 0zm7.53-3.28a.75.75 0 10-1.06 1.06L10.94 12l-2.22 2.22a.75.75 0 101.06 1.06L12 13.06l2.22 2.22a.75.75 0 101.06-1.06L13.06 12l2.22-2.22a.75.75 0 10-1.06-1.06L12 10.94 9.78 8.72z"/></svg>
-                        <span>{{ item.category }}</span>
-                      </span>
-                      <span v-if="item.quantity">• Qty: {{ item.quantity }}</span>
-                      <span v-if="item.notes">• {{ item.notes }}</span>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <button
-                      @click.stop="startEditItem(item)"
-                      class="btn-icon btn-icon--secondary"
-                      title="Edit item"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                      </svg>
-                    </button>
-                    <button
-                      @click.stop="removeItem(item.id)"
-                      class="btn-icon btn-icon--danger"
-                      title="Remove item"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13.41 12l4.3-4.29a1 1 0 10-1.42-1.42L12 10.59 7.71 6.29a1 1 0 10-1.42 1.42L10.59 12l-4.3 4.29a1 1 0 101.42 1.42L12 13.41l4.29 4.3a1 1 0 001.42-1.42z"/></svg>
-                    </button>
-                  </div>
                 </div>
               </div>
-            </div>
-
-            <div v-if="shoppingItems.length === 0" class="text-center py-8 text-secondary-custom">
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="mx-auto mb-3 opacity-50" viewBox="0 0 256 256">
-                <path d="M222.14,58.87A8,8,0,0,0,216,56H54.68L49.79,29.14A16,16,0,0,0,34.05,16H16a8,8,0,0,0,0,16H34.05l31.1,180.14A16,16,0,0,0,80.89,224H208a8,8,0,0,0,0-16H80.89L78.18,192H188.1a16,16,0,0,0,15.74-13.14L222.14,58.87ZM188.1,176H75.17l-18.73-108H207.37Z"></path>
-              </svg>
-              <p>Your shopping list is empty.</p>
-              <p class="text-sm mt-1">Click "Add Item" to get started or use the quick list below!</p>
+              <div class="flex items-center gap-1">
+                <button
+                  @click.stop="startEditItem(item)"
+                  class="btn-icon btn-icon--secondary"
+                  title="Edit item"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+                <button
+                  @click.stop="removeItem(item.id)"
+                  class="btn-icon btn-icon--danger"
+                  title="Remove item"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13.41 12l4.3-4.29a1 1 0 10-1.42-1.42L12 10.59 7.71 6.29a1 1 0 10-1.42 1.42L10.59 12l-4.3 4.29a1 1 0 101.42 1.42L12 13.41l4.29 4.3a1 1 0 001.42-1.42z"/></svg>
+                </button>
+              </div>
             </div>
           </div>
 
-          <!-- Flat list view -->
-          <div v-else class="space-y-3">
-            <div class="flex items-center justify-between border-b pb-2 mb-4" style="border-color: var(--color-border-card);">
-              <h3 class="text-lg font-bold text-primary-custom">All Items</h3>
-              <span class="text-sm font-normal text-secondary-custom">({{ shoppingItems.length }} items)</span>
-            </div>
-
-            <div class="space-y-2">
-              <div
-                v-for="item in flatShoppingItems"
-                :key="item.id"
-                class="flex items-center gap-3 p-4 sm:p-3 rounded-lg transition-colors cursor-pointer"
-                @click="toggleItem(item.id)"
-                style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
-              >
-                <input
-                  type="checkbox"
-                  :checked="item.completed"
-                  @change.stop="toggleItem(item.id)"
-                  class="sm:w-5 sm:h-5 w-6 h-6 rounded focus:ring-success-600 touch-target text-success-600"
-                >
-                <div class="flex-1">
-                  <span
-                    :class="item.completed ? 'line-through text-white opacity-60' : 'text-white'"
-                    class="font-medium text-lg sm:text-base"
-                  >
-                    {{ item.name }}
-                  </span>
-                  <div class="text-base sm:text-sm text-white text-opacity-90 flex items-center gap-2 mt-1">
-                    <span class="inline-flex items-center gap-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 opacity-90"><path d="M2.25 12a9.75 9.75 0 1119.5 0 9.75 9.75 0 01-19.5 0zm7.53-3.28a.75.75 0 10-1.06 1.06L10.94 12l-2.22 2.22a.75.75 0 101.06 1.06L12 13.06l2.22 2.22a.75.75 0 101.06-1.06L13.06 12l2.22-2.22a.75.75 0 10-1.06-1.06L12 10.94 9.78 8.72z"/></svg>
-                      <span>{{ item.category }}</span>
-                    </span>
-                    <span v-if="item.quantity">• Qty: {{ item.quantity }}</span>
-                    <span v-if="item.notes">• {{ item.notes }}</span>
-                    <span v-if="item.store" class="inline-flex items-center gap-1 text-xs bg-white bg-opacity-20 px-2 py-1 rounded">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.25A2.25 2.25 0 0 1 0 18.75V10.5a2.25 2.25 0 0 1 1.5-2.122l8.25-3.06a2.25 2.25 0 0 1 1.5 0l8.25 3.06A2.25 2.25 0 0 1 21 10.5v8.25A2.25 2.25 0 0 1 18.75 21H13.5Z" />
-                      </svg>
-                      {{ item.store }}
-                    </span>
-                  </div>
-                </div>
-                <div class="flex items-center gap-1">
-                  <button
-                    @click.stop="startEditItem(item)"
-                    class="btn-icon btn-icon--secondary"
-                    title="Edit item"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                    </svg>
-                  </button>
-                  <button
-                    @click.stop="removeItem(item.id)"
-                    class="btn-icon btn-icon--danger"
-                    title="Remove item"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13.41 12l4.3-4.29a1 1 0 10-1.42-1.42L12 10.59 7.71 6.29a1 1 0 10-1.42 1.42L10.59 12l-4.3 4.29a1 1 0 101.42 1.42L12 13.41l4.29 4.3a1 1 0 001.42-1.42z"/></svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div v-if="shoppingItems.length === 0" class="text-center py-8 text-secondary-custom">
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="mx-auto mb-3 opacity-50" viewBox="0 0 256 256">
-                <path d="M222.14,58.87A8,8,0,0,0,216,56H54.68L49.79,29.14A16,16,0,0,0,34.05,16H16a8,8,0,0,0,0,16H34.05l31.1,180.14A16,16,0,0,0,80.89,224H208a8,8,0,0,0,0-16H80.89L78.18,192H188.1a16,16,0,0,0,15.74-13.14L222.14,58.87ZM188.1,176H75.17l-18.73-108H207.37Z"></path>
-              </svg>
-              <p>Your shopping list is empty.</p>
-              <p class="text-sm mt-1">Click "Add Item" to get started or use the quick list below!</p>
-            </div>
+          <div v-if="shoppingItems.length === 0" class="text-center py-8 text-secondary-custom">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="mx-auto mb-3 opacity-50" viewBox="0 0 256 256">
+              <path d="M222.14,58.87A8,8,0,0,0,216,56H54.68L49.79,29.14A16,16,0,0,0,34.05,16H16a8,8,0,0,0,0,16H34.05l31.1,180.14A16,16,0,0,0,80.89,224H208a8,8,0,0,0,0-16H80.89L78.18,192H188.1a16,16,0,0,0,15.74-13.14L222.14,58.87ZM188.1,176H75.17l-18.73-108H207.37Z"></path>
+            </svg>
+            <p>Your shopping list is empty.</p>
+            <p class="text-sm mt-1">Click "Add Item" to get started or use the quick list below!</p>
           </div>
         </div>
       </div>
@@ -747,7 +655,6 @@ const ShoppingPage = Vue.defineComponent({
       newStore: {
         name: ''
       },
-      viewMode: 'byStore', // 'byStore' or 'flat'
       showEditItemModal: false,
       showEditQuickItemModal: false,
       editingItem: null, // The shopping item being edited
@@ -768,35 +675,6 @@ const ShoppingPage = Vue.defineComponent({
       return this.shoppingItems.length > 0 ? Math.round((this.completedItems / this.shoppingItems.length) * 100) : 0;
     },
 
-    itemsByStore() {
-      const grouped = {};
-      this.shoppingItems.forEach(item => {
-        const storeName = item.store || 'No Store Selected';
-        if (!grouped[storeName]) {
-          grouped[storeName] = [];
-        }
-        grouped[storeName].push(item);
-      });
-
-      // Sort items within each store: by category, then alphabetically, then completed to bottom
-      Object.keys(grouped).forEach(storeName => {
-        grouped[storeName].sort((a, b) => {
-          // First, completed items go to bottom
-          if (a.completed && !b.completed) return 1;
-          if (!a.completed && b.completed) return -1;
-
-          // Then sort by category alphabetically
-          if (a.category !== b.category) {
-            return a.category.localeCompare(b.category);
-          }
-
-          // Finally sort by name alphabetically
-          return a.name.localeCompare(b.name);
-        });
-      });
-
-      return grouped;
-    },
     
     // Use injected data with fallback names for template compatibility
     quickItems() {
@@ -1108,10 +986,6 @@ const ShoppingPage = Vue.defineComponent({
       }
     },
 
-    // === View Mode Methods ===
-    toggleViewMode() {
-      this.viewMode = this.viewMode === 'byStore' ? 'flat' : 'byStore';
-    },
 
     // === Edit Methods ===
     startEditItem(item) {
