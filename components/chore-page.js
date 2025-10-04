@@ -399,18 +399,19 @@ const ChorePage = Vue.defineComponent({
       chore.isSelecting = true;
 
       try {
-        // Only allow cross-assignment if:
+        // Allow cross-assignment if:
         // 1. There's a currently selected chore
-        // 2. The currently selected chore is unassigned or can be reassigned
-        // 3. The target chore has an assignee
+        // 2. The target chore has an assignee
         if (this.$parent.selectedChore &&
             this.$parent.selectedChoreId !== chore.id &&
             chore.assignedTo &&
-            chore.assignedTo !== 'unassigned' &&
-            (!this.$parent.selectedChore.assignedTo || this.$parent.selectedChore.assignedTo === 'unassigned')) {
+            chore.assignedTo !== 'unassigned') {
 
-          // Cross-assign the currently selected (unassigned) chore to the person who has the target chore
+          // Cross-assign the currently selected chore to the person who has the target chore
           this.assignSelectedChore(chore.assignedTo);
+          // Clear any current selection since we're not selecting the target chore
+          this.$parent.selectedChoreId = null;
+          this.$parent.selectedQuicklistChore = null;
           return;
         }
 
