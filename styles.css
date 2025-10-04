@@ -830,6 +830,7 @@ body.modal-open {
     transform: inherit !important;
   }
 
+
   /* preserve modal overlay backdrop on first tap in iOS safari where :hover can stick */
   .modal-overlay:hover {
     background-color: rgba(0, 0, 0, 0.5) !important;
@@ -862,6 +863,7 @@ body.modal-open {
     transform: inherit !important;
     color: inherit !important;
   }
+
   
   /* Disable group-hover effects on touch devices - this is critical for mobile interactions */
   .group:hover .group-hover\:opacity-100,
@@ -1223,11 +1225,37 @@ button.rounded-full[title*="Delete"] svg {
 /* Fallback for utility class order variations */
 .selected-chore [class*="bg-white"][class*="bg-opacity-20"]:not(.family-card *):not(.family-avatar) { background-color: transparent !important; }
 
-/* Ensure family cards maintain their styling when in selected state */
-.family-card {
-  background: var(--color-primary-500) !important;
-  border-color: var(--color-primary-600) !important;
-}
+  /* Ensure family cards maintain their styling when in selected state */
+  .family-card {
+    background: var(--color-primary-500) !important;
+    border-color: var(--color-primary-600) !important;
+  }
+
+  /* Prevent family cards from responding to touch/hover interactions */
+  .family-card {
+    pointer-events: auto; /* Allow clicks on the toggle button */
+  }
+
+  .family-card:hover {
+    transform: none !important;
+    box-shadow: inherit !important;
+  }
+
+  /* On touch devices, prevent family card background changes but allow toggle button */
+  @media (hover: none) and (pointer: coarse) {
+    .family-card:hover,
+    .family-card:active {
+      background-color: var(--color-primary-500) !important;
+      border-color: var(--color-primary-600) !important;
+      transform: none !important;
+    }
+
+    /* Ensure the toggle button still works on touch devices */
+    .family-card button[aria-expanded] {
+      pointer-events: auto;
+    }
+  }
+
 
 /* Enhanced mobile selected state */
 @media (max-width: 640px) {
