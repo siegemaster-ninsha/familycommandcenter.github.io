@@ -9,16 +9,33 @@ const ShoppingPage = Vue.defineComponent({
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M2.25 3a.75.75 0 000 1.5h1.386l2.68 9.381A2.25 2.25 0 008.5 15h7.19a2.25 2.25 0 002.134-1.5l2.1-6A.75.75 0 0019.25 6H6.343L5.79 3.987A1.5 1.5 0 004.386 3H2.25z"/><path d="M8.75 20.5a1.25 1.25 0 11-2.5 0 1.25 1.25 0 012.5 0zm10 0a1.25 1.25 0 11-2.5 0 1.25 1.25 0 012.5 0z"/></svg>
             Shopping List
           </h2>
-          <button
-            @click="showAddItemModal = true"
-            class="hidden sm:flex items-center gap-2 btn-primary touch-target"
-            :disabled="loading"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-              <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
-            </svg>
-            Add Item
-          </button>
+          <div class="flex items-center gap-2">
+            <button
+              @click="toggleViewMode"
+              class="hidden sm:flex items-center gap-2 px-3 py-2 border rounded-lg hover:bg-gray-50 transition-colors touch-target"
+              :disabled="loading"
+              style="border-color: var(--color-border-card);"
+              :title="viewMode === 'byStore' ? 'Switch to flat list view' : 'Switch to grouped by store view'"
+            >
+              <svg v-if="viewMode === 'byStore'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                <path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128Z"/>
+              </svg>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                <path d="M128,72a8,8,0,0,1,8-8h80a8,8,0,0,1,0,16H136A8,8,0,0,1,128,72Zm88,32H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Zm-88,32a8,8,0,0,1,8-8H216a8,8,0,0,1,0,16H136A8,8,0,0,1,128,136Z"/>
+              </svg>
+              {{ viewMode === 'byStore' ? 'List View' : 'Store View' }}
+            </button>
+            <button
+              @click="showAddItemModal = true"
+              class="hidden sm:flex items-center gap-2 btn-primary touch-target"
+              :disabled="loading"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
+              </svg>
+              Add Item
+            </button>
+          </div>
         </div>
         
         <!-- Loading state -->
@@ -42,43 +59,111 @@ const ShoppingPage = Vue.defineComponent({
           </button>
         </div>
         
-        <!-- Shopping items grouped by store -->
-        <div v-else class="space-y-6">
-          <!-- Items grouped by store -->
-          <div v-for="(items, storeName) in itemsByStore" :key="storeName" class="space-y-3">
-            <div class="flex items-center justify-between border-b pb-2" style="border-color: var(--color-border-card);">
-              <h3 class="text-lg font-bold text-primary-custom flex items-center gap-2">
-                <div 
-                  v-if="storeName !== 'No Store Selected'"
-                  class="flex items-center justify-center w-6 h-6 rounded-full text-sm font-bold text-white"
-                  :style="{ backgroundColor: getStoreColor(storeName) }"
+        <!-- Shopping items - conditional rendering based on view mode -->
+        <div v-else>
+          <!-- Grouped by store view -->
+          <div v-if="viewMode === 'byStore'" class="space-y-6">
+            <!-- Items grouped by store -->
+            <div v-for="(items, storeName) in itemsByStore" :key="storeName" class="space-y-3">
+              <div class="flex items-center justify-between border-b pb-2" style="border-color: var(--color-border-card);">
+                <h3 class="text-lg font-bold text-primary-custom flex items-center gap-2">
+                  <div
+                    v-if="storeName !== 'No Store Selected'"
+                    class="flex items-center justify-center w-6 h-6 rounded-full text-sm font-bold text-white"
+                    :style="{ backgroundColor: getStoreColor(storeName) }"
+                  >
+                    {{ getStoreInitial(storeName) }}
+                  </div>
+                  <span v-else class="inline-flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-secondary-custom"><path d="M3.375 3a.375.375 0 00-.375.375v2.25c0 .621.504 1.125 1.125 1.125h15.75A1.125 1.125 0 0021 5.625v-2.25A.375.375 0 0020.625 3H3.375z"/><path fill-rule="evenodd" d="M3 8.25A2.25 2.25 0 015.25 6h13.5A2.25 2.25 0 0121 8.25v9A2.25 2.25 0 0118.75 19.5H5.25A2.25 2.25 0 013 17.25v-9zm3 3a.75.75 0 01.75-.75h2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-.75.75H6.75a.75.75 0 01-.75-.75v-2.25z" clip-rule="evenodd"/></svg>
+                  </span>
+                  {{ storeName || 'No Store Selected' }}
+                  <span class="text-sm font-normal text-secondary-custom">({{ items.length }} items)</span>
+                </h3>
+              </div>
+
+              <div class="space-y-2">
+                <div
+                  v-for="item in items"
+                  :key="item.id"
+                  class="flex items-center gap-3 p-4 sm:p-3 rounded-lg transition-colors cursor-pointer"
+                  @click="toggleItem(item.id)"
+                  style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
                 >
-                  {{ getStoreInitial(storeName) }}
+                  <input
+                    type="checkbox"
+                    :checked="item.completed"
+                    @change.stop="toggleItem(item.id)"
+                    class="sm:w-5 sm:h-5 w-6 h-6 rounded focus:ring-success-600 touch-target text-success-600"
+                  >
+                  <div class="flex-1">
+                    <span
+                      :class="item.completed ? 'line-through text-white opacity-60' : 'text-white'"
+                      class="font-medium text-lg sm:text-base"
+                    >
+                      {{ item.name }}
+                    </span>
+                    <div class="text-base sm:text-sm text-white text-opacity-90 flex items-center gap-2 mt-1">
+                      <span class="inline-flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 opacity-90"><path d="M2.25 12a9.75 9.75 0 1119.5 0 9.75 9.75 0 01-19.5 0zm7.53-3.28a.75.75 0 10-1.06 1.06L10.94 12l-2.22 2.22a.75.75 0 101.06 1.06L12 13.06l2.22 2.22a.75.75 0 101.06-1.06L13.06 12l2.22-2.22a.75.75 0 10-1.06-1.06L12 10.94 9.78 8.72z"/></svg>
+                        <span>{{ item.category }}</span>
+                      </span>
+                      <span v-if="item.quantity">• Qty: {{ item.quantity }}</span>
+                      <span v-if="item.notes">• {{ item.notes }}</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <button
+                      @click.stop="startEditItem(item)"
+                      class="btn-icon btn-icon--secondary"
+                      title="Edit item"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19 13.998V18a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2h7.002L19 13.998z"/></svg>
+                    </button>
+                    <button
+                      @click.stop="removeItem(item.id)"
+                      class="btn-icon btn-icon--danger"
+                      title="Remove item"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13.41 12l4.3-4.29a1 1 0 10-1.42-1.42L12 10.59 7.71 6.29a1 1 0 10-1.42 1.42L10.59 12l-4.3 4.29a1 1 0 101.42 1.42L12 13.41l4.29 4.3a1 1 0 001.42-1.42z"/></svg>
+                    </button>
+                  </div>
                 </div>
-                <span v-else class="inline-flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-secondary-custom"><path d="M3.375 3a.375.375 0 00-.375.375v2.25c0 .621.504 1.125 1.125 1.125h15.75A1.125 1.125 0 0021 5.625v-2.25A.375.375 0 0020.625 3H3.375z"/><path fill-rule="evenodd" d="M3 8.25A2.25 2.25 0 015.25 6h13.5A2.25 2.25 0 0121 8.25v9A2.25 2.25 0 0118.75 19.5H5.25A2.25 2.25 0 013 17.25v-9zm3 3a.75.75 0 01.75-.75h2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-.75.75H6.75a.75.75 0 01-.75-.75v-2.25z" clip-rule="evenodd"/></svg>
-                </span>
-                {{ storeName || 'No Store Selected' }}
-                <span class="text-sm font-normal text-secondary-custom">({{ items.length }} items)</span>
-              </h3>
+              </div>
             </div>
-            
+
+            <div v-if="shoppingItems.length === 0" class="text-center py-8 text-secondary-custom">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="mx-auto mb-3 opacity-50" viewBox="0 0 256 256">
+                <path d="M222.14,58.87A8,8,0,0,0,216,56H54.68L49.79,29.14A16,16,0,0,0,34.05,16H16a8,8,0,0,0,0,16H34.05l31.1,180.14A16,16,0,0,0,80.89,224H208a8,8,0,0,0,0-16H80.89L78.18,192H188.1a16,16,0,0,0,15.74-13.14L222.14,58.87ZM188.1,176H75.17l-18.73-108H207.37Z"></path>
+              </svg>
+              <p>Your shopping list is empty.</p>
+              <p class="text-sm mt-1">Click "Add Item" to get started or use the quick list below!</p>
+            </div>
+          </div>
+
+          <!-- Flat list view -->
+          <div v-else class="space-y-3">
+            <div class="flex items-center justify-between border-b pb-2 mb-4" style="border-color: var(--color-border-card);">
+              <h3 class="text-lg font-bold text-primary-custom">All Items</h3>
+              <span class="text-sm font-normal text-secondary-custom">({{ shoppingItems.length }} items)</span>
+            </div>
+
             <div class="space-y-2">
-              <div 
-                v-for="item in items" 
+              <div
+                v-for="item in flatShoppingItems"
                 :key="item.id"
                 class="flex items-center gap-3 p-4 sm:p-3 rounded-lg transition-colors cursor-pointer"
                 @click="toggleItem(item.id)"
                 style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
               >
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   :checked="item.completed"
                   @change.stop="toggleItem(item.id)"
                   class="sm:w-5 sm:h-5 w-6 h-6 rounded focus:ring-success-600 touch-target text-success-600"
                 >
                 <div class="flex-1">
-                  <span 
+                  <span
                     :class="item.completed ? 'line-through text-white opacity-60' : 'text-white'"
                     class="font-medium text-lg sm:text-base"
                   >
@@ -91,25 +176,41 @@ const ShoppingPage = Vue.defineComponent({
                     </span>
                     <span v-if="item.quantity">• Qty: {{ item.quantity }}</span>
                     <span v-if="item.notes">• {{ item.notes }}</span>
+                    <span v-if="item.store" class="inline-flex items-center gap-1 text-xs bg-white bg-opacity-20 px-2 py-1 rounded">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3">
+                        <path d="M3.375 3a.375.375 0 00-.375.375v2.25c0 .621.504 1.125 1.125 1.125h15.75A1.125 1.125 0 0021 5.625v-2.25A.375.375 0 0020.625 3H3.375z"/>
+                        <path fill-rule="evenodd" d="M3 8.25A2.25 2.25 0 015.25 6h13.5A2.25 2.25 0 0121 8.25v9A2.25 2.25 0 0118.75 19.5H5.25A2.25 2.25 0 013 17.25v-9zm3 3a.75.75 0 01.75-.75h2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-.75.75H6.75a.75.75 0 01-.75-.75v-2.25z" clip-rule="evenodd"/>
+                      </svg>
+                      {{ item.store }}
+                    </span>
                   </div>
                 </div>
-                <button
-                  @click.stop="removeItem(item.id)"
-                  class="btn-icon btn-icon--danger"
-                  title="Remove item"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13.41 12l4.3-4.29a1 1 0 10-1.42-1.42L12 10.59 7.71 6.29a1 1 0 10-1.42 1.42L10.59 12l-4.3 4.29a1 1 0 101.42 1.42L12 13.41l4.29 4.3a1 1 0 001.42-1.42z"/></svg>
-                </button>
+                <div class="flex items-center gap-1">
+                  <button
+                    @click.stop="startEditItem(item)"
+                    class="btn-icon btn-icon--secondary"
+                    title="Edit item"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19 13.998V18a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2h7.002L19 13.998z"/></svg>
+                  </button>
+                  <button
+                    @click.stop="removeItem(item.id)"
+                    class="btn-icon btn-icon--danger"
+                    title="Remove item"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13.41 12l4.3-4.29a1 1 0 10-1.42-1.42L12 10.59 7.71 6.29a1 1 0 10-1.42 1.42L10.59 12l-4.3 4.29a1 1 0 101.42 1.42L12 13.41l4.29 4.3a1 1 0 001.42-1.42z"/></svg>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-          
-          <div v-if="shoppingItems.length === 0" class="text-center py-8 text-secondary-custom">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="mx-auto mb-3 opacity-50" viewBox="0 0 256 256">
-              <path d="M222.14,58.87A8,8,0,0,0,216,56H54.68L49.79,29.14A16,16,0,0,0,34.05,16H16a8,8,0,0,0,0,16H34.05l31.1,180.14A16,16,0,0,0,80.89,224H208a8,8,0,0,0,0-16H80.89L78.18,192H188.1a16,16,0,0,0,15.74-13.14L222.14,58.87ZM188.1,176H75.17l-18.73-108H207.37Z"></path>
-            </svg>
-            <p>Your shopping list is empty.</p>
-            <p class="text-sm mt-1">Click "Add Item" to get started or use the quick list below!</p>
+
+            <div v-if="shoppingItems.length === 0" class="text-center py-8 text-secondary-custom">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="mx-auto mb-3 opacity-50" viewBox="0 0 256 256">
+                <path d="M222.14,58.87A8,8,0,0,0,216,56H54.68L49.79,29.14A16,16,0,0,0,34.05,16H16a8,8,0,0,0,0,16H34.05l31.1,180.14A16,16,0,0,0,80.89,224H208a8,8,0,0,0,0-16H80.89L78.18,192H188.1a16,16,0,0,0,15.74-13.14L222.14,58.87ZM188.1,176H75.17l-18.73-108H207.37Z"></path>
+              </svg>
+              <p>Your shopping list is empty.</p>
+              <p class="text-sm mt-1">Click "Add Item" to get started or use the quick list below!</p>
+            </div>
           </div>
         </div>
       </div>
@@ -173,16 +274,27 @@ const ShoppingPage = Vue.defineComponent({
               {{ getStoreInitial(quickItem.defaultStore) }}
             </div>
             
-            <!-- Delete button (top-right corner) -->
-            <button
-              @click.stop="removeQuickItem(quickItem.id)"
-              class="absolute -top-1 -right-1 text-white rounded-full w-6 h-6 sm:w-5 sm:h-5 flex items-center justify-center text-sm sm:text-xs sm:opacity-0 sm:group-hover:opacity-100 opacity-60 transition-opacity duration-200 touch-target"
-              style="background: var(--color-error-600)"
-              title="Remove quick item"
-              :disabled="quickActionLoading"
-            >
-              ×
-            </button>
+            <!-- Action buttons (top corners) -->
+            <div class="absolute -top-1 -right-1 flex gap-1">
+              <button
+                @click.stop="startEditQuickItem(quickItem)"
+                class="text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-60 hover:opacity-100 transition-opacity duration-200 touch-target"
+                style="background: var(--color-secondary-600)"
+                title="Edit quick item"
+                :disabled="quickActionLoading"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19 13.998V18a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2h7.002L19 13.998z"/></svg>
+              </button>
+              <button
+                @click.stop="removeQuickItem(quickItem.id)"
+                class="text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-60 hover:opacity-100 transition-opacity duration-200 touch-target"
+                style="background: var(--color-error-600)"
+                title="Remove quick item"
+                :disabled="quickActionLoading"
+              >
+                ×
+              </button>
+            </div>
             
             <div class="text-2xl text-white opacity-90">
               <!-- generic item icon -->
@@ -332,17 +444,17 @@ const ShoppingPage = Vue.defineComponent({
         </div>
       </div>
 
-      <!-- Add Item Modal -->
+      <!-- Add/Edit Item Modal -->
       <div v-if="showAddItemModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-          <h3 class="text-lg font-bold mb-4">Add Shopping Item</h3>
-          
-          <form @submit.prevent="addItem">
+          <h3 class="text-lg font-bold mb-4">{{ editMode ? 'Edit Shopping Item' : 'Add Shopping Item' }}</h3>
+
+          <form @submit.prevent="saveItem">
             <div class="space-y-4">
               <div>
                 <label class="block text-sm font-medium mb-1">Item Name *</label>
                 <input
-                  v-model="newItem.name"
+                  v-model="editMode ? editingItem.name : newItem.name"
                   type="text"
                   class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   style="border-color: var(--color-border-card)"
@@ -350,11 +462,11 @@ const ShoppingPage = Vue.defineComponent({
                   required
                 >
               </div>
-              
+
               <div>
                 <label class="block text-sm font-medium mb-1">Category</label>
                 <select
-                  v-model="newItem.category"
+                  v-model="editMode ? editingItem.category : newItem.category"
                   class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   style="border-color: var(--color-border-card)"
                 >
@@ -369,11 +481,11 @@ const ShoppingPage = Vue.defineComponent({
                   <option value="Personal Care">Personal Care</option>
                 </select>
               </div>
-              
+
               <div>
                 <label class="block text-sm font-medium mb-1">Store</label>
                 <select
-                  v-model="newItem.store"
+                  v-model="editMode ? editingItem.store : newItem.store"
                   class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   style="border-color: var(--color-border-card)"
                 >
@@ -381,22 +493,22 @@ const ShoppingPage = Vue.defineComponent({
                   <option v-for="store in stores" :key="store.id" :value="store.name">{{ store.name }}</option>
                 </select>
               </div>
-              
+
               <div>
                 <label class="block text-sm font-medium mb-1">Quantity</label>
                 <input
-                  v-model="newItem.quantity"
+                  v-model="editMode ? editingItem.quantity : newItem.quantity"
                   type="text"
                   class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   style="border-color: var(--color-border-card)"
                   placeholder="e.g., 2 lbs, 1 gallon"
                 >
               </div>
-              
+
               <div>
                 <label class="block text-sm font-medium mb-1">Notes</label>
                 <input
-                  v-model="newItem.notes"
+                  v-model="editMode ? editingItem.notes : newItem.notes"
                   type="text"
                   class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   style="border-color: var(--color-border-card)"
@@ -404,11 +516,11 @@ const ShoppingPage = Vue.defineComponent({
                 >
               </div>
             </div>
-            
+
             <div class="flex gap-3 mt-6">
               <button
                 type="button"
-                @click="showAddItemModal = false"
+                @click="cancelEdit"
                 class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
                 style="border-color: var(--color-border-card)"
               >
@@ -416,27 +528,27 @@ const ShoppingPage = Vue.defineComponent({
               </button>
               <button
                 type="submit"
-              class="flex-1 btn-success"
-                :disabled="!newItem.name || actionLoading"
+                class="flex-1 btn-success"
+                :disabled="(!editMode ? !newItem.name : !editingItem.name) || actionLoading"
               >
-                Add Item
+                {{ editMode ? 'Update Item' : 'Add Item' }}
               </button>
             </div>
           </form>
         </div>
       </div>
 
-      <!-- Add Quick Item Modal -->
+      <!-- Add/Edit Quick Item Modal -->
       <div v-if="showAddQuickItemModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-          <h3 class="text-lg font-bold mb-4">Add Quick Item</h3>
-          
-          <form @submit.prevent="addQuickItem">
+          <h3 class="text-lg font-bold mb-4">{{ editMode ? 'Edit Quick Item' : 'Add Quick Item' }}</h3>
+
+          <form @submit.prevent="saveQuickItem">
             <div class="space-y-4">
               <div>
                 <label class="block text-sm font-medium mb-1">Item Name *</label>
                 <input
-                  v-model="newQuickItem.name"
+                  v-model="editMode ? editingQuickItem.name : newQuickItem.name"
                   type="text"
                   class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   style="border-color: var(--color-border-card)"
@@ -444,11 +556,11 @@ const ShoppingPage = Vue.defineComponent({
                   required
                 >
               </div>
-              
+
               <div>
                 <label class="block text-sm font-medium mb-1">Category</label>
                 <select
-                  v-model="newQuickItem.category"
+                  v-model="editMode ? editingQuickItem.category : newQuickItem.category"
                   class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   style="border-color: var(--color-border-card)"
                 >
@@ -463,33 +575,33 @@ const ShoppingPage = Vue.defineComponent({
                   <option value="Personal Care">Personal Care</option>
                 </select>
               </div>
-              
+
               <div>
                 <label class="block text-sm font-medium mb-1">Default Quantity</label>
                 <input
-                  v-model="newQuickItem.defaultQuantity"
+                  v-model="editMode ? editingQuickItem.defaultQuantity : newQuickItem.defaultQuantity"
                   type="text"
                   class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   style="border-color: var(--color-border-card)"
                   placeholder="e.g., 2 lbs, 1 gallon"
                 >
               </div>
-              
+
               <div>
                 <label class="block text-sm font-medium mb-1">Default Notes</label>
                 <input
-                  v-model="newQuickItem.defaultNotes"
+                  v-model="editMode ? editingQuickItem.defaultNotes : newQuickItem.defaultNotes"
                   type="text"
                   class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   style="border-color: var(--color-border-card)"
                   placeholder="Any default notes"
                 >
               </div>
-              
+
               <div>
                 <label class="block text-sm font-medium mb-1">Default Store</label>
                 <select
-                  v-model="newQuickItem.defaultStore"
+                  v-model="editMode ? editingQuickItem.defaultStore : newQuickItem.defaultStore"
                   class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   style="border-color: var(--color-border-card)"
                 >
@@ -500,11 +612,11 @@ const ShoppingPage = Vue.defineComponent({
                 </select>
               </div>
             </div>
-            
+
             <div class="flex gap-3 mt-6">
               <button
                 type="button"
-                @click="showAddQuickItemModal = false"
+                @click="cancelEdit"
                 class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
                 style="border-color: var(--color-border-card)"
               >
@@ -513,9 +625,9 @@ const ShoppingPage = Vue.defineComponent({
               <button
                 type="submit"
                 class="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
-                :disabled="!newQuickItem.name || quickActionLoading"
+                :disabled="(!editMode ? !newQuickItem.name : !editingQuickItem.name) || quickActionLoading"
               >
-                Add Quick Item
+                {{ editMode ? 'Update Quick Item' : 'Add Quick Item' }}
               </button>
             </div>
           </form>
@@ -614,7 +726,13 @@ const ShoppingPage = Vue.defineComponent({
       },
       newStore: {
         name: ''
-      }
+      },
+      viewMode: 'byStore', // 'byStore' or 'flat'
+      showEditItemModal: false,
+      showEditQuickItemModal: false,
+      editingItem: null, // The shopping item being edited
+      editingQuickItem: null, // The quicklist item being edited
+      editMode: false // true for edit, false for add
     };
   },
   computed: {
@@ -639,12 +757,47 @@ const ShoppingPage = Vue.defineComponent({
         }
         grouped[storeName].push(item);
       });
+
+      // Sort items within each store: by category, then alphabetically, then completed to bottom
+      Object.keys(grouped).forEach(storeName => {
+        grouped[storeName].sort((a, b) => {
+          // First, completed items go to bottom
+          if (a.completed && !b.completed) return 1;
+          if (!a.completed && b.completed) return -1;
+
+          // Then sort by category alphabetically
+          if (a.category !== b.category) {
+            return a.category.localeCompare(b.category);
+          }
+
+          // Finally sort by name alphabetically
+          return a.name.localeCompare(b.name);
+        });
+      });
+
       return grouped;
     },
     
     // Use injected data with fallback names for template compatibility
     quickItems() {
       return this.shoppingQuickItems;
+    },
+
+    flatShoppingItems() {
+      // Return all items sorted by category, then alphabetically, then completed to bottom
+      return [...this.shoppingItems].sort((a, b) => {
+        // First, completed items go to bottom
+        if (a.completed && !b.completed) return 1;
+        if (!a.completed && b.completed) return -1;
+
+        // Then sort by category alphabetically
+        if (a.category !== b.category) {
+          return a.category.localeCompare(b.category);
+        }
+
+        // Finally sort by name alphabetically
+        return a.name.localeCompare(b.name);
+      });
     }
   },
   inject: [
@@ -692,20 +845,31 @@ const ShoppingPage = Vue.defineComponent({
       }
     },
 
-    async addItem() {
+    async saveItem() {
       this.actionLoading = true;
       try {
-        await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS, {
-          method: 'POST',
-          body: JSON.stringify(this.newItem)
-        });
+        if (this.editMode && this.editingItem) {
+          // Update existing item
+          await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_ITEMS}/${this.editingItem.id}`, {
+            method: 'PUT',
+            body: JSON.stringify(this.editingItem)
+          });
+          this.showSuccessMessage('Item updated successfully!');
+        } else {
+          // Add new item
+          await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS, {
+            method: 'POST',
+            body: JSON.stringify(this.newItem)
+          });
+          this.showSuccessMessage('Item added successfully!');
+        }
+
         await this.$parent.loadShoppingItems();
+        this.cancelEdit();
         this.newItem = { name: '', category: 'General', quantity: '', notes: '', store: '' };
-        this.showAddItemModal = false;
-        this.showSuccessMessage('Item added successfully!');
       } catch (error) {
-        console.error('Error adding item:', error);
-        alert('Error adding item: ' + (error?.message || 'unknown error'));
+        console.error('Error saving item:', error);
+        alert('Error saving item: ' + (error?.message || 'unknown error'));
       } finally {
         this.actionLoading = false;
       }
@@ -713,10 +877,16 @@ const ShoppingPage = Vue.defineComponent({
 
     async toggleItem(itemId) {
       try {
+        // First, toggle the item
         await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_ITEMS}/${itemId}/toggle`, {
           method: 'PUT'
         });
+
+        // Reload the shopping items to get updated state
         await this.$parent.loadShoppingItems();
+
+        // Check if we need to clear any completed stores
+        this.checkAndClearCompletedStores();
       } catch (error) {
         console.error('Error toggling item:', error);
         alert('Error updating item: ' + (error?.message || 'unknown error'));
@@ -785,20 +955,31 @@ const ShoppingPage = Vue.defineComponent({
     },
 
     // === Quick List Methods ===
-    async addQuickItem() {
+    async saveQuickItem() {
       this.quickActionLoading = true;
       try {
-        await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS, {
-          method: 'POST',
-          body: JSON.stringify(this.newQuickItem)
-        });
+        if (this.editMode && this.editingQuickItem) {
+          // Update existing quick item
+          await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS}/${this.editingQuickItem.id}`, {
+            method: 'PUT',
+            body: JSON.stringify(this.editingQuickItem)
+          });
+          this.showSuccessMessage('Quick item updated successfully!');
+        } else {
+          // Add new quick item
+          await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS, {
+            method: 'POST',
+            body: JSON.stringify(this.newQuickItem)
+          });
+          this.showSuccessMessage('Quick item added successfully!');
+        }
+
         await this.$parent.loadShoppingQuickItems();
+        this.cancelEdit();
         this.newQuickItem = { name: '', category: 'General', defaultQuantity: '', defaultNotes: '', defaultStore: '' };
-        this.showAddQuickItemModal = false;
-        this.showSuccessMessage('Quick item added successfully!');
       } catch (error) {
-        console.error('Error adding quick item:', error);
-        alert('Error adding quick item: ' + (error?.message || 'unknown error'));
+        console.error('Error saving quick item:', error);
+        alert('Error saving quick item: ' + (error?.message || 'unknown error'));
       } finally {
         this.quickActionLoading = false;
       }
@@ -881,9 +1062,31 @@ const ShoppingPage = Vue.defineComponent({
       }
     },
 
-    // === Helper Methods ===
-    // Deprecated: previously returned emoji; now unused and returns empty to avoid emojis in UI
-    getCategoryIcon() { return '' },
+    // === View Mode Methods ===
+    toggleViewMode() {
+      this.viewMode = this.viewMode === 'byStore' ? 'flat' : 'byStore';
+    },
+
+    // === Edit Methods ===
+    startEditItem(item) {
+      this.editingItem = { ...item };
+      this.editMode = true;
+      this.showAddItemModal = true; // Reuse the existing modal
+    },
+
+    startEditQuickItem(quickItem) {
+      this.editingQuickItem = { ...quickItem };
+      this.editMode = true;
+      this.showAddQuickItemModal = true; // Reuse the existing modal
+    },
+
+    cancelEdit() {
+      this.editMode = false;
+      this.editingItem = null;
+      this.editingQuickItem = null;
+      this.showAddItemModal = false;
+      this.showAddQuickItemModal = false;
+    },
 
     showSuccessMessage(message) {
       this.successMessage = message;
@@ -918,6 +1121,45 @@ const ShoppingPage = Vue.defineComponent({
       }
       const colorIndex = Math.abs(hash) % colors.length;
       return colors[colorIndex];
+    },
+
+    async checkAndClearCompletedStores() {
+      const storesToClear = [];
+
+      // Check each store to see if all items are completed
+      Object.keys(this.itemsByStore).forEach(storeName => {
+        const items = this.itemsByStore[storeName];
+        const allCompleted = items.length > 0 && items.every(item => item.completed);
+
+        if (allCompleted) {
+          storesToClear.push(storeName);
+        }
+      });
+
+      // Clear completed items for stores that are fully completed
+      for (const storeName of storesToClear) {
+        try {
+          // Get all completed items for this store and remove them
+          const completedItems = this.shoppingItems.filter(item =>
+            (item.store || 'No Store Selected') === storeName && item.completed
+          );
+
+          for (const item of completedItems) {
+            await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_ITEMS}/${item.id}`, {
+              method: 'DELETE'
+            });
+          }
+
+          console.log(`Cleared ${completedItems.length} completed items from store: ${storeName}`);
+        } catch (error) {
+          console.error(`Error clearing completed items from store ${storeName}:`, error);
+        }
+      }
+
+      // If any stores were cleared, reload the shopping items
+      if (storesToClear.length > 0) {
+        await this.$parent.loadShoppingItems();
+      }
     }
   }
 });
