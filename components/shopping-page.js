@@ -4,7 +4,7 @@ const ShoppingPage = Vue.defineComponent({
     <div class="space-y-6 pb-24 sm:pb-0">
       <!-- Shopping List -->
       <div class="w-full">
-        <div class="w-full block rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
+        <div class="card bg-base-100 shadow-xl" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
           <!-- Header with title and buttons -->
           <div class="mb-6 sm:mb-8">
             <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2 mb-4">
@@ -17,9 +17,10 @@ const ShoppingPage = Vue.defineComponent({
               <div class="flex items-center gap-2">
                 <button
                   @click="clearCompleted"
-                  class="hidden sm:flex items-center gap-2 btn-warning touch-target"
+                  class="hidden sm:flex items-center gap-2 btn btn-warning touch-target"
                   :disabled="completedItems === 0 || loading"
-                  :class="completedItems === 0 || loading ? 'opacity-50 cursor-not-allowed' : ''"
+                  :class="completedItems === 0 || loading ? 'btn-disabled' : ''"
+                  v-motion="completedItems > 0 && !loading ? { initial: { scale: 0.95 }, enter: { scale: 1 } } : {}"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
                     <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
@@ -28,8 +29,9 @@ const ShoppingPage = Vue.defineComponent({
                 </button>
                 <button
                   @click="showAddItemModal = true"
-                  class="hidden sm:flex items-center gap-2 btn-primary touch-target"
+                  class="hidden sm:flex items-center gap-2 btn btn-primary touch-target"
                   :disabled="loading"
+                  v-motion="{ initial: { scale: 0.95 }, enter: { scale: 1 } }"
                 >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
                   <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
@@ -169,7 +171,7 @@ const ShoppingPage = Vue.defineComponent({
       </div>
 
       <!-- Quick List -->
-      <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
+      <div class="card bg-base-100 shadow-xl" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <div class="flex items-center justify-between mb-4 sm:mb-6">
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M13.5 4.5a.75.75 0 00-1.312-.53L6 12h3.75L8.25 19.5a.75.75 0 001.312.53L18 12h-3.75L13.5 4.5z"/></svg>
@@ -278,7 +280,7 @@ const ShoppingPage = Vue.defineComponent({
       </div>
 
       <!-- Quick Actions -->
-      <div class="hidden sm:block rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
+      <div class="hidden sm:block card bg-base-100 shadow-xl" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4 flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M13.5 4.5a.75.75 0 00-1.312-.53L6 12h3.75L8.25 19.5a.75.75 0 001.312.53L18 12h-3.75L13.5 4.5z"/></svg>
           Quick Actions
@@ -324,7 +326,7 @@ const ShoppingPage = Vue.defineComponent({
       </div>
 
       <!-- Store Management -->
-      <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
+      <div class="card bg-base-100 shadow-xl" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <div class="flex items-center justify-between mb-4 sm:mb-6">
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
@@ -399,10 +401,10 @@ const ShoppingPage = Vue.defineComponent({
 
     </div>
 
-    <!-- Add/Edit Item Modal -->
-      <div v-if="showAddItemModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-          <h3 class="text-lg font-bold mb-4">{{ editMode ? 'Edit Shopping Item' : 'Add Shopping Item' }}</h3>
+      <!-- Add/Edit Item Modal -->
+      <div v-if="showAddItemModal" class="modal modal-open">
+        <div class="modal-box bg-base-100">
+          <h3 class="font-bold text-lg mb-4">{{ editMode ? 'Edit Shopping Item' : 'Add Shopping Item' }}</h3>
 
           <form @submit.prevent="saveItem">
             <div class="space-y-4">
@@ -477,18 +479,17 @@ const ShoppingPage = Vue.defineComponent({
               </div>
             </div>
 
-            <div class="flex gap-3 mt-6">
+            <div class="modal-action mt-6">
               <button
                 type="button"
                 @click="cancelEdit"
-                class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
-                style="border-color: var(--color-border-card)"
+                class="btn btn-ghost"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                class="flex-1 btn-success"
+                class="btn btn-success"
                 :disabled="(editMode ? !editingItem.name : !newItem.name) || actionLoading"
               >
                 {{ editMode ? 'Update Item' : 'Add Item' }}
@@ -499,8 +500,8 @@ const ShoppingPage = Vue.defineComponent({
       </div>
 
       <!-- Add/Edit Quick Item Modal -->
-      <div v-if="showAddQuickItemModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+      <div v-if="showAddQuickItemModal" class="modal modal-open">
+        <div class="modal-box bg-base-100">
           <h3 class="text-lg font-bold mb-4">{{ editMode ? 'Edit Quick Item' : 'Add Quick Item' }}</h3>
 
           <form @submit.prevent="saveQuickItem">
@@ -578,18 +579,17 @@ const ShoppingPage = Vue.defineComponent({
               </div>
             </div>
 
-            <div class="flex gap-3 mt-6">
+            <div class="modal-action mt-6">
               <button
                 type="button"
                 @click="cancelEdit"
-                class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
-                style="border-color: var(--color-border-card)"
+                class="btn btn-ghost"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                class="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+                class="btn btn-primary"
                 :disabled="(editMode ? !editingQuickItem.name : !newQuickItem.name) || quickActionLoading"
               >
                 {{ editMode ? 'Update Quick Item' : 'Add Quick Item' }}
@@ -600,8 +600,8 @@ const ShoppingPage = Vue.defineComponent({
       </div>
 
       <!-- Add Store Modal -->
-      <div v-if="showAddStoreModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+      <div v-if="showAddStoreModal" class="modal modal-open">
+        <div class="modal-box bg-base-100">
           <h3 class="text-lg font-bold mb-4">Add Store</h3>
           
           <form @submit.prevent="addStore">
@@ -619,18 +619,17 @@ const ShoppingPage = Vue.defineComponent({
               </div>
             </div>
             
-            <div class="flex gap-3 mt-6">
+            <div class="modal-action mt-6">
               <button
                 type="button"
                 @click="showAddStoreModal = false"
-                class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
-                style="border-color: var(--color-border-card)"
+                class="btn btn-ghost"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                class="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+                class="btn btn-primary"
                 :disabled="!newStore.name || storeLoading"
               >
                 Add Store
@@ -651,12 +650,15 @@ const ShoppingPage = Vue.defineComponent({
       </div>
 
       <!-- Mobile Floating Add Button (FAB) -->
-      <button 
-        class="fab-add-item sm:hidden"
+      <button
+        class="btn btn-circle btn-primary btn-lg sm:hidden shadow-2xl"
         @click="showAddItemModal = true"
         :disabled="loading"
+        :class="loading ? 'btn-disabled' : ''"
         aria-label="Add item"
         title="Add item"
+        v-motion="{ initial: { scale: 0, rotate: -180 }, enter: { scale: 1, rotate: 0 } }"
+        style="position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 60;"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
           <path d="M13 11h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H5a1 1 0 110-2h6V5a1 1 0 112 0v6z"/>
