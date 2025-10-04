@@ -1156,6 +1156,27 @@ button.rounded-full[title*="Delete"] svg {
 .toggle-row { display: inline-flex; align-items: center; gap: 10px; }
 .toggle-row > span { color: var(--color-text-secondary); }
 
+/* Enhanced toggle switch styling for family cards */
+.family-card .toggle-switch {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.family-card .toggle-switch.on {
+  background: var(--color-success-500);
+  border-color: var(--color-success-600);
+}
+
+.family-card .toggle-switch .knob {
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.family-card .toggle-switch:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 2px;
+}
+
 @media (max-width: 640px) {
   .card-actions { flex-wrap: wrap; row-gap: 12px; }
   .toggle-row { width: 100%; justify-content: space-between; }

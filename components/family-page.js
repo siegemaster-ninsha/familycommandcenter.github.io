@@ -126,12 +126,10 @@ const FamilyPage = Vue.defineComponent({
                           <div class="flex items-center gap-3">
                             <button
                               @click="person.enabledForChores=!person.enabledForChores; $parent.updateMemberChoresEnabled(person)"
-                              :class="['relative inline-flex h-8 w-14 sm:h-6 sm:w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 touch-target', person.enabledForChores ? 'bg-success-600' : 'bg-gray-400']"
+                              :class="['toggle-switch toggle-switch--sm', person.enabledForChores ? 'on' : '']"
                               aria-label="Toggle chore board visibility"
                             >
-                              <span
-                                :class="['inline-block h-5 w-5 sm:h-4 sm:w-4 transform rounded-full bg-white transition-transform duration-200', person.enabledForChores ? 'translate-x-7 sm:translate-x-6' : 'translate-x-1']"
-                              />
+                              <span class="knob"></span>
                             </button>
                             <span class="text-xs sm:text-sm text-white text-opacity-80">
                               {{ person.enabledForChores ? 'Visible' : 'Hidden' }}
