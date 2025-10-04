@@ -6,7 +6,7 @@ const ShoppingPage = Vue.defineComponent({
       <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M2.25 3a.75.75 0 000 1.5h1.386l2.68 9.381A2.25 2.25 0 008.5 15h7.19a2.25 2.25 0 002.134-1.5l2.1-6A.75.75 0 0019.25 6H6.343L5.79 3.987A1.5 1.5 0 004.386 3H2.25z"/><path d="M8.75 20.5a1.25 1.25 0 11-2.5 0 1.25 1.25 0 012.5 0zm10 0a1.25 1.25 0 11-2.5 0 1.25 1.25 0 012.5 0z"/></svg>
+            <ShoppingBagIcon class="w-5 h-5" />
             Shopping List
           </h2>
           <div class="flex items-center gap-2">
@@ -75,7 +75,7 @@ const ShoppingPage = Vue.defineComponent({
                     {{ getStoreInitial(storeName) }}
                   </div>
                   <span v-else class="inline-flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-secondary-custom"><path d="M3.375 3a.375.375 0 00-.375.375v2.25c0 .621.504 1.125 1.125 1.125h15.75A1.125 1.125 0 0021 5.625v-2.25A.375.375 0 0020.625 3H3.375z"/><path fill-rule="evenodd" d="M3 8.25A2.25 2.25 0 015.25 6h13.5A2.25 2.25 0 0121 8.25v9A2.25 2.25 0 0118.75 19.5H5.25A2.25 2.25 0 013 17.25v-9zm3 3a.75.75 0 01.75-.75h2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-.75.75H6.75a.75.75 0 01-.75-.75v-2.25z" clip-rule="evenodd"/></svg>
+                    <BuildingStorefrontIcon class="w-5 h-5 text-secondary-custom" />
                   </span>
                   {{ storeName || 'No Store Selected' }}
                   <span class="text-sm font-normal text-secondary-custom">({{ items.length }} items)</span>
@@ -118,11 +118,7 @@ const ShoppingPage = Vue.defineComponent({
                       class="btn-icon btn-icon--secondary"
                       title="Edit item"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
-                        <path d="m11 4 2.5 2.5L5 15H2v-3.5L11 4z"/>
-                        <path d="m16.5 7.5 2-2L21 8l-2 2-2.5-2.5z"/>
-                        <path d="M19 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                      </svg>
+                      <PencilIcon class="w-4 h-4" />
                     </button>
                     <button
                       @click.stop="removeItem(item.id)"
@@ -181,10 +177,7 @@ const ShoppingPage = Vue.defineComponent({
                     <span v-if="item.quantity">• Qty: {{ item.quantity }}</span>
                     <span v-if="item.notes">• {{ item.notes }}</span>
                     <span v-if="item.store" class="inline-flex items-center gap-1 text-xs bg-white bg-opacity-20 px-2 py-1 rounded">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-3 h-3">
-                        <path d="M3.375 3a.375.375 0 00-.375.375v2.25c0 .621.504 1.125 1.125 1.125h15.75A1.125 1.125 0 0021 5.625v-2.25A.375.375 0 0020.625 3H3.375z"/>
-                        <path fill-rule="evenodd" d="M3 8.25A2.25 2.25 0 015.25 6h13.5A2.25 2.25 0 0121 8.25v9A2.25 2.25 0 0118.75 19.5H5.25A2.25 2.25 0 013 17.25v-9zm3 3a.75.75 0 01.75-.75h2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-.75.75H6.75a.75.75 0 01-.75-.75v-2.25z" clip-rule="evenodd"/>
-                      </svg>
+                      <BuildingStorefrontIcon class="w-3 h-3" />
                       {{ item.store }}
                     </span>
                   </div>
@@ -195,11 +188,7 @@ const ShoppingPage = Vue.defineComponent({
                     class="btn-icon btn-icon--secondary"
                     title="Edit item"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
-                      <path d="m11 4 2.5 2.5L5 15H2v-3.5L11 4z"/>
-                      <path d="m16.5 7.5 2-2L21 8l-2 2-2.5-2.5z"/>
-                      <path d="M19 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                    </svg>
+                    <PencilIcon class="w-4 h-4" />
                   </button>
                   <button
                     @click.stop="removeItem(item.id)"
@@ -291,11 +280,7 @@ const ShoppingPage = Vue.defineComponent({
                 title="Edit quick item"
                 :disabled="quickActionLoading"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
-                  <path d="m11 4 2.5 2.5L5 15H2v-3.5L11 4z"/>
-                  <path d="m16.5 7.5 2-2L21 8l-2 2-2.5-2.5z"/>
-                  <path d="M19 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                </svg>
+                <PencilIcon class="w-3 h-3" />
               </button>
               <button
                 @click.stop="removeQuickItem(quickItem.id)"
@@ -322,7 +307,7 @@ const ShoppingPage = Vue.defineComponent({
               class="absolute bottom-1 left-1 right-1 text-xs text-center bg-white bg-opacity-20 text-white px-1 py-0.5 rounded sm:opacity-0 sm:group-hover:opacity-100 opacity-75 transition-opacity duration-200"
             >
               <span class="inline-flex items-center gap-1 justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M3.375 3a.375.375 0 00-.375.375v2.25c0 .621.504 1.125 1.125 1.125h15.75A1.125 1.125 0 0021 5.625v-2.25A.375.375 0 0020.625 3H3.375z"/><path fill-rule="evenodd" d="M3 8.25A2.25 2.25 0 015.25 6h13.5A2.25 2.25 0 0121 8.25v9A2.25 2.25 0 0118.75 19.5H5.25A2.25 2.25 0 013 17.25v-9zm3 3a.75.75 0 01.75-.75h2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-.75.75H6.75a.75.75 0 01-.75-.75v-2.25z" clip-rule="evenodd"/></svg>
+                <BuildingStorefrontIcon class="w-4 h-4" />
                 <span>{{ quickItem.defaultStore }}</span>
               </span>
             </div>
@@ -388,7 +373,7 @@ const ShoppingPage = Vue.defineComponent({
       <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M2.25 6.75A2.25 2.25 0 014.5 4.5h15a2.25 2.25 0 012.25 2.25V9H2.25V6.75z"/><path d="M2.25 9.75h19.5v8.25A1.5 1.5 0 0120.25 19.5H3.75a1.5 1.5 0 01-1.5-1.5V9.75z"/></svg>
+            <BuildingStorefrontIcon class="w-5 h-5" />
             Store Management
           </h2>
           <div class="flex items-center gap-2">

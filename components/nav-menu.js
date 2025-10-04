@@ -90,7 +90,7 @@ const NavMenu = Vue.defineComponent({
         </div>
 
         <button type="button" class="nav-trigger" @click="toggle" :aria-expanded="open" aria-haspopup="true">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"/></svg>
+          <Bars3Icon class="w-5 h-5" />
         </button>
       </div>
 
