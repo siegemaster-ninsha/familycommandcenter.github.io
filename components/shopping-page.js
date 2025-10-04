@@ -3,8 +3,7 @@ const ShoppingPage = Vue.defineComponent({
   template: `
     <div class="space-y-6 pb-24 sm:pb-0">
       <!-- Shopping List -->
-      <div class="w-full">
-        <div class="w-full block rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
+      <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
           <!-- Header with title and buttons -->
           <div class="mb-6 sm:mb-8">
             <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2 mb-4">
@@ -67,22 +66,15 @@ const ShoppingPage = Vue.defineComponent({
             <span class="text-sm font-normal text-secondary-custom">({{ shoppingItems.length }} items)</span>
           </div>
 
-          <!-- Debug section for sorting verification -->
-          <!-- <div v-if="false" class="mb-4 p-3 bg-gray-100 rounded text-xs font-mono">
-            <div class="font-bold mb-2">Debug - Current Sorting Order:</div>
-            <div v-for="(item, index) in debugShoppingItems" :key="'debug-' + item.name + '-' + index" class="mb-1">
-              {{ index + 1 }}. [{{ item.completed ? '✓' : '○' }}] {{ item.category }} - {{ item.name }} ({{ item.sortOrder.slice(0, 30) }}...)
-            </div>
-          </div> -->
 
           <div class="space-y-2">
             <div
               v-for="item in flatShoppingItems"
               :key="item.id"
-              class="flex items-center gap-4 p-4 sm:p-4 rounded-lg transition-all duration-300 hover:bg-opacity-80 transform"
+              class="flex items-center gap-4 p-4 sm:p-4 rounded-lg transition-colors cursor-pointer"
               :class="[
-                item.isToggling ? 'opacity-75 pointer-events-none scale-98' : 'cursor-pointer hover:shadow-md hover:scale-102',
-                item.completed ? 'bg-opacity-75' : 'bg-opacity-100'
+                item.isToggling ? 'opacity-75 pointer-events-none' : '',
+                item.completed ? 'opacity-75' : ''
               ]"
               style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
               @click="handleToggleItem(item.id)"
@@ -107,10 +99,8 @@ const ShoppingPage = Vue.defineComponent({
               <div class="flex-1">
                 <span
                   :class="[
-                    'font-medium text-base sm:text-lg transition-all duration-300',
-                    item.completed
-                      ? 'line-through text-white opacity-60 transform scale-95'
-                      : 'text-white transform scale-100'
+                    'font-medium text-lg sm:text-base',
+                    item.completed ? 'line-through text-white opacity-60' : 'text-white'
                   ]"
                 >
                   {{ item.name }}
