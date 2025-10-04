@@ -3,39 +3,40 @@ const ShoppingPage = Vue.defineComponent({
   template: `
     <div class="space-y-6 pb-24 sm:pb-0">
       <!-- Shopping List -->
-      <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974a1.125 1.125 0 0 1 1.119 1.257Z" />
-            </svg>
-            Shopping List
-          </h2>
-          <div class="flex items-center gap-2">
-            <div class="flex items-center gap-2">
-              <button
-                @click="clearCompleted"
-                class="hidden sm:flex items-center gap-2 btn-warning touch-target"
-                :disabled="completedItems === 0 || loading"
-                :class="completedItems === 0 || loading ? 'opacity-50 cursor-not-allowed' : ''"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-                  <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
-                </svg>
-                Clear Completed
-              </button>
-              <button
-                @click="showAddItemModal = true"
-                class="hidden sm:flex items-center gap-2 btn-primary touch-target"
-                :disabled="loading"
-              >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-                <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
+      <div class="w-full">
+        <div class="w-full block rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974a1.125 1.125 0 0 1 1.119 1.257Z" />
               </svg>
-              Add Item
-            </button>
+              Shopping List
+            </h2>
+            <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2">
+                <button
+                  @click="clearCompleted"
+                  class="hidden sm:flex items-center gap-2 btn-warning touch-target"
+                  :disabled="completedItems === 0 || loading"
+                  :class="completedItems === 0 || loading ? 'opacity-50 cursor-not-allowed' : ''"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                    <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
+                  </svg>
+                  Clear Completed
+                </button>
+                <button
+                  @click="showAddItemModal = true"
+                  class="hidden sm:flex items-center gap-2 btn-primary touch-target"
+                  :disabled="loading"
+                >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                  <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
+                </svg>
+                Add Item
+              </button>
+            </div>
           </div>
-        </div>
         
         <!-- Loading state -->
         <div v-if="loading" class="text-center py-8">
