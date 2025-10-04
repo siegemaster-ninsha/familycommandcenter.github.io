@@ -85,12 +85,13 @@ const ShoppingPage = Vue.defineComponent({
             <div
               v-for="item in flatShoppingItems"
               :key="item.id"
-              class="flex items-center gap-4 p-4 sm:p-4 rounded-lg transition-colors cursor-pointer"
+              class="flex items-center gap-4 p-4 sm:p-4 rounded-xl transition-all duration-200 cursor-pointer border-2"
               :class="[
                 item.isToggling ? 'opacity-75 pointer-events-none' : '',
-                item.completed ? 'opacity-75' : ''
+                item.completed ? 'opacity-75' : '',
+                'hover:shadow-lg hover:-translate-y-0.5 hover:border-primary-400'
               ]"
-              style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
+              style="background-color: var(--color-primary-500); border-color: var(--color-primary-600); box-shadow: var(--shadow-sm);"
               @click="handleToggleItem(item.id)"
             >
               <div class="relative">
@@ -212,8 +213,8 @@ const ShoppingPage = Vue.defineComponent({
           <div
             v-for="quickItem in quickItems"
             :key="quickItem.id"
-            class="flex items-center gap-4 p-4 sm:p-4 rounded-lg transition-colors cursor-pointer"
-            style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
+            class="flex items-center gap-4 p-4 sm:p-4 rounded-xl transition-all duration-200 cursor-pointer border-2 hover:shadow-lg hover:-translate-y-0.5 hover:border-primary-400"
+            style="background-color: var(--color-primary-500); border-color: var(--color-primary-600); box-shadow: var(--shadow-sm);"
             @click="addQuickItemToList(quickItem.id)"
           >
             <!-- Quick item doesn't need checkbox since it's not toggleable -->
@@ -362,11 +363,11 @@ const ShoppingPage = Vue.defineComponent({
         
         <!-- Stores list -->
         <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          <div 
-            v-for="store in stores" 
+          <div
+            v-for="store in stores"
             :key="store.id"
-            class="flex items-center justify-between p-3 rounded-lg transition-colors"
-            style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
+            class="flex items-center justify-between p-3 rounded-xl transition-all duration-200 border-2 hover:shadow-lg hover:-translate-y-0.5 hover:border-primary-400"
+            style="background-color: var(--color-primary-500); border-color: var(--color-primary-600); box-shadow: var(--shadow-sm);"
           >
             <div class="flex items-center gap-2">
               <div 
