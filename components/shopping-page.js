@@ -3,7 +3,8 @@ const ShoppingPage = Vue.defineComponent({
   template: `
     <div class="space-y-6 pb-24 sm:pb-0">
       <!-- Shopping List -->
-      <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
+      <div class="w-full">
+        <div class="w-full block rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
           <!-- Header with title and buttons -->
           <div class="mb-6 sm:mb-8">
             <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2 mb-4">
@@ -150,6 +151,7 @@ const ShoppingPage = Vue.defineComponent({
             <p class="text-sm mt-1">Click "Add Item" to get started or use the quick list below!</p>
           </div>
         </div>
+      </div>
       </div>
 
       <!-- Quick List -->
