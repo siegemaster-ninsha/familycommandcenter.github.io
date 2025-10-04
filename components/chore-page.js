@@ -170,6 +170,7 @@ const ChorePage = Vue.defineComponent({
               <span class="text-sm font-medium">Add New Chore</span>
             </button>
           </div>
+          </div>
         </div>
       </div>
 
