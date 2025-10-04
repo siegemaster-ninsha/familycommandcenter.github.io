@@ -49,13 +49,13 @@ const ChorePage = Vue.defineComponent({
             <!-- Remove button -->
             <button
               @click.stop="removeFromQuicklist(quickChore.id)"
-              class="absolute top-2 right-2 opacity-60 hover:opacity-100 transition-opacity duration-200 touch-target"
-              style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);"
-              :class="'hover:scale-105'"
+              class="absolute top-2 right-2 opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-full"
+              style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.25); backdrop-filter: blur(8px);"
+              :class="'hover:scale-110 active:scale-95'"
               title="Remove from quicklist"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="drop-shadow-sm">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9.53a1 1 0 01-.997.94H10.6a1 1 0 01-.997-.94L9.258 9h5.482zM21 7v1H3V7a1 1 0 011-1h16a1 1 0 011 1zM6 7v13a2 2 0 002 2h8a2 2 0 002-2V7M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2" />
               </svg>
             </button>
 
@@ -135,14 +135,14 @@ const ChorePage = Vue.defineComponent({
                 <button
                   v-if="isChoreSelected(chore)"
                   @click.stop="deleteChore(chore)"
-                  class="absolute top-2 right-2 opacity-60 hover:opacity-100 transition-opacity duration-200 touch-target"
-                  style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);"
-                  :class="'hover:scale-105'"
+                  class="absolute top-2 right-2 opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-full"
+                  style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.25); backdrop-filter: blur(8px);"
+                  :class="'hover:scale-110 active:scale-95'"
                   title="Delete chore"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="drop-shadow-sm">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9.53a1 1 0 01-.997.94H10.6a1 1 0 01-.997-.94L9.258 9h5.482zM21 7v1H3V7a1 1 0 011-1h16a1 1 0 011 1zM6 7v13a2 2 0 002 2h8a2 2 0 002-2V7M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2" />
+                  </svg>
                 </button>
 
                 <div class="flex items-center gap-4 flex-1 min-w-0">
@@ -243,14 +243,14 @@ const ChorePage = Vue.defineComponent({
                 <button
                   v-if="isChoreSelected(chore)"
                   @click.stop="deleteChore(chore)"
-                  class="absolute top-2 right-2 opacity-60 hover:opacity-100 transition-opacity duration-200 touch-target"
-                  style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);"
-                  :class="'hover:scale-105'"
+                  class="absolute top-2 right-2 opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-full"
+                  style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.25); backdrop-filter: blur(8px);"
+                  :class="'hover:scale-110 active:scale-95'"
                   title="Delete chore"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="drop-shadow-sm">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9.53a1 1 0 01-.997.94H10.6a1 1 0 01-.997-.94L9.258 9h5.482zM21 7v1H3V7a1 1 0 011-1h16a1 1 0 011 1zM6 7v13a2 2 0 002 2h8a2 2 0 002-2V7M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2" />
+                  </svg>
                 </button>
 
                 <!-- Completion + approval UI -->
