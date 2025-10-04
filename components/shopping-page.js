@@ -100,14 +100,14 @@ const ShoppingPage = Vue.defineComponent({
                   @change="handleToggleItem(item.id)"
                   @click.stop
                   :disabled="item.isToggling"
-                  class="w-6 h-6 sm:w-7 sm:h-7 rounded focus:ring-success-600 focus:ring-2 focus:ring-offset-2 touch-target text-success-600 transition-all duration-200 transform"
+                  class="w-10 h-10 rounded focus:ring-success-600 focus:ring-2 focus:ring-offset-2 touch-target text-success-600 transition-all duration-200 transform"
                   :class="item.completed ? 'scale-110' : 'scale-100'"
                 >
                 <div
                   v-if="item.isToggling"
                   class="absolute inset-0 flex items-center justify-center"
                 >
-                  <div class="w-4 h-4 sm:w-5 sm:h-5 border-2 border-success-600 border-t-transparent rounded-full animate-spin"></div>
+                  <div class="w-5 h-5 border-2 border-success-600 border-t-transparent rounded-full animate-spin"></div>
                 </div>
               </div>
               <div class="flex-1">
