@@ -893,20 +893,46 @@ const ShoppingPage = Vue.defineComponent({
     },
 
     async toggleItem(itemId) {
+      // Find the item in the local array for optimistic update
+      const itemIndex = this.shoppingItems.findIndex(item => item.id === itemId);
+      if (itemIndex === -1) {
+        console.error('Item not found:', itemId);
+        return;
+      }
+
+      // Store the previous state for potential rollback
+      const previousState = this.shoppingItems[itemIndex].completed;
+
+      // Optimistic update - immediately toggle the local state
+      this.shoppingItems[itemIndex].completed = !previousState;
+
       try {
-        // First, toggle the item
-        await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_ITEMS}/${itemId}/toggle`, {
+        // Make the API call to persist the change
+        const response = await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_ITEMS}/${itemId}/toggle`, {
           method: 'PUT'
         });
 
-        // Reload the shopping items to get updated state
-        await this.$parent.loadShoppingItems();
+        // Update with server response if it differs from our optimistic update
+        if (response.item && response.item.completed !== this.shoppingItems[itemIndex].completed) {
+          this.shoppingItems[itemIndex].completed = response.item.completed;
+        }
 
         // Check if we need to clear any completed stores
         this.checkAndClearCompletedStores();
       } catch (error) {
         console.error('Error toggling item:', error);
+
+        // Rollback the optimistic update on error
+        this.shoppingItems[itemIndex].completed = previousState;
+
         alert('Error updating item: ' + (error?.message || 'unknown error'));
+
+        // Fallback: reload items to ensure consistency
+        try {
+          await this.$parent.loadShoppingItems();
+        } catch (reloadError) {
+          console.error('Error reloading items after toggle failure:', reloadError);
+        }
       }
     },
 
