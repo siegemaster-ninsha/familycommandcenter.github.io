@@ -103,11 +103,16 @@ const NavMenu = Vue.defineComponent({
       <div v-if="open" class="nav-menu absolute right-0 w-44 z-50" style="top: calc(100% + 8px);">
         <!-- Version info in mobile menu -->
         <div v-if="deployVersion" class="nav-item-version px-3 py-2 text-xs text-secondary-custom bg-secondary-50 border-b">
-          <span class="font-mono">{{ deployVersion.version }}</span>
-          <span class="mx-1">•</span>
-          <span class="font-medium">{{ deployVersion.animal }}</span>
-          <span class="mx-1">•</span>
-          <span class="text-xs">{{ formatDeployTime(deployVersion.deployedAt) }}</span>
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-1">
+              <span class="font-mono">{{ deployVersion.version }}</span>
+              <span>•</span>
+              <span class="font-medium">{{ deployVersion.animal }}</span>
+            </div>
+            <div class="text-xs opacity-75">
+              {{ formatDeployTime(deployVersion.deployedAt) }}
+            </div>
+          </div>
         </div>
 
         <button v-for="item in items" :key="item.key" class="nav-item flex items-center gap-2" @click="go(item.key)">

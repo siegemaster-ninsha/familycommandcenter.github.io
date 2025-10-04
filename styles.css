@@ -891,6 +891,19 @@ body.modal-open {
   body {
     background-image: none;
   }
+
+  /* Increase nav menu width on mobile for better version display */
+  .nav-menu {
+    width: 220px; /* Wider on mobile to accommodate version text */
+    min-width: 220px;
+  }
+
+  /* Improve version text wrapping on mobile */
+  .nav-item-version {
+    word-break: break-word;
+    hyphens: auto;
+    line-height: 1.4;
+  }
   [style*="--color-border-card"] {
     border-color: var(--color-neutral-200) !important;
     box-shadow: none !important;
@@ -1277,6 +1290,7 @@ button.rounded-full[title*="Delete"] svg {
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg);
   overflow: hidden;
+  min-width: 200px; /* Ensure minimum width for version text */
 }
 
 .nav-item {
