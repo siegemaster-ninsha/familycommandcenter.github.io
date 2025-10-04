@@ -17,14 +17,14 @@ const ShoppingPage = Vue.defineComponent({
               <span class="text-xs sm:text-sm text-secondary-custom">Sort by Store</span>
               <button
                 @click="toggleViewMode"
-                class="relative inline-flex h-5 w-9 sm:h-6 sm:w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                class="relative inline-flex h-4 w-7 sm:h-6 sm:w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                 :class="viewMode === 'byStore' ? 'bg-primary-600' : 'bg-gray-200'"
                 :disabled="loading"
                 :title="viewMode === 'byStore' ? 'Switch to flat list view' : 'Switch to grouped by store view'"
               >
                 <span
-                  class="inline-block h-3 w-3 sm:h-4 sm:w-4 transform rounded-full bg-white transition-transform"
-                  :class="viewMode === 'byStore' ? 'translate-x-4 sm:translate-x-6' : 'translate-x-1'"
+                  class="inline-block h-2.5 w-2.5 sm:h-4 sm:w-4 transform rounded-full bg-white transition-transform"
+                  :class="viewMode === 'byStore' ? 'translate-x-3 sm:translate-x-6' : 'translate-x-1'"
                 />
               </button>
             </div>
