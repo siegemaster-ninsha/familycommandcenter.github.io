@@ -64,7 +64,20 @@ const ShoppingPage = Vue.defineComponent({
         <div v-else class="space-y-3">
           <div class="flex items-center justify-between border-b pb-2 mb-4" style="border-color: var(--color-border-card);">
             <h3 class="text-lg font-bold text-primary-custom">All Items</h3>
-            <span class="text-sm font-normal text-secondary-custom">({{ shoppingItems.length }} items)</span>
+            <div class="flex items-center gap-3">
+              <button
+                @click="clearCompleted"
+                class="flex items-center gap-2 btn-warning text-sm touch-target"
+                :disabled="completedItems === 0 || actionLoading"
+                :class="completedItems === 0 || actionLoading ? 'opacity-50 cursor-not-allowed' : ''"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256">
+                  <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
+                </svg>
+                Clear Completed
+              </button>
+              <span class="text-sm font-normal text-secondary-custom">({{ shoppingItems.length }} items)</span>
+            </div>
           </div>
 
 
