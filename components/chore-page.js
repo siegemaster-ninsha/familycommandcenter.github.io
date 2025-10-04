@@ -95,7 +95,7 @@ const ChorePage = Vue.defineComponent({
         </div>
         </div>
       </div>
-
+    </div>
       <!-- Unassigned Chores -->
       <div class="w-full">
         <div class="w-full block rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
