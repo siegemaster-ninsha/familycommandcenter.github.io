@@ -6,7 +6,9 @@ const ShoppingPage = Vue.defineComponent({
       <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
-            <ShoppingBagIcon class="w-5 h-5" />
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974a1.125 1.125 0 0 1 1.119 1.257Z" />
+            </svg>
             Shopping List
           </h2>
           <div class="flex items-center gap-2">
@@ -76,7 +78,9 @@ const ShoppingPage = Vue.defineComponent({
                     {{ getStoreInitial(storeName) }}
                   </div>
                   <span v-else class="inline-flex items-center">
-                    <BuildingStorefrontIcon class="w-5 h-5 text-secondary-custom" />
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-secondary-custom">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.25A2.25 2.25 0 0 1 0 18.75V10.5a2.25 2.25 0 0 1 1.5-2.122l8.25-3.06a2.25 2.25 0 0 1 1.5 0l8.25 3.06A2.25 2.25 0 0 1 21 10.5v8.25A2.25 2.25 0 0 1 18.75 21H13.5Z" />
+                    </svg>
                   </span>
                   {{ storeName || 'No Store Selected' }}
                   <span class="text-sm font-normal text-secondary-custom">({{ items.length }} items)</span>
@@ -181,7 +185,9 @@ const ShoppingPage = Vue.defineComponent({
                     <span v-if="item.quantity">• Qty: {{ item.quantity }}</span>
                     <span v-if="item.notes">• {{ item.notes }}</span>
                     <span v-if="item.store" class="inline-flex items-center gap-1 text-xs bg-white bg-opacity-20 px-2 py-1 rounded">
-                      <BuildingStorefrontIcon class="w-3 h-3" />
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.25A2.25 2.25 0 0 1 0 18.75V10.5a2.25 2.25 0 0 1 1.5-2.122l8.25-3.06a2.25 2.25 0 0 1 1.5 0l8.25 3.06A2.25 2.25 0 0 1 21 10.5v8.25A2.25 2.25 0 0 1 18.75 21H13.5Z" />
+                      </svg>
                       {{ item.store }}
                     </span>
                   </div>
@@ -317,7 +323,9 @@ const ShoppingPage = Vue.defineComponent({
               class="absolute bottom-1 left-1 right-1 text-xs text-center bg-white bg-opacity-20 text-white px-1 py-0.5 rounded sm:opacity-0 sm:group-hover:opacity-100 opacity-75 transition-opacity duration-200"
             >
               <span class="inline-flex items-center gap-1 justify-center">
-                <BuildingStorefrontIcon class="w-4 h-4" />
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.25A2.25 2.25 0 0 1 0 18.75V10.5a2.25 2.25 0 0 1 1.5-2.122l8.25-3.06a2.25 2.25 0 0 1 1.5 0l8.25 3.06A2.25 2.25 0 0 1 21 10.5v8.25A2.25 2.25 0 0 1 18.75 21H13.5Z" />
+                </svg>
                 <span>{{ quickItem.defaultStore }}</span>
               </span>
             </div>
@@ -383,7 +391,9 @@ const ShoppingPage = Vue.defineComponent({
       <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
-            <BuildingStorefrontIcon class="w-5 h-5" />
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.25A2.25 2.25 0 0 1 0 18.75V10.5a2.25 2.25 0 0 1 1.5-2.122l8.25-3.06a2.25 2.25 0 0 1 1.5 0l8.25 3.06A2.25 2.25 0 0 1 21 10.5v8.25A2.25 2.25 0 0 1 18.75 21H13.5Z" />
+            </svg>
             Store Management
           </h2>
           <div class="flex items-center gap-2">
