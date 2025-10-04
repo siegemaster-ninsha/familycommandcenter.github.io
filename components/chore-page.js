@@ -40,9 +40,9 @@ const ChorePage = Vue.defineComponent({
             class="relative group flex items-center gap-3 sm:gap-4 p-4 sm:p-4 rounded-lg transition-all duration-200 cursor-pointer touch-target"
             :class="[
               quickChore.isSelecting ? 'opacity-75 pointer-events-none' : '',
-              'hover:scale-105 hover:shadow-lg'
+              isQuicklistChoreSelected(quickChore) ? 'border-2 border-blue-400 shadow-lg shadow-blue-400/25 scale-105 z-10' : 'border hover:scale-105 hover:shadow-lg'
             ]"
-            style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
+            :style="isQuicklistChoreSelected(quickChore) ? 'background-color: var(--color-primary-600); border-color: var(--color-blue-400);' : 'background-color: var(--color-primary-500); border-color: var(--color-primary-600);'"
             @click.stop="onQuicklistClick(quickChore, $event)"
             @touchend.stop="onQuicklistClick(quickChore, $event)"
           >
@@ -383,6 +383,10 @@ const ChorePage = Vue.defineComponent({
       return window.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, chore) || false;
     },
 
+    isQuicklistChoreSelected(quickChore) {
+      return window.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, quickChore) || false;
+    },
+
     selectChore(chore, event) {
       // Prevent double-handling of touch events
       if (event && (event.type === 'touchend' || event.type === 'touchstart')) {
@@ -395,8 +399,17 @@ const ChorePage = Vue.defineComponent({
       chore.isSelecting = true;
 
       try {
-        // cross-assign if different chore selected and target has assignee
-        if (this.$parent.selectedChore && this.$parent.selectedChoreId !== chore.id && chore.assignedTo && chore.assignedTo !== 'unassigned') {
+        // Only allow cross-assignment if:
+        // 1. There's a currently selected chore
+        // 2. The currently selected chore is unassigned or can be reassigned
+        // 3. The target chore has an assignee
+        if (this.$parent.selectedChore &&
+            this.$parent.selectedChoreId !== chore.id &&
+            chore.assignedTo &&
+            chore.assignedTo !== 'unassigned' &&
+            (!this.$parent.selectedChore.assignedTo || this.$parent.selectedChore.assignedTo === 'unassigned')) {
+
+          // Cross-assign the currently selected (unassigned) chore to the person who has the target chore
           this.assignSelectedChore(chore.assignedTo);
           return;
         }
