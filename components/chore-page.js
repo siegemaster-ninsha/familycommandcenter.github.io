@@ -6,7 +6,7 @@ const ChorePage = Vue.defineComponent({
       <div class="w-full">
         <div class="card bg-base-100 shadow-xl" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4 sm:mb-6 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M13.5 4.5a.75.75 0 00-1.312-.53L6 12h3.75L8.25 19.5a.75.75 0 001.312.53L18 12h-3.75L13.5 4.5z"/></svg>
+            <div v-html="Helpers.IconLibrary.getIcon('zap', 'lucide', 20, 'text-primary-500')"></div>
             Quicklist
           </h2>
           <p class="text-secondary-custom text-sm mb-4 sm:mb-6 text-center">Tap these common chores to assign them quickly</p>
@@ -19,9 +19,7 @@ const ChorePage = Vue.defineComponent({
 
         <!-- Error state -->
         <div v-else-if="quicklistError" class="text-center py-8 sm:py-12" style="color: var(--color-error-700);">
-          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="mx-auto mb-3" viewBox="0 0 256 256">
-            <path d="M236.8,188.09,149.35,36.22h0a24.76,24.76,0,0,0-42.7,0L19.2,188.09a23.51,23.51,0,0,0,0,23.72A24.35,24.35,0,0,0,40.55,224h174.9a24.35,24.35,0,0,0,21.33-12.19A23.51,23.51,0,0,0,236.8,188.09ZM222.93,203.8a8.5,8.5,0,0,1-7.48,4.2H40.55a8.5,8.5,0,0,1-7.48-4.2,7.59,7.59,0,0,1,0-7.72L120.52,44.21a8.75,8.75,0,0,1,15,0l87.45,151.87A7.59,7.59,0,0,1,222.93,203.8Z"></path>
-          </svg>
+          <div v-html="Helpers.IconLibrary.getIcon('alertTriangle', 'lucide', 48, 'mx-auto mb-3')" style="color: var(--color-error-700);"></div>
           <p class="font-medium">Error loading quicklist</p>
           <p class="text-sm mt-1">{{ quicklistError }}</p>
           <button
@@ -78,9 +76,7 @@ const ChorePage = Vue.defineComponent({
               class="flex items-center gap-2 btn btn-primary touch-target min-h-[48px] w-full sm:w-auto justify-center"
               title="Add new chore to quicklist"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-                <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
-              </svg>
+              <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16, 'text-white')"></div>
               <span class="text-sm font-medium">Add to Quicklist</span>
             </button>
           </div>
@@ -100,7 +96,10 @@ const ChorePage = Vue.defineComponent({
       <!-- Unassigned Chores -->
       <div class="w-full">
         <div class="card bg-base-100 shadow-xl" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
-          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4 sm:mb-6">📋 Unassigned Chores</h2>
+          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4 sm:mb-6 flex items-center gap-2">
+            <div v-html="Helpers.IconLibrary.getIcon('clipboardList', 'lucide', 20, 'text-primary-500')"></div>
+            Unassigned Chores
+          </h2>
 
           <!-- Inner container for chores -->
           <div
@@ -168,9 +167,7 @@ const ChorePage = Vue.defineComponent({
               class="flex items-center gap-2 btn btn-primary touch-target min-h-[48px] w-full sm:w-auto justify-center"
               title="Add new chore to unassigned"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-                <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
-              </svg>
+              <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16, 'text-white')"></div>
               <span class="text-sm font-medium">Add New Chore</span>
             </button>
           </div>
@@ -183,7 +180,10 @@ const ChorePage = Vue.defineComponent({
       <!-- Family Members & Assigned Chores -->
       <div class="w-full">
         <div class="card bg-base-100 shadow-xl" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
-          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4 sm:mb-6">👨‍👩‍👧‍👦 Family Members</h2>
+          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4 sm:mb-6 flex items-center gap-2">
+            <div v-html="Helpers.IconLibrary.getIcon('users', 'lucide', 20, 'text-primary-500')"></div>
+            Family Members
+          </h2>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div
@@ -304,7 +304,10 @@ const ChorePage = Vue.defineComponent({
       <!-- Earnings Summary -->
       <div class="w-full">
         <div class="card bg-base-100 shadow-xl" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
-          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4 sm:mb-6">💰 Earnings Summary</h2>
+          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4 sm:mb-6 flex items-center gap-2">
+            <div v-html="Helpers.IconLibrary.getIcon('dollarSign', 'lucide', 20, 'text-primary-500')"></div>
+            Earnings Summary
+          </h2>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <div
