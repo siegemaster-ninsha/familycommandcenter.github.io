@@ -64,7 +64,7 @@ const ShoppingPage = Vue.defineComponent({
           <!-- Grouped by store view -->
           <div v-if="viewMode === 'byStore'" class="space-y-6">
             <!-- Items grouped by store -->
-            <div v-for="(items, storeName) in itemsByStore" :key="storeName" class="space-y-3">
+            <div v-for="(items, storeName) in itemsByStore" :key="storeName" v-if="viewMode === 'byStore'" class="space-y-3">
               <div class="flex items-center justify-between border-b pb-2" style="border-color: var(--color-border-card);">
                 <h3 class="text-lg font-bold text-primary-custom flex items-center gap-2">
                   <div
@@ -112,7 +112,7 @@ const ShoppingPage = Vue.defineComponent({
                       <span v-if="item.notes">• {{ item.notes }}</span>
                     </div>
                   </div>
-                  <div class="flex items-center gap-1">
+                  <div class="flex items-center gap-2">
                     <button
                       @click.stop="startEditItem(item)"
                       class="btn-icon btn-icon--secondary"
@@ -275,7 +275,7 @@ const ShoppingPage = Vue.defineComponent({
             </div>
             
             <!-- Action buttons (top corners) -->
-            <div class="absolute -top-1 -right-1 flex gap-1">
+            <div class="absolute -top-1 -right-1 flex gap-2">
               <button
                 @click.stop="startEditQuickItem(quickItem)"
                 class="text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-60 hover:opacity-100 transition-opacity duration-200 touch-target"
@@ -1069,13 +1069,15 @@ const ShoppingPage = Vue.defineComponent({
 
     // === Edit Methods ===
     startEditItem(item) {
-      this.editingItem = { ...item };
+      // Create a deep copy of the item to avoid mutations
+      this.editingItem = JSON.parse(JSON.stringify(item));
       this.editMode = true;
       this.showAddItemModal = true; // Reuse the existing modal
     },
 
     startEditQuickItem(quickItem) {
-      this.editingQuickItem = { ...quickItem };
+      // Create a deep copy of the quick item to avoid mutations
+      this.editingQuickItem = JSON.parse(JSON.stringify(quickItem));
       this.editMode = true;
       this.showAddQuickItemModal = true; // Reuse the existing modal
     },
