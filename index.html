@@ -19,8 +19,21 @@
 
     <!-- Shoelace Web Components -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.0/dist/themes/light.css" />
-    <!-- Use the official Shoelace autoloader which handles ESM properly -->
-    <script src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.0/dist/shoelace-autoloader.js"></script>
+    <!-- Try ESM import first, fallback to regular script if it fails -->
+    <script type="module">
+      try {
+        await import('https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.0/dist/shoelace.js');
+        console.log('✅ Shoelace loaded via ESM');
+      } catch (error) {
+        console.warn('ESM import failed, trying fallback...', error);
+        // Fallback to regular script loading
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.0/dist/shoelace.js';
+        script.onload = () => console.log('✅ Shoelace loaded via fallback');
+        script.onerror = () => console.error('❌ Failed to load Shoelace');
+        document.head.appendChild(script);
+      }
+    </script>
 
     <!-- Icon Libraries -->
     <!-- Lucide Icons (currently active) -->

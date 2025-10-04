@@ -2380,66 +2380,8 @@ function checkAndRegisterComponents() {
   
   console.log('🔧 All components available, registering...');
 
-  // Register Shoelace web components after they're loaded
-  console.log('📦 Registering Shoelace components');
-
-  // Wait for DOM to be ready and Shoelace to load
-  const initializeShoelace = () => {
-    // Check if sl-switch is already defined
-    if (customElements.get('sl-switch')) {
-      registerShoelaceVueComponents();
-      return;
-    }
-
-    // Wait for Shoelace script to load by checking for the script element
-    const shoelaceScript = document.querySelector('script[src*="shoelace-autoloader"]');
-    if (shoelaceScript) {
-      shoelaceScript.onload = () => {
-        console.log('🔄 Shoelace autoloader loaded, registering Vue components...');
-        registerShoelaceVueComponents();
-      };
-    }
-
-    // Fallback: check periodically for custom elements
-    const checkShoelace = () => {
-      if (customElements.get('sl-switch')) {
-        registerShoelaceVueComponents();
-      } else {
-        setTimeout(checkShoelace, 50);
-      }
-    };
-    setTimeout(checkShoelace, 100);
-  };
-
-  const registerShoelaceVueComponents = () => {
-    if (customElements.get('sl-switch')) {
-      // Define the component properly for Vue
-      app.component('SlSwitch', {
-        props: ['checked', 'size', 'disabled'],
-        emits: ['sl-change'],
-        template: `
-          <sl-switch
-            :checked="checked"
-            :size="size"
-            :disabled="disabled"
-            @sl-change="$emit('sl-change', $event)"
-          >
-            <slot></slot>
-          </sl-switch>
-        `
-      });
-      console.log('✅ SlSwitch registered successfully');
-    } else {
-      console.error('❌ Shoelace sl-switch not found, cannot register Vue component');
-    }
-  };
-
-  // Initialize when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeShoelace);
-  } else {
-    initializeShoelace();
-  }
+  // Shoelace components are native custom elements handled by isCustomElement
+  console.log('📦 Shoelace components configured as native custom elements');
 
   // Register UI components
   if (window.UIComponents) {
