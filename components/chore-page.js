@@ -121,9 +121,9 @@ const ChorePage = Vue.defineComponent({
                 class="relative flex items-center gap-4 p-4 sm:p-4 rounded-lg transition-all duration-200 cursor-pointer touch-target"
                 :class="[
                   chore.isSelecting ? 'opacity-75 pointer-events-none' : '',
-                  isChoreSelected(chore) ? 'ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10 shadow-xl' : 'hover:shadow-lg hover:scale-102'
+                  isChoreSelected(chore) ? 'border-2 border-blue-400 shadow-lg shadow-blue-400/25 scale-105 z-10' : 'border hover:shadow-lg hover:scale-102'
                 ]"
-                style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
+                :style="isChoreSelected(chore) ? 'background-color: var(--color-primary-600); border-color: var(--color-blue-400);' : 'background-color: var(--color-primary-500); border-color: var(--color-primary-600);'"
                 @click.stop="selectChore(chore, $event)"
                 @touchend.stop="selectChore(chore, $event)"
               >
@@ -225,9 +225,9 @@ const ChorePage = Vue.defineComponent({
                 class="relative flex items-center gap-4 p-3 sm:p-4 rounded-lg transition-all duration-200 cursor-pointer touch-target"
                 :class="[
                   chore.isSelecting ? 'opacity-75 pointer-events-none' : '',
-                  isChoreSelected(chore) ? 'ring-4 ring-blue-400 ring-opacity-75 transform scale-105 z-10 shadow-xl' : 'hover:shadow-lg hover:scale-102'
+                  isChoreSelected(chore) ? 'border-2 border-blue-400 shadow-lg shadow-blue-400/25 scale-105 z-10' : 'border hover:shadow-lg hover:scale-102'
                 ]"
-                style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
+                :style="isChoreSelected(chore) ? 'background-color: var(--color-primary-600); border-color: var(--color-blue-400);' : 'background-color: var(--color-primary-500); border-color: var(--color-primary-600);'"
                 @click.stop="selectChore(chore, $event)"
               >
                 <!-- Delete button (only visible when selected) -->
