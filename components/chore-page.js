@@ -54,9 +54,7 @@ const ChorePage = Vue.defineComponent({
               :class="'hover:scale-110 active:scale-95'"
               title="Remove from quicklist"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="drop-shadow-sm">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9.53a1 1 0 01-.997.94H10.6a1 1 0 01-.997-.94L9.258 9h5.482zM21 7v1H3V7a1 1 0 011-1h16a1 1 0 011 1zM6 7v13a2 2 0 002 2h8a2 2 0 002-2V7M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2" />
-              </svg>
+              <component :is="$heroicons.TrashIcon" class="w-4 h-4 drop-shadow-sm" />
             </button>
 
             <div
