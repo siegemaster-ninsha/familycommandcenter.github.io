@@ -2,7 +2,8 @@
 // Provides offline capabilities and background token refresh for mobile
 
 const CACHE_NAME = 'family-command-center-v1';
-const TOKEN_REFRESH_URL = '/auth/token-refresh';
+// Use the actual API endpoint for token refresh
+const TOKEN_REFRESH_URL = 'https://cq5lvrvppd.execute-api.us-east-1.amazonaws.com/dev/auth/token-refresh';
 
 // Install service worker
 self.addEventListener('install', (event) => {

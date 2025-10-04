@@ -383,7 +383,9 @@ const ShoppingPage = Vue.defineComponent({
         </div>
       </div>
 
-      <!-- Add/Edit Item Modal -->
+    </div>
+
+    <!-- Add/Edit Item Modal -->
       <div v-if="showAddItemModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
           <h3 class="text-lg font-bold mb-4">{{ editMode ? 'Edit Shopping Item' : 'Add Shopping Item' }}</h3>
