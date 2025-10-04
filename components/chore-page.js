@@ -93,7 +93,7 @@ const ChorePage = Vue.defineComponent({
           <p>No quicklist chores yet.</p>
           <p class="text-sm mt-1">Add common chores for quick assignment!</p>
         </div>
-      </div>
+        </div>
 
       <!-- Unassigned Chores -->
       <div class="w-full">
