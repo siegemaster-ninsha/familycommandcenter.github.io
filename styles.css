@@ -1096,94 +1096,31 @@ button.rounded-full[title*="Delete"] svg {
   .btn-icon svg { width: 20px; height: 20px; }
 }
 
-/* ===========================================
-   TOGGLE SWITCH (uniform across app)
-   Uses CSS variables for sizing so variants stay centered
-   =========================================== */
-.toggle-switch {
-  /* Size variables - reduced height for compact design */
-  --ts-width: 44px;
-  --ts-height: 20px;
-  --ts-padding: 2px;
-  --ts-knob: calc(var(--ts-height) - var(--ts-padding) * 2);
-  --ts-translate-x: calc(var(--ts-width) - var(--ts-knob) - var(--ts-padding) * 2);
-
-  position: relative;
-  width: var(--ts-width);
-  height: var(--ts-height);
-  border-radius: 9999px;
-  background: var(--color-neutral-300);
-  transition: background-color var(--transition-fast);
-  flex: none;
-  padding: 0;
-  border: none;
-  appearance: none;
-  -webkit-appearance: none;
-  display: inline-block;
-  vertical-align: middle;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-.toggle-switch .knob {
-  position: absolute;
-  top: 50%;
-  left: var(--ts-padding);
-  width: var(--ts-knob);
-  height: var(--ts-knob);
-  border-radius: 50%;
-  background: #fff;
-  transition: transform var(--transition-fast);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  transform: translate(0, -50%);
-  /* Hardware acceleration for smooth animation */
-  transform: translate3d(0, -50%, 0);
-  /* Prevent bouncing by using transform3d */
-  will-change: transform;
-}
-.toggle-switch.on {
-  background: var(--color-primary-500);
-}
-.toggle-switch.on .knob {
-  transform: translate3d(var(--ts-translate-x), -50%, 0);
-}
-
-/* Small variant for tighter UIs (e.g., family cards on mobile) */
-.toggle-switch--sm {
-  --ts-width: 36px;
-  --ts-height: 16px;
-  --ts-padding: 2px;
-}
-
-.toggle-switch:focus-visible {
-  outline: 2px solid var(--color-primary-500);
-  outline-offset: 2px;
-}
+/* Legacy toggle switch styles removed - replaced with Shoelace */
 
 /* Family card actions layout - mobile friendly */
 .card-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .toggle-row { display: inline-flex; align-items: center; gap: 10px; }
 .toggle-row > span { color: var(--color-text-secondary); }
 
-/* Enhanced toggle switch styling for family cards */
-.family-card .toggle-switch {
+/* Shoelace switch styling for family cards */
+.family-card-switch::part(control) {
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  /* Compact height for family cards */
-  --ts-height: 18px;
-  height: var(--ts-height);
+  height: 18px;
 }
 
-.family-card .toggle-switch.on {
+.family-card-switch::part(control--checked) {
   background: var(--color-success-500);
   border-color: var(--color-success-600);
 }
 
-.family-card .toggle-switch .knob {
+.family-card-switch::part(thumb) {
   background: #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-.family-card .toggle-switch:focus-visible {
+.family-card-switch::part(control):focus-visible {
   outline: 2px solid rgba(255, 255, 255, 0.8);
   outline-offset: 2px;
 }
