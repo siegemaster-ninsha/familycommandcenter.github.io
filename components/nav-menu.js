@@ -86,11 +86,17 @@ const NavMenu = Vue.defineComponent({
         <div v-if="deployVersion" class="hidden sm:block text-xs text-secondary-custom bg-secondary-50 px-2 py-1 rounded-md border">
           <span class="font-mono">{{ deployVersion.version }}</span>
           <span class="mx-1">•</span>
+          <span class="font-medium">{{ deployVersion.animal }}</span>
+          <span class="mx-1">•</span>
           <span class="text-xs">{{ formatDeployTime(deployVersion.deployedAt) }}</span>
         </div>
 
         <button type="button" class="nav-trigger" @click="toggle" :aria-expanded="open" aria-haspopup="true">
-          <Bars3Icon class="w-5 h-5" />
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
         </button>
       </div>
 
@@ -98,6 +104,8 @@ const NavMenu = Vue.defineComponent({
         <!-- Version info in mobile menu -->
         <div v-if="deployVersion" class="nav-item-version px-3 py-2 text-xs text-secondary-custom bg-secondary-50 border-b">
           <span class="font-mono">{{ deployVersion.version }}</span>
+          <span class="mx-1">•</span>
+          <span class="font-medium">{{ deployVersion.animal }}</span>
           <span class="mx-1">•</span>
           <span class="text-xs">{{ formatDeployTime(deployVersion.deployedAt) }}</span>
         </div>

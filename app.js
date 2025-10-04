@@ -1,8 +1,4 @@
-// Import Heroicons Vue components
-import { PencilIcon, PlusIcon, TrashIcon, CheckIcon, XMarkIcon, Bars3Icon, ShoppingBagIcon, BuildingStorefrontIcon } from '@heroicons/vue/24/outline';
-
-// Import Heroicons solid variants for filled icons
-import { PencilIcon as PencilIconSolid, TrashIcon as TrashIconSolid } from '@heroicons/vue/24/solid';
+// Heroicons are loaded via CDN in index.html
 
 const { createApp } = Vue;
 
@@ -2370,18 +2366,6 @@ function checkAndRegisterComponents() {
   console.log('📦 Registering nav-menu');
   app.component('nav-menu', window.NavMenuComponent);
 
-  // Register Heroicons components globally
-  console.log('📦 Registering Heroicons');
-  app.component('PencilIcon', PencilIcon);
-  app.component('PencilIconSolid', PencilIconSolid);
-  app.component('PlusIcon', PlusIcon);
-  app.component('TrashIcon', TrashIcon);
-  app.component('TrashIconSolid', TrashIconSolid);
-  app.component('CheckIcon', CheckIcon);
-  app.component('XMarkIcon', XMarkIcon);
-  app.component('Bars3Icon', Bars3Icon);
-  app.component('ShoppingBagIcon', ShoppingBagIcon);
-  app.component('BuildingStorefrontIcon', BuildingStorefrontIcon);
 
   console.log('✅ All components registered, mounting app...');
 
