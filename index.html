@@ -15,9 +15,7 @@
 
     <!-- External dependencies -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://unpkg.com/@vueuse/motion@2.0.0/dist/index.js"></script>
 
     <!-- Tailwind CSS Configuration -->
     <script>
@@ -47,39 +45,6 @@
               }
             }
           }
-        },
-        plugins: [
-          // DaisyUI is loaded via CDN, so we just need to reference it
-          window.daisyui ? window.daisyui : function() { return {}; }
-        ],
-        daisyui: {
-          themes: [
-            {
-              familyhub: {
-                "primary": "rgb(var(--color-primary-500))",
-                "secondary": "rgb(var(--color-secondary-500))",
-                "accent": "rgb(var(--color-success-500))",
-                "neutral": "rgb(var(--color-neutral-500))",
-                "base-100": "rgb(var(--color-bg-primary))",
-                "base-200": "rgb(var(--color-bg-secondary))",
-                "base-300": "rgb(var(--color-bg-card))",
-                "--rounded-box": "1rem",
-                "--rounded-btn": "0.75rem",
-                "--rounded-badge": "1.9rem",
-                "--animation-btn": "0.25s",
-                "--animation-input": "0.2s",
-                "--btn-text-case": "none",
-                "--btn-focus-scale": "0.95",
-                "--border-btn": "1px",
-                "--tab-border": "1px",
-                "--tab-radius": "0.5rem",
-              }
-            }
-          ],
-          darkTheme: false,
-          base: true,
-          styled: true,
-          utils: true
         }
       }
     </script>

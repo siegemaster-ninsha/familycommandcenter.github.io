@@ -4,7 +4,7 @@ const ChorePage = Vue.defineComponent({
     <div class="space-y-6 pb-24 sm:pb-0">
       <!-- Quicklist Section -->
       <div class="w-full">
-        <div class="w-full block rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
+        <div class="card bg-base-100 shadow-xl" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4 sm:mb-6 flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M13.5 4.5a.75.75 0 00-1.312-.53L6 12h3.75L8.25 19.5a.75.75 0 001.312.53L18 12h-3.75L13.5 4.5z"/></svg>
             Quicklist
@@ -37,19 +37,19 @@ const ChorePage = Vue.defineComponent({
           <div
             v-for="quickChore in quicklistChores"
             :key="quickChore.id"
-            class="relative group flex items-center gap-3 sm:gap-4 p-4 sm:p-4 rounded-lg transition-all duration-200 cursor-pointer touch-target"
+            class="relative group flex items-center gap-3 sm:gap-4 p-4 sm:p-4 rounded-xl transition-all duration-200 cursor-pointer touch-target border-2"
             :class="[
               quickChore.isSelecting ? 'opacity-75 pointer-events-none' : '',
-              isQuicklistChoreSelected(quickChore) ? 'border-2 border-blue-400 shadow-lg shadow-blue-400/25 scale-105 z-10' : 'border hover:scale-105 hover:shadow-lg'
+              isQuicklistChoreSelected(quickChore) ? 'shadow-lg shadow-blue-400/25 scale-105 z-10 border-blue-400' : 'hover:shadow-lg hover:-translate-y-0.5 hover:border-primary-400'
             ]"
-            :style="isQuicklistChoreSelected(quickChore) ? 'background-color: var(--color-primary-600); border-color: var(--color-blue-400);' : 'background-color: var(--color-primary-500); border-color: var(--color-primary-600);'"
+            :style="isQuicklistChoreSelected(quickChore) ? 'background-color: var(--color-primary-600);' : 'background-color: var(--color-primary-500); border-color: var(--color-primary-600); box-shadow: var(--shadow-sm);'"
             @click.stop="onQuicklistClick(quickChore, $event)"
             @touchend.stop="onQuicklistClick(quickChore, $event)"
           >
             <!-- Remove button -->
             <button
               @click.stop="removeFromQuicklist(quickChore.id)"
-              class="absolute -top-2 -right-2 btn-error rounded-full w-6 h-6 flex items-center justify-center text-sm shadow-lg transition-opacity duration-200 touch-target"
+              class="absolute -top-2 -right-2 btn btn-error btn-circle btn-sm shadow-lg transition-opacity duration-200 touch-target"
               :class="'hover:scale-110'"
               title="Remove from quicklist"
             >
@@ -74,7 +74,7 @@ const ChorePage = Vue.defineComponent({
           <div class="flex items-center justify-center">
             <button
               @click="openAddToQuicklistModal()"
-              class="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white px-4 py-3 sm:px-4 sm:py-2 rounded-lg transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center shadow-md hover:shadow-lg"
+              class="flex items-center gap-2 btn btn-primary touch-target min-h-[48px] w-full sm:w-auto justify-center"
               title="Add new chore to quicklist"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
@@ -98,7 +98,7 @@ const ChorePage = Vue.defineComponent({
     </div>
       <!-- Unassigned Chores -->
       <div class="w-full">
-        <div class="w-full block rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
+        <div class="card bg-base-100 shadow-xl" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4 sm:mb-6">📋 Unassigned Chores</h2>
 
           <!-- Inner container for chores -->
@@ -119,12 +119,12 @@ const ChorePage = Vue.defineComponent({
               <div
                 v-for="chore in choresByPerson.unassigned"
                 :key="chore.id"
-                class="relative flex items-center gap-4 p-4 sm:p-4 rounded-lg transition-all duration-200 cursor-pointer touch-target"
+                class="relative flex items-center gap-4 p-4 sm:p-4 rounded-xl transition-all duration-200 cursor-pointer touch-target border-2"
                 :class="[
                   chore.isSelecting ? 'opacity-75 pointer-events-none' : '',
-                  isChoreSelected(chore) ? 'border-2 border-blue-400 shadow-lg shadow-blue-400/25 scale-105 z-10' : 'border hover:shadow-lg hover:scale-102'
+                  isChoreSelected(chore) ? 'shadow-lg shadow-blue-400/25 scale-105 z-10 border-blue-400' : 'hover:shadow-lg hover:-translate-y-0.5 hover:border-primary-400'
                 ]"
-                :style="isChoreSelected(chore) ? 'background-color: var(--color-primary-600); border-color: var(--color-blue-400);' : 'background-color: var(--color-primary-500); border-color: var(--color-primary-600);'"
+                :style="isChoreSelected(chore) ? 'background-color: var(--color-primary-600);' : 'background-color: var(--color-primary-500); border-color: var(--color-primary-600); box-shadow: var(--shadow-sm);'"
                 @click.stop="selectChore(chore, $event)"
                 @touchend.stop="selectChore(chore, $event)"
               >
@@ -132,7 +132,7 @@ const ChorePage = Vue.defineComponent({
                 <button
                   v-if="isChoreSelected(chore)"
                   @click.stop="deleteChore(chore)"
-                  class="absolute -top-2 -right-2 btn-error rounded-full w-6 h-6 flex items-center justify-center text-sm transition-colors shadow-lg z-10 touch-target hover:scale-110"
+                  class="absolute -top-2 -right-2 btn btn-error btn-circle btn-sm transition-colors shadow-lg z-10 touch-target hover:scale-110"
                   title="Delete chore"
                 >
                   ×
@@ -162,7 +162,7 @@ const ChorePage = Vue.defineComponent({
           <div class="flex items-center justify-center">
             <button
               @click="openAddChoreModal()"
-              class="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white px-4 py-3 sm:px-4 sm:py-2 rounded-lg transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center shadow-md hover:shadow-lg"
+              class="flex items-center gap-2 btn btn-primary touch-target min-h-[48px] w-full sm:w-auto justify-center"
               title="Add new chore to unassigned"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
@@ -179,14 +179,14 @@ const ChorePage = Vue.defineComponent({
 
       <!-- Family Members & Assigned Chores -->
       <div class="w-full">
-        <div class="w-full block rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
+        <div class="card bg-base-100 shadow-xl" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4 sm:mb-6">👨‍👩‍👧‍👦 Family Members</h2>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div
             v-for="person in people"
             :key="person.id"
-            class="family-card border rounded-lg p-4 sm:p-6 transition-all duration-200 shadow-lg hover:shadow-xl"
+            class="family-card border-2 rounded-xl p-4 sm:p-6 transition-all duration-200 shadow-lg hover:shadow-xl"
             :class="[
               selectedChore ? 'cursor-pointer hover:scale-102' : ''
             ]"
@@ -224,19 +224,19 @@ const ChorePage = Vue.defineComponent({
               <div
                 v-for="chore in choresByPerson[person.name]"
                 :key="chore.id"
-                class="relative flex items-center gap-4 p-3 sm:p-4 rounded-lg transition-all duration-200 cursor-pointer touch-target"
+                class="relative flex items-center gap-4 p-3 sm:p-4 rounded-xl transition-all duration-200 cursor-pointer touch-target border-2"
                 :class="[
                   chore.isSelecting ? 'opacity-75 pointer-events-none' : '',
-                  isChoreSelected(chore) ? 'border-2 border-blue-400 shadow-lg shadow-blue-400/25 scale-105 z-10' : 'border hover:shadow-lg hover:scale-102'
+                  isChoreSelected(chore) ? 'shadow-lg shadow-blue-400/25 scale-105 z-10 border-blue-400' : 'hover:shadow-lg hover:-translate-y-0.5 hover:border-primary-400'
                 ]"
-                :style="isChoreSelected(chore) ? 'background-color: var(--color-primary-600); border-color: var(--color-blue-400);' : 'background-color: var(--color-primary-500); border-color: var(--color-primary-600);'"
+                :style="isChoreSelected(chore) ? 'background-color: var(--color-primary-600);' : 'background-color: var(--color-primary-500); border-color: var(--color-primary-600); box-shadow: var(--shadow-sm);'"
                 @click.stop="selectChore(chore, $event)"
               >
                 <!-- Delete button (only visible when selected) -->
                 <button
                   v-if="isChoreSelected(chore)"
                   @click.stop="deleteChore(chore)"
-                  class="absolute -top-2 -right-2 btn-error rounded-full w-6 h-6 flex items-center justify-center text-sm transition-colors shadow-lg z-10 touch-target hover:scale-110"
+                  class="absolute -top-2 -right-2 btn btn-error btn-circle btn-sm transition-colors shadow-lg z-10 touch-target hover:scale-110"
                   title="Delete chore"
                 >
                   ×
@@ -255,7 +255,7 @@ const ChorePage = Vue.defineComponent({
                   <button
                     v-if="$parent.currentUser?.role === 'parent' && chore.isPendingApproval"
                     @click.stop="$parent.approveChore(chore)"
-                    class="px-2 py-1 text-xs rounded btn-success"
+                    class="btn btn-success btn-sm"
                   >Approve</button>
                 </div>
 
@@ -298,14 +298,14 @@ const ChorePage = Vue.defineComponent({
 
       <!-- Earnings Summary -->
       <div class="w-full">
-        <div class="w-full block rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
+        <div class="card bg-base-100 shadow-xl" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] mb-4 sm:mb-6">💰 Earnings Summary</h2>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <div
               v-for="person in people"
               :key="person.id"
-              class="earnings-card border rounded-lg p-4 sm:p-6 cursor-pointer hover:shadow-xl hover:scale-102 transition-all duration-200 touch-target shadow-lg"
+              class="earnings-card border-2 rounded-xl p-4 sm:p-6 cursor-pointer hover:shadow-xl hover:scale-102 transition-all duration-200 touch-target shadow-lg"
               style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
               @click="openSpendModal(person)"
               @touchend="openSpendModal(person)"
