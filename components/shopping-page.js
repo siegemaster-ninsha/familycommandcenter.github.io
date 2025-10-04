@@ -118,7 +118,11 @@ const ShoppingPage = Vue.defineComponent({
                       class="btn-icon btn-icon--secondary"
                       title="Edit item"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19 13.998V18a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2h7.002L19 13.998z"/></svg>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                        <path d="m11 4 2.5 2.5L5 15H2v-3.5L11 4z"/>
+                        <path d="m16.5 7.5 2-2L21 8l-2 2-2.5-2.5z"/>
+                        <path d="M19 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                      </svg>
                     </button>
                     <button
                       @click.stop="removeItem(item.id)"
@@ -191,7 +195,11 @@ const ShoppingPage = Vue.defineComponent({
                     class="btn-icon btn-icon--secondary"
                     title="Edit item"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19 13.998V18a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2h7.002L19 13.998z"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                      <path d="m11 4 2.5 2.5L5 15H2v-3.5L11 4z"/>
+                      <path d="m16.5 7.5 2-2L21 8l-2 2-2.5-2.5z"/>
+                      <path d="M19 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    </svg>
                   </button>
                   <button
                     @click.stop="removeItem(item.id)"
@@ -283,7 +291,11 @@ const ShoppingPage = Vue.defineComponent({
                 title="Edit quick item"
                 :disabled="quickActionLoading"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19 13.998V18a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2h7.002L19 13.998z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+                  <path d="m11 4 2.5 2.5L5 15H2v-3.5L11 4z"/>
+                  <path d="m16.5 7.5 2-2L21 8l-2 2-2.5-2.5z"/>
+                  <path d="M19 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                </svg>
               </button>
               <button
                 @click.stop="removeQuickItem(quickItem.id)"
