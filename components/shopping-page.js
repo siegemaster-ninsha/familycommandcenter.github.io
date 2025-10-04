@@ -67,6 +67,14 @@ const ShoppingPage = Vue.defineComponent({
             <span class="text-sm font-normal text-secondary-custom">({{ shoppingItems.length }} items)</span>
           </div>
 
+          <!-- Debug section for sorting verification -->
+          <!-- <div v-if="false" class="mb-4 p-3 bg-gray-100 rounded text-xs font-mono">
+            <div class="font-bold mb-2">Debug - Current Sorting Order:</div>
+            <div v-for="(item, index) in debugShoppingItems" :key="'debug-' + item.name + '-' + index" class="mb-1">
+              {{ index + 1 }}. [{{ item.completed ? '✓' : '○' }}] {{ item.category }} - {{ item.name }} ({{ item.sortOrder.slice(0, 30) }}...)
+            </div>
+          </div> -->
+
           <div class="space-y-2">
             <div
               v-for="item in flatShoppingItems"
@@ -710,18 +718,60 @@ const ShoppingPage = Vue.defineComponent({
     flatShoppingItems() {
       // Return all items sorted by category, then alphabetically, then completed to bottom
       return [...this.shoppingItems].sort((a, b) => {
-        // First, completed items go to bottom
-        if (a.completed && !b.completed) return 1;
-        if (!a.completed && b.completed) return -1;
+        // First, completed items go to bottom (highest priority)
+        if (a.completed !== b.completed) {
+          return a.completed ? 1 : -1;
+        }
 
-        // Then sort by category alphabetically
-        if (a.category !== b.category) {
-          return a.category.localeCompare(b.category);
+        // Then sort by category using a logical grocery store order
+        const categoryOrder = this.getCategoryOrder();
+        const aOrder = categoryOrder[a.category] || 999;
+        const bOrder = categoryOrder[b.category] || 999;
+
+        if (aOrder !== bOrder) {
+          return aOrder - bOrder;
         }
 
         // Finally sort by name alphabetically
         return a.name.localeCompare(b.name);
       });
+    },
+
+    // Define logical grocery store category ordering
+    getCategoryOrder() {
+      return {
+        'Produce': 1,
+        'Dairy': 2,
+        'Meat': 3,
+        'Bakery': 4,
+        'Frozen': 5,
+        'Pantry': 6,
+        'Household': 7,
+        'Personal Care': 8,
+        'General': 9
+      };
+    },
+
+    // Debug computed property to help verify sorting is working
+    debugShoppingItems() {
+      return this.flatShoppingItems.map(item => ({
+        name: item.name,
+        category: item.category,
+        completed: item.completed,
+        sortOrder: this.getSortOrder(item)
+      }));
+    },
+
+    getSortOrder(item) {
+      let order = '';
+      if (item.completed) order += 'ZZZ-'; // Completed items at bottom
+
+      const categoryOrder = this.getCategoryOrder();
+      const categoryNum = categoryOrder[item.category] || 999;
+      order += categoryNum.toString().padStart(3, '0') + '-';
+      order += item.category.padEnd(15, ' ');
+      order += item.name;
+      return order;
     }
   },
   inject: [
@@ -811,7 +861,7 @@ const ShoppingPage = Vue.defineComponent({
       const previousState = this.shoppingItems[itemIndex].completed;
 
       // Set loading state for this specific item
-      this.$set(this.shoppingItems[itemIndex], 'isToggling', true);
+      this.shoppingItems[itemIndex].isToggling = true;
 
       // Optimistic update - immediately toggle the local state
       this.shoppingItems[itemIndex].completed = !previousState;
@@ -838,7 +888,7 @@ const ShoppingPage = Vue.defineComponent({
         this.showErrorMessage('Failed to update item. Please try again.');
       } finally {
         // Remove loading state
-        this.$set(this.shoppingItems[itemIndex], 'isToggling', false);
+        this.shoppingItems[itemIndex].isToggling = false;
       }
     },
 
@@ -1089,8 +1139,7 @@ const ShoppingPage = Vue.defineComponent({
       }
       const colorIndex = Math.abs(hash) % colors.length;
       return colors[colorIndex];
-    },
-
+    }
   }
 });
 
