@@ -134,7 +134,7 @@
                 <!-- Dynamic Page Title -->
                 <div class="flex flex-wrap justify-between gap-3 p-2 sm:p-4">
                   <p class="text-primary-custom tracking-light text-2xl sm:text-[32px] font-bold leading-tight min-w-0">
-                    {{ currentPage === 'chores' ? 'Chores' : currentPage === 'family' ? 'Family Members' : currentPage === 'shopping' ? 'Shopping List' : 'Account Settings' }}
+                    {{ currentPage === 'chores' ? 'Chores' : currentPage === 'family' ? 'Family Members' : currentPage === 'shopping' ? '' : 'Account Settings' }}
                   </p>
                   <div class="flex items-center gap-3" v-if="currentPage === 'chores'">
                     <button

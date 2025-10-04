@@ -13,18 +13,18 @@ const ShoppingPage = Vue.defineComponent({
           </h2>
           <div class="flex items-center gap-2">
             <!-- Sort by Store Toggle -->
-            <div class="hidden sm:flex items-center gap-2">
-              <span class="text-sm text-secondary-custom">Sort by Store</span>
+            <div class="flex items-center gap-2">
+              <span class="text-xs sm:text-sm text-secondary-custom">Sort by Store</span>
               <button
                 @click="toggleViewMode"
-                class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                class="relative inline-flex h-5 w-9 sm:h-6 sm:w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                 :class="viewMode === 'byStore' ? 'bg-primary-600' : 'bg-gray-200'"
                 :disabled="loading"
                 :title="viewMode === 'byStore' ? 'Switch to flat list view' : 'Switch to grouped by store view'"
               >
                 <span
-                  class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                  :class="viewMode === 'byStore' ? 'translate-x-6' : 'translate-x-1'"
+                  class="inline-block h-3 w-3 sm:h-4 sm:w-4 transform rounded-full bg-white transition-transform"
+                  :class="viewMode === 'byStore' ? 'translate-x-4 sm:translate-x-6' : 'translate-x-1'"
                 />
               </button>
             </div>
@@ -265,73 +265,66 @@ const ShoppingPage = Vue.defineComponent({
           </button>
         </div>
         
-        <!-- Quick items grid -->
-        <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+        <!-- Quick items list -->
+        <div v-else class="space-y-2">
           <div
             v-for="quickItem in quickItems"
             :key="quickItem.id"
-            :class="['relative flex flex-col items-center gap-2 p-3 rounded-lg group cursor-pointer transition-all duration-200 hover:shadow-md', quickItem.defaultStore ? 'pb-7' : '']"
+            class="flex items-center gap-3 p-4 sm:p-3 rounded-lg transition-colors cursor-pointer"
             style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
             @click="addQuickItemToList(quickItem.id)"
           >
-            <!-- Store badge (top-left corner) -->
-            <div 
-              v-if="quickItem.defaultStore" 
-              class="absolute -top-1 -left-1 flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold text-white shadow-sm"
-              :style="{ backgroundColor: getStoreColor(quickItem.defaultStore) }"
-              :title="quickItem.defaultStore"
-            >
-              {{ getStoreInitial(quickItem.defaultStore) }}
+            <!-- Quick item doesn't need checkbox since it's not toggleable -->
+            <div class="w-6 h-6 sm:w-5 sm:h-5 flex items-center justify-center">
+              <!-- Quick add icon instead of checkbox -->
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-white opacity-60">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
             </div>
-            
-            <!-- Action buttons (top corners) -->
-            <div class="absolute -top-1 -right-1 flex gap-2">
+
+            <div class="flex-1">
+              <span class="font-medium text-lg sm:text-base text-white">
+                {{ quickItem.name }}
+              </span>
+              <div class="text-base sm:text-sm text-white text-opacity-90 flex items-center gap-2 mt-1">
+                <span class="inline-flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 opacity-90"><path d="M2.25 12a9.75 9.75 0 1119.5 0 9.75 9.75 0 01-19.5 0zm7.53-3.28a.75.75 0 10-1.06 1.06L10.94 12l-2.22 2.22a.75.75 0 101.06 1.06L12 13.06l2.22 2.22a.75.75 0 101.06-1.06L13.06 12l2.22-2.22a.75.75 0 10-1.06-1.06L12 10.94 9.78 8.72z"/></svg>
+                  <span>{{ quickItem.category }}</span>
+                </span>
+                <span v-if="quickItem.defaultQuantity">• Qty: {{ quickItem.defaultQuantity }}</span>
+                <span v-if="quickItem.defaultNotes">• {{ quickItem.defaultNotes }}</span>
+                <span v-if="quickItem.defaultStore" class="inline-flex items-center gap-1 text-xs bg-white bg-opacity-20 px-2 py-1 rounded">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.25A2.25 2.25 0 0 1 0 18.75V10.5a2.25 2.25 0 0 1 1.5-2.122l8.25-3.06a2.25 2.25 0 0 1 1.5 0l8.25 3.06A2.25 2.25 0 0 1 21 10.5v8.25A2.25 2.25 0 0 1 18.75 21H13.5Z" />
+                  </svg>
+                  {{ quickItem.defaultStore }}
+                </span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
               <button
                 @click.stop="startEditQuickItem(quickItem)"
-                class="text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-60 hover:opacity-100 transition-opacity duration-200 touch-target"
-                style="background: var(--color-secondary-600)"
+                class="btn-icon btn-icon--secondary"
                 title="Edit quick item"
                 :disabled="quickActionLoading"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                 </svg>
               </button>
               <button
                 @click.stop="removeQuickItem(quickItem.id)"
-                class="text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-60 hover:opacity-100 transition-opacity duration-200 touch-target"
-                style="background: var(--color-error-600)"
+                class="btn-icon btn-icon--danger"
                 title="Remove quick item"
                 :disabled="quickActionLoading"
               >
-                ×
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13.41 12l4.3-4.29a1 1 0 10-1.42-1.42L12 10.59 7.71 6.29a1 1 0 10-1.42 1.42L10.59 12l-4.3 4.29a1 1 0 101.42 1.42L12 13.41l4.29 4.3a1 1 0 001.42-1.42z"/></svg>
               </button>
-            </div>
-            
-            <div class="text-2xl text-white opacity-90">
-              <!-- generic item icon -->
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7"><path d="M3 6.75A2.25 2.25 0 015.25 4.5h13.5A2.25 2.25 0 0121 6.75v10.5A2.25 2.25 0 0118.75 19.5H5.25A2.25 2.25 0 013 17.25V6.75zm3 0a.75.75 0 01.75-.75h10.5a.75.75 0 01.75.75V9H6V6.75z"/></svg>
-            </div>
-            <div class="text-sm font-medium text-white text-center">{{ quickItem.name }}</div>
-            <div class="text-xs text-white text-opacity-90 text-center">{{ quickItem.category }}</div>
-            <div v-if="quickItem.defaultQuantity" class="text-xs text-white text-opacity-80">{{ quickItem.defaultQuantity }}</div>
-            
-            <!-- Store name (bottom, only visible on hover for better UX) -->
-            <div 
-              v-if="quickItem.defaultStore" 
-              class="absolute bottom-1 left-1 right-1 text-xs text-center bg-white bg-opacity-20 text-white px-1 py-0.5 rounded sm:opacity-0 sm:group-hover:opacity-100 opacity-75 transition-opacity duration-200"
-            >
-              <span class="inline-flex items-center gap-1 justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.25A2.25 2.25 0 0 1 0 18.75V10.5a2.25 2.25 0 0 1 1.5-2.122l8.25-3.06a2.25 2.25 0 0 1 1.5 0l8.25 3.06A2.25 2.25 0 0 1 21 10.5v8.25A2.25 2.25 0 0 1 18.75 21H13.5Z" />
-                </svg>
-                <span>{{ quickItem.defaultStore }}</span>
-              </span>
             </div>
           </div>
           
-          <div v-if="quickItems.length === 0" class="col-span-full text-center py-4 sm:py-8 text-secondary-custom">
+          <div v-if="quickItems.length === 0" class="text-center py-4 sm:py-8 text-secondary-custom">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="mx-auto mb-2 opacity-50" viewBox="0 0 256 256">
               <path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128Z"></path>
             </svg>
