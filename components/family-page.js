@@ -45,7 +45,7 @@ const FamilyPage = Vue.defineComponent({
               :key="person.id"
               class="w-full"
             >
-              <div class="family-card border rounded-lg p-4 sm:p-6 transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-102 active:scale-98 h-full overflow-hidden" style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);">
+              <div class="family-card border rounded-lg p-4 sm:p-6 transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-102 h-full overflow-hidden" style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);">
                 <!-- Header Section - Primary Information -->
                 <div class="flex items-center gap-4 mb-4">
                   <div class="family-avatar rounded-full w-16 h-16 sm:w-18 sm:h-18 flex items-center justify-center font-bold text-white shadow-lg bg-gradient-to-br from-primary-400 to-primary-600 text-xl sm:text-2xl flex-shrink-0">
