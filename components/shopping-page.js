@@ -69,7 +69,7 @@ const ShoppingPage = Vue.defineComponent({
             <div
               v-for="item in flatShoppingItems"
               :key="item.id"
-              class="flex items-center gap-3 p-4 sm:p-3 rounded-lg transition-colors cursor-pointer"
+              class="flex items-center gap-3 p-3 sm:p-4 rounded-lg transition-colors cursor-pointer"
               @click="toggleItem(item.id)"
               style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
             >
@@ -77,16 +77,16 @@ const ShoppingPage = Vue.defineComponent({
                 type="checkbox"
                 :checked="item.completed"
                 @change.stop="toggleItem(item.id)"
-                class="sm:w-5 sm:h-5 w-6 h-6 rounded focus:ring-success-600 touch-target text-success-600"
+                class="w-5 h-5 sm:w-6 sm:h-6 rounded focus:ring-success-600 touch-target text-success-600"
               >
               <div class="flex-1">
                 <span
                   :class="item.completed ? 'line-through text-white opacity-60' : 'text-white'"
-                  class="font-medium text-lg sm:text-base"
+                  class="font-medium text-base sm:text-lg"
                 >
                   {{ item.name }}
                 </span>
-                <div class="text-base sm:text-sm text-white text-opacity-90 flex items-center gap-2 mt-1">
+                <div class="text-sm sm:text-base text-white text-opacity-90 flex items-center gap-2 mt-1">
                   <span class="inline-flex items-center gap-1">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 opacity-90"><path d="M2.25 12a9.75 9.75 0 1119.5 0 9.75 9.75 0 01-19.5 0zm7.53-3.28a.75.75 0 10-1.06 1.06L10.94 12l-2.22 2.22a.75.75 0 101.06 1.06L12 13.06l2.22 2.22a.75.75 0 101.06-1.06L13.06 12l2.22-2.22a.75.75 0 10-1.06-1.06L12 10.94 9.78 8.72z"/></svg>
                     <span>{{ item.category }}</span>
