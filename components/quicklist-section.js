@@ -58,21 +58,21 @@ const QuicklistSection = Vue.defineComponent({
       </div>
     </div>
   `,
-  inject: ['quicklistChores', 'showAddToQuicklistModal', 'handleQuicklistChoreClick', 'openAddToQuicklistModal'],
+  inject: ['quicklistChores', 'showAddToQuicklistModal', 'handleQuicklistChoreClick', 'openAddToQuicklistModal', 'Helpers'],
   methods: {
     getQuicklistChoreClasses(quickChore) {
       const baseClasses = "relative group flex items-center gap-3 sm:gap-2 bg-white px-4 py-4 sm:px-3 sm:py-2 rounded-lg shadow-sm cursor-pointer border-l-4 border-primary-500 transition-all duration-200 touch-target min-h-[68px] sm:min-h-[56px]";
-      const selected = window.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, quickChore) || false;
+      const selected = this.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, quickChore) || false;
       const selectedClasses = selected ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : "hover:shadow-md hover:scale-105 active:scale-95";
       return `${baseClasses} ${selectedClasses}`;
     },
     
     getCategoryIcon(category) {
-      return window.Helpers?.getCategoryIcon?.(category) || '';
+      return this.Helpers?.getCategoryIcon?.(category) || '';
     },
-    
+
     getCategoryLabel(category) {
-      return window.Helpers?.getCategoryLabel?.(category) || '';
+      return this.Helpers?.getCategoryLabel?.(category) || '';
     },
     
     selectQuicklistChore(quickChore) {

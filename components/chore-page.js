@@ -338,7 +338,7 @@ const ChorePage = Vue.defineComponent({
   `,
   inject: [
     'people', 'choresByPerson', 'selectedChore', 'selectedChoreId', 'selectedQuicklistChore',
-    'quicklistChores', 'loading', 'error',
+    'quicklistChores', 'loading', 'error', 'Helpers',
     'showAddChoreModal', 'showAddToQuicklistModal',
     'handleChoreClick', 'handleQuicklistChoreClick', 'selectionStore'
   ],
@@ -388,11 +388,11 @@ const ChorePage = Vue.defineComponent({
 
     // Regular chore methods
     isChoreSelected(chore) {
-      return window.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, chore) || false;
+      return this.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, chore) || false;
     },
 
     isQuicklistChoreSelected(quickChore) {
-      return window.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, quickChore) || false;
+      return this.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, quickChore) || false;
     },
 
     selectChore(chore, event) {
@@ -515,11 +515,11 @@ const ChorePage = Vue.defineComponent({
     },
 
     getCategoryIcon(category) {
-      return window.Helpers?.getCategoryIcon?.(category) || '';
+      return this.Helpers?.getCategoryIcon?.(category) || '';
     },
 
     getCategoryLabel(category) {
-      return window.Helpers?.getCategoryLabel?.(category) || '';
+      return this.Helpers?.getCategoryLabel?.(category) || '';
     },
 
     getElectronicsStatusClass(status) {

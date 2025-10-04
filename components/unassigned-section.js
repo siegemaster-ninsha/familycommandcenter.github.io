@@ -64,19 +64,19 @@ const UnassignedSection = Vue.defineComponent({
       </div>
     </div>
   `,
-  inject: ['choresByPerson', 'showAddChoreModal', 'assignSelectedChore', 'selectedChore', 'handleChoreClick', 'openAddChoreModal', 'selectionStore'],
+  inject: ['choresByPerson', 'showAddChoreModal', 'assignSelectedChore', 'selectedChore', 'handleChoreClick', 'openAddChoreModal', 'selectionStore', 'Helpers'],
   methods: {
     getChoreClasses(chore) {
       const baseClasses = "flex items-center gap-3 sm:gap-4 px-3 sm:px-4 min-h-[96px] sm:min-h-[72px] py-4 sm:py-2 justify-between mb-3 sm:mb-2 rounded-lg shadow-sm cursor-pointer border-l-4 transition-all duration-200 touch-target";
       const categoryClasses = this.getCategoryStyle(chore.category).background;
-      const selected = window.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, chore) || false;
+      const selected = this.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, chore) || false;
       const selectedClasses = selected ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : "hover:shadow-md hover:scale-102 active:scale-95";
       
       return `${baseClasses} ${categoryClasses} ${selectedClasses}`;
     },
 
     isChoreSelected(chore) {
-      return window.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, chore) || false;
+      return this.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, chore) || false;
     },
 
     getCategoryStyle(category) {
@@ -103,11 +103,11 @@ const UnassignedSection = Vue.defineComponent({
     },
 
     getCategoryIcon(category) {
-      return window.Helpers?.getCategoryIcon?.(category) || '';
+      return this.Helpers?.getCategoryIcon?.(category) || '';
     },
 
     getCategoryLabel(category) {
-      return window.Helpers?.getCategoryLabel?.(category) || '';
+      return this.Helpers?.getCategoryLabel?.(category) || '';
     },
 
     

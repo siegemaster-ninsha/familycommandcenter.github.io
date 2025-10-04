@@ -2198,6 +2198,9 @@ const app = createApp({
 
   provide() {
     return {
+      // Global utilities and helpers
+      Helpers: window.Helpers,
+
       // Provide reactive data to child components
       // Readonly computed values for display data
       loading: Vue.computed(() => this.loading),
