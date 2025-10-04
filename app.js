@@ -3,6 +3,10 @@
 const { createApp } = Vue;
 
 const app = createApp({
+  compilerOptions: {
+    // Treat Shoelace elements as custom elements
+    isCustomElement: (tag) => tag.startsWith('sl-')
+  },
   data() {
     return {
       // Authentication state
@@ -2378,7 +2382,36 @@ function checkAndRegisterComponents() {
 
   // Register Shoelace web components after they're loaded
   console.log('📦 Registering Shoelace components');
-  const registerShoelaceComponents = () => {
+
+  // Wait for DOM to be ready and Shoelace to load
+  const initializeShoelace = () => {
+    // Check if sl-switch is already defined
+    if (customElements.get('sl-switch')) {
+      registerShoelaceVueComponents();
+      return;
+    }
+
+    // Wait for Shoelace script to load by checking for the script element
+    const shoelaceScript = document.querySelector('script[src*="shoelace-autoloader"]');
+    if (shoelaceScript) {
+      shoelaceScript.onload = () => {
+        console.log('🔄 Shoelace autoloader loaded, registering Vue components...');
+        registerShoelaceVueComponents();
+      };
+    }
+
+    // Fallback: check periodically for custom elements
+    const checkShoelace = () => {
+      if (customElements.get('sl-switch')) {
+        registerShoelaceVueComponents();
+      } else {
+        setTimeout(checkShoelace, 50);
+      }
+    };
+    setTimeout(checkShoelace, 100);
+  };
+
+  const registerShoelaceVueComponents = () => {
     if (customElements.get('sl-switch')) {
       // Define the component properly for Vue
       app.component('SlSwitch', {
@@ -2390,7 +2423,6 @@ function checkAndRegisterComponents() {
             :size="size"
             :disabled="disabled"
             @sl-change="$emit('sl-change', $event)"
-            class="family-card-switch"
           >
             <slot></slot>
           </sl-switch>
@@ -2398,11 +2430,16 @@ function checkAndRegisterComponents() {
       });
       console.log('✅ SlSwitch registered successfully');
     } else {
-      console.log('⏳ Waiting for Shoelace components to load...');
-      setTimeout(registerShoelaceComponents, 100);
+      console.error('❌ Shoelace sl-switch not found, cannot register Vue component');
     }
   };
-  registerShoelaceComponents();
+
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeShoelace);
+  } else {
+    initializeShoelace();
+  }
 
   // Register UI components
   if (window.UIComponents) {
