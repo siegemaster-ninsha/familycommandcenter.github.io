@@ -147,10 +147,12 @@ const ShoppingPage = Vue.defineComponent({
                 </button>
                 <button
                   @click.stop="removeItem(item.id)"
-                  class="btn-icon btn-icon--danger"
+                  class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
+                  style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);"
+                  :class="'hover:scale-105 active:scale-95'"
                   title="Remove item"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13.41 12l4.3-4.29a1 1 0 10-1.42-1.42L12 10.59 7.71 6.29a1 1 0 10-1.42 1.42L10.59 12l-4.3 4.29a1 1 0 101.42 1.42L12 13.41l4.29 4.3a1 1 0 001.42-1.42z"/></svg>
+                  <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14, 'text-white drop-shadow-sm')"></div>
                 </button>
               </div>
             </div>
@@ -257,11 +259,13 @@ const ShoppingPage = Vue.defineComponent({
               </button>
               <button
                 @click.stop="removeQuickItem(quickItem.id)"
-                class="btn-icon btn-icon--danger"
+                class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
+                style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);"
+                :class="'hover:scale-105 active:scale-95'"
                 title="Remove quick item"
                 :disabled="quickActionLoading"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13.41 12l4.3-4.29a1 1 0 10-1.42-1.42L12 10.59 7.71 6.29a1 1 0 10-1.42 1.42L10.59 12l-4.3 4.29a1 1 0 101.42 1.42L12 13.41l4.29 4.3a1 1 0 001.42-1.42z"/></svg>
+                <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14, 'text-white drop-shadow-sm')"></div>
               </button>
             </div>
           </div>
@@ -378,13 +382,12 @@ const ShoppingPage = Vue.defineComponent({
             </div>
             <button
               @click="removeStore(store.id)"
-              class="p-1 rounded transition-colors"
+              class="flex items-center justify-center p-2 opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
+              style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);"
+              :class="'hover:scale-105 active:scale-95'"
               title="Remove store"
-              style="color: var(--color-error-600); background: color-mix(in srgb, var(--color-error-50) 70%, transparent);"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256">
-                <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
-              </svg>
+              <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 12, 'text-white drop-shadow-sm')"></div>
             </button>
           </div>
           
@@ -783,12 +786,14 @@ const ShoppingPage = Vue.defineComponent({
   inject: [
     // Preloaded data from parent
     'shoppingItems',
-    'shoppingQuickItems', 
+    'shoppingQuickItems',
     'stores',
     // shared api helper
     'apiCall',
     // app loading state for top-level loading gate
-    'loading'
+    'loading',
+    // global utilities and helpers
+    'Helpers'
   ],
   async mounted() {
     // Data is now preloaded by parent component - no need to load on mount!

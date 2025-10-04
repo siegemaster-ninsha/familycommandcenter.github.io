@@ -16,22 +16,26 @@ const QuicklistSection = Vue.defineComponent({
             :class="getQuicklistChoreClasses(quickChore)"
             @click="selectQuicklistChore(quickChore)"
           >
-            <!-- Remove button -->
-            <button
-              @click.stop="removeFromQuicklist(quickChore.id)"
-              class="absolute -top-1 -right-1 btn-error rounded-full flex items-center justify-center text-base shadow-lg transition-opacity duration-200"
-              title="Remove from quicklist"
-            >
-              ×
-            </button>
-            
-            <div
-              class="flex items-center justify-center rounded-lg shrink-0 size-10 sm:size-8"
-              :style="{ background: 'var(--color-primary-50)', color: 'var(--color-primary-600)' }"
-              v-html="getCategoryIcon(quickChore.category)"
-            >
-            </div>
-            <div class="flex flex-col flex-1 min-w-0">
+            <div class="flex items-center gap-3 sm:gap-2 flex-1 min-w-0">
+              <!-- Remove button (integrated when selected) -->
+              <button
+                v-if="Helpers?.isChoreSelected?.($parent?.selectedChoreId, $parent?.selectedQuicklistChore, quickChore)"
+                @click.stop="removeFromQuicklist(quickChore.id)"
+                class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
+                style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);"
+                :class="'hover:scale-105 active:scale-95'"
+                title="Remove from quicklist"
+              >
+                <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14, 'text-red-600 drop-shadow-sm')"></div>
+              </button>
+
+              <div
+                class="flex items-center justify-center rounded-lg shrink-0 size-10 sm:size-8"
+                :style="{ background: 'var(--color-primary-50)', color: 'var(--color-primary-600)' }"
+                v-html="getCategoryIcon(quickChore.category)"
+              >
+              </div>
+              <div class="flex flex-col flex-1 min-w-0">
               <p class="text-primary-custom text-sm font-medium leading-tight line-clamp-2 sm:line-clamp-1">{{ quickChore.name }}</p>
               <p v-if="quickChore.amount > 0" class="text-secondary-custom text-xs">\${{ quickChore.amount.toFixed(2) }}</p>
             </div>

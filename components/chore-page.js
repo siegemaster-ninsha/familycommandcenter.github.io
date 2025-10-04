@@ -44,25 +44,28 @@ const ChorePage = Vue.defineComponent({
             @click.stop="onQuicklistClick(quickChore, $event)"
             @touchend.stop="onQuicklistClick(quickChore, $event)"
           >
-            <!-- Remove button -->
-            <button
-              @click.stop="removeFromQuicklist(quickChore.id)"
-              class="absolute top-1 right-1 opacity-60 hover:opacity-90 transition-all duration-200 touch-target rounded-full"
-              style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(4px);"
-              :class="'hover:scale-105 active:scale-95'"
-              title="Remove from quicklist"
-            >
-              <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14, 'text-white drop-shadow-sm')"></div>
-            </button>
+            <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+              <!-- Remove button (integrated when selected) -->
+              <button
+                v-if="isQuicklistChoreSelected(quickChore)"
+                @click.stop="removeFromQuicklist(quickChore.id)"
+                class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
+                style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);"
+                :class="'hover:scale-105 active:scale-95'"
+                title="Remove from quicklist"
+              >
+                <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14, 'text-white drop-shadow-sm')"></div>
+              </button>
 
-            <div
-              class="flex items-center justify-center rounded-lg shrink-0 size-12 sm:size-10 text-white bg-white bg-opacity-20"
-              v-html="getCategoryIcon(quickChore.category)"
-            >
-            </div>
-            <div class="flex flex-col flex-1 min-w-0">
-              <p class="text-white text-base sm:text-sm font-medium leading-tight line-clamp-2">{{ quickChore.name }}</p>
-              <p v-if="quickChore.amount > 0" class="text-white text-opacity-90 text-sm sm:text-xs mt-1">\${{ quickChore.amount.toFixed(2) }}</p>
+              <div
+                class="flex items-center justify-center rounded-lg shrink-0 size-12 sm:size-10 text-white bg-white bg-opacity-20"
+                v-html="getCategoryIcon(quickChore.category)"
+              >
+              </div>
+              <div class="flex flex-col flex-1 min-w-0">
+                <p class="text-white text-base sm:text-sm font-medium leading-tight line-clamp-2">{{ quickChore.name }}</p>
+                <p v-if="quickChore.amount > 0" class="text-white text-opacity-90 text-sm sm:text-xs mt-1">\${{ quickChore.amount.toFixed(2) }}</p>
+              </div>
             </div>
             <span class="text-xs px-2 py-1 rounded-full shrink-0 self-start bg-white bg-opacity-20 text-white">
               {{ getCategoryLabel(quickChore.category) }}
@@ -128,19 +131,18 @@ const ChorePage = Vue.defineComponent({
                 @click.stop="selectChore(chore, $event)"
                 @touchend.stop="selectChore(chore, $event)"
               >
-                <!-- Delete button (only visible when selected) -->
-                <button
-                  v-if="isChoreSelected(chore)"
-                  @click.stop="deleteChore(chore)"
-                  class="absolute top-1 right-1 opacity-60 hover:opacity-90 transition-all duration-200 touch-target rounded-full"
-                  style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(4px);"
-                  :class="'hover:scale-105 active:scale-95'"
-                  title="Delete chore"
-                >
-                  <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14, 'text-white drop-shadow-sm')"></div>
-                </button>
-
                 <div class="flex items-center gap-4 flex-1 min-w-0">
+                  <!-- Delete button (integrated into card when selected) -->
+                  <button
+                    v-if="isChoreSelected(chore)"
+                    @click.stop="deleteChore(chore)"
+                    class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
+                    style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);"
+                    :class="'hover:scale-105 active:scale-95'"
+                    title="Delete chore"
+                  >
+                    <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14, 'text-white drop-shadow-sm')"></div>
+                  </button>
                   <div
                     class="flex items-center justify-center rounded-lg shrink-0 size-14 sm:size-12 text-white bg-white bg-opacity-20"
                     v-html="getCategoryIcon(chore.category)"
@@ -235,20 +237,19 @@ const ChorePage = Vue.defineComponent({
                 :style="isChoreSelected(chore) ? 'background-color: var(--color-primary-600);' : 'background-color: var(--color-primary-500); border-color: var(--color-primary-600); box-shadow: var(--shadow-sm);'"
                 @click.stop="selectChore(chore, $event)"
               >
-                <!-- Delete button (only visible when selected) -->
-                <button
-                  v-if="isChoreSelected(chore)"
-                  @click.stop="deleteChore(chore)"
-                  class="absolute top-1 right-1 opacity-60 hover:opacity-90 transition-all duration-200 touch-target rounded-full"
-                  style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(4px);"
-                  :class="'hover:scale-105 active:scale-95'"
-                  title="Delete chore"
-                >
-                  <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14, 'text-white drop-shadow-sm')"></div>
-                </button>
-
                 <!-- Completion + approval UI -->
                 <div class="shrink-0 flex items-center gap-2">
+                  <!-- Delete button (integrated into action area when selected) -->
+                  <button
+                    v-if="isChoreSelected(chore)"
+                    @click.stop="deleteChore(chore)"
+                    class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
+                    style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);"
+                    :class="'hover:scale-105 active:scale-95'"
+                    title="Delete chore"
+                  >
+                    <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14, 'text-white drop-shadow-sm')"></div>
+                  </button>
                   <input
                     type="checkbox"
                     :checked="chore.completed"
