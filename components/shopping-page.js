@@ -10,21 +10,22 @@ const ShoppingPage = Vue.defineComponent({
             Shopping List
           </h2>
           <div class="flex items-center gap-2">
-            <button
-              @click="toggleViewMode"
-              class="hidden sm:flex items-center gap-2 px-3 py-2 border rounded-lg hover:bg-gray-50 transition-colors touch-target"
-              :disabled="loading"
-              style="border-color: var(--color-border-card);"
-              :title="viewMode === 'byStore' ? 'Switch to flat list view' : 'Switch to grouped by store view'"
-            >
-              <svg v-if="viewMode === 'byStore'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-                <path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128Z"/>
-              </svg>
-              <svg v-else xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-                <path d="M128,72a8,8,0,0,1,8-8h80a8,8,0,0,1,0,16H136A8,8,0,0,1,128,72Zm88,32H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Zm-88,32a8,8,0,0,1,8-8H216a8,8,0,0,1,0,16H136A8,8,0,0,1,128,136Z"/>
-              </svg>
-              {{ viewMode === 'byStore' ? 'List View' : 'Store View' }}
-            </button>
+            <!-- Sort by Store Toggle -->
+            <div class="hidden sm:flex items-center gap-2">
+              <span class="text-sm text-secondary-custom">Sort by Store</span>
+              <button
+                @click="toggleViewMode"
+                class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                :class="viewMode === 'byStore' ? 'bg-primary-600' : 'bg-gray-200'"
+                :disabled="loading"
+                :title="viewMode === 'byStore' ? 'Switch to flat list view' : 'Switch to grouped by store view'"
+              >
+                <span
+                  class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                  :class="viewMode === 'byStore' ? 'translate-x-6' : 'translate-x-1'"
+                />
+              </button>
+            </div>
             <button
               @click="showAddItemModal = true"
               class="hidden sm:flex items-center gap-2 btn-primary touch-target"
