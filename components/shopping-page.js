@@ -100,14 +100,14 @@ const ShoppingPage = Vue.defineComponent({
                   @change="handleToggleItem(item.id)"
                   @click.stop
                   :disabled="item.isToggling"
-                  class="w-5 h-5 sm:w-6 sm:h-6 rounded focus:ring-success-600 focus:ring-2 focus:ring-offset-2 touch-target text-success-600 transition-all duration-200 transform"
+                  class="w-6 h-6 sm:w-7 sm:h-7 rounded focus:ring-success-600 focus:ring-2 focus:ring-offset-2 touch-target text-success-600 transition-all duration-200 transform"
                   :class="item.completed ? 'scale-110' : 'scale-100'"
                 >
                 <div
                   v-if="item.isToggling"
                   class="absolute inset-0 flex items-center justify-center"
                 >
-                  <div class="w-3 h-3 sm:w-4 sm:h-4 border-2 border-success-600 border-t-transparent rounded-full animate-spin"></div>
+                  <div class="w-4 h-4 sm:w-5 sm:h-5 border-2 border-success-600 border-t-transparent rounded-full animate-spin"></div>
                 </div>
               </div>
               <div class="flex-1">
@@ -137,10 +137,12 @@ const ShoppingPage = Vue.defineComponent({
               <div class="flex items-center gap-1">
                 <button
                   @click.stop="startEditItem(item)"
-                  class="btn-icon btn-icon--secondary"
+                  class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
+                  style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 40px; height: 40px;"
+                  :class="'hover:scale-105 active:scale-95'"
                   title="Edit item"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                   </svg>
@@ -148,11 +150,11 @@ const ShoppingPage = Vue.defineComponent({
                 <button
                   @click.stop="removeItem(item.id)"
                   class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
-                  style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);"
+                  style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 40px; height: 40px;"
                   :class="'hover:scale-105 active:scale-95'"
                   title="Remove item"
                 >
-                  <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14, 'text-white drop-shadow-sm')"></div>
+                  <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 18, 'text-white drop-shadow-sm')"></div>
                 </button>
               </div>
             </div>
@@ -248,11 +250,13 @@ const ShoppingPage = Vue.defineComponent({
             <div class="flex items-center gap-2">
               <button
                 @click.stop="startEditQuickItem(quickItem)"
-                class="btn-icon btn-icon--secondary"
+                class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
+                style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 40px; height: 40px;"
+                :class="'hover:scale-105 active:scale-95'"
                 title="Edit quick item"
                 :disabled="quickActionLoading"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                 </svg>
@@ -260,12 +264,12 @@ const ShoppingPage = Vue.defineComponent({
               <button
                 @click.stop="removeQuickItem(quickItem.id)"
                 class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
-                style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);"
+                style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 40px; height: 40px;"
                 :class="'hover:scale-105 active:scale-95'"
                 title="Remove quick item"
                 :disabled="quickActionLoading"
               >
-                <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14, 'text-white drop-shadow-sm')"></div>
+                <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 18, 'text-white drop-shadow-sm')"></div>
               </button>
             </div>
           </div>
