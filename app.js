@@ -572,6 +572,7 @@ const app = createApp({
     async loadUserTheme() {
       try {
         console.log('🎨 Loading user theme from account settings...');
+        const headerAccountId = this.accountId || this.accountSettings?.accountId || null;
         let response;
         try {
           response = await window.SettingsClient.get(headerAccountId, { ifNoneMatch: this.accountSettings?.updatedAt });
