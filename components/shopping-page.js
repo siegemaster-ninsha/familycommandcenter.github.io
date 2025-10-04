@@ -113,18 +113,20 @@ const ShoppingPage = Vue.defineComponent({
               <div class="flex-1">
                 <span
                   :class="[
-                    'font-medium text-lg sm:text-base',
+                    'font-medium text-lg sm:text-base block',
                     item.completed ? 'line-through text-white opacity-60' : 'text-white'
                   ]"
                 >
                   {{ item.name }}
                 </span>
+                <div v-if="item.quantity" class="text-sm sm:text-base text-white text-opacity-90 mt-1">
+                  <span class="font-medium">Qty: {{ item.quantity }}</span>
+                </div>
                 <div class="text-sm sm:text-base text-white text-opacity-90 flex items-center gap-2 mt-1">
                   <span class="inline-flex items-center gap-1">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 opacity-90"><path d="M2.25 12a9.75 9.75 0 1119.5 0 9.75 9.75 0 01-19.5 0zm7.53-3.28a.75.75 0 10-1.06 1.06L10.94 12l-2.22 2.22a.75.75 0 101.06 1.06L12 13.06l2.22 2.22a.75.75 0 101.06-1.06L13.06 12l2.22-2.22a.75.75 0 10-1.06-1.06L12 10.94 9.78 8.72z"/></svg>
                     <span>{{ item.category }}</span>
                   </span>
-                  <span v-if="item.quantity">• Qty: {{ item.quantity }}</span>
                   <span v-if="item.notes">• {{ item.notes }}</span>
                   <span v-if="item.store" class="inline-flex items-center gap-1 text-xs bg-white bg-opacity-20 px-2 py-1 rounded">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3">
@@ -229,15 +231,17 @@ const ShoppingPage = Vue.defineComponent({
             </div>
 
             <div class="flex-1">
-              <span class="font-medium text-lg sm:text-base text-white">
+              <span class="font-medium text-lg sm:text-base text-white block">
                 {{ quickItem.name }}
               </span>
+              <div v-if="quickItem.defaultQuantity" class="text-base sm:text-sm text-white text-opacity-90 mt-1">
+                <span class="font-medium">Qty: {{ quickItem.defaultQuantity }}</span>
+              </div>
               <div class="text-base sm:text-sm text-white text-opacity-90 flex items-center gap-2 mt-1">
                 <span class="inline-flex items-center gap-1">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 opacity-90"><path d="M2.25 12a9.75 9.75 0 1119.5 0 9.75 9.75 0 01-19.5 0zm7.53-3.28a.75.75 0 10-1.06 1.06L10.94 12l-2.22 2.22a.75.75 0 101.06 1.06L12 13.06l2.22 2.22a.75.75 0 101.06-1.06L13.06 12l2.22-2.22a.75.75 0 10-1.06-1.06L12 10.94 9.78 8.72z"/></svg>
                   <span>{{ quickItem.category }}</span>
                 </span>
-                <span v-if="quickItem.defaultQuantity">• Qty: {{ quickItem.defaultQuantity }}</span>
                 <span v-if="quickItem.defaultNotes">• {{ quickItem.defaultNotes }}</span>
                 <span v-if="quickItem.defaultStore" class="inline-flex items-center gap-1 text-xs bg-white bg-opacity-20 px-2 py-1 rounded">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3">
