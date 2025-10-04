@@ -1101,10 +1101,10 @@ button.rounded-full[title*="Delete"] svg {
    Uses CSS variables for sizing so variants stay centered
    =========================================== */
 .toggle-switch {
-  /* Size variables */
+  /* Size variables - reduced height for compact design */
   --ts-width: 44px;
-  --ts-height: 26px;
-  --ts-padding: 3px;
+  --ts-height: 20px;
+  --ts-padding: 2px;
   --ts-knob: calc(var(--ts-height) - var(--ts-padding) * 2);
   --ts-translate-x: calc(var(--ts-width) - var(--ts-knob) - var(--ts-padding) * 2);
 
@@ -1121,7 +1121,7 @@ button.rounded-full[title*="Delete"] svg {
   -webkit-appearance: none;
   display: inline-block;
   vertical-align: middle;
-  box-sizing: content-box;
+  box-sizing: border-box;
   overflow: hidden;
 }
 .toggle-switch .knob {
@@ -1133,17 +1133,25 @@ button.rounded-full[title*="Delete"] svg {
   border-radius: 50%;
   background: #fff;
   transition: transform var(--transition-fast);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   transform: translate(0, -50%);
+  /* Hardware acceleration for smooth animation */
+  transform: translate3d(0, -50%, 0);
+  /* Prevent bouncing by using transform3d */
+  will-change: transform;
 }
-.toggle-switch.on { background: var(--color-primary-500); }
-.toggle-switch.on .knob { transform: translate(var(--ts-translate-x), -50%); }
+.toggle-switch.on {
+  background: var(--color-primary-500);
+}
+.toggle-switch.on .knob {
+  transform: translate3d(var(--ts-translate-x), -50%, 0);
+}
 
 /* Small variant for tighter UIs (e.g., family cards on mobile) */
 .toggle-switch--sm {
   --ts-width: 36px;
-  --ts-height: 22px;
-  --ts-padding: 3px;
+  --ts-height: 16px;
+  --ts-padding: 2px;
 }
 
 .toggle-switch:focus-visible {
@@ -1160,6 +1168,9 @@ button.rounded-full[title*="Delete"] svg {
 .family-card .toggle-switch {
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
+  /* Compact height for family cards */
+  --ts-height: 18px;
+  height: var(--ts-height);
 }
 
 .family-card .toggle-switch.on {
@@ -1169,7 +1180,7 @@ button.rounded-full[title*="Delete"] svg {
 
 .family-card .toggle-switch .knob {
   background: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .family-card .toggle-switch:focus-visible {
