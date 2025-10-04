@@ -124,14 +124,14 @@ const FamilyPage = Vue.defineComponent({
                         <div class="flex flex-col sm:flex-row sm:items-center gap-3">
                           <label class="text-sm text-white text-opacity-90 font-medium min-w-[100px]">Show on chore board</label>
                           <div class="flex items-center gap-3">
-                            <sl-switch
+                            <SlSwitch
                               :checked="person.enabledForChores"
                               @sl-change="person.enabledForChores = !person.enabledForChores; $parent.updateMemberChoresEnabled(person)"
                               size="small"
                               class="family-card-switch"
                             >
                               {{ person.enabledForChores ? 'Visible' : 'Hidden' }}
-                            </sl-switch>
+                            </SlSwitch>
                           </div>
                         </div>
                       </div>

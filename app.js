@@ -2375,7 +2375,13 @@ function checkAndRegisterComponents() {
   }
   
   console.log('🔧 All components available, registering...');
-  
+
+  // Register Shoelace web components
+  console.log('📦 Registering Shoelace components');
+  app.component('SlSwitch', {
+    template: '<sl-switch v-bind="$attrs" @sl-change="$emit(\'sl-change\', $event)"><slot></slot></sl-switch>'
+  });
+
   // Register UI components
   if (window.UIComponents) {
     Object.entries(window.UIComponents).forEach(([name, component]) => {
