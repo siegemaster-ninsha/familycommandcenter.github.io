@@ -12,10 +12,14 @@ const NavMenu = Vue.defineComponent({
     }
   },
   data() {
-    return { open: false };
+    return {
+      open: false,
+      deployVersion: null
+    };
   },
   mounted() {
     document.addEventListener('click', this.onOutsideClick);
+    this.loadVersionInfo();
   },
   beforeUnmount() {
     document.removeEventListener('click', this.onOutsideClick);
@@ -28,14 +32,76 @@ const NavMenu = Vue.defineComponent({
     },
     onOutsideClick(e) {
       if (!this.$el.contains(e.target)) this.open = false;
+    },
+    async loadVersionInfo() {
+      try {
+        const response = await fetch('./version.json');
+        if (response.ok) {
+          this.deployVersion = await response.json();
+        } else {
+          this.deployVersion = {
+            version: 'unknown',
+            deployedAt: 'unknown',
+            timestamp: new Date().toISOString()
+          };
+        }
+      } catch (error) {
+        this.deployVersion = {
+          version: 'error',
+          deployedAt: 'error loading',
+          timestamp: new Date().toISOString()
+        };
+      }
+    },
+    formatDeployTime(deployTime) {
+      if (!deployTime || deployTime === 'unknown' || deployTime === 'error loading') {
+        return deployTime;
+      }
+
+      try {
+        const date = new Date(deployTime);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / (1000 * 60));
+
+        if (diffMins < 1) return 'just now';
+        if (diffMins < 60) return `${diffMins}m ago`;
+
+        const diffHours = Math.floor(diffMins / 60);
+        if (diffHours < 24) return `${diffHours}h ago`;
+
+        const diffDays = Math.floor(diffHours / 24);
+        if (diffDays < 7) return `${diffDays}d ago`;
+
+        return date.toLocaleDateString();
+      } catch (error) {
+        return deployTime;
+      }
     }
   },
   template: `
     <div class="relative" @keydown.esc="open=false">
-      <button type="button" class="nav-trigger" @click="toggle" :aria-expanded="open" aria-haspopup="true">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"/></svg>
-      </button>
+      <div class="flex items-center gap-3">
+        <!-- Version indicator (visible on desktop, hidden on mobile) -->
+        <div v-if="deployVersion" class="hidden sm:block text-xs text-secondary-custom bg-secondary-50 px-2 py-1 rounded-md border">
+          <span class="font-mono">{{ deployVersion.version }}</span>
+          <span class="mx-1">•</span>
+          <span class="text-xs">{{ formatDeployTime(deployVersion.deployedAt) }}</span>
+        </div>
+
+        <button type="button" class="nav-trigger" @click="toggle" :aria-expanded="open" aria-haspopup="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"/></svg>
+        </button>
+      </div>
+
       <div v-if="open" class="nav-menu absolute right-0 w-44 z-50" style="top: calc(100% + 8px);">
+        <!-- Version info in mobile menu -->
+        <div v-if="deployVersion" class="nav-item-version px-3 py-2 text-xs text-secondary-custom bg-secondary-50 border-b">
+          <span class="font-mono">{{ deployVersion.version }}</span>
+          <span class="mx-1">•</span>
+          <span class="text-xs">{{ formatDeployTime(deployVersion.deployedAt) }}</span>
+        </div>
+
         <button v-for="item in items" :key="item.key" class="nav-item flex items-center gap-2" @click="go(item.key)">
           <span>{{ item.label }}</span>
         </button>

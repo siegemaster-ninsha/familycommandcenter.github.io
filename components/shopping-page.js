@@ -63,8 +63,8 @@ const ShoppingPage = Vue.defineComponent({
         <div v-else>
           <!-- Grouped by store view -->
           <div v-if="viewMode === 'byStore'" class="space-y-6">
-            <!-- Items grouped by store -->
-            <div v-for="(items, storeName) in itemsByStore" :key="storeName" v-if="viewMode === 'byStore'" class="space-y-3">
+            <!-- Items grouped by store - only show in store view mode -->
+            <div v-for="(items, storeName) in itemsByStore" :key="storeName" class="space-y-3">
               <div class="flex items-center justify-between border-b pb-2" style="border-color: var(--color-border-card);">
                 <h3 class="text-lg font-bold text-primary-custom flex items-center gap-2">
                   <div
@@ -454,7 +454,8 @@ const ShoppingPage = Vue.defineComponent({
               <div>
                 <label class="block text-sm font-medium mb-1">Item Name *</label>
                 <input
-                  v-model="editMode ? editingItem.name : newItem.name"
+                  :value="editMode ? editingItem.name : newItem.name"
+                  @input="editMode ? (editingItem.name = $event.target.value) : (newItem.name = $event.target.value)"
                   type="text"
                   class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   style="border-color: var(--color-border-card)"
@@ -466,7 +467,8 @@ const ShoppingPage = Vue.defineComponent({
               <div>
                 <label class="block text-sm font-medium mb-1">Category</label>
                 <select
-                  v-model="editMode ? editingItem.category : newItem.category"
+                  :value="editMode ? editingItem.category : newItem.category"
+                  @change="editMode ? (editingItem.category = $event.target.value) : (newItem.category = $event.target.value)"
                   class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   style="border-color: var(--color-border-card)"
                 >
@@ -485,7 +487,8 @@ const ShoppingPage = Vue.defineComponent({
               <div>
                 <label class="block text-sm font-medium mb-1">Store</label>
                 <select
-                  v-model="editMode ? editingItem.store : newItem.store"
+                  :value="editMode ? editingItem.store : newItem.store"
+                  @change="editMode ? (editingItem.store = $event.target.value) : (newItem.store = $event.target.value)"
                   class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   style="border-color: var(--color-border-card)"
                 >
@@ -497,7 +500,8 @@ const ShoppingPage = Vue.defineComponent({
               <div>
                 <label class="block text-sm font-medium mb-1">Quantity</label>
                 <input
-                  v-model="editMode ? editingItem.quantity : newItem.quantity"
+                  :value="editMode ? editingItem.quantity : newItem.quantity"
+                  @input="editMode ? (editingItem.quantity = $event.target.value) : (newItem.quantity = $event.target.value)"
                   type="text"
                   class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   style="border-color: var(--color-border-card)"
@@ -508,7 +512,8 @@ const ShoppingPage = Vue.defineComponent({
               <div>
                 <label class="block text-sm font-medium mb-1">Notes</label>
                 <input
-                  v-model="editMode ? editingItem.notes : newItem.notes"
+                  :value="editMode ? editingItem.notes : newItem.notes"
+                  @input="editMode ? (editingItem.notes = $event.target.value) : (newItem.notes = $event.target.value)"
                   type="text"
                   class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   style="border-color: var(--color-border-card)"
@@ -529,7 +534,7 @@ const ShoppingPage = Vue.defineComponent({
               <button
                 type="submit"
                 class="flex-1 btn-success"
-                :disabled="(!editMode ? !newItem.name : !editingItem.name) || actionLoading"
+                :disabled="(editMode ? !editingItem.name : !newItem.name) || actionLoading"
               >
                 {{ editMode ? 'Update Item' : 'Add Item' }}
               </button>
@@ -548,7 +553,8 @@ const ShoppingPage = Vue.defineComponent({
               <div>
                 <label class="block text-sm font-medium mb-1">Item Name *</label>
                 <input
-                  v-model="editMode ? editingQuickItem.name : newQuickItem.name"
+                  :value="editMode ? editingQuickItem.name : newQuickItem.name"
+                  @input="editMode ? (editingQuickItem.name = $event.target.value) : (newQuickItem.name = $event.target.value)"
                   type="text"
                   class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   style="border-color: var(--color-border-card)"
@@ -560,7 +566,8 @@ const ShoppingPage = Vue.defineComponent({
               <div>
                 <label class="block text-sm font-medium mb-1">Category</label>
                 <select
-                  v-model="editMode ? editingQuickItem.category : newQuickItem.category"
+                  :value="editMode ? editingQuickItem.category : newQuickItem.category"
+                  @change="editMode ? (editingQuickItem.category = $event.target.value) : (newQuickItem.category = $event.target.value)"
                   class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   style="border-color: var(--color-border-card)"
                 >
@@ -579,7 +586,8 @@ const ShoppingPage = Vue.defineComponent({
               <div>
                 <label class="block text-sm font-medium mb-1">Default Quantity</label>
                 <input
-                  v-model="editMode ? editingQuickItem.defaultQuantity : newQuickItem.defaultQuantity"
+                  :value="editMode ? editingQuickItem.defaultQuantity : newQuickItem.defaultQuantity"
+                  @input="editMode ? (editingQuickItem.defaultQuantity = $event.target.value) : (newQuickItem.defaultQuantity = $event.target.value)"
                   type="text"
                   class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   style="border-color: var(--color-border-card)"
@@ -590,7 +598,8 @@ const ShoppingPage = Vue.defineComponent({
               <div>
                 <label class="block text-sm font-medium mb-1">Default Notes</label>
                 <input
-                  v-model="editMode ? editingQuickItem.defaultNotes : newQuickItem.defaultNotes"
+                  :value="editMode ? editingQuickItem.defaultNotes : newQuickItem.defaultNotes"
+                  @input="editMode ? (editingQuickItem.defaultNotes = $event.target.value) : (newQuickItem.defaultNotes = $event.target.value)"
                   type="text"
                   class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   style="border-color: var(--color-border-card)"
@@ -601,7 +610,8 @@ const ShoppingPage = Vue.defineComponent({
               <div>
                 <label class="block text-sm font-medium mb-1">Default Store</label>
                 <select
-                  v-model="editMode ? editingQuickItem.defaultStore : newQuickItem.defaultStore"
+                  :value="editMode ? editingQuickItem.defaultStore : newQuickItem.defaultStore"
+                  @change="editMode ? (editingQuickItem.defaultStore = $event.target.value) : (newQuickItem.defaultStore = $event.target.value)"
                   class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   style="border-color: var(--color-border-card)"
                 >
@@ -625,7 +635,7 @@ const ShoppingPage = Vue.defineComponent({
               <button
                 type="submit"
                 class="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
-                :disabled="(!editMode ? !newQuickItem.name : !editingQuickItem.name) || quickActionLoading"
+                :disabled="(editMode ? !editingQuickItem.name : !newQuickItem.name) || quickActionLoading"
               >
                 {{ editMode ? 'Update Quick Item' : 'Add Quick Item' }}
               </button>
@@ -1073,6 +1083,12 @@ const ShoppingPage = Vue.defineComponent({
       this.editingItem = JSON.parse(JSON.stringify(item));
       this.editMode = true;
       this.showAddItemModal = true; // Reuse the existing modal
+
+      // Ensure Vue reactivity by triggering a re-render
+      this.$nextTick(() => {
+        // Force re-evaluation of computed properties and bindings
+        this.$forceUpdate();
+      });
     },
 
     startEditQuickItem(quickItem) {
@@ -1080,12 +1096,19 @@ const ShoppingPage = Vue.defineComponent({
       this.editingQuickItem = JSON.parse(JSON.stringify(quickItem));
       this.editMode = true;
       this.showAddQuickItemModal = true; // Reuse the existing modal
+
+      // Ensure Vue reactivity by triggering a re-render
+      this.$nextTick(() => {
+        // Force re-evaluation of computed properties and bindings
+        this.$forceUpdate();
+      });
     },
 
     cancelEdit() {
       this.editMode = false;
       this.editingItem = null;
       this.editingQuickItem = null;
+      // Close all modals to ensure clean state
       this.showAddItemModal = false;
       this.showAddQuickItemModal = false;
     },
