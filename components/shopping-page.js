@@ -640,12 +640,12 @@ const ShoppingPage = Vue.defineComponent({
       </div>
 
       <!-- Success Message -->
-      <div v-if="showSuccess" class="fixed top-4 right-4 text-white px-6 py-3 rounded-lg shadow-lg z-50" style="background: var(--color-success-600);">
+      <div v-if="showSuccess" class="fixed top-4 right-4 text-white px-6 py-3 rounded-lg shadow-lg z-[100]" style="background: var(--color-success-600);">
         {{ successMessage }}
       </div>
 
       <!-- Error Message -->
-      <div v-if="showError" class="fixed top-4 right-4 text-white px-6 py-3 rounded-lg shadow-lg z-50" style="background: var(--color-error-600);">
+      <div v-if="showError" class="fixed top-4 right-4 text-white px-6 py-3 rounded-lg shadow-lg z-[100]" style="background: var(--color-error-600);">
         {{ errorMessage }}
       </div>
 
