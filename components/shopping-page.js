@@ -794,12 +794,11 @@ const ShoppingPage = Vue.defineComponent({
         });
 
         // Update with server response if it differs from our optimistic update
-        if (response.item && response.item.completed !== this.shoppingItems[itemIndex].completed) {
+        if (response && response.item && typeof response.item.completed === 'boolean' && response.item.completed !== this.shoppingItems[itemIndex].completed) {
           this.shoppingItems[itemIndex].completed = response.item.completed;
         }
 
-        // Check if we need to clear any completed stores
-        this.checkAndClearCompletedStores();
+        // Note: Store clearing functionality removed since we no longer group by store
       } catch (error) {
         console.error('Error toggling item:', error);
 
@@ -1058,44 +1057,6 @@ const ShoppingPage = Vue.defineComponent({
       return colors[colorIndex];
     },
 
-    async checkAndClearCompletedStores() {
-      const storesToClear = [];
-
-      // Check each store to see if all items are completed
-      Object.keys(this.itemsByStore).forEach(storeName => {
-        const items = this.itemsByStore[storeName];
-        const allCompleted = items.length > 0 && items.every(item => item.completed);
-
-        if (allCompleted) {
-          storesToClear.push(storeName);
-        }
-      });
-
-      // Clear completed items for stores that are fully completed
-      for (const storeName of storesToClear) {
-        try {
-          // Get all completed items for this store and remove them
-          const completedItems = this.shoppingItems.filter(item =>
-            (item.store || 'No Store Selected') === storeName && item.completed
-          );
-
-          for (const item of completedItems) {
-            await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_ITEMS}/${item.id}`, {
-              method: 'DELETE'
-            });
-          }
-
-          console.log(`Cleared ${completedItems.length} completed items from store: ${storeName}`);
-        } catch (error) {
-          console.error(`Error clearing completed items from store ${storeName}:`, error);
-        }
-      }
-
-      // If any stores were cleared, reload the shopping items
-      if (storesToClear.length > 0) {
-        await this.$parent.loadShoppingItems();
-      }
-    }
   }
 });
 
