@@ -70,20 +70,37 @@ const ShoppingPage = Vue.defineComponent({
             <div
               v-for="item in flatShoppingItems"
               :key="item.id"
-              class="flex items-center gap-3 p-3 sm:p-4 rounded-lg transition-colors cursor-pointer"
-              @click="toggleItem(item.id)"
+              class="flex items-center gap-3 p-3 sm:p-4 rounded-lg transition-all duration-300 hover:bg-opacity-80 transform"
+              :class="[
+                item.isToggling ? 'opacity-75 pointer-events-none scale-98' : 'cursor-pointer hover:shadow-md hover:scale-102',
+                item.completed ? 'bg-opacity-75' : 'bg-opacity-100'
+              ]"
               style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
             >
-              <input
-                type="checkbox"
-                :checked="item.completed"
-                @change.stop="toggleItem(item.id)"
-                class="w-5 h-5 sm:w-6 sm:h-6 rounded focus:ring-success-600 touch-target text-success-600"
-              >
+              <div class="relative">
+                <input
+                  type="checkbox"
+                  :checked="item.completed"
+                  @change="handleToggleItem(item.id)"
+                  :disabled="item.isToggling"
+                  class="w-5 h-5 sm:w-6 sm:h-6 rounded focus:ring-success-600 focus:ring-2 focus:ring-offset-2 touch-target text-success-600 transition-all duration-200 transform"
+                  :class="item.completed ? 'scale-110' : 'scale-100'"
+                >
+                <div
+                  v-if="item.isToggling"
+                  class="absolute inset-0 flex items-center justify-center"
+                >
+                  <div class="w-3 h-3 sm:w-4 sm:h-4 border-2 border-success-600 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              </div>
               <div class="flex-1">
                 <span
-                  :class="item.completed ? 'line-through text-white opacity-60' : 'text-white'"
-                  class="font-medium text-base sm:text-lg"
+                  :class="[
+                    'font-medium text-base sm:text-lg transition-all duration-300',
+                    item.completed
+                      ? 'line-through text-white opacity-60 transform scale-95'
+                      : 'text-white transform scale-100'
+                  ]"
                 >
                   {{ item.name }}
                 </span>
@@ -609,6 +626,11 @@ const ShoppingPage = Vue.defineComponent({
         {{ successMessage }}
       </div>
 
+      <!-- Error Message -->
+      <div v-if="showError" class="fixed top-4 right-4 text-white px-6 py-3 rounded-lg shadow-lg z-50" style="background: var(--color-error-600);">
+        {{ errorMessage }}
+      </div>
+
       <!-- Mobile Floating Add Button (FAB) -->
       <button 
         class="fab-add-item sm:hidden"
@@ -639,6 +661,8 @@ const ShoppingPage = Vue.defineComponent({
       showAddStoreModal: false,
       showSuccess: false,
       successMessage: '',
+      showError: false,
+      errorMessage: '',
       newItem: {
         name: '',
         category: 'General',
@@ -774,7 +798,7 @@ const ShoppingPage = Vue.defineComponent({
       }
     },
 
-    async toggleItem(itemId) {
+    async handleToggleItem(itemId) {
       // Find the item in the local array for optimistic update
       const itemIndex = this.shoppingItems.findIndex(item => item.id === itemId);
       if (itemIndex === -1) {
@@ -784,6 +808,9 @@ const ShoppingPage = Vue.defineComponent({
 
       // Store the previous state for potential rollback
       const previousState = this.shoppingItems[itemIndex].completed;
+
+      // Set loading state for this specific item
+      this.$set(this.shoppingItems[itemIndex], 'isToggling', true);
 
       // Optimistic update - immediately toggle the local state
       this.shoppingItems[itemIndex].completed = !previousState;
@@ -806,14 +833,11 @@ const ShoppingPage = Vue.defineComponent({
         // Rollback the optimistic update on error
         this.shoppingItems[itemIndex].completed = previousState;
 
-        alert('Error updating item: ' + (error?.message || 'unknown error'));
-
-        // Fallback: reload items to ensure consistency
-        try {
-          await this.$parent.loadShoppingItems();
-        } catch (reloadError) {
-          console.error('Error reloading items after toggle failure:', reloadError);
-        }
+        // Show user-friendly error message instead of alert
+        this.showErrorMessage('Failed to update item. Please try again.');
+      } finally {
+        // Remove loading state
+        this.$set(this.shoppingItems[itemIndex], 'isToggling', false);
       }
     },
 
@@ -1029,6 +1053,14 @@ const ShoppingPage = Vue.defineComponent({
       setTimeout(() => {
         this.showSuccess = false;
       }, 3000);
+    },
+
+    showErrorMessage(message) {
+      this.errorMessage = message;
+      this.showError = true;
+      setTimeout(() => {
+        this.showError = false;
+      }, 5000);
     },
 
     getStoreInitial(storeName) {
