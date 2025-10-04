@@ -85,12 +85,14 @@ const ShoppingPage = Vue.defineComponent({
                 item.completed ? 'bg-opacity-75' : 'bg-opacity-100'
               ]"
               style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
+              @click="handleToggleItem(item.id)"
             >
               <div class="relative">
                 <input
                   type="checkbox"
                   :checked="item.completed"
                   @change="handleToggleItem(item.id)"
+                  @click.stop
                   :disabled="item.isToggling"
                   class="w-5 h-5 sm:w-6 sm:h-6 rounded focus:ring-success-600 focus:ring-2 focus:ring-offset-2 touch-target text-success-600 transition-all duration-200 transform"
                   :class="item.completed ? 'scale-110' : 'scale-100'"
