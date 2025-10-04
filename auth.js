@@ -6,7 +6,12 @@ class AuthService {
     this.refreshToken = null;
     this.idToken = null;
     this.cognitoUser = null;
-    
+
+    // Token refresh configuration
+    this.refreshTimer = null;
+    this.refreshInterval = 15 * 60 * 1000; // 15 minutes
+    this.refreshThreshold = 30 * 60 * 1000; // Refresh if token expires in 30 minutes
+
     // Don't auto-initialize in constructor to avoid race conditions
     // initializeAuth() will be called explicitly by the app
   }
@@ -34,6 +39,10 @@ class AuthService {
         if (userInfo) {
           this.currentUser = userInfo;
           console.log('✅ Authentication initialized successfully with user:', userInfo);
+
+          // start automatic token refresh for restored sessions
+          this.startAutoRefresh();
+
           return true;
         } else {
           console.log('❌ No user info returned, clearing auth');
@@ -166,6 +175,9 @@ class AuthService {
 
         // get user info
         this.currentUser = await this.getCurrentUser();
+
+        // start automatic token refresh
+        this.startAutoRefresh();
         
         return {
           success: true,
@@ -329,6 +341,63 @@ class AuthService {
   }
 
   /**
+   * check if tokens need refreshing
+   */
+  shouldRefreshTokens() {
+    if (!this.accessToken) return false;
+
+    try {
+      const payload = this.decodeTokenPayload(this.accessToken);
+      if (!payload || !payload.exp) return false;
+
+      const expirationTime = payload.exp * 1000; // Convert to milliseconds
+      const currentTime = Date.now();
+      const timeUntilExpiry = expirationTime - currentTime;
+
+      return timeUntilExpiry <= this.refreshThreshold;
+    } catch (error) {
+      console.error('Error checking token expiration:', error);
+      return false;
+    }
+  }
+
+  /**
+   * start automatic token refresh
+   */
+  startAutoRefresh() {
+    if (this.refreshTimer) {
+      clearInterval(this.refreshTimer);
+    }
+
+    this.refreshTimer = setInterval(async () => {
+      if (this.shouldRefreshTokens()) {
+        console.log('🔄 Auto-refreshing tokens...');
+        try {
+          await this.refreshAccessToken();
+          console.log('✅ Tokens refreshed successfully');
+        } catch (error) {
+          console.error('❌ Auto-refresh failed:', error);
+          // If refresh fails, clear auth and let user re-login
+          this.clearAuth();
+        }
+      }
+    }, this.refreshInterval);
+
+    console.log('🔄 Auto-refresh started');
+  }
+
+  /**
+   * stop automatic token refresh
+   */
+  stopAutoRefresh() {
+    if (this.refreshTimer) {
+      clearInterval(this.refreshTimer);
+      this.refreshTimer = null;
+      console.log('🔄 Auto-refresh stopped');
+    }
+  }
+
+  /**
    * get authorization header value
    */
   getAuthHeader() {
@@ -346,22 +415,31 @@ class AuthService {
   }
 
   /**
-   * store tokens in localStorage
+   * store tokens in persistent storage (localStorage for web, sessionStorage for mobile)
    */
   storeTokens(tokens) {
     try {
-      localStorage.setItem('fcc_auth_tokens', JSON.stringify(tokens));
+      // Use sessionStorage on mobile devices for better persistence across app restarts
+      // Use localStorage on desktop for longer-term persistence
+      const isMobile = this.isMobileDevice();
+      const storage = isMobile ? sessionStorage : localStorage;
+      storage.setItem('fcc_auth_tokens', JSON.stringify(tokens));
+      console.log(`💾 Tokens stored in ${isMobile ? 'sessionStorage' : 'localStorage'}`);
     } catch (error) {
       console.error('Failed to store tokens:', error);
     }
   }
 
   /**
-   * get stored tokens from localStorage
+   * get stored tokens from persistent storage
    */
   getStoredTokens() {
     try {
-      const stored = localStorage.getItem('fcc_auth_tokens');
+      // Use sessionStorage on mobile devices for better persistence across app restarts
+      // Use localStorage on desktop for longer-term persistence
+      const isMobile = this.isMobileDevice();
+      const storage = isMobile ? sessionStorage : localStorage;
+      const stored = storage.getItem('fcc_auth_tokens');
       return stored ? JSON.parse(stored) : null;
     } catch (error) {
       console.error('Failed to get stored tokens:', error);
@@ -370,16 +448,29 @@ class AuthService {
   }
 
   /**
+   * detect if running on mobile device
+   */
+  isMobileDevice() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+           (window.innerWidth <= 768 && window.innerHeight <= 1024);
+  }
+
+  /**
    * clear all authentication data
    */
   clearAuth() {
+    // stop automatic refresh first
+    this.stopAutoRefresh();
+
     this.currentUser = null;
     this.accessToken = null;
     this.refreshToken = null;
     this.idToken = null;
-    
+
     try {
+      // Clear from both storage types to ensure clean logout
       localStorage.removeItem('fcc_auth_tokens');
+      sessionStorage.removeItem('fcc_auth_tokens');
     } catch (error) {
       console.error('Failed to clear stored tokens:', error);
     }

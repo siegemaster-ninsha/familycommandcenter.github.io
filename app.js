@@ -1763,6 +1763,51 @@ const app = createApp({
       }, 4500);
     },
 
+    // Mobile optimization - refresh tokens when app becomes visible
+    setupVisibilityChangeListener() {
+      // Listen for messages from service worker
+      navigator.serviceWorker?.addEventListener('message', (event) => {
+        if (event.data?.type === 'STORE_TOKENS' && event.data?.tokens) {
+          console.log('🔄 Storing tokens from service worker...');
+          authService.setTokens(event.data.tokens);
+          authService.storeTokens(event.data.tokens);
+        }
+      });
+
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible' && this.isAuthenticated && authService.isAuthenticated()) {
+          console.log('📱 App became visible, checking token refresh...');
+          // Force a token refresh check when app becomes visible
+          authService.refreshAccessToken().catch(error => {
+            console.warn('Token refresh on visibility change failed:', error);
+          });
+        }
+      };
+
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      // Also handle page focus for additional reliability
+      window.addEventListener('focus', () => {
+        if (this.isAuthenticated && authService.isAuthenticated()) {
+          console.log('🔍 App gained focus, checking token refresh...');
+          authService.refreshAccessToken().catch(error => {
+            console.warn('Token refresh on focus failed:', error);
+          });
+        }
+      });
+
+      // Handle page blur for mobile optimization
+      window.addEventListener('blur', () => {
+        if (this.isAuthenticated && authService.isAuthenticated()) {
+          console.log('📱 App going to background, refreshing tokens proactively...');
+          // Proactively refresh tokens before app goes to background
+          authService.refreshAccessToken().catch(error => {
+            console.warn('Token refresh on blur failed:', error);
+          });
+        }
+      });
+    },
+
     // Add method for click-to-assign functionality with optimistic updates
     async assignSelectedChore(assignTo) {
       if (!this.selectedChore) {
@@ -2096,9 +2141,12 @@ const app = createApp({
         // Load user theme first (now able to honor account when applicable)
         await this.loadUserTheme();
         
-      // Then load all other data
+        // Then load all other data
         await this.loadAllData();
         this.initWebsocket();
+
+        // Add visibility change listener for mobile optimization
+        this.setupVisibilityChangeListener();
       // if invite token present, show accept prompt after load (only if still authenticated)
       const url = new URL(window.location.href);
       const inviteToken = url.searchParams.get('invite');
