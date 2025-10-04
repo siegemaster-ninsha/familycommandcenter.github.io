@@ -724,7 +724,7 @@ const ShoppingPage = Vue.defineComponent({
         }
 
         // Then sort by category using a logical grocery store order
-        const categoryOrder = this.getCategoryOrder();
+        const categoryOrder = this.getCategoryOrder;
         const aOrder = categoryOrder[a.category] || 999;
         const bOrder = categoryOrder[b.category] || 999;
 
@@ -766,7 +766,7 @@ const ShoppingPage = Vue.defineComponent({
       let order = '';
       if (item.completed) order += 'ZZZ-'; // Completed items at bottom
 
-      const categoryOrder = this.getCategoryOrder();
+      const categoryOrder = this.getCategoryOrder;
       const categoryNum = categoryOrder[item.category] || 999;
       order += categoryNum.toString().padStart(3, '0') + '-';
       order += item.category.padEnd(15, ' ');
