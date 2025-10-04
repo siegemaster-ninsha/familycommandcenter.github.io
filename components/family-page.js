@@ -40,100 +40,124 @@ const FamilyPage = Vue.defineComponent({
               class="w-full"
             >
               <div class="family-card border rounded-lg p-4 sm:p-6 transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-102 h-full overflow-hidden" style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);">
-                <div class="flex items-center justify-between mb-4 sm:mb-6">
-                  <div class="flex items-center gap-3 min-w-0 flex-1">
-                    <div class="family-avatar rounded-full w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center font-semibold text-white shadow-lg bg-gradient-to-br from-primary-500 to-primary-600 text-lg sm:text-xl">
-                      {{ (person.displayName || person.name).charAt(0).toUpperCase() }}
-                    </div>
-                    <div class="min-w-0 flex-1">
-                      <h3 class="font-bold text-white text-base sm:text-lg truncate">{{ person.displayName || person.name }}</h3>
-                      <p class="text-xs sm:text-sm text-white text-opacity-90">{{ person.role || 'Family Member' }}</p>
+                <!-- Header Section - Primary Information -->
+                <div class="flex items-center gap-4 mb-4">
+                  <div class="family-avatar rounded-full w-16 h-16 sm:w-18 sm:h-18 flex items-center justify-center font-bold text-white shadow-lg bg-gradient-to-br from-primary-400 to-primary-600 text-xl sm:text-2xl flex-shrink-0">
+                    {{ (person.displayName || person.name).charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <h3 class="font-bold text-white text-lg sm:text-xl truncate mb-1">{{ person.displayName || person.name }}</h3>
+                    <p class="text-sm text-white text-opacity-80 mb-2">{{ person.role || 'Family Member' }}</p>
+                    <div class="flex items-center gap-3">
+                      <span
+                        :class="getElectronicsStatusClass(person.electronicsStatus.status)"
+                        class="text-xs font-medium px-3 py-1 rounded-full flex items-center gap-2"
+                      >
+                        <span class="text-sm">{{ getElectronicsStatusIcon(person.electronicsStatus.status) }}</span>
+                        <span>{{ getElectronicsStatusText(person.electronicsStatus.status) }}</span>
+                      </span>
                     </div>
                   </div>
-                  <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                    <span
-                      :class="getElectronicsStatusClass(person.electronicsStatus.status)"
-                      class="text-xs font-medium px-2 py-1 rounded-full bg-white bg-opacity-20 text-white"
-                    >
-                      {{ getElectronicsStatusText(person.electronicsStatus.status) }}
-                    </span>
-                    <div class="text-right">
-                      <div class="text-xs text-white text-opacity-80">Earnings</div>
-                      <div class="text-base sm:text-lg font-bold text-white">\${{ person.earnings.toFixed(2) }}</div>
-                    </div>
-                    <button
-                      @click="toggleExpanded(person.id)"
-                      class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-white bg-opacity-20 hover:bg-opacity-30 text-white transition-all duration-200 touch-target"
-                      :aria-expanded="!!expandedCards[person.id]"
-                      title="More actions"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256" :class="[expandedCards[person.id] ? 'rotate-180' : 'rotate-0', 'transition-transform duration-200']"><path d="M128,160a8,8,0,0,1-5.66-2.34l-48-48a8,8,0,0,1,11.32-11.32L128,140.69l42.34-42.35a8,8,0,0,1,11.32,11.32l-48,48A8,8,0,0,1,128,160Z"></path></svg>
-                    </button>
+                </div>
+
+                <!-- Key Metrics Section -->
+                <div class="flex items-center justify-between mb-4">
+                  <div class="text-center">
+                    <div class="text-sm text-white text-opacity-80 mb-1">Total Earnings</div>
+                    <div class="text-2xl sm:text-3xl font-bold text-white">\${{ person.earnings.toFixed(2) }}</div>
                   </div>
+                  <div class="text-center">
+                    <div class="text-sm text-white text-opacity-80 mb-1">Completed Chores</div>
+                    <div class="text-xl sm:text-2xl font-semibold text-white">{{ person.completedChores || 0 }}</div>
+                  </div>
+                  <button
+                    @click="toggleExpanded(person.id)"
+                    class="flex items-center justify-center w-10 h-10 rounded-lg bg-white bg-opacity-20 hover:bg-opacity-30 text-white transition-all duration-200 touch-target flex-shrink-0"
+                    :aria-expanded="!!expandedCards[person.id]"
+                    title="More options"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256" :class="[expandedCards[person.id] ? 'rotate-180' : 'rotate-0', 'transition-transform duration-200']"><path d="M128,160a8,8,0,0,1-5.66-2.34l-48-48a8,8,0,0,1,11.32-11.32L128,140.69l42.34-42.35a8,8,0,0,1,11.32,11.32l-48,48A8,8,0,0,1,128,160Z"></path></svg>
+                  </button>
                 </div>
 
                 <!-- Expanded details -->
                 <transition
                   enter-active-class="transition-all duration-300 ease-out"
                   enter-from-class="opacity-0 -translate-y-2 max-h-0"
-                  enter-to-class="opacity-100 translate-y-0 max-h-[400px]"
+                  enter-to-class="opacity-100 translate-y-0 max-h-[500px]"
                   leave-active-class="transition-all duration-200 ease-in"
-                  leave-from-class="opacity-100 translate-y-0 max-h-[400px]"
+                  leave-from-class="opacity-100 translate-y-0 max-h-[500px]"
                   leave-to-class="opacity-0 -translate-y-2 max-h-0"
                 >
-                  <div v-show="expandedCards[person.id]" class="mt-4 sm:mt-6 space-y-4 sm:space-y-6">
+                  <div v-show="expandedCards[person.id]" class="space-y-6">
+                    <!-- Member Settings Section -->
                     <div class="bg-white bg-opacity-10 rounded-lg p-4">
-                      <div class="flex items-center gap-3 mb-4" v-if="person.userId">
-                        <span class="text-sm text-white text-opacity-90 font-medium">Display name</span>
-                        <input
-                          v-model="person.displayName"
-                          @blur="$parent.updateFamilyMemberDisplayName(person)"
-                          class="flex-1 text-sm border rounded-lg px-3 py-2 bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 focus:ring-2 focus:ring-white focus:ring-opacity-50"
-                          placeholder="optional"
-                        />
-                      </div>
-                      <div class="flex justify-between items-center mb-4">
-                        <span class="text-sm text-white text-opacity-90 font-medium">Completed chores</span>
-                        <span class="text-base sm:text-lg font-bold text-white">{{ person.completedChores || 0 }}</span>
-                      </div>
+                      <h4 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                          <path d="M128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,160,160Z"/>
+                        </svg>
+                        Member Settings
+                      </h4>
 
-                      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-                        <label class="flex items-center gap-3 text-sm cursor-pointer select-none">
-                          <span class="text-white text-opacity-90">Show on board</span>
+                      <div class="space-y-4">
+                        <!-- Display Name Editor -->
+                        <div v-if="person.userId" class="flex flex-col sm:flex-row sm:items-center gap-3">
+                          <label class="text-sm text-white text-opacity-90 font-medium min-w-[100px]">Display name</label>
+                          <input
+                            v-model="person.displayName"
+                            @blur="$parent.updateFamilyMemberDisplayName(person)"
+                            class="flex-1 text-sm border rounded-lg px-3 py-2 bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 focus:ring-2 focus:ring-white focus:ring-opacity-50"
+                            placeholder="Optional"
+                          />
+                        </div>
+
+                        <!-- Chore Board Toggle -->
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                          <label class="text-sm text-white text-opacity-90 font-medium min-w-[100px]">Show on chore board</label>
                           <button
                             @click="person.enabledForChores=!person.enabledForChores; $parent.updateMemberChoresEnabled(person)"
                             :class="['relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50', person.enabledForChores ? 'bg-success-600' : 'bg-gray-400']"
-                            aria-label="Toggle show on board"
+                            aria-label="Toggle chore board visibility"
                           >
                             <span
                               :class="['inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200', person.enabledForChores ? 'translate-x-6' : 'translate-x-1']"
                             />
                           </button>
-                        </label>
-
-                        <div class="flex gap-2 sm:gap-3">
-                          <button
-                            v-if="$parent.currentUser?.role === 'parent'"
-                            @click="$parent.openSpendingModal(person)"
-                            class="flex items-center gap-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-3 py-2 rounded-lg transition-colors duration-200 touch-target"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256">
-                              <path d="M216,80V208a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V80L128,32Z"/>
-                            </svg>
-                            Spend
-                          </button>
-                          <button
-                            v-if="$parent.canRemoveMember(person)"
-                            @click="$parent.removeMember(person)"
-                            class="flex items-center gap-2 bg-error-600 hover:bg-error-700 text-white px-3 py-2 rounded-lg transition-colors duration-200 touch-target"
-                            title="Remove member from account"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256">
-                              <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/>
-                            </svg>
-                            Remove
-                          </button>
                         </div>
+                      </div>
+                    </div>
+
+                    <!-- Actions Section -->
+                    <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                      <h4 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                          <path d="M216,80V208a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V80L128,32Z"/>
+                        </svg>
+                        Actions
+                      </h4>
+
+                      <div class="flex flex-col sm:flex-row gap-3">
+                        <button
+                          v-if="$parent.currentUser?.role === 'parent'"
+                          @click="$parent.openSpendingModal(person)"
+                          class="flex items-center justify-center gap-2 bg-success-600 hover:bg-success-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 touch-target min-h-[44px] shadow-md hover:shadow-lg"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                            <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm48,120H136v40a8,8,0,0,1-16,0V144H80a8,8,0,0,1,0-16h40V88a8,8,0,0,1,16,0v40h40a8,8,0,0,1,0,16Z"/>
+                          </svg>
+                          <span class="font-medium">Manage Spending</span>
+                        </button>
+
+                        <button
+                          v-if="$parent.canRemoveMember(person)"
+                          @click="$parent.removeMember(person)"
+                          class="flex items-center justify-center gap-2 bg-error-600 hover:bg-error-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 touch-target min-h-[44px] shadow-md hover:shadow-lg"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+                            <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/>
+                          </svg>
+                          <span class="font-medium">Remove Member</span>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -222,19 +246,28 @@ const FamilyPage = Vue.defineComponent({
 
     getElectronicsStatusClass(status) {
       switch(status) {
-        case 'allowed': return 'bg-success-600';
-        case 'restricted': return 'bg-warning-600';
-        case 'blocked': return 'bg-error-600';
-        default: return 'bg-success-600';
+        case 'allowed': return 'bg-success-600 text-white';
+        case 'restricted': return 'bg-warning-600 text-white';
+        case 'blocked': return 'bg-error-600 text-white';
+        default: return 'bg-success-600 text-white';
       }
     },
 
     getElectronicsStatusText(status) {
       switch(status) {
-        case 'allowed': return 'Allowed';
-        case 'restricted': return 'Limited';
-        case 'blocked': return 'Blocked';
-        default: return 'Allowed';
+        case 'allowed': return 'Electronics Allowed';
+        case 'restricted': return 'Electronics Limited';
+        case 'blocked': return 'Electronics Blocked';
+        default: return 'Electronics Allowed';
+      }
+    },
+
+    getElectronicsStatusIcon(status) {
+      switch(status) {
+        case 'allowed': return '📱';
+        case 'restricted': return '⏳';
+        case 'blocked': return '🚫';
+        default: return '📱';
       }
     }
   }
