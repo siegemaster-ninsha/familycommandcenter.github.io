@@ -492,7 +492,6 @@
 
 /* Family Member Cards */
 .family-card {
-  background: var(--color-family-card-bg);
   border-color: var(--color-family-card-border);
 }
 
