@@ -128,7 +128,6 @@ const FamilyPage = Vue.defineComponent({
                               :checked="person.enabledForChores"
                               @sl-change="person.enabledForChores = !person.enabledForChores; $parent.updateMemberChoresEnabled(person)"
                               size="small"
-                              class="family-card-switch"
                             >
                               {{ person.enabledForChores ? 'Visible' : 'Hidden' }}
                             </SlSwitch>

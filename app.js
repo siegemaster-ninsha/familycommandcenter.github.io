@@ -2376,11 +2376,33 @@ function checkAndRegisterComponents() {
   
   console.log('🔧 All components available, registering...');
 
-  // Register Shoelace web components
+  // Register Shoelace web components after they're loaded
   console.log('📦 Registering Shoelace components');
-  app.component('SlSwitch', {
-    template: '<sl-switch v-bind="$attrs" @sl-change="$emit(\'sl-change\', $event)"><slot></slot></sl-switch>'
-  });
+  const registerShoelaceComponents = () => {
+    if (customElements.get('sl-switch')) {
+      // Define the component properly for Vue
+      app.component('SlSwitch', {
+        props: ['checked', 'size', 'disabled'],
+        emits: ['sl-change'],
+        template: `
+          <sl-switch
+            :checked="checked"
+            :size="size"
+            :disabled="disabled"
+            @sl-change="$emit('sl-change', $event)"
+            class="family-card-switch"
+          >
+            <slot></slot>
+          </sl-switch>
+        `
+      });
+      console.log('✅ SlSwitch registered successfully');
+    } else {
+      console.log('⏳ Waiting for Shoelace components to load...');
+      setTimeout(registerShoelaceComponents, 100);
+    }
+  };
+  registerShoelaceComponents();
 
   // Register UI components
   if (window.UIComponents) {
