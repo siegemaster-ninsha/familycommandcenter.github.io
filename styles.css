@@ -1220,9 +1220,15 @@ button.rounded-full[title*="Delete"] svg {
 }
 
 /* When a chore is selected, keep the highlight to the outer card only */
-.selected-chore .bg-white.bg-opacity-20 { background-color: transparent !important; }
+.selected-chore .bg-white.bg-opacity-20:not(.family-card *):not(.family-avatar) { background-color: transparent !important; }
 /* Fallback for utility class order variations */
-.selected-chore [class*="bg-white"][class*="bg-opacity-20"] { background-color: transparent !important; }
+.selected-chore [class*="bg-white"][class*="bg-opacity-20"]:not(.family-card *):not(.family-avatar) { background-color: transparent !important; }
+
+/* Ensure family cards maintain their styling when in selected state */
+.family-card {
+  background: var(--color-primary-500) !important;
+  border-color: var(--color-primary-600) !important;
+}
 
 /* Enhanced mobile selected state */
 @media (max-width: 640px) {
