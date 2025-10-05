@@ -19,7 +19,7 @@ const QuicklistChoreCard = {
         class="absolute -top-2 -right-2 flex items-center justify-center w-6 h-6 opacity-70 hover:opacity-100 transition-all duration-200 rounded-full bg-white border border-gray-300 hover:scale-105 active:scale-95"
         title="Remove from quicklist"
       >
-        <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('trash-2', 'lucide', 12, 'text-red-600') : ''"></div>
+        <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('trash', 'lucide', 12, 'text-red-600') : ''"></div>
       </button>
 
       <div class="flex items-center gap-3 flex-1 min-w-0">
@@ -95,7 +95,7 @@ const UnassignedChoreCard = {
         class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 rounded-md w-10 h-10 bg-white bg-opacity-10 border border-white border-opacity-20 hover:scale-105 active:scale-95"
         title="Delete chore"
       >
-        <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('trash-2', 'lucide', 18, 'text-white drop-shadow-sm') : ''"></div>
+        <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('trash', 'lucide', 18, 'text-white drop-shadow-sm') : ''"></div>
       </button>
     </div>
   `,
@@ -181,7 +181,7 @@ const AssignedChoreCard = {
         class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 rounded-md w-10 h-10 bg-white bg-opacity-10 border border-white border-opacity-20 hover:scale-105 active:scale-95"
         title="Delete chore"
       >
-        <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('trash-2', 'lucide', 18, 'text-white drop-shadow-sm') : ''"></div>
+        <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('trash', 'lucide', 18, 'text-white drop-shadow-sm') : ''"></div>
       </button>
     </div>
   `,
