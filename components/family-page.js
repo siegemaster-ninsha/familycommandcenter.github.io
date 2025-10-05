@@ -1,8 +1,19 @@
 // Family Page Component
 const FamilyPage = Vue.defineComponent({
+  compilerOptions: {
+    isCustomElement: (tag) => {
+      // Debug logging for custom element detection
+      if (tag.startsWith('sl-')) {
+        console.log(`🔧 Vue compiler: Treating ${tag} as custom element`);
+        return true;
+      }
+      return false;
+    }
+  },
   data() {
     return {
-      expandedCards: {}
+      expandedCards: {},
+      shoelaceLoaded: false
     };
   },
   template: `
@@ -113,20 +124,21 @@ const FamilyPage = Vue.defineComponent({
                         <div class="flex flex-col sm:flex-row sm:items-center gap-3">
                           <label class="text-sm text-white text-opacity-90 font-medium min-w-[100px]">Show on chore board</label>
                           <div class="flex items-center gap-3">
-                            <!-- Use dynamic component rendering to avoid Vue resolution issues -->
-                            <component
-                              :is="isShoelaceLoaded ? 'sl-switch' : 'div'"
-                              v-if="isShoelaceLoaded"
+                            <!-- Debug info -->
+                            <div class="text-xs text-white text-opacity-60 mb-1">
+                              Using: {{ isShoelaceAvailable ? 'sl-switch' : 'checkbox' }}
+                            </div>
+                            <!-- Try to use sl-switch, fallback to checkbox if not available -->
+                            <sl-switch
+                              v-if="isShoelaceAvailable"
                               :checked="person.enabledForChores"
                               @sl-change="person.enabledForChores = !person.enabledForChores; $parent.updateMemberChoresEnabled(person)"
                               size="small"
                               class="family-card-switch"
-                              :data-checked="person.enabledForChores"
-                              @click="handleSwitchClick($event, person)"
                             >
                               {{ person.enabledForChores ? 'Visible' : 'Hidden' }}
-                            </component>
-                            <!-- Fallback when Shoelace not loaded -->
+                            </sl-switch>
+                            <!-- Fallback checkbox when Shoelace is not available -->
                             <div v-else class="flex items-center gap-2">
                               <input
                                 type="checkbox"
@@ -235,11 +247,21 @@ const FamilyPage = Vue.defineComponent({
   `,
   inject: ['allPeople', 'confirmDeletePerson'],
   computed: {
-    isShoelaceLoaded() {
-      // Check if Shoelace components are available
-      return typeof window !== 'undefined' &&
-             window.customElements &&
-             window.customElements.get('sl-switch');
+    isShoelaceAvailable() {
+      const available = this.shoelaceLoaded;
+      console.log(`🎯 isShoelaceAvailable computed: ${available ? 'YES' : 'NO'} (shoelaceLoaded: ${this.shoelaceLoaded})`);
+      return available;
+    }
+  },
+  watch: {
+    shoelaceLoaded(newVal, oldVal) {
+      console.log(`👀 shoelaceLoaded changed: ${oldVal} -> ${newVal}`);
+      if (newVal) {
+        console.log('🎉 Shoelace is now available! Components should render properly.');
+      }
+    },
+    isShoelaceAvailable(newVal, oldVal) {
+      console.log(`🎯 isShoelaceAvailable changed: ${oldVal} -> ${newVal}`);
     }
   },
   methods: {
@@ -250,13 +272,6 @@ const FamilyPage = Vue.defineComponent({
     },
     handleDeletePerson(person) {
       this.confirmDeletePerson(person);
-    },
-    handleSwitchClick(event, person) {
-      // Fallback handler for when Shoelace is not loaded
-      if (!this.isShoelaceLoaded) {
-        person.enabledForChores = !person.enabledForChores;
-        this.$parent.updateMemberChoresEnabled(person);
-      }
     },
 
     getElectronicsStatusClass(status) {
@@ -291,6 +306,102 @@ const FamilyPage = Vue.defineComponent({
           return `<div style="display: inline-block; width: 16px; height: 16px;">${Helpers.IconLibrary.getIcon('ban', 'lucide', 16, 'text-current')}</div>`;
         default:
           return `<div style="display: inline-block; width: 16px; height: 16px;">${Helpers.IconLibrary.getIcon('monitor', 'lucide', 16, 'text-current')}</div>`;
+      }
+    }
+  },
+  mounted() {
+    console.log('🔍 FamilyPage mounted, checking Shoelace availability...');
+
+    // Check if Shoelace is already loaded
+    this.checkShoelaceLoaded();
+
+    // Set up a more robust polling mechanism
+    let attempts = 0;
+    const maxAttempts = 50; // 5 seconds max
+
+    const checkInterval = setInterval(() => {
+      attempts++;
+      console.log(`🔍 Checking Shoelace availability (attempt ${attempts}/${maxAttempts})`);
+
+      this.checkShoelaceLoaded();
+
+      if (this.shoelaceLoaded) {
+        console.log('✅ Shoelace detected as loaded!');
+        clearInterval(checkInterval);
+      } else if (attempts >= maxAttempts) {
+        console.warn('⚠️ Shoelace not detected after maximum attempts, using fallback');
+        clearInterval(checkInterval);
+      }
+    }, 100);
+
+    // Listen for various Shoelace events
+    if (typeof window !== 'undefined') {
+      // Try multiple event types that Shoelace might emit
+      const events = ['sl-load', 'shoelace-load', 'DOMContentLoaded'];
+
+      events.forEach(event => {
+        window.addEventListener(event, () => {
+          console.log(`📡 Received ${event} event, checking Shoelace...`);
+          this.checkShoelaceLoaded();
+        });
+      });
+
+      // Also check when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          console.log('📄 DOM Content Loaded, checking Shoelace...');
+          setTimeout(() => this.checkShoelaceLoaded(), 100);
+        });
+      }
+    }
+  },
+  methods: {
+    checkShoelaceLoaded() {
+      if (typeof window === 'undefined') return;
+
+      console.log('🔍 Detailed Shoelace check:');
+
+      // Method 1: Check if sl-switch is registered as a custom element
+      const switchElement = window.customElements?.get('sl-switch');
+      console.log('  - Custom element sl-switch:', !!switchElement);
+
+      // Method 2: Check if Shoelace globals exist
+      const shoelaceGlobals = typeof window.ShadowRoot !== 'undefined' ||
+                              typeof window.Shoelace !== 'undefined';
+      console.log('  - Shoelace globals:', shoelaceGlobals);
+
+      // Method 3: Check if any sl- elements exist in the DOM
+      const existingElements = document.querySelectorAll('sl-*').length;
+      console.log('  - Existing sl- elements in DOM:', existingElements);
+
+      // Method 4: Check if the script has loaded by looking for shoelace classes
+      const shoelaceClasses = document.querySelector('[class*="sl-"]') !== null;
+      console.log('  - Shoelace CSS classes found:', shoelaceClasses);
+
+      // Method 5: Try to create a test element (most reliable)
+      let canCreateElement = false;
+      try {
+        const testEl = document.createElement('sl-switch');
+        canCreateElement = testEl.tagName.toLowerCase() === 'sl-switch';
+        console.log('  - Can create sl-switch element:', canCreateElement);
+      } catch (e) {
+        console.log('  - Error creating test element:', e.message);
+      }
+
+      // Consider Shoelace loaded if any of these methods return true
+      const isLoaded = !!(
+        switchElement ||
+        shoelaceGlobals ||
+        existingElements > 0 ||
+        shoelaceClasses ||
+        canCreateElement
+      );
+
+      console.log('  - Final result:', isLoaded ? 'LOADED' : 'NOT LOADED');
+
+      if (isLoaded !== this.shoelaceLoaded) {
+        this.shoelaceLoaded = isLoaded;
+        console.log('  - Status changed to:', this.shoelaceLoaded ? 'LOADED' : 'NOT LOADED');
       }
     }
   }

@@ -5,7 +5,13 @@ const { createApp } = Vue;
 const app = createApp({
   compilerOptions: {
     // Treat Shoelace elements as custom elements
-    isCustomElement: (tag) => tag.startsWith('sl-')
+    isCustomElement: (tag) => {
+      if (tag.startsWith('sl-')) {
+        console.log(`🔧 Global Vue compiler: Treating ${tag} as custom element`);
+        return true;
+      }
+      return false;
+    }
   },
   data() {
     return {

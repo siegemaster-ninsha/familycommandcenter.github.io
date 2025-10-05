@@ -76,9 +76,42 @@
     <script src="auth.js"></script>
     <script src="utils/settings.js"></script>
     <link rel="stylesheet" href="styles.css">
-    
+
     <!-- Theme initialization is now handled by config.js -->
     <script src="utils/helpers.js"></script>
+
+    <!-- Shoelace debugging script -->
+    <script>
+      // Global function to check Shoelace availability
+      window.debugShoelace = function() {
+        console.log('🔍 Shoelace Debug Info:');
+        console.log('  - window.customElements exists:', !!window.customElements);
+        console.log('  - sl-switch registered:', !!window.customElements?.get('sl-switch'));
+
+        // Try to create a test element
+        try {
+          const testEl = document.createElement('sl-switch');
+          console.log('  - Can create sl-switch:', testEl.tagName.toLowerCase() === 'sl-switch');
+        } catch (e) {
+          console.log('  - Error creating sl-switch:', e.message);
+        }
+
+        // Check for existing elements
+        console.log('  - Existing sl- elements:', document.querySelectorAll('sl-*').length);
+
+        // Check for Shoelace globals
+        console.log('  - Shoelace globals:', {
+          ShadowRoot: typeof window.ShadowRoot !== 'undefined',
+          Shoelace: typeof window.Shoelace !== 'undefined'
+        });
+      };
+
+      // Auto-run debug check after a delay
+      setTimeout(() => {
+        console.log('🔍 Auto-checking Shoelace availability...');
+        window.debugShoelace();
+      }, 2000);
+    </script>
   </head>
   <body>
     <div id="app">
