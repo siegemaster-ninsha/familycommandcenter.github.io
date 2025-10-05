@@ -133,7 +133,7 @@ const ShoelaceChorePage = Vue.defineComponent({
                         {{ quickChore.name }}
                       </h3>
                       <div v-if="quickChore.amount > 0" class="text-xs text-slate-600 dark:text-slate-400 mt-1 font-medium">
-                        \${{ quickChore.amount.toFixed(2) }}
+                        {{ '$' + quickChore.amount.toFixed(2) }}
                       </div>
                     </div>
 
@@ -250,7 +250,7 @@ const ShoelaceChorePage = Vue.defineComponent({
 
                 <div slot="content">
                   <p v-if="chore.details" class="text-sm opacity-80 mb-2">{{ chore.details }}</p>
-                  <div v-if="chore.amount > 0" class="text-sm font-medium">\${{ chore.amount.toFixed(2) }}</div>
+                  <div v-if="chore.amount > 0" class="text-sm font-medium">{{ '$' + chore.amount.toFixed(2) }}</div>
                 </div>
 
                 <div slot="footer" class="flex justify-end">
@@ -325,7 +325,7 @@ const ShoelaceChorePage = Vue.defineComponent({
                       <div slot="header" class="p-4">
                         <div class="flex items-center justify-between mb-3">
                           <div v-if="chore.amount > 0" class="text-lg font-bold text-white">
-                            ${{ chore.amount.toFixed(2) }}
+                            {{ '$' + chore.amount.toFixed(2) }}
                           </div>
                           <sl-button variant="danger" size="small" @click.stop="deleteChore(chore)">
                             <div v-html="Helpers.IconLibrary.getIcon('trash-2', 'lucide', 16)"></div>
@@ -388,7 +388,7 @@ const ShoelaceChorePage = Vue.defineComponent({
                 <div slot="header" class="flex items-center justify-between">
                   <h3 class="font-semibold">{{ person.displayName || person.name }}</h3>
                   <div class="text-right">
-                    <p class="text-2xl font-bold text-primary-600">\${{ person.earnings.toFixed(2) }}</p>
+                    <p class="text-2xl font-bold text-primary-600">{{ '$' + person.earnings.toFixed(2) }}</p>
                     <p class="text-xs opacity-75">{{ person.completedChores || 0 }} chores completed</p>
                   </div>
                 </div>
