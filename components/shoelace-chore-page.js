@@ -2,24 +2,27 @@
 const ShoelaceChorePage = Vue.defineComponent({
   template: `
     <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-      <!-- Modern Page Header -->
-      <div class="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-700">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex items-center justify-between h-16">
-            <div class="flex items-center gap-3">
-              <div class="relative">
-                <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg blur opacity-75"></div>
-                <div class="relative bg-white dark:bg-slate-800 p-2 rounded-lg">
-                  <div v-html="Helpers.IconLibrary.getIcon('clipboardList', 'lucide', 20, 'text-blue-600 dark:text-blue-400')"></div>
+      <!-- Main Content -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+
+        <!-- Page Header & Quicklist Section -->
+        <div class="w-full">
+          <!-- Page Title and Stats -->
+          <div class="mb-8">
+            <div class="flex items-center justify-between mb-6">
+              <div class="flex items-center gap-4">
+                <div class="relative">
+                  <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg blur opacity-75"></div>
+                  <div class="relative bg-white dark:bg-slate-800 p-3 rounded-lg">
+                    <div v-html="Helpers.IconLibrary.getIcon('clipboardList', 'lucide', 24, 'text-blue-600 dark:text-blue-400')"></div>
+                  </div>
+                </div>
+                <div>
+                  <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Chores</h1>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">Modern Shoelace Interface</p>
                 </div>
               </div>
-              <div>
-                <h1 class="text-xl font-bold text-slate-900 dark:text-white">Chores</h1>
-                <p class="text-sm text-slate-500 dark:text-slate-400">Modern Shoelace Interface</p>
-              </div>
-            </div>
 
-            <div class="flex items-center gap-3">
               <!-- Quick Stats -->
               <div class="hidden sm:flex items-center gap-4 text-sm">
                 <div class="flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 rounded-full">
@@ -31,36 +34,10 @@ const ShoelaceChorePage = Vue.defineComponent({
                   <span class="font-medium text-green-700 dark:text-green-300">{{ people.length }}</span>
                 </div>
               </div>
-
-              <sl-button variant="outline" size="small" @click="$parent.setCurrentPage('chores')" class="hidden sm:flex">
-                <div v-html="Helpers.IconLibrary.getIcon('chevron-left', 'lucide', 16)"></div>
-                Back to Original
-              </sl-button>
-
-              <!-- Mobile menu button -->
-              <sl-button variant="outline" size="small" @click="toggleMobileMenu" class="sm:hidden">
-                <div v-html="Helpers.IconLibrary.getIcon('menu', 'lucide', 16)"></div>
-              </sl-button>
             </div>
           </div>
-        </div>
 
-        <!-- Mobile menu (when open) -->
-        <div v-if="showMobileMenu" class="sm:hidden border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-          <div class="px-4 py-3 space-y-2">
-            <sl-button variant="outline" size="small" @click="$parent.setCurrentPage('chores')" class="w-full justify-start">
-              <div v-html="Helpers.IconLibrary.getIcon('chevron-left', 'lucide', 16)"></div>
-              Back to Original
-            </sl-button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Main Content -->
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
-
-        <!-- Quicklist Section - Modern Design -->
-        <div class="w-full">
+          <!-- Quicklist Section - Modern Design -->
           <sl-card class="quicklist-section shadow-xl">
             <div slot="header" class="flex items-center justify-between">
               <div class="flex items-center gap-3">
@@ -444,7 +421,6 @@ const ShoelaceChorePage = Vue.defineComponent({
     return {
       quicklistLoading: false,
       quicklistError: null,
-      showMobileMenu: false,
       // Enhanced selection state management
       selectionMode: false,
       selectedChores: new Set(),
@@ -457,12 +433,7 @@ const ShoelaceChorePage = Vue.defineComponent({
   methods: {
     // Navigation methods
     switchToOriginal() {
-      this.showMobileMenu = false; // Close mobile menu when switching
       this.$parent.setCurrentPage('chores');
-    },
-
-    toggleMobileMenu() {
-      this.showMobileMenu = !this.showMobileMenu;
     },
 
     // Enhanced selection methods
