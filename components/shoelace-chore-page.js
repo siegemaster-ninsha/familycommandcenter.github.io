@@ -55,7 +55,7 @@ const ShoelaceChorePage = Vue.defineComponent({
 
               <div class="flex items-center gap-2">
                 <sl-button variant="outline" size="small" @click="toggleSelectionMode" :disabled="quicklistChores.length === 0">
-                  <div v-html="Helpers.IconLibrary.getIcon('check-square', 'lucide', 16)"></div>
+                  <div v-html="Helpers.IconLibrary.getIcon('check', 'lucide', 16)"></div>
                   {{ selectionMode ? 'Cancel' : 'Select' }}
                 </sl-button>
                 <sl-button variant="primary" size="small" @click="openAddToQuicklistModal">
@@ -141,7 +141,6 @@ const ShoelaceChorePage = Vue.defineComponent({
                       variant="neutral"
                       size="small"
                       class="shrink-0"
-                      :class="getCategoryBadgeVariant(quickChore.category)"
                     >
                       {{ getCategoryLabel(quickChore.category) }}
                     </sl-badge>
@@ -157,7 +156,7 @@ const ShoelaceChorePage = Vue.defineComponent({
                       size="small"
                       @click.stop="removeFromQuicklist(quickChore.id)"
                     >
-                      <div v-html="Helpers.IconLibrary.getIcon('trash-2', 'lucide', 14)"></div>
+                      <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14)"></div>
                       Remove
                     </sl-button>
                   </div>
@@ -328,7 +327,7 @@ const ShoelaceChorePage = Vue.defineComponent({
                             {{ '$' + chore.amount.toFixed(2) }}
                           </div>
                           <sl-button variant="danger" size="small" @click.stop="deleteChore(chore)">
-                            <div v-html="Helpers.IconLibrary.getIcon('trash-2', 'lucide', 16)"></div>
+                            <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 16)"></div>
                           </sl-button>
                         </div>
 
@@ -398,7 +397,7 @@ const ShoelaceChorePage = Vue.defineComponent({
         </sl-card>
       </div>
     </div>
-  `,
+  ``,
   inject: [
     'people', 'choresByPerson', 'selectedChore', 'selectedChoreId', 'selectedQuicklistChore',
     'quicklistChores', 'loading', 'error', 'Helpers',
