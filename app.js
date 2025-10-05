@@ -75,9 +75,19 @@ const app = createApp({
       selectedPerson: null,
       spendAmount: 0,
       spendAmountString: '0',
-      // Page navigation
-      currentPage: 'chores', // Default to chores page
-      // Existing data
+    // Page navigation
+    currentPage: 'chores', // Default to chores page
+
+    // Helper methods
+    getIcon(iconName, library = 'lucide', size = 16, className = '') {
+      if (typeof window.Helpers !== 'undefined' && window.Helpers.IconLibrary) {
+        return window.Helpers.IconLibrary.getIcon(iconName, library, size, className);
+      }
+      console.warn(`Icon "${iconName}" requested but Helpers not available yet`);
+      return '';
+    },
+
+    // Existing data
       chores: [],
       selectedChoreId: null, // Changed from selectedChore to selectedChoreId
       selectedQuicklistChore: null, // For quicklist selections
@@ -2432,7 +2442,20 @@ function checkAndRegisterComponents() {
   app.mount('#app');
 }
 
-// Wait for DOM to be ready, then start checking for components
-document.addEventListener('DOMContentLoaded', function() {
+// Wait for DOM to be ready and Helpers to be available, then start checking for components
+function initializeApp() {
+  // Wait for Helpers to be available
+  if (typeof window.Helpers === 'undefined') {
+    console.log('⏳ Waiting for Helpers to be available...');
+    setTimeout(initializeApp, 50);
+    return;
+  }
+
+  console.log('✅ Helpers available, initializing app...');
   checkAndRegisterComponents();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Start checking for Helpers availability
+  initializeApp();
 }); 

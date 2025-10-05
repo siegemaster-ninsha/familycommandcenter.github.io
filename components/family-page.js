@@ -248,6 +248,10 @@ const FamilyPage = Vue.defineComponent({
     },
 
     getElectronicsStatusIcon(status) {
+      if (typeof Helpers === 'undefined' || !Helpers.IconLibrary) {
+        return '';
+      }
+
       switch(status) {
         case 'allowed':
           return `<div style="display: inline-block; width: 16px; height: 16px;">${Helpers.IconLibrary.getIcon('monitor', 'lucide', 16, 'text-current')}</div>`;

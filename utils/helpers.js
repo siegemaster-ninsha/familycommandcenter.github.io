@@ -1,5 +1,7 @@
 // shared UI helpers (no bundler, attach to window)
 (function() {
+  // Set window.Helpers immediately to avoid timing issues
+  window.Helpers = window.Helpers || {};
   function getCategoryIcon(category) {
     switch (category) {
       case 'school':
@@ -104,6 +106,12 @@
 
     // Helper function to get icon by name and library
     getIcon(iconName, library = 'lucide', size = 16, className = '') {
+      // Handle case where getIcon is called before Helpers is fully initialized
+      if (!window.Helpers || !window.Helpers.IconLibrary) {
+        console.warn('IconLibrary.getIcon called before Helpers is initialized');
+        return '';
+      }
+
       const libraryIcons = this[library];
       if (!libraryIcons || !libraryIcons[iconName]) {
         console.warn(`Icon "${iconName}" not found in library "${library}"`);
@@ -131,7 +139,9 @@
     IconLibrary.initializeLibraries();
   }
 
+  // Update window.Helpers with all the helper functions
   window.Helpers = {
+    ...window.Helpers,
     getCategoryIcon,
     getCategoryLabel,
     isChoreSelected,
