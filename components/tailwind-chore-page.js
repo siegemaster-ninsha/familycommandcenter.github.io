@@ -23,12 +23,12 @@ const QuicklistChoreCard = {
       </button>
 
       <div class="flex items-center gap-3 flex-1 min-w-0">
-        <!-- Category icon -->
-        <div
-          class="flex items-center justify-center rounded-lg w-12 h-12 text-white bg-white bg-opacity-20 shrink-0"
-          v-html="getCategoryIcon(chore.category) || ''"
-        >
-        </div>
+      <!-- Category icon -->
+      <div
+        class="flex items-center justify-center rounded-xl w-12 h-12 text-white bg-gradient-to-br from-white/30 to-white/10 border border-white/20 shadow-lg shrink-0 transition-all duration-200 hover:scale-105 hover:shadow-xl"
+        v-html="getCategoryIcon(chore.category) || ''"
+      >
+      </div>
 
         <!-- Chore info -->
         <div class="flex flex-col flex-1 min-w-0">
@@ -52,7 +52,12 @@ const QuicklistChoreCard = {
   },
   methods: {
     getCategoryIcon(category) {
-      return this.Helpers?.IconLibrary?.getIcon ? this.Helpers.getCategoryIcon?.(category) || '' : '';
+      try {
+        return this.Helpers?.getCategoryIcon?.(category) || '';
+      } catch (error) {
+        console.warn('Failed to get category icon for:', category, error);
+        return '';
+      }
     },
     getCategoryLabel(category) {
       return this.Helpers?.getCategoryLabel?.(category) || '';
@@ -72,8 +77,8 @@ const UnassignedChoreCard = {
     >
       <!-- Category icon -->
       <div
-        class="flex items-center justify-center rounded-lg w-14 h-14 text-white bg-white bg-opacity-20 shrink-0"
-        v-html="getCategoryIcon(chore.category)"
+        class="flex items-center justify-center rounded-xl w-14 h-14 text-white bg-gradient-to-br from-white/30 to-white/10 border border-white/20 shadow-lg shrink-0 transition-all duration-200 hover:scale-105 hover:shadow-xl"
+        v-html="getCategoryIcon(chore.category) || ''"
       >
       </div>
 
@@ -108,7 +113,12 @@ const UnassignedChoreCard = {
   },
   methods: {
     getCategoryIcon(category) {
-      return this.Helpers?.IconLibrary?.getIcon ? this.Helpers.getCategoryIcon?.(category) || '' : '';
+      try {
+        return this.Helpers?.getCategoryIcon?.(category) || '';
+      } catch (error) {
+        console.warn('Failed to get category icon for:', category, error);
+        return '';
+      }
     },
     getCategoryLabel(category) {
       return this.Helpers?.getCategoryLabel?.(category) || '';
@@ -146,8 +156,8 @@ const AssignedChoreCard = {
 
       <!-- Category icon -->
       <div
-        class="flex items-center justify-center rounded-lg w-12 h-12 text-white bg-white bg-opacity-20 shrink-0"
-        v-html="getCategoryIcon(chore.category)"
+        class="flex items-center justify-center rounded-xl w-12 h-12 text-white bg-gradient-to-br from-white/30 to-white/10 border border-white/20 shadow-lg shrink-0 transition-all duration-200 hover:scale-105 hover:shadow-xl"
+        v-html="getCategoryIcon(chore.category) || ''"
       >
       </div>
 
