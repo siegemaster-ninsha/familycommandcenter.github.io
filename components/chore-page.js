@@ -2,6 +2,21 @@
 const ChorePage = Vue.defineComponent({
   template: `
     <div class="space-y-6 pb-24 sm:pb-0">
+      <!-- Page Header with Toggle -->
+      <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-primary-custom flex items-center gap-2">
+          <div v-html="Helpers.IconLibrary.getIcon('clipboardList', 'lucide', 24, 'text-primary-500')"></div>
+          Chores (Original Version)
+        </h1>
+        <button
+          @click="$parent.toggleChorePageVersion()"
+          class="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 touch-target min-h-[48px]"
+        >
+          <div v-html="Helpers.IconLibrary.getIcon('sparkles', 'lucide', 16)"></div>
+          <span class="font-medium">Try Shoelace Version</span>
+        </button>
+      </div>
+
       <!-- Quicklist Section -->
       <div class="w-full">
         <div class="card bg-base-100 shadow-xl" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">

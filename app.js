@@ -83,6 +83,7 @@ const app = createApp({
       spendAmountString: '0',
     // Page navigation
     currentPage: 'chores', // Default to chores page
+    currentChorePage: 'original', // 'original' or 'shoelace'
 
     // Helper methods
     getIcon(iconName, library = 'lucide', size = 16, className = '') {
@@ -1295,6 +1296,12 @@ const app = createApp({
       console.log('📄 Switched to page:', page);
     },
 
+    // Chore page version toggle
+    toggleChorePageVersion() {
+      this.currentChorePage = this.currentChorePage === 'original' ? 'shoelace' : 'original';
+      console.log('🔄 Switched chore page version to:', this.currentChorePage);
+    },
+
     // Authentication and user management
     async handleAuthenticationRequired() {
       console.log('🔒 Authentication required - clearing auth state');
@@ -2373,7 +2380,7 @@ function checkAndRegisterComponents() {
   // Check if all components are available
   const requiredComponents = [
     'UIComponents',
-    'QuicklistSectionComponent', 
+    'QuicklistSectionComponent',
     'UnassignedSectionComponent',
     'FamilyMembersSectionComponent',
     'TrashSectionComponent',
@@ -2382,6 +2389,7 @@ function checkAndRegisterComponents() {
     'FamilyPageComponent',
     'ShoppingPageComponent',
     'ChorePageComponent',
+    'ShoelaceChorePageComponent',
     'AccountPageComponent',
     'NavMenuComponent'
   ];
@@ -2434,7 +2442,10 @@ function checkAndRegisterComponents() {
   
   console.log('📦 Registering chore-page');
   app.component('chore-page', window.ChorePageComponent);
-  
+
+  console.log('📦 Registering shoelace-chore-page');
+  app.component('shoelace-chore-page', window.ShoelaceChorePageComponent);
+
   console.log('📦 Registering account-page');
   app.component('account-page', window.AccountPageComponent);
 

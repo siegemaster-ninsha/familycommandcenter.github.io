@@ -1329,3 +1329,239 @@ button.rounded-full[title*="Delete"] svg {
   position: relative;
   z-index: 60;
 }
+
+/* ===========================================
+   SHOELACE CHORE PAGE STYLING
+   =========================================== */
+
+/* Shoelace Card Customizations */
+sl-card {
+  --border-radius: 12px;
+  --border-width: 2px;
+}
+
+/* Quicklist Section Styling */
+sl-card.quicklist-section {
+  background: var(--color-bg-card);
+  border-color: var(--color-border-card);
+}
+
+sl-card.quicklist-section::part(header) {
+  background: var(--color-primary-500);
+  color: white;
+  border-bottom: 1px solid var(--color-primary-600);
+}
+
+sl-card.quicklist-section::part(content) {
+  padding: 24px;
+}
+
+/* Quicklist Chore Cards */
+sl-card.quicklist-chore-card {
+  background: var(--color-primary-500);
+  border-color: var(--color-primary-600);
+  color: white;
+}
+
+sl-card.quicklist-chore-card::part(header) {
+  padding: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+sl-card.quicklist-chore-card::part(footer) {
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Add Quicklist Card */
+sl-card.add-quicklist-card {
+  background: var(--color-bg-card);
+  border-color: var(--color-border-card);
+  min-height: 120px;
+}
+
+sl-card.add-quicklist-card:hover {
+  background: var(--color-primary-50);
+  border-color: var(--color-primary-300);
+}
+
+/* Unassigned Section */
+sl-card.unassigned-section {
+  background: var(--color-bg-card);
+  border-color: var(--color-border-card);
+}
+
+sl-card.unassigned-section::part(header) {
+  background: var(--color-primary-500);
+  color: white;
+  border-bottom: 1px solid var(--color-primary-600);
+}
+
+sl-card.unassigned-section::part(content) {
+  padding: 24px;
+}
+
+/* Unassigned Chore Cards */
+sl-card.unassigned-chore-card {
+  background: var(--color-primary-500);
+  border-color: var(--color-primary-600);
+  color: white;
+}
+
+sl-card.unassigned-chore-card::part(header) {
+  padding: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+sl-card.unassigned-chore-card::part(content) {
+  padding: 16px;
+}
+
+sl-card.unassigned-chore-card::part(footer) {
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Family Section */
+sl-card.family-section {
+  background: var(--color-bg-card);
+  border-color: var(--color-border-card);
+}
+
+sl-card.family-section::part(header) {
+  background: var(--color-primary-500);
+  color: white;
+  border-bottom: 1px solid var(--color-primary-600);
+}
+
+sl-card.family-section::part(content) {
+  padding: 24px;
+}
+
+/* Family Member Cards */
+sl-card.family-member-card {
+  background: var(--color-primary-500);
+  border-color: var(--color-primary-600);
+}
+
+sl-card.family-member-card::part(header) {
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+sl-card.family-member-card::part(content) {
+  padding: 20px;
+}
+
+/* Assigned Chore Cards (inside family member cards) */
+sl-card.assigned-chore-card {
+  background: var(--color-primary-600);
+  border-color: var(--color-primary-700);
+  color: white;
+}
+
+sl-card.assigned-chore-card::part(header) {
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+sl-card.assigned-chore-card::part(content) {
+  padding: 12px;
+}
+
+sl-card.assigned-chore-card::part(footer) {
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Earnings Section */
+sl-card.earnings-section {
+  background: var(--color-bg-card);
+  border-color: var(--color-border-card);
+}
+
+sl-card.earnings-section::part(header) {
+  background: var(--color-primary-500);
+  color: white;
+  border-bottom: 1px solid var(--color-primary-600);
+}
+
+sl-card.earnings-section::part(content) {
+  padding: 24px;
+}
+
+/* Earnings Cards */
+sl-card.earnings-card {
+  background: var(--color-primary-500);
+  border-color: var(--color-primary-600);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+sl-card.earnings-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+sl-card.earnings-card::part(header) {
+  padding: 20px;
+  text-align: center;
+}
+
+/* Category Icons */
+.category-icon {
+  flex-shrink: 0;
+}
+
+/* Family Avatar */
+.family-avatar {
+  background: var(--gradient-ocean);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Text styling for better readability */
+sl-card h3, sl-card h4 {
+  color: white;
+  margin: 0;
+  font-weight: 600;
+}
+
+sl-card p {
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+/* Badge styling */
+sl-badge {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+}
+
+/* Button styling within cards */
+sl-card sl-button {
+  font-size: 0.875rem;
+}
+
+/* Checkbox styling */
+sl-checkbox {
+  --size: 18px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  sl-card.quicklist-section::part(content),
+  sl-card.unassigned-section::part(content),
+  sl-card.family-section::part(content),
+  sl-card.earnings-section::part(content) {
+    padding: 16px;
+  }
+
+  sl-card.family-member-card::part(header),
+  sl-card.family-member-card::part(content) {
+    padding: 16px;
+  }
+
+  sl-card.earnings-card::part(header) {
+    padding: 16px;
+  }
+}

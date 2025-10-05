@@ -252,7 +252,17 @@
                 <div v-if="!loading && !error">
                   <!-- Chores Page -->
                   <div v-if="currentPage === 'chores'">
-                    <chore-page></chore-page>
+                    <!-- Toggle between original and Shoelace versions -->
+                    <div v-if="currentChorePage === 'original'">
+                      <chore-page></chore-page>
+                    </div>
+                    <div v-else-if="currentChorePage === 'shoelace'">
+                      <shoelace-chore-page></shoelace-chore-page>
+                    </div>
+                    <div v-else>
+                      <!-- Fallback to original -->
+                      <chore-page></chore-page>
+                    </div>
                   </div>
 
                   <!-- Family Page -->
@@ -292,6 +302,7 @@
     <script src="components/family-page.js"></script>
     <script src="components/shopping-page.js"></script>
     <script src="components/chore-page.js"></script>
+    <script src="components/shoelace-chore-page.js"></script>
     <script src="components/account-page.js"></script>
     
     <!-- Load main application -->
