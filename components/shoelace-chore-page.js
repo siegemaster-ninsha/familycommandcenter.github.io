@@ -39,33 +39,35 @@ const ShoelaceChorePage = Vue.defineComponent({
 
           <!-- Quicklist Section - Modern Design -->
           <sl-card class="quicklist-section shadow-xl">
-            <div slot="header" class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="relative">
-                  <div class="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg blur opacity-75"></div>
-                  <div class="relative bg-white dark:bg-slate-800 p-2 rounded-lg">
-                    <div v-html="Helpers.IconLibrary.getIcon('zap', 'lucide', 20, 'text-yellow-600 dark:text-yellow-400')"></div>
+            <template #header>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg blur opacity-75"></div>
+                    <div class="relative bg-white dark:bg-slate-800 p-2 rounded-lg">
+                      <div v-html="Helpers.IconLibrary.getIcon('zap', 'lucide', 20, 'text-yellow-600 dark:text-yellow-400')"></div>
+                    </div>
+                  </div>
+                  <div>
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-white">Quicklist</h2>
+                    <p class="text-sm text-slate-600 dark:text-slate-400">Quick access to common chores</p>
                   </div>
                 </div>
-                <div>
-                  <h2 class="text-xl font-bold text-slate-900 dark:text-white">Quicklist</h2>
-                  <p class="text-sm text-slate-600 dark:text-slate-400">Quick access to common chores</p>
+
+                <div class="flex items-center gap-2">
+                  <sl-button variant="outline" size="small" @click="toggleSelectionMode" :disabled="quicklistChores.length === 0">
+                    <div v-html="Helpers.IconLibrary.getIcon('check', 'lucide', 16)"></div>
+                    {{ selectionMode ? 'Cancel' : 'Select' }}
+                  </sl-button>
+                  <sl-button variant="primary" size="small" @click="openAddToQuicklistModal">
+                    <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16)"></div>
+                    Add
+                  </sl-button>
                 </div>
               </div>
+            </template>
 
-              <div class="flex items-center gap-2">
-                <sl-button variant="outline" size="small" @click="toggleSelectionMode" :disabled="quicklistChores.length === 0">
-                  <div v-html="Helpers.IconLibrary.getIcon('check', 'lucide', 16)"></div>
-                  {{ selectionMode ? 'Cancel' : 'Select' }}
-                </sl-button>
-                <sl-button variant="primary" size="small" @click="openAddToQuicklistModal">
-                  <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16)"></div>
-                  Add
-                </sl-button>
-              </div>
-            </div>
-
-            <div slot="content" class="p-6">
+            <template #content>
               <!-- Selection mode indicator -->
               <div v-if="selectionMode" class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                 <div class="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2">
@@ -110,7 +112,7 @@ const ShoelaceChorePage = Vue.defineComponent({
                   ]"
                   @click="selectionMode ? toggleChoreSelection(quickChore.id) : selectQuicklistChore(quickChore, $event)"
                 >
-                  <div slot="header" class="flex items-center gap-3 p-4">
+                  <template #header>
                     <!-- Selection checkbox (only in selection mode) -->
                     <sl-checkbox
                       v-if="selectionMode"
@@ -145,8 +147,9 @@ const ShoelaceChorePage = Vue.defineComponent({
                       {{ getCategoryLabel(quickChore.category) }}
                     </sl-badge>
                   </div>
+                  </template>
 
-                  <div slot="footer" class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/50">
+                  <template #footer>
                     <div class="text-xs text-slate-500 dark:text-slate-400">
                       {{ isQuicklistChoreSelected(quickChore) ? 'Selected' : 'Click to assign' }}
                     </div>
@@ -160,6 +163,7 @@ const ShoelaceChorePage = Vue.defineComponent({
                       Remove
                     </sl-button>
                   </div>
+                  </template>
                 </sl-card>
 
                 <!-- Modern Add button -->
@@ -198,6 +202,7 @@ const ShoelaceChorePage = Vue.defineComponent({
                   Add Your First Chore
                 </sl-button>
               </div>
+            </template>
           </div>
         </sl-card>
       </div>
@@ -205,18 +210,20 @@ const ShoelaceChorePage = Vue.defineComponent({
       <!-- Unassigned Chores -->
       <div class="w-full">
         <sl-card class="unassigned-section">
-          <div slot="header" class="flex items-center justify-between">
-            <h2 class="text-lg font-semibold text-primary-custom flex items-center gap-2">
-              <div v-html="Helpers.IconLibrary.getIcon('clipboardList', 'lucide', 20, 'text-primary-500')"></div>
-              Unassigned Chores
-            </h2>
-            <sl-button variant="primary" @click="openAddChoreModal">
-              <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16)"></div>
-              Add New Chore
-            </sl-button>
-          </div>
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h2 class="text-lg font-semibold text-primary-custom flex items-center gap-2">
+                <div v-html="Helpers.IconLibrary.getIcon('clipboardList', 'lucide', 20, 'text-primary-500')"></div>
+                Unassigned Chores
+              </h2>
+              <sl-button variant="primary" @click="openAddChoreModal">
+                <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16)"></div>
+                Add New Chore
+              </sl-button>
+            </div>
+          </template>
 
-          <div slot="content">
+          <template #content>
             <!-- Empty state when no chores -->
             <div v-if="choresByPerson.unassigned.length === 0" class="text-center py-8 text-secondary-custom">
               <p class="text-sm">No unassigned chores</p>
@@ -235,7 +242,7 @@ const ShoelaceChorePage = Vue.defineComponent({
                 ]"
                 @click="selectChore(chore, $event)"
               >
-                <div slot="header" class="flex items-center gap-3">
+                <template #header>
                   <div class="category-icon flex items-center justify-center rounded-lg size-12 text-white bg-white bg-opacity-20 shrink-0">
                     <div v-html="getCategoryIcon(chore.category)"></div>
                   </div>
@@ -246,35 +253,39 @@ const ShoelaceChorePage = Vue.defineComponent({
                     </div>
                   </div>
                 </div>
+                </template>
 
-                <div slot="content">
+                <template #content>
                   <p v-if="chore.details" class="text-sm opacity-80 mb-2">{{ chore.details }}</p>
                   <div v-if="chore.amount > 0" class="text-sm font-medium">{{ '$' + chore.amount.toFixed(2) }}</div>
                 </div>
+                </template>
 
-                <div slot="footer" class="flex justify-end">
-                  <sl-button variant="danger" size="small" @click.stop="deleteChore(chore)">
-                    <div v-html="Helpers.IconLibrary.getIcon('trash-2', 'lucide', 14)"></div>
-                    Delete
-                  </sl-button>
-                </div>
+                <template #footer>
+                  <div class="flex justify-end">
+                    <sl-button variant="danger" size="small" @click.stop="deleteChore(chore)">
+                      <div v-html="Helpers.IconLibrary.getIcon('trash-2', 'lucide', 14)"></div>
+                      Delete
+                    </sl-button>
+                  </div>
+                </template>
               </sl-card>
             </div>
-          </div>
+          </template>
         </sl-card>
       </div>
 
       <!-- Family Members & Assigned Chores -->
       <div class="w-full">
         <sl-card class="family-section">
-          <div slot="header">
+          <template #header>
             <h2 class="text-lg font-semibold text-primary-custom flex items-center gap-2">
               <div v-html="Helpers.IconLibrary.getIcon('users', 'lucide', 20, 'text-primary-500')"></div>
               Family Members
             </h2>
-          </div>
+          </template>
 
-          <div slot="content">
+          <template #content>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <sl-card
                 v-for="person in people"
@@ -283,7 +294,7 @@ const ShoelaceChorePage = Vue.defineComponent({
                 :class="selectedChore ? 'cursor-pointer' : ''"
                 @click="selectedChore ? assignSelectedChore(person.name) : null"
               >
-                <div slot="header" class="flex items-center justify-between">
+                <template #header class="flex items-center justify-between">
                   <div class="flex items-center gap-3">
                     <div class="family-avatar rounded-full size-12 flex items-center justify-center font-bold text-white bg-gradient-to-br from-primary-500 to-primary-600 text-lg">
                       {{ person.name.charAt(0) }}
@@ -302,7 +313,7 @@ const ShoelaceChorePage = Vue.defineComponent({
                   </div>
                 </div>
 
-                <div slot="content">
+                <template #content>
                   <!-- Person's chores -->
                   <div class="space-y-3 min-h-[60px]">
                     <div v-if="choresByPerson[person.name] && choresByPerson[person.name].length === 0" class="text-center py-4 text-secondary-custom">
@@ -321,7 +332,7 @@ const ShoelaceChorePage = Vue.defineComponent({
                       style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);"
                       @click="selectChore(chore, $event)"
                     >
-                      <div slot="header" class="p-4">
+                      <template #header class="p-4">
                         <div class="flex items-center justify-between mb-3">
                           <div v-if="chore.amount > 0" class="text-lg font-bold text-white">
                             {{ '$' + chore.amount.toFixed(2) }}
@@ -343,7 +354,7 @@ const ShoelaceChorePage = Vue.defineComponent({
                         </div>
                       </div>
 
-                      <div slot="footer" class="p-3 bg-slate-50 dark:bg-slate-800/50">
+                      <template #footer class="p-3 bg-slate-50 dark:bg-slate-800/50">
                         <sl-button
                           variant="success"
                           size="small"
@@ -362,21 +373,21 @@ const ShoelaceChorePage = Vue.defineComponent({
                 </div>
               </sl-card>
             </div>
-          </div>
+          </template>
         </sl-card>
       </div>
 
       <!-- Earnings Summary -->
       <div class="w-full">
         <sl-card class="earnings-section">
-          <div slot="header">
+          <template #header>
             <h2 class="text-lg font-semibold text-primary-custom flex items-center gap-2">
               <div v-html="Helpers.IconLibrary.getIcon('dollarSign', 'lucide', 20, 'text-primary-500')"></div>
               Earnings Summary
             </h2>
-          </div>
+          </template>
 
-          <div slot="content">
+          <template #content>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <sl-card
                 v-for="person in people"
@@ -384,7 +395,7 @@ const ShoelaceChorePage = Vue.defineComponent({
                 class="earnings-card cursor-pointer hover:shadow-lg transition-all duration-200"
                 @click="openSpendModal(person)"
               >
-                <div slot="header" class="flex items-center justify-between">
+                <template #header class="flex items-center justify-between">
                   <h3 class="font-semibold">{{ person.displayName || person.name }}</h3>
                   <div class="text-right">
                     <p class="text-2xl font-bold text-primary-600">{{ '$' + person.earnings.toFixed(2) }}</p>
@@ -393,7 +404,7 @@ const ShoelaceChorePage = Vue.defineComponent({
                 </div>
               </sl-card>
             </div>
-          </div>
+          </template>
         </sl-card>
       </div>
     </div>
@@ -529,60 +540,6 @@ const ShoelaceChorePage = Vue.defineComponent({
       return this.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, quickChore) || false;
     },
 
-    selectChore(chore, event) {
-      if (event && (event.type === 'touchend' || event.type === 'touchstart')) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-
-      if (chore.isSelecting) return;
-      chore.isSelecting = true;
-
-      try {
-        // Allow cross-assignment if there's a currently selected chore
-        if (this.$parent.selectedChore &&
-            this.$parent.selectedChoreId !== chore.id &&
-            chore.assignedTo &&
-            chore.assignedTo !== 'unassigned') {
-
-          this.assignSelectedChore(chore.assignedTo);
-          this.$parent.selectedChoreId = null;
-          this.$parent.selectedQuicklistChore = null;
-          return;
-        }
-
-        const handler = this.selectionStore?.selectChore || this.handleChoreClick || this.$parent?.handleChoreClick;
-        if (typeof handler === 'function') {
-          handler(chore);
-        }
-      } finally {
-        setTimeout(() => {
-          chore.isSelecting = false;
-        }, 100);
-      }
-    },
-
-    onQuicklistClick(quickChore, event) {
-      if (event && (event.type === 'touchend' || event.type === 'touchstart')) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-
-      if (quickChore.isSelecting) return;
-      quickChore.isSelecting = true;
-
-      try {
-        const handler = this.selectionStore?.selectQuicklist || this.handleQuicklistChoreClick || this.$parent?.handleQuicklistChoreClick;
-        if (typeof handler === 'function') {
-          handler(quickChore);
-        }
-      } finally {
-        setTimeout(() => {
-          quickChore.isSelecting = false;
-        }, 100);
-      }
-    },
-
     // Chore action methods
     async deleteChore(chore) {
       if (chore) {
@@ -629,6 +586,25 @@ const ShoelaceChorePage = Vue.defineComponent({
         this.selectedChores.add(choreId);
       }
       this.$forceUpdate(); // Trigger reactivity for visual updates
+    },
+
+    // Electronics status methods for shoelace components
+    getElectronicsStatusVariant(status) {
+      switch(status) {
+        case 'allowed': return 'success';
+        case 'restricted': return 'warning';
+        case 'blocked': return 'danger';
+        default: return 'success';
+      }
+    },
+
+    getElectronicsStatusText(status) {
+      switch(status) {
+        case 'allowed': return 'Allowed';
+        case 'restricted': return 'Limited';
+        case 'blocked': return 'Blocked';
+        default: return 'Allowed';
+      }
     },
 
   }
