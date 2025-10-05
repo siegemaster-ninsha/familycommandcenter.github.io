@@ -49,10 +49,11 @@ const ShoppingPage = Vue.defineComponent({
           </button>
         </div>
         
-        <!-- Shopping items - All Items view -->
+        <!-- Shopping items - By Category view -->
         <div v-else class="space-y-3">
+          <!-- Global actions header -->
           <div class="flex items-center justify-between border-b pb-2 mb-4" style="border-color: var(--color-border-card);">
-            <h3 class="text-lg font-bold text-primary-custom">All Items</h3>
+            <h3 class="text-lg font-bold text-primary-custom">Shopping List</h3>
             <div class="flex items-center gap-3">
               <span class="text-sm font-normal text-secondary-custom">({{ shoppingItems.length }} items)</span>
               <button
@@ -69,19 +70,34 @@ const ShoppingPage = Vue.defineComponent({
             </div>
           </div>
 
+          <!-- Category sections -->
+          <div v-for="category in categorySections" :key="category.name" class="space-y-2">
+            <!-- Category header -->
+            <div class="flex items-center justify-between border-b pb-2" style="border-color: var(--color-border-card);">
+              <h4 class="text-base font-semibold text-primary-custom">{{ category.name }}</h4>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-normal text-secondary-custom">
+                  ({{ category.completedCount }}/{{ category.totalCount }} completed)
+                </span>
+                <span class="text-xs font-medium text-secondary-custom">
+                  {{ Math.round((category.completedCount / category.totalCount) * 100) || 0 }}%
+                </span>
+              </div>
+            </div>
 
-          <div class="space-y-2">
-            <div
-              v-for="item in flatShoppingItems"
-              :key="item.id"
-              class="flex items-center gap-4 p-4 sm:p-4 rounded-lg transition-colors cursor-pointer"
-              :class="[
-                item.isToggling ? 'opacity-75 pointer-events-none' : '',
-                item.completed ? 'opacity-75' : ''
-              ]"
-              style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
-              @click="handleToggleItem(item.id)"
-            >
+            <!-- Category items -->
+            <div class="space-y-1">
+              <div
+                v-for="item in category.items"
+                :key="item.id"
+                class="flex items-center gap-4 p-4 sm:p-4 rounded-lg transition-colors cursor-pointer"
+                :class="[
+                  item.isToggling ? 'opacity-75 pointer-events-none' : '',
+                  item.completed ? 'opacity-75' : ''
+                ]"
+                style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
+                @click="handleToggleItem(item.id)"
+              >
               <div class="relative">
                 <input
                   type="checkbox"
@@ -98,59 +114,78 @@ const ShoppingPage = Vue.defineComponent({
                 >
                   <div class="w-5 h-5 border-2 border-success-600 border-t-transparent rounded-full animate-spin"></div>
                 </div>
-              </div>
-              <div class="flex-1">
-                <span
-                  :class="[
-                    'font-medium text-lg sm:text-base block',
-                    item.completed ? 'line-through text-white opacity-60' : 'text-white'
-                  ]"
-                >
-                  {{ item.name }}
-                </span>
-                <div v-if="item.quantity" class="text-sm sm:text-base text-white text-opacity-90 mt-1">
-                  <span class="font-medium">Qty: {{ item.quantity }}</span>
+                <div class="relative">
+                  <input
+                    type="checkbox"
+                    :checked="item.completed"
+                    @change="handleToggleItem(item.id)"
+                    @click.stop
+                    :disabled="item.isToggling"
+                    class="w-10 h-10 rounded focus:ring-success-600 focus:ring-2 focus:ring-offset-2 touch-target text-success-600 transition-all duration-200 transform"
+                    :class="item.completed ? 'scale-110' : 'scale-100'"
+                  >
+                  <div
+                    v-if="item.isToggling"
+                    class="absolute inset-0 flex items-center justify-center"
+                  >
+                    <div class="w-5 h-5 border-2 border-success-600 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
                 </div>
-                <div class="text-sm sm:text-base text-white text-opacity-90 flex items-center gap-2 mt-1">
-                  <span class="inline-flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 opacity-90"><path d="M2.25 12a9.75 9.75 0 1119.5 0 9.75 9.75 0 01-19.5 0zm7.53-3.28a.75.75 0 10-1.06 1.06L10.94 12l-2.22 2.22a.75.75 0 101.06 1.06L12 13.06l2.22 2.22a.75.75 0 101.06-1.06L13.06 12l2.22-2.22a.75.75 0 10-1.06-1.06L12 10.94 9.78 8.72z"/></svg>
-                    <span>{{ item.category }}</span>
+                <div class="flex-1">
+                  <span
+                    :class="[
+                      'font-medium text-lg sm:text-base block',
+                      item.completed ? 'line-through text-white opacity-60' : 'text-white'
+                    ]"
+                  >
+                    {{ item.name }}
                   </span>
-                  <span v-if="item.notes">• {{ item.notes }}</span>
-                  <span v-if="item.store" class="inline-flex items-center gap-1 text-xs bg-white bg-opacity-20 px-2 py-1 rounded">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.25A2.25 2.25 0 0 1 0 18.75V10.5a2.25 2.25 0 0 1 1.5-2.122l8.25-3.06a2.25 2.25 0 0 1 1.5 0l8.25 3.06A2.25 2.25 0 0 1 21 10.5v8.25A2.25 2.25 0 0 1 18.75 21H13.5Z" />
+                  <div v-if="item.quantity" class="text-sm sm:text-base text-white text-opacity-90 mt-1">
+                    <span class="font-medium">Qty: {{ item.quantity }}</span>
+                  </div>
+                  <div class="text-sm sm:text-base text-white text-opacity-90 flex items-center gap-2 mt-1">
+                    <span v-if="item.notes">• {{ item.notes }}</span>
+                    <span v-if="item.store" class="inline-flex items-center gap-1 text-xs bg-white bg-opacity-20 px-2 py-1 rounded">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.25A2.25 2.25 0 0 1 0 18.75V10.5a2.25 2.25 0 0 1 1.5-2.122l8.25-3.06a2.25 2.25 0 0 1 1.5 0l8.25 3.06A2.25 2.25 0 0 1 21 10.5v8.25A2.25 2.25 0 0 1 18.75 21H13.5Z" />
+                      </svg>
+                      {{ item.store }}
+                    </span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1">
+                  <button
+                    @click.stop="startEditItem(item)"
+                    class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
+                    style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 40px; height: 40px;"
+                    :class="'hover:scale-105 active:scale-95'"
+                    title="Edit item"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                     </svg>
-                    {{ item.store }}
-                  </span>
+                  </button>
+                  <button
+                    @click.stop="removeItem(item.id)"
+                    class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
+                    style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 40px; height: 40px;"
+                    :class="'hover:scale-105 active:scale-95'"
+                    title="Remove item"
+                  >
+                    <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 18, 'text-white drop-shadow-sm')"></div>
+                  </button>
                 </div>
               </div>
-              <div class="flex items-center gap-1">
-                <button
-                  @click.stop="startEditItem(item)"
-                  class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
-                  style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 40px; height: 40px;"
-                  :class="'hover:scale-105 active:scale-95'"
-                  title="Edit item"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                  </svg>
-                </button>
-                <button
-                  @click.stop="removeItem(item.id)"
-                  class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
-                  style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 40px; height: 40px;"
-                  :class="'hover:scale-105 active:scale-95'"
-                  title="Remove item"
-                >
-                  <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 18, 'text-white drop-shadow-sm')"></div>
-                </button>
-              </div>
+            </div>
+
+            <!-- Show message if category is empty -->
+            <div v-if="category.items.length === 0" class="text-center py-4 text-secondary-custom text-sm">
+              No items in {{ category.name }}
             </div>
           </div>
 
+          <!-- Show message if no items at all -->
           <div v-if="shoppingItems.length === 0" class="text-center py-8 text-secondary-custom">
             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="mx-auto mb-3 opacity-50" viewBox="0 0 256 256">
               <path d="M222.14,58.87A8,8,0,0,0,216,56H54.68L49.79,29.14A16,16,0,0,0,34.05,16H16a8,8,0,0,0,0,16H34.05l31.1,180.14A16,16,0,0,0,80.89,224H208a8,8,0,0,0,0-16H80.89L78.18,192H188.1a16,16,0,0,0,15.74-13.14L222.14,58.87ZM188.1,176H75.17l-18.73-108H207.37Z"></path>
@@ -159,7 +194,6 @@ const ShoppingPage = Vue.defineComponent({
             <p class="text-sm mt-1">Click "Add Item" to get started or use the quick list below!</p>
           </div>
         </div>
-      </div>
       </div>
 
       <!-- Quick List -->
@@ -708,6 +742,45 @@ const ShoppingPage = Vue.defineComponent({
     // Use injected data with fallback names for template compatibility
     quickItems() {
       return this.shoppingQuickItems;
+    },
+
+    categorySections() {
+      // Group items by category and sort categories
+      const grouped = {};
+
+      this.shoppingItems.forEach(item => {
+        if (!grouped[item.category]) {
+          grouped[item.category] = [];
+        }
+        grouped[item.category].push(item);
+      });
+
+      // Sort items within each category (completed to bottom, then alphabetically)
+      Object.keys(grouped).forEach(category => {
+        grouped[category].sort((a, b) => {
+          // First, completed items go to bottom
+          if (a.completed !== b.completed) {
+            return a.completed ? 1 : -1;
+          }
+          // Then sort alphabetically by name
+          return a.name.localeCompare(b.name);
+        });
+      });
+
+      // Convert to array and sort categories by logical grocery store order
+      const categoryOrder = this.getCategoryOrder;
+      return Object.keys(grouped)
+        .map(categoryName => ({
+          name: categoryName,
+          items: grouped[categoryName],
+          totalCount: grouped[categoryName].length,
+          completedCount: grouped[categoryName].filter(item => item.completed).length
+        }))
+        .sort((a, b) => {
+          const aOrder = categoryOrder[a.name] || 999;
+          const bOrder = categoryOrder[b.name] || 999;
+          return aOrder - bOrder;
+        });
     },
 
     flatShoppingItems() {
