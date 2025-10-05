@@ -19,20 +19,35 @@
 
     <!-- Shoelace Web Components -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.0/dist/themes/light.css" />
-    <!-- Try ESM import first, fallback to regular script if it fails -->
+
+    <!-- Load Shoelace properly as ESM - this should work with modern browsers -->
     <script type="module">
       try {
         await import('https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.0/dist/shoelace.js');
-        console.log('✅ Shoelace loaded via ESM');
+        console.log('✅ Shoelace loaded successfully via ESM');
+
+        // Dispatch a custom event when Shoelace is ready
+        window.dispatchEvent(new CustomEvent('shoelace-ready'));
       } catch (error) {
-        console.warn('ESM import failed, trying fallback...', error);
-        // Fallback to regular script loading
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.0/dist/shoelace.js';
-        script.onload = () => console.log('✅ Shoelace loaded via fallback');
-        script.onerror = () => console.error('❌ Failed to load Shoelace');
-        document.head.appendChild(script);
+        console.error('❌ Failed to load Shoelace via ESM:', error);
+        console.warn('This might be due to CORS or module loading restrictions');
+
+        // Try alternative CDN (unpkg might handle ESM better)
+        try {
+          console.log('🔄 Trying alternative CDN...');
+          await import('https://unpkg.com/@shoelace-style/shoelace@2.15.0/dist/shoelace.js');
+          console.log('✅ Shoelace loaded via unpkg CDN');
+          window.dispatchEvent(new CustomEvent('shoelace-ready'));
+        } catch (fallbackError) {
+          console.error('❌ Both CDN attempts failed:', fallbackError);
+        }
       }
+    </script>
+
+    <!-- Fallback for browsers that don't support ESM -->
+    <script nomodule>
+      console.warn('Browser does not support ES modules, Shoelace may not work properly');
+      // Could add a polyfill or alternative here if needed
     </script>
 
     <!-- Icon Libraries -->
@@ -111,6 +126,12 @@
         console.log('🔍 Auto-checking Shoelace availability...');
         window.debugShoelace();
       }, 2000);
+
+      // Listen for shoelace-ready event for debugging
+      window.addEventListener('shoelace-ready', () => {
+        console.log('🎉 Shoelace ready event fired - components should be available now');
+        setTimeout(() => window.debugShoelace(), 100);
+      });
     </script>
   </head>
   <body>

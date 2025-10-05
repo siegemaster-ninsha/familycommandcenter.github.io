@@ -334,19 +334,15 @@ const FamilyPage = Vue.defineComponent({
       }
     }, 100);
 
-    // Listen for various Shoelace events
+    // Listen for Shoelace ready event and other events
     if (typeof window !== 'undefined') {
-      // Try multiple event types that Shoelace might emit
-      const events = ['sl-load', 'shoelace-load', 'DOMContentLoaded'];
-
-      events.forEach(event => {
-        window.addEventListener(event, () => {
-          console.log(`📡 Received ${event} event, checking Shoelace...`);
-          this.checkShoelaceLoaded();
-        });
+      // Listen for our custom shoelace-ready event
+      window.addEventListener('shoelace-ready', () => {
+        console.log('📡 Received shoelace-ready event, checking Shoelace...');
+        this.checkShoelaceLoaded();
       });
 
-      // Also check when DOM is ready
+      // Also listen for DOM ready
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
           console.log('📄 DOM Content Loaded, checking Shoelace...');
