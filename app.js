@@ -99,6 +99,7 @@ const app = createApp({
       navItems: [
         { key: 'chores', label: 'Chores' },
         { key: 'shoelace-chores', label: 'Chores (Shoelace)' },
+        { key: 'tailwind-chores', label: 'Chores (Tailwind)' },
         { key: 'family', label: 'Family' },
         { key: 'shopping', label: 'Shopping' },
         { key: 'account', label: 'Account' }
@@ -2388,6 +2389,7 @@ function checkAndRegisterComponents() {
     'ShoppingPageComponent',
     'ChorePageComponent',
     'ShoelaceChorePageComponent',
+    'TailwindChorePageComponent',
     'AccountPageComponent',
     'NavMenuComponent'
   ];
@@ -2443,6 +2445,9 @@ function checkAndRegisterComponents() {
 
   console.log('📦 Registering shoelace-chore-page');
   app.component('shoelace-chore-page', window.ShoelaceChorePageComponent);
+
+  console.log('📦 Registering tailwind-chore-page');
+  app.component('tailwind-chore-page', window.TailwindChorePageComponent);
 
   console.log('📦 Registering account-page');
   app.component('account-page', window.AccountPageComponent);
