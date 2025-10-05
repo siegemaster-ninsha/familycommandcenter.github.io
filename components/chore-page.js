@@ -40,7 +40,7 @@ const ChorePage = Vue.defineComponent({
               quickChore.isSelecting ? 'opacity-75 pointer-events-none' : '',
               isQuicklistChoreSelected(quickChore) ? 'shadow-lg shadow-blue-400/25 scale-105 z-10 ring-2 ring-blue-400' : 'hover:shadow-lg hover:-translate-y-0.5'
             ]"
-            style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
+            style="--background-color: var(--color-primary-500); --border-color: var(--color-primary-600);"
             @click.stop="onQuicklistClick(quickChore, $event)"
             @touchend.stop="onQuicklistClick(quickChore, $event)"
           >
@@ -51,8 +51,8 @@ const ChorePage = Vue.defineComponent({
               >
               </div>
               <div class="flex flex-col flex-1 min-w-0">
-                <h3 class="text-white text-sm font-medium leading-tight line-clamp-2 mb-1">{{ quickChore.name }}</h3>
-                <div v-if="quickChore.amount > 0" class="text-white text-opacity-90 text-xs">\${{ quickChore.amount.toFixed(2) }}</div>
+                <h3 class="chore-name">{{ quickChore.name }}</h3>
+                <div v-if="quickChore.amount > 0" class="chore-amount">\${{ quickChore.amount.toFixed(2) }}</div>
               </div>
               <sl-badge variant="neutral" size="small" class="shrink-0">{{ getCategoryLabel(quickChore.category) }}</sl-badge>
             </div>
@@ -124,7 +124,7 @@ const ChorePage = Vue.defineComponent({
                   chore.isSelecting ? 'opacity-75 pointer-events-none' : '',
                   isChoreSelected(chore) ? 'shadow-lg shadow-blue-400/25 scale-105 z-10 ring-2 ring-blue-400' : 'hover:shadow-lg hover:-translate-y-0.5'
                 ]"
-                style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
+                style="--background-color: var(--color-primary-500); --border-color: var(--color-primary-600);"
                 @click.stop="selectChore(chore, $event)"
                 @touchend.stop="selectChore(chore, $event)"
               >
@@ -136,15 +136,15 @@ const ChorePage = Vue.defineComponent({
                   </div>
                   <div class="flex flex-col justify-center min-w-0 flex-1">
                     <div class="flex items-center gap-2 mb-2">
-                      <h3 class="text-white text-base font-medium leading-normal line-clamp-2 flex-1">{{ chore.name }}</h3>
+                      <h3 class="chore-name flex-1">{{ chore.name }}</h3>
                       <sl-badge variant="neutral" size="small" class="shrink-0">{{ getCategoryLabel(chore.category) }}</sl-badge>
                     </div>
                   </div>
                 </div>
 
                 <div slot="content" class="p-1 pb-2">
-                  <p v-if="chore.details" class="text-white text-opacity-80 text-sm font-normal leading-normal mb-2">{{ chore.details }}</p>
-                  <div v-if="chore.amount > 0" class="text-white text-opacity-90 text-sm font-normal">\${{ chore.amount.toFixed(2) }}</div>
+                  <p v-if="chore.details" class="chore-details mb-2">{{ chore.details }}</p>
+                  <div v-if="chore.amount > 0" class="chore-amount">\${{ chore.amount.toFixed(2) }}</div>
                 </div>
 
                 <div slot="footer" class="flex justify-end p-2 pt-0">
@@ -233,7 +233,7 @@ const ChorePage = Vue.defineComponent({
                   chore.isSelecting ? 'opacity-75 pointer-events-none' : '',
                   isChoreSelected(chore) ? 'shadow-lg shadow-blue-400/25 scale-105 z-10 ring-2 ring-blue-400' : 'hover:shadow-lg hover:-translate-y-0.5'
                 ]"
-                style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
+                style="--background-color: var(--color-primary-500); --border-color: var(--color-primary-600);"
                 @click.stop="selectChore(chore, $event)"
               >
                 <div slot="header" class="flex items-center gap-3 p-1">
@@ -252,10 +252,7 @@ const ChorePage = Vue.defineComponent({
 
                   <div class="flex flex-col justify-center min-w-0 flex-1">
                     <div class="flex items-center gap-2 mb-1">
-                      <h3
-                        :class="chore.completed ? 'line-through text-white opacity-60' : 'text-white'"
-                        class="text-sm font-medium leading-normal line-clamp-2 flex-1"
-                      >
+                      <h3 :class="chore.completed ? 'completed' : ''" class="chore-name flex-1">
                         {{ chore.name }}
                       </h3>
                       <sl-badge variant="neutral" size="small" class="shrink-0">{{ getCategoryLabel(chore.category) }}</sl-badge>
@@ -264,14 +261,14 @@ const ChorePage = Vue.defineComponent({
                 </div>
 
                 <div slot="content" class="p-1 pb-2">
-                  <p v-if="chore.details" :class="chore.completed ? 'text-white opacity-50' : 'text-white text-opacity-80'" class="text-sm font-normal leading-normal mb-2">
+                  <p v-if="chore.details" :class="chore.completed ? 'completed' : ''" class="chore-details mb-2">
                     {{ chore.details }}
                   </p>
-                  <div v-if="chore.amount > 0" :class="chore.completed ? 'text-white opacity-50' : 'text-white text-opacity-90'" class="text-sm font-normal">
+                  <div v-if="chore.amount > 0" :class="chore.completed ? 'completed' : ''" class="chore-amount">
                     \${{ chore.amount.toFixed(2) }}
                   </div>
-                  <div v-if="chore.isPendingApproval" class="mt-2 inline-flex items-center gap-1 text-xs px-2 py-1 rounded" style="background: var(--color-warning-50); color: var(--color-warning-700);">
-                    <span>Pending approval</span>
+                  <div v-if="chore.isPendingApproval" class="pending-approval mt-2">
+                    Pending approval
                   </div>
                 </div>
 

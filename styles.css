@@ -1342,7 +1342,8 @@ sl-card.assigned-chore-card {
   --border-width: 2px;
   --padding: 0;
   border-radius: var(--border-radius);
-  border: var(--border-width) solid var(--color-primary-600);
+  border: var(--border-width) solid var(--border-color, var(--color-primary-600));
+  background: var(--background-color, var(--color-primary-500));
   box-shadow: var(--shadow-sm);
   transition: all 0.2s ease-in-out;
 }
@@ -1407,8 +1408,10 @@ sl-card sl-badge {
   padding: 2px 8px;
 }
 
-/* Ensure proper text colors in chore cards */
-sl-card {
+/* Text colors in chore cards */
+sl-card.quicklist-chore-card,
+sl-card.unassigned-chore-card,
+sl-card.assigned-chore-card {
   color: white;
 }
 
@@ -1422,6 +1425,8 @@ sl-card .completed {
 sl-card .pending-approval {
   font-size: 0.75rem;
   font-weight: 500;
+  color: var(--color-warning-700);
+  background: var(--color-warning-50);
 }
 
 /* Touch target improvements for mobile */
