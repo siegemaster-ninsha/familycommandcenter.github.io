@@ -397,7 +397,7 @@ const ShoelaceChorePage = Vue.defineComponent({
         </sl-card>
       </div>
     </div>
-  ``,
+  `,
   inject: [
     'people', 'choresByPerson', 'selectedChore', 'selectedChoreId', 'selectedQuicklistChore',
     'quicklistChores', 'loading', 'error', 'Helpers',
