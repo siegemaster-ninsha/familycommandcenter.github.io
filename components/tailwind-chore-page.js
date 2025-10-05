@@ -6,8 +6,10 @@ const ChoreCard = {
   template: `
     <div
       class="relative flex items-center gap-4 p-4 rounded-xl transition-all duration-200 cursor-pointer border-2 hover:shadow-lg hover:-translate-y-0.5"
+      :aria-selected="isSelected"
+      role="option"
       :class="[
-        isSelected ? 'shadow-lg shadow-blue-400/25 scale-105 z-10 border-blue-400 bg-blue-600' : 'hover:border-blue-400 bg-blue-500 border-blue-600'
+        isSelected ? 'shadow-2xl shadow-blue-500/50 scale-105 z-10 border-4 border-blue-300 bg-blue-700 ring-4 ring-blue-300 ring-opacity-50' : 'hover:border-blue-400 bg-blue-500 border-blue-600'
       ]"
       @click.stop="handleClick"
       @touchend.stop="handleClick"
@@ -32,8 +34,6 @@ const ChoreCard = {
           >
             {{ chore.name }}
           </p>
-
-          <!-- Small category icon next to name -->
         </div>
 
         <p v-if="chore.details" :class="chore.completed && type !== 'quicklist' ? 'text-white opacity-50' : 'text-white text-opacity-80'" class="text-xs font-normal leading-normal mb-1">

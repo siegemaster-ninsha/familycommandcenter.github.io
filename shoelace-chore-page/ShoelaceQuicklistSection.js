@@ -73,6 +73,8 @@ const ShoelaceQuicklistSection = Vue.defineComponent({
           :key="quickChore.id"
           class="quicklist-chore-card cursor-pointer transition-all duration-300 group"
           :class="getQuicklistCardClasses(quickChore)"
+          :aria-selected="isQuicklistChoreSelected(quickChore)"
+          role="option"
           @click="handleQuicklistCardClick(quickChore, $event)"
         >
           <template #header>
@@ -249,8 +251,8 @@ const ShoelaceQuicklistSection = Vue.defineComponent({
     getQuicklistCardClasses(quickChore) {
       const classes = ['transform hover:scale-105 hover:shadow-xl'];
       if (quickChore.isSelecting) classes.push('opacity-50 scale-95');
-      if (this.isQuicklistChoreSelected(quickChore)) classes.push('ring-2 ring-blue-500 shadow-lg scale-105');
-      if (this.selectionMode && this.selectedChores.has(quickChore.id)) classes.push('ring-2 ring-green-500 bg-green-50 dark:bg-green-900/20');
+      if (this.isQuicklistChoreSelected(quickChore)) classes.push('ring-4 ring-blue-500 ring-opacity-75 shadow-xl scale-105 border-2 border-blue-300 bg-blue-50 dark:bg-blue-900/20');
+      if (this.selectionMode && this.selectedChores.has(quickChore.id)) classes.push('ring-4 ring-green-500 ring-opacity-75 bg-green-50 dark:bg-green-900/20');
       return classes.join(' ');
     },
     handleQuicklistCardClick(quickChore, event) {

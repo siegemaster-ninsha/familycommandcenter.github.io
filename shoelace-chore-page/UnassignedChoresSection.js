@@ -31,6 +31,8 @@ const UnassignedChoresSection = Vue.defineComponent({
           :key="chore.id"
           class="unassigned-chore-card cursor-pointer transition-all duration-200"
           :class="getUnassignedCardClasses(chore)"
+          :aria-selected="isChoreSelected(chore)"
+          role="option"
           @click="selectChore(chore, $event)"
         >
           <template #header>
@@ -101,7 +103,7 @@ const UnassignedChoresSection = Vue.defineComponent({
     getUnassignedCardClasses(chore) {
       const classes = [];
       if (chore.isSelecting) classes.push('opacity-75');
-      if (this.isChoreSelected(chore)) classes.push('ring-2 ring-primary-500 shadow-lg');
+      if (this.isChoreSelected(chore)) classes.push('ring-4 ring-primary-500 ring-opacity-75 shadow-xl scale-105 border-2 border-primary-300 bg-primary-50');
       else classes.push('hover:shadow-md hover:-translate-y-1');
       return classes.join(' ');
     },
