@@ -145,22 +145,7 @@ const AssignedChoreCard = {
           class="w-5 h-5 rounded focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2"
           :class="chore.completed ? 'text-green-600' : 'text-gray-400'"
         >
-        <button
-          v-if="showApprovalButton && chore.isPendingApproval"
-          @click.stop="onApprove"
-          class="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors"
-        >
-          Approve
-        </button>
       </div>
-
-      <!-- Category icon -->
-      <div
-        class="flex items-center justify-center rounded-xl w-12 h-12 text-white bg-gradient-to-br from-white/30 to-white/10 border border-white/20 shadow-lg shrink-0 transition-all duration-200 hover:scale-105 hover:shadow-xl"
-        v-html="getCategoryIcon(chore.category) || ''"
-      >
-      </div>
-
       <!-- Chore details -->
       <div class="flex flex-col justify-center min-w-0 flex-1">
         <div class="flex items-center gap-2 mb-1">
