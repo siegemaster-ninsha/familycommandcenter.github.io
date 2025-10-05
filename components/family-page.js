@@ -113,14 +113,29 @@ const FamilyPage = Vue.defineComponent({
                         <div class="flex flex-col sm:flex-row sm:items-center gap-3">
                           <label class="text-sm text-white text-opacity-90 font-medium min-w-[100px]">Show on chore board</label>
                           <div class="flex items-center gap-3">
-                            <sl-switch
+                            <!-- Use dynamic component rendering to avoid Vue resolution issues -->
+                            <component
+                              :is="isShoelaceLoaded ? 'sl-switch' : 'div'"
+                              v-if="isShoelaceLoaded"
                               :checked="person.enabledForChores"
                               @sl-change="person.enabledForChores = !person.enabledForChores; $parent.updateMemberChoresEnabled(person)"
                               size="small"
                               class="family-card-switch"
+                              :data-checked="person.enabledForChores"
+                              @click="handleSwitchClick($event, person)"
                             >
                               {{ person.enabledForChores ? 'Visible' : 'Hidden' }}
-                            </sl-switch>
+                            </component>
+                            <!-- Fallback when Shoelace not loaded -->
+                            <div v-else class="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                :checked="person.enabledForChores"
+                                @change="person.enabledForChores = !person.enabledForChores; $parent.updateMemberChoresEnabled(person)"
+                                class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
+                              />
+                              <span class="text-sm text-white">{{ person.enabledForChores ? 'Visible' : 'Hidden' }}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -219,6 +234,14 @@ const FamilyPage = Vue.defineComponent({
     </div>
   `,
   inject: ['allPeople', 'confirmDeletePerson'],
+  computed: {
+    isShoelaceLoaded() {
+      // Check if Shoelace components are available
+      return typeof window !== 'undefined' &&
+             window.customElements &&
+             window.customElements.get('sl-switch');
+    }
+  },
   methods: {
     toggleExpanded(id) {
       if (!id) return;
@@ -227,6 +250,13 @@ const FamilyPage = Vue.defineComponent({
     },
     handleDeletePerson(person) {
       this.confirmDeletePerson(person);
+    },
+    handleSwitchClick(event, person) {
+      // Fallback handler for when Shoelace is not loaded
+      if (!this.isShoelaceLoaded) {
+        person.enabledForChores = !person.enabledForChores;
+        this.$parent.updateMemberChoresEnabled(person);
+      }
     },
 
     getElectronicsStatusClass(status) {

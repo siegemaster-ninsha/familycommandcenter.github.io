@@ -82,12 +82,23 @@
       }
 
       const libraryIcons = this[library];
-      if (!libraryIcons || !libraryIcons[iconName]) {
-        console.warn(`Icon "${iconName}" not found in library "${library}"`);
+      if (!libraryIcons) {
+        console.warn(`Library "${library}" not found`);
         return '';
       }
 
-      const svg = libraryIcons[iconName]();
+      // Try exact match first, then try camelCase conversion for kebab-case inputs
+      let iconKey = iconName;
+      if (!libraryIcons[iconName] && iconName.includes('-')) {
+        iconKey = iconName.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
+      }
+
+      if (!libraryIcons[iconKey]) {
+        console.warn(`Icon "${iconName}" (tried "${iconKey}") not found in library "${library}"`);
+        return '';
+      }
+
+      const svg = libraryIcons[iconKey]();
       // Replace width and height in the SVG
       return svg.replace(/width="[^"]*"/, `width="${size}"`).replace(/height="[^"]*"/, `height="${size}"`).replace(/class="[^"]*"/, `class="${className}"`);
     },
