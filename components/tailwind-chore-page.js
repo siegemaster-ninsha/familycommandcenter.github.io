@@ -12,14 +12,6 @@ const ChoreCard = {
       @click.stop="handleClick"
       @touchend.stop="handleClick"
     >
-      <!-- Category icon -->
-      <div
-        class="flex items-center justify-center rounded-xl text-white bg-gradient-to-br from-white/30 to-white/10 border border-white/20 shadow-lg shrink-0 transition-all duration-200 hover:scale-105 hover:shadow-xl"
-        :class="getIconSize()"
-        v-html="getCategoryIcon(chore.category) || ''"
-      >
-      </div>
-
       <!-- Chore content -->
       <div class="flex flex-col justify-center min-w-0 flex-1">
         <div class="flex items-center gap-2 mb-1">
