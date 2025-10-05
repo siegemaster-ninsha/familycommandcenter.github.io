@@ -91,12 +91,7 @@
           <header class="header-bar flex items-center justify-between whitespace-nowrap border-b border-solid px-4 sm:px-6 lg:px-10 py-3" style="border-bottom-color: var(--color-border-card);">
             <div class="flex items-center gap-2 sm:gap-4 text-primary-custom">
               <div class="size-4">
-                <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M42.4379 44C42.4379 44 36.0744 33.9038 41.1692 24C46.8624 12.9336 42.2078 4 42.2078 4L7.01134 4C7.01134 4 11.6577 12.932 5.96912 23.9969C0.876273 33.9029 7.27094 44 7.27094 44L42.4379 44Z"
-                    fill="currentColor"
-                  ></path>
-                </svg>
+                <div v-html="Helpers.IconLibrary.getIcon('home', 'lucide', 16, 'text-primary-custom')"></div>
               </div>
               <h2 class="text-primary-custom text-base sm:text-lg font-bold leading-tight tracking-[-0.015em]">Family Hub</h2>
             </div>
@@ -128,9 +123,7 @@
               <div v-if="!isAuthenticated" class="flex flex-col items-center justify-center min-h-[400px] text-center">
                 <div class="card p-8 max-w-md">
                   <div class="mb-6">
-                    <svg class="mx-auto h-16 w-16 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                    </svg>
+                    <div v-html="Helpers.IconLibrary.getIcon('lock', 'lucide', 64, 'mx-auto text-primary')"></div>
                   </div>
                   <h2 class="card-title text-2xl mb-4">Welcome to Family Hub</h2>
                   <p class="text-secondary mb-6">Please sign in to access your family command center.</p>
@@ -164,9 +157,7 @@
                       class="btn-warning flex items-center gap-2 px-3 sm:px-4 py-3 sm:py-2 min-h-[48px] touch-target"
                       title="Start a new day - clears all chores while preserving earnings"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256">
-                        <path d="M128,40a88,88,0,1,0,88,88A88.1,88.1,0,0,0,128,40Zm0,160a72,72,0,1,1,72-72A72.08,72.08,0,0,1,128,200ZM164.49,99.51a8,8,0,0,1,0,11.31L137.66,138.34a8,8,0,0,1-11.32,0L99.51,111.51a8,8,0,0,1,11.31-11.31L128,117.37l21.18-21.18A8,8,0,0,1,164.49,99.51Z"></path>
-                      </svg>
+                      <div v-html="Helpers.IconLibrary.getIcon('checkCircle', 'lucide', 20, 'text-white')"></div>
                       <span class="font-medium hidden sm:inline">New Day</span>
                       <span class="font-medium sm:hidden">New</span>
                     </button>

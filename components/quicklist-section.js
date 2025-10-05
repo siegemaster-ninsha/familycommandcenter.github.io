@@ -3,7 +3,7 @@ const QuicklistSection = Vue.defineComponent({
   template: `
     <div class="mb-6 sm:mb-8">
       <h2 class="text-primary-custom text-lg sm:text-[22px] font-bold leading-tight tracking-[-0.015em] px-2 sm:px-4 pb-3 pt-5 flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M13.5 4.5a.75.75 0 00-1.312-.53L6 12h3.75L8.25 19.5a.75.75 0 001.312.53L18 12h-3.75L13.5 4.5z"/></svg>
+        <div v-html="Helpers.IconLibrary.getIcon('zap', 'lucide', 20, 'text-primary-custom')"></div>
         Quicklist
       </h2>
       <div class="rounded-lg mx-2 sm:mx-4 p-3 sm:p-4 border-2 border-dashed" :style="{ background: 'var(--color-bg-card)', borderColor: 'var(--color-border-card)' }">
@@ -52,9 +52,7 @@ const QuicklistSection = Vue.defineComponent({
               :style="{ background: 'var(--color-primary-50)', color: 'var(--color-primary-700)', borderColor: 'var(--color-primary-300)' }"
               title="Add new chore to quicklist"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-                <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
-              </svg>
+              <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16, 'text-white')"></div>
               <span class="text-sm font-medium">Add to Quicklist</span>
             </button>
           </div>

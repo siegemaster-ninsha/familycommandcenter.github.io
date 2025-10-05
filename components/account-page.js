@@ -6,14 +6,12 @@ const AccountPage = Vue.defineComponent({
       <div class="rounded-lg border-2 p-6 shadow-lg" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M11.25 1.5a.75.75 0 01.75.75V6a.75.75 0 01-1.5 0V2.25a.75.75 0 01.75-.75zM4.72 4.72a.75.75 0 011.06 0l2.475 2.475a.75.75 0 11-1.06 1.06L4.72 5.78a.75.75 0 010-1.06zM1.5 12a.75.75 0 01.75-.75H6a.75.75 0 010 1.5H2.25A.75.75 0 011.5 12zm3.22 7.28a.75.75 0 001.06 0l2.475-2.475a.75.75 0 10-1.06-1.06L4.72 18.22a.75.75 0 000 1.06zM12 17.25a.75.75 0 01.75.75V21.75a.75.75 0 11-1.5 0V18a.75.75 0 01.75-.75zm7.28-12.53a.75.75 0 00-1.06 0l-2.475 2.475a.75.75 0 101.06 1.06l2.475-2.475a.75.75 0 000-1.06zM21.75 11.25a.75.75 0 010 1.5H18a.75.75 0 010-1.5h3.75zM19.28 18.22a.75.75 0 01-1.06 1.06l-2.475-2.475a.75.75 0 111.06-1.06l2.475 2.475z"/></svg>
+            <div v-html="Helpers.IconLibrary.getIcon('sun', 'lucide', 20, 'text-primary-custom')"></div>
             Account Settings
           </h2>
           <div class="flex items-center gap-3">
             <div class="bg-gradient-to-br from-primary-500 to-primary-600 p-3 rounded-full shadow-md">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-white" viewBox="0 0 256 256">
-                <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
-              </svg>
+              <div v-html="Helpers.IconLibrary.getIcon('user', 'lucide', 24, 'text-white')"></div>
             </div>
             <div>
               <h3 class="font-bold text-primary-custom text-lg">{{ currentUser?.name || 'User' }}</h3>
@@ -25,10 +23,7 @@ const AccountPage = Vue.defineComponent({
               :class="['btn-error ml-2', $parent.authLoading && 'loading']"
               :title="$parent.authLoading ? 'Signing out...' : 'Sign Out'"
             >
-              <svg v-if="$parent.authLoading" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
+              <div v-if="$parent.authLoading" class="animate-spin h-4 w-4" v-html="Helpers.IconLibrary.getIcon('loader', 'lucide', 16, 'text-white')"></div>
               <span v-else>Sign Out</span>
             </button>
           </div>
@@ -321,9 +316,7 @@ const AccountPage = Vue.defineComponent({
         <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
           <div class="flex items-center gap-3 mb-4">
             <div class="p-2 rounded-full" style="background: var(--color-error-50);">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" style="color: var(--color-error-700);">
-                <path d="M236.8,188.09,149.35,36.22h0a24.76,24.76,0,0,0-42.7,0L19.2,188.09a23.51,23.51,0,0,0,0,23.72A24.35,24.35,0,0,0,40.55,224h174.9a24.35,24.35,0,0,0,21.33-12.19A23.51,23.51,0,0,0,236.8,188.09ZM222.93,203.8a8.5,8.5,0,0,1-7.48,4.2H40.55a8.5,8.5,0,0,1-7.48-4.2,7.59,7.59,0,0,1,0-7.72L120.52,44.21a8.75,8.75,0,0,1,15,0l87.45,151.87A7.59,7.59,0,0,1,222.93,203.8Z"></path>
-              </svg>
+              <div v-html="Helpers.IconLibrary.getIcon('alertTriangle', 'lucide', 24, '')" style="color: var(--color-error-700);"></div>
             </div>
             <h3 class="text-lg font-bold text-primary-custom">Reset All Data</h3>
           </div>
