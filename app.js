@@ -2358,17 +2358,18 @@ const app = createApp({
       apiCall: this.apiCall
     };
   }
-}, {
-  compilerOptions: {
-    isCustomElement: (tag) => {
-      if (tag.startsWith('sl-')) {
-        console.log(`🔧 Global Vue compiler: Treating ${tag} as custom element`);
-        return true;
-      }
-      return false;
-    }
-  }
 });
+
+// Configure Vue compiler options for Shoelace custom elements
+app.config.compilerOptions = {
+  isCustomElement: (tag) => {
+    if (tag.startsWith('sl-')) {
+      console.log(`🔧 Vue compiler: Treating ${tag} as custom element`);
+      return true;
+    }
+    return false;
+  }
+};
 
 // Function to check if all components are loaded
 function checkAndRegisterComponents() {
