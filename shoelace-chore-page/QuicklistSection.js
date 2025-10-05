@@ -1,33 +1,25 @@
 // QuicklistSection Component - Handles the quicklist functionality
+// Import shared components
+import { SectionHeaderComponent, LoadingSpinnerComponent, ErrorStateComponent, EmptyStateComponent, IconContainerComponent } from './shared/index.js';
+
 const QuicklistSection = Vue.defineComponent({
+  components: {
+    'section-header': SectionHeaderComponent,
+    'loading-spinner': LoadingSpinnerComponent,
+    'error-state': ErrorStateComponent,
+    'empty-state': EmptyStateComponent,
+    'icon-container': IconContainerComponent
+  },
   template: `
     <sl-card class="quicklist-section shadow-xl">
       <template #header>
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="relative">
-              <div class="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg blur opacity-75"></div>
-              <div class="relative bg-white dark:bg-slate-800 p-2 rounded-lg">
-                <div v-html="Helpers.IconLibrary.getIcon('zap', 'lucide', 20, 'text-yellow-600 dark:text-yellow-400')"></div>
-              </div>
-            </div>
-            <div>
-              <h2 class="text-xl font-bold text-slate-900 dark:text-white">Quicklist</h2>
-              <p class="text-sm text-slate-600 dark:text-slate-400">Quick access to common chores</p>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <sl-button variant="outline" size="small" @click="toggleSelectionMode" :disabled="isQuicklistEmpty()">
-              <div v-html="Helpers.IconLibrary.getIcon('check', 'lucide', 16)"></div>
-              {{ getSelectionButtonText() }}
-            </sl-button>
-            <sl-button variant="primary" size="small" @click="openAddToQuicklistModal">
-              <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16)"></div>
-              Add
-            </sl-button>
-          </div>
-        </div>
+        <section-header
+          icon="zap"
+          title="Quicklist"
+          description="Quick access to common chores"
+          :primary-button="primaryButton"
+          :secondary-button="secondaryButton"
+        />
       </template>
 
       <!-- Selection mode indicator -->
