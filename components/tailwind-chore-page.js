@@ -102,7 +102,7 @@ const ChoreCard = {
       }
     },
     getIconSize() {
-      return this.type === 'quicklist' ? 'w-12 h-12' : 'w-14 h-14';
+      return 'w-14 h-14';
     },
     getButtonSize() {
       return this.type === 'quicklist' ? 'w-8 h-8' : 'w-10 h-10';
@@ -276,7 +276,8 @@ const PersonCard = {
     onChoreDelete: { type: Function, required: true }
   },
   components: {
-    AssignedChoreCard
+    AssignedChoreCard,
+    ChoreCard
   },
   methods: {
     getElectronicsStatusClass(status) {
