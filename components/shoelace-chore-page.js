@@ -33,7 +33,7 @@ const ShoelaceChorePage = Vue.defineComponent({
               </div>
 
               <sl-button variant="outline" size="small" @click="$parent.setCurrentPage('chores')" class="hidden sm:flex">
-                <div v-html="Helpers.IconLibrary.getIcon('arrowLeft', 'lucide', 16)"></div>
+                <div v-html="Helpers.IconLibrary.getIcon('chevron-left', 'lucide', 16)"></div>
                 Back to Original
               </sl-button>
 
@@ -49,7 +49,7 @@ const ShoelaceChorePage = Vue.defineComponent({
         <div v-if="showMobileMenu" class="sm:hidden border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
           <div class="px-4 py-3 space-y-2">
             <sl-button variant="outline" size="small" @click="$parent.setCurrentPage('chores')" class="w-full justify-start">
-              <div v-html="Helpers.IconLibrary.getIcon('arrowLeft', 'lucide', 16)"></div>
+              <div v-html="Helpers.IconLibrary.getIcon('chevron-left', 'lucide', 16)"></div>
               Back to Original
             </sl-button>
           </div>
@@ -78,7 +78,7 @@ const ShoelaceChorePage = Vue.defineComponent({
 
               <div class="flex items-center gap-2">
                 <sl-button variant="outline" size="small" @click="toggleSelectionMode" :disabled="quicklistChores.length === 0">
-                  <div v-html="Helpers.IconLibrary.getIcon('checkSquare', 'lucide', 16)"></div>
+                  <div v-html="Helpers.IconLibrary.getIcon('check-square', 'lucide', 16)"></div>
                   {{ selectionMode ? 'Cancel' : 'Select' }}
                 </sl-button>
                 <sl-button variant="primary" size="small" @click="openAddToQuicklistModal">
@@ -91,10 +91,10 @@ const ShoelaceChorePage = Vue.defineComponent({
             <div slot="content" class="p-6">
               <!-- Selection mode indicator -->
               <div v-if="selectionMode" class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                <p class="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2">
+                <div class="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2">
                   <div v-html="Helpers.IconLibrary.getIcon('info', 'lucide', 16, 'text-blue-600 dark:text-blue-400')"></div>
-                  {{ selectedChores.size }} chore{{ selectedChores.size !== 1 ? 's' : '' }} selected
-                </p>
+                  <span>{{ selectedChores.size }} chore{{ selectedChores.size !== 1 ? 's' : '' }} selected</span>
+                </div>
               </div>
 
               <!-- Loading state -->
@@ -180,7 +180,7 @@ const ShoelaceChorePage = Vue.defineComponent({
                       size="small"
                       @click.stop="removeFromQuicklist(quickChore.id)"
                     >
-                      <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14)"></div>
+                      <div v-html="Helpers.IconLibrary.getIcon('trash-2', 'lucide', 14)"></div>
                       Remove
                     </sl-button>
                   </div>
@@ -218,7 +218,7 @@ const ShoelaceChorePage = Vue.defineComponent({
                   Add commonly used chores here for faster assignment. Perfect for daily routines and frequent tasks.
                 </p>
                 <sl-button variant="primary" @click="openAddToQuicklistModal">
-                  <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16)"></div>
+                  <div v-html="Helpers.IconLibrary.getIcon('plus-circle', 'lucide', 16)"></div>
                   Add Your First Chore
                 </sl-button>
               </div>
@@ -278,7 +278,7 @@ const ShoelaceChorePage = Vue.defineComponent({
 
                 <div slot="footer" class="flex justify-end">
                   <sl-button variant="danger" size="small" @click.stop="deleteChore(chore)">
-                    <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14)"></div>
+                    <div v-html="Helpers.IconLibrary.getIcon('trash-2', 'lucide', 14)"></div>
                     Delete
                   </sl-button>
                 </div>
@@ -389,7 +389,7 @@ const ShoelaceChorePage = Vue.defineComponent({
                         </sl-button>
 
                         <sl-button variant="danger" size="small" @click.stop="deleteChore(chore)">
-                          <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14)"></div>
+                          <div v-html="Helpers.IconLibrary.getIcon('trash-2', 'lucide', 14)"></div>
                           Delete
                         </sl-button>
                       </div>

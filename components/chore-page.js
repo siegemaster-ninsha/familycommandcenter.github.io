@@ -65,7 +65,7 @@ const ChorePage = Vue.defineComponent({
                 :class="'hover:scale-105 active:scale-95'"
                 title="Remove from quicklist"
               >
-                <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14, 'text-white drop-shadow-sm')"></div>
+                <div v-html="Helpers.IconLibrary.getIcon('trash-2', 'lucide', 14, 'text-white drop-shadow-sm')"></div>
               </button>
 
               <div
@@ -164,7 +164,7 @@ const ChorePage = Vue.defineComponent({
                       :class="'hover:scale-105 active:scale-95'"
                       title="Delete chore"
                     >
-                      <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 18, 'text-white drop-shadow-sm')"></div>
+                      <div v-html="Helpers.IconLibrary.getIcon('trash-2', 'lucide', 18, 'text-white drop-shadow-sm')"></div>
                     </button>
                   </div>
                 </div>
@@ -299,7 +299,7 @@ const ChorePage = Vue.defineComponent({
                       :class="'hover:scale-105 active:scale-95'"
                       title="Delete chore"
                     >
-                      <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 18, 'text-white drop-shadow-sm')"></div>
+                      <div v-html="Helpers.IconLibrary.getIcon('trash-2', 'lucide', 18, 'text-white drop-shadow-sm')"></div>
                     </button>
                   </div>
                 </div>
