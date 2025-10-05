@@ -488,7 +488,7 @@ const TailwindChorePage = Vue.defineComponent({
   `,
   inject: [
     'people', 'choresByPerson', 'selectedChore', 'selectedChoreId', 'selectedQuicklistChore',
-    'quicklistChores', 'loading', 'error', 'Helpers',
+    'quicklistChores', 'loading', 'error', 'Helpers', 'CONFIG',
     'showAddChoreModal', 'showAddToQuicklistModal',
     'handleChoreClick', 'handleQuicklistChoreClick', 'selectionStore'
   ],
@@ -533,7 +533,7 @@ const TailwindChorePage = Vue.defineComponent({
 
     async removeFromQuicklist(quicklistId) {
       try {
-        await this.$parent.apiCall(\`\${CONFIG.API.ENDPOINTS.QUICKLIST}/\${quicklistId}\`, {
+        await this.$parent.apiCall(`${this.CONFIG.API.ENDPOINTS.QUICKLIST}/${quicklistId}`, {
           method: 'DELETE'
         });
         await this.loadQuicklistChores();

@@ -2215,6 +2215,7 @@ const app = createApp({
     return {
       // Global utilities and helpers
       Helpers: window.Helpers,
+      CONFIG: window.CONFIG,
 
       // Provide reactive data to child components
       // Readonly computed values for display data
