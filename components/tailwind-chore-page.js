@@ -1,50 +1,150 @@
 // Tailwind Chore Page Component with Reusable Cards
 // Using standard Tailwind components instead of custom components
 
-// Reusable Card Components
-const QuicklistChoreCard = {
+// Unified Chore Card Component
+const ChoreCard = {
   template: `
     <div
-      class="relative group flex items-center gap-3 p-4 rounded-xl transition-all duration-200 cursor-pointer border-2 hover:shadow-lg hover:-translate-y-0.5"
+      class="relative flex items-center gap-4 p-4 rounded-xl transition-all duration-200 cursor-pointer border-2 hover:shadow-lg hover:-translate-y-0.5"
       :class="[
         isSelected ? 'shadow-lg shadow-blue-400/25 scale-105 z-10 border-blue-400 bg-blue-600' : 'hover:border-blue-400 bg-blue-500 border-blue-600'
       ]"
-      @click.stop="onClick"
-      @touchend.stop="onClick"
+      @click.stop="handleClick"
+      @touchend.stop="handleClick"
     >
-      <!-- Remove button (integrated when selected) -->
-      <button
-        v-if="isSelected"
-        @click.stop="onRemove"
-        class="absolute -top-2 -right-2 flex items-center justify-center w-6 h-6 opacity-70 hover:opacity-100 transition-all duration-200 rounded-full bg-white border border-gray-300 hover:scale-105 active:scale-95"
-        title="Remove from quicklist"
-      >
-        <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('trash', 'lucide', 12, 'text-red-600') : ''"></div>
-      </button>
-
-      <div class="flex items-center gap-3 flex-1 min-w-0">
       <!-- Category icon -->
       <div
-        class="flex items-center justify-center rounded-xl w-12 h-12 text-white bg-gradient-to-br from-white/30 to-white/10 border border-white/20 shadow-lg shrink-0 transition-all duration-200 hover:scale-105 hover:shadow-xl"
+        class="flex items-center justify-center rounded-xl text-white bg-gradient-to-br from-white/30 to-white/10 border border-white/20 shadow-lg shrink-0 transition-all duration-200 hover:scale-105 hover:shadow-xl"
+        :class="getIconSize()"
         v-html="getCategoryIcon(chore.category) || ''"
       >
       </div>
 
-        <!-- Chore info -->
-        <div class="flex flex-col flex-1 min-w-0">
-          <div class="flex items-center gap-2">
-            <p class="text-white text-sm font-medium leading-tight line-clamp-2 flex-1">{{ chore.name }}</p>
-            <!-- Small category icon next to name -->
-            <div
-              class="flex items-center justify-center rounded-lg w-6 h-6 text-white bg-white bg-opacity-20 shrink-0"
-              v-html="getCategoryIcon(chore.category) || ''"
-            >
-            </div>
+      <!-- Chore content -->
+      <div class="flex flex-col justify-center min-w-0 flex-1">
+        <div class="flex items-center gap-2 mb-1">
+          <!-- Completion checkbox (not for quicklist) -->
+          <input
+            v-if="type !== 'quicklist'"
+            type="checkbox"
+            :checked="chore.completed"
+            @click.stop
+            @change="handleToggleComplete"
+            class="w-5 h-5 rounded focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2"
+            :class="chore.completed ? 'text-green-600' : 'text-gray-400'"
+          >
+
+          <p
+            :class="chore.completed && type !== 'quicklist' ? 'line-through text-white opacity-60 flex-1' : 'text-white flex-1'"
+            class="text-sm font-medium leading-normal line-clamp-2"
+          >
+            {{ chore.name }}
+          </p>
+
+          <!-- Small category icon next to name -->
+          <div
+            class="flex items-center justify-center rounded-lg w-6 h-6 text-white bg-white bg-opacity-20 shrink-0"
+            v-html="getCategoryIcon(chore.category) || ''"
+          >
           </div>
-          <p v-if="chore.amount > 0" class="text-white text-opacity-90 text-xs mt-1">\${{ chore.amount.toFixed(2) }}</p>
         </div>
+
+        <p v-if="chore.details" :class="chore.completed && type !== 'quicklist' ? 'text-white opacity-50' : 'text-white text-opacity-80'" class="text-xs font-normal leading-normal mb-1">
+          {{ chore.details }}
+        </p>
+        <p v-if="chore.amount > 0" :class="chore.completed && type !== 'quicklist' ? 'text-white opacity-50' : 'text-white text-opacity-90'" class="text-xs font-normal leading-normal">
+          \${{ chore.amount.toFixed(2) }}
+        </p>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="shrink-0 flex items-center gap-2">
+        <!-- Approval button (assigned type only) -->
+        <button
+          v-if="type === 'assigned' && showApprovalButton && chore.isPendingApproval"
+          @click.stop="handleApprove"
+          class="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors"
+        >
+          Approve
+        </button>
+
+        <!-- Delete/Remove button -->
+        <button
+          @click.stop="handleDelete"
+          class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 rounded-md bg-white bg-opacity-10 border border-white border-opacity-20 hover:scale-105 active:scale-95"
+          :class="getButtonSize()"
+          :title="getButtonTitle()"
+        >
+          <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('trash', 'lucide', getTrashIconSize(), 'text-white drop-shadow-sm') : ''"></div>
+        </button>
       </div>
     </div>
+  `,
+  props: {
+    chore: { type: Object, required: true },
+    type: { type: String, required: true, validator: (value) => ['quicklist', 'unassigned', 'assigned'].includes(value) },
+    isSelected: { type: Boolean, default: false },
+    showApprovalButton: { type: Boolean, default: false },
+    Helpers: { type: Object, required: true },
+    // Event handlers
+    onClick: { type: Function, required: true },
+    onToggleComplete: { type: Function },
+    onApprove: { type: Function },
+    onDelete: { type: Function }
+  },
+  methods: {
+    getCategoryIcon(category) {
+      try {
+        return this.Helpers?.getCategoryIcon?.(category) || '';
+      } catch (error) {
+        console.warn('Failed to get category icon for:', category, error);
+        return '';
+      }
+    },
+    getIconSize() {
+      return this.type === 'quicklist' ? 'w-12 h-12' : 'w-14 h-14';
+    },
+    getButtonSize() {
+      return this.type === 'quicklist' ? 'w-8 h-8' : 'w-10 h-10';
+    },
+    getTrashIconSize() {
+      return this.type === 'quicklist' ? 16 : 18;
+    },
+    getButtonTitle() {
+      return this.type === 'quicklist' ? 'Remove from quicklist' : 'Delete chore';
+    },
+    handleClick() {
+      this.onClick(this.chore, event);
+    },
+    handleToggleComplete(event) {
+      if (this.onToggleComplete) {
+        this.onToggleComplete(this.chore, event);
+      }
+    },
+    handleApprove() {
+      if (this.onApprove) {
+        this.onApprove(this.chore);
+      }
+    },
+    handleDelete() {
+      if (this.onDelete) {
+        this.onDelete(this.chore);
+      }
+    }
+  }
+};
+
+// Legacy component aliases for backward compatibility
+const QuicklistChoreCard = {
+  template: `
+    <chore-card
+      :chore="chore"
+      type="quicklist"
+      :is-selected="isSelected"
+      :Helpers="Helpers"
+      @click="onClick"
+      @delete="onRemove"
+    />
   `,
   props: {
     chore: { type: Object, required: true },
@@ -53,59 +153,22 @@ const QuicklistChoreCard = {
     onClick: { type: Function, required: true },
     onRemove: { type: Function, required: true }
   },
-  methods: {
-    getCategoryIcon(category) {
-      try {
-        return this.Helpers?.getCategoryIcon?.(category) || '';
-      } catch (error) {
-        console.warn('Failed to get category icon for:', category, error);
-        return '';
-      }
-    }
+  components: {
+    ChoreCard
   }
 };
 
 const UnassignedChoreCard = {
   template: `
-    <div
-      class="relative flex items-center gap-4 p-4 rounded-xl transition-all duration-200 cursor-pointer border-2 hover:shadow-lg hover:-translate-y-0.5"
-      :class="[
-        isSelected ? 'shadow-lg shadow-blue-400/25 scale-105 z-10 border-blue-400 bg-blue-600' : 'hover:border-blue-400 bg-blue-500 border-blue-600'
-      ]"
-      @click.stop="onClick"
-      @touchend.stop="onClick"
-    >
-      <!-- Category icon -->
-      <div
-        class="flex items-center justify-center rounded-xl w-14 h-14 text-white bg-gradient-to-br from-white/30 to-white/10 border border-white/20 shadow-lg shrink-0 transition-all duration-200 hover:scale-105 hover:shadow-xl"
-        v-html="getCategoryIcon(chore.category) || ''"
-      >
-      </div>
-
-      <!-- Chore details -->
-      <div class="flex flex-col justify-center min-w-0 flex-1">
-        <div class="flex items-center gap-2 mb-2">
-          <p class="text-white text-base font-medium leading-normal line-clamp-2 flex-1">{{ chore.name }}</p>
-          <!-- Small category icon next to name -->
-          <div
-            class="flex items-center justify-center rounded-lg w-6 h-6 text-white bg-white bg-opacity-20 shrink-0"
-            v-html="getCategoryIcon(chore.category) || ''"
-          >
-          </div>
-        </div>
-        <p v-if="chore.details" class="text-white text-opacity-80 text-sm font-normal leading-normal mb-1">{{ chore.details }}</p>
-        <p v-if="chore.amount > 0" class="text-white text-opacity-90 text-sm font-normal leading-normal">\${{ chore.amount.toFixed(2) }}</p>
-      </div>
-
-      <!-- Delete button -->
-      <button
-        @click.stop="onDelete"
-        class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 rounded-md w-10 h-10 bg-white bg-opacity-10 border border-white border-opacity-20 hover:scale-105 active:scale-95"
-        title="Delete chore"
-      >
-        <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('trash', 'lucide', 18, 'text-white drop-shadow-sm') : ''"></div>
-      </button>
-    </div>
+    <chore-card
+      :chore="chore"
+      type="unassigned"
+      :is-selected="isSelected"
+      :Helpers="Helpers"
+      @click="onClick"
+      @toggle-complete="onClick"
+      @delete="onDelete"
+    />
   `,
   props: {
     chore: { type: Object, required: true },
@@ -114,65 +177,24 @@ const UnassignedChoreCard = {
     onClick: { type: Function, required: true },
     onDelete: { type: Function, required: true }
   },
-  methods: {
-    getCategoryIcon(category) {
-      try {
-        return this.Helpers?.getCategoryIcon?.(category) || '';
-      } catch (error) {
-        console.warn('Failed to get category icon for:', category, error);
-        return '';
-      }
-    }
+  components: {
+    ChoreCard
   }
 };
 
 const AssignedChoreCard = {
   template: `
-    <div
-      class="relative flex items-center gap-4 p-3 rounded-xl transition-all duration-200 cursor-pointer border-2 hover:shadow-lg hover:-translate-y-0.5"
-      :class="[
-        isSelected ? 'shadow-lg shadow-blue-400/25 scale-105 z-10 border-blue-400 bg-blue-600' : 'hover:border-blue-400 bg-blue-500 border-blue-600'
-      ]"
-      @click.stop="onClick"
-    >
-      <!-- Completion checkbox and approval button -->
-      <div class="shrink-0 flex items-center gap-2">
-        <input
-          type="checkbox"
-          :checked="chore.completed"
-          @click.stop
-          @change="onToggleComplete"
-          class="w-5 h-5 rounded focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2"
-          :class="chore.completed ? 'text-green-600' : 'text-gray-400'"
-        >
-      </div>
-      <!-- Chore details -->
-      <div class="flex flex-col justify-center min-w-0 flex-1">
-        <div class="flex items-center gap-2 mb-1">
-          <p
-            :class="chore.completed ? 'line-through text-white opacity-60 flex-1' : 'text-white flex-1'"
-            class="text-sm font-medium leading-normal line-clamp-2"
-          >
-            {{ chore.name }}
-          </p>
-        </div>
-        <p v-if="chore.details" :class="chore.completed ? 'text-white opacity-50' : 'text-white text-opacity-80'" class="text-xs font-normal leading-normal mb-1">
-          {{ chore.details }}
-        </p>
-        <p v-if="chore.amount > 0" :class="chore.completed ? 'text-white opacity-50' : 'text-white text-opacity-90'" class="text-xs font-normal leading-normal">
-          \${{ chore.amount.toFixed(2) }}
-        </p>
-      </div>
-
-      <!-- Delete button -->
-      <button
-        @click.stop="onDelete"
-        class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 rounded-md w-10 h-10 bg-white bg-opacity-10 border border-white border-opacity-20 hover:scale-105 active:scale-95"
-        title="Delete chore"
-      >
-        <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('trash', 'lucide', 18, 'text-white drop-shadow-sm') : ''"></div>
-      </button>
-    </div>
+    <chore-card
+      :chore="chore"
+      type="assigned"
+      :is-selected="isSelected"
+      :show-approval-button="showApprovalButton"
+      :Helpers="Helpers"
+      @click="onClick"
+      @toggle-complete="onToggleComplete"
+      @approve="onApprove"
+      @delete="onDelete"
+    />
   `,
   props: {
     chore: { type: Object, required: true },
@@ -184,13 +206,8 @@ const AssignedChoreCard = {
     onApprove: { type: Function, required: true },
     onDelete: { type: Function, required: true }
   },
-  methods: {
-    getCategoryIcon(category) {
-      return this.Helpers?.getCategoryIcon?.(category) || '';
-    },
-    getCategoryLabel(category) {
-      return this.Helpers?.getCategoryLabel?.(category) || '';
-    }
+  components: {
+    ChoreCard
   }
 };
 
@@ -228,10 +245,11 @@ const PersonCard = {
           <p class="text-xs mt-1">Select a chore and tap here to assign it</p>
         </div>
 
-        <assigned-chore-card
+        <chore-card
           v-for="chore in personChores"
           :key="chore.id"
           :chore="chore"
+          type="assigned"
           :is-selected="isChoreSelected(chore)"
           :show-approval-button="showApprovalButton"
           :Helpers="Helpers"
@@ -360,14 +378,15 @@ const TailwindChorePage = Vue.defineComponent({
 
           <!-- Quicklist items -->
           <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
-            <quicklist-chore-card
+            <chore-card
               v-for="quickChore in quicklistChores"
               :key="quickChore.id"
               :chore="quickChore"
+              type="quicklist"
               :is-selected="isQuicklistChoreSelected(quickChore)"
               :Helpers="Helpers"
               @click="onQuicklistClick(quickChore, $event)"
-              @remove="removeFromQuicklist(quickChore.id)"
+              @delete="removeFromQuicklist(quickChore.id)"
             />
 
             <!-- Add to Quicklist button -->
@@ -414,10 +433,11 @@ const TailwindChorePage = Vue.defineComponent({
 
             <!-- Container for chores -->
             <div v-else class="space-y-4 mb-6">
-              <unassigned-chore-card
+              <chore-card
                 v-for="chore in choresByPerson.unassigned"
                 :key="chore.id"
                 :chore="chore"
+                type="unassigned"
                 :is-selected="isChoreSelected(chore)"
                 :Helpers="Helpers"
                 @click="selectChore(chore, $event)"
@@ -496,9 +516,7 @@ const TailwindChorePage = Vue.defineComponent({
     'handleChoreClick', 'handleQuicklistChoreClick', 'selectionStore'
   ],
   components: {
-    QuicklistChoreCard,
-    UnassignedChoreCard,
-    AssignedChoreCard,
+    ChoreCard,
     PersonCard,
     EarningsCard
   },
