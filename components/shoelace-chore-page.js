@@ -101,18 +101,13 @@ const ShoelaceChorePage = Vue.defineComponent({
             </div>
 
             <!-- Quicklist grid - Modern responsive layout -->
-            <div v-else class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               <sl-card
                 v-for="quickChore in quicklistChores"
                 :key="quickChore.id"
                 class="quicklist-chore-card cursor-pointer transition-all duration-300 group"
-                :class="[
-                  'transform hover:scale-105 hover:shadow-xl',
-                  quickChore.isSelecting ? 'opacity-50 scale-95' : '',
-                  isQuicklistChoreSelected(quickChore) ? 'ring-2 ring-blue-500 shadow-lg scale-105' : '',
-                  selectionMode && selectedChores.has(quickChore.id) ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-900/20' : ''
-                ]"
-                @click="selectionMode ? toggleChoreSelection(quickChore.id) : selectQuicklistChore(quickChore, $event)"
+                :class="getQuicklistCardClasses(quickChore)"
+                @click="handleQuicklistCardClick(quickChore, $event)"
               >
                 <template #header>
                   <!-- Selection checkbox (only in selection mode) -->
@@ -229,10 +224,7 @@ const ShoelaceChorePage = Vue.defineComponent({
                 v-for="chore in choresByPerson.unassigned"
                 :key="chore.id"
                 class="unassigned-chore-card cursor-pointer transition-all duration-200"
-                :class="[
-                  chore.isSelecting ? 'opacity-75' : '',
-                  isChoreSelected(chore) ? 'ring-2 ring-primary-500 shadow-lg' : 'hover:shadow-md hover:-translate-y-1'
-                ]"
+                :class="getUnassignedCardClasses(chore)"
                 @click="selectChore(chore, $event)"
               >
                 <template #header>
@@ -314,10 +306,7 @@ const ShoelaceChorePage = Vue.defineComponent({
                     v-for="chore in choresByPerson[person.name]"
                     :key="chore.id"
                     class="assigned-chore-card cursor-pointer transition-all duration-200"
-                    :class="[
-                      chore.isSelecting ? 'opacity-75' : '',
-                      isChoreSelected(chore) ? 'ring-2 ring-primary-500 shadow-lg' : 'hover:shadow-md hover:-translate-y-1'
-                    ]"
+                    :class="getAssignedCardClasses(chore)"
                     style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);"
                     @click="selectChore(chore, $event)"
                   >
@@ -475,7 +464,35 @@ const ShoelaceChorePage = Vue.defineComponent({
     openSpendModal(person) { if (this.$parent.openSpendingModal) this.$parent.openSpendingModal(person); },
     toggleChoreSelection(choreId) { this.selectedChores.has(choreId) ? this.selectedChores.delete(choreId) : this.selectedChores.add(choreId); this.$forceUpdate(); },
     getElectronicsStatusVariant(status) { switch (status) { case 'allowed': return 'success'; case 'restricted': return 'warning'; case 'blocked': return 'danger'; default: return 'success'; } },
-    getElectronicsStatusText(status) { switch (status) { case 'allowed': return 'Allowed'; case 'restricted': return 'Limited'; case 'blocked': return 'Blocked'; default: return 'Allowed'; } }
+    getElectronicsStatusText(status) { switch (status) { case 'allowed': return 'Allowed'; case 'restricted': return 'Limited'; case 'blocked': return 'Blocked'; default: return 'Allowed'; } },
+    getQuicklistCardClasses(quickChore) {
+      const classes = ['transform hover:scale-105 hover:shadow-xl'];
+      if (quickChore.isSelecting) classes.push('opacity-50 scale-95');
+      if (this.isQuicklistChoreSelected(quickChore)) classes.push('ring-2 ring-blue-500 shadow-lg scale-105');
+      if (this.selectionMode && this.selectedChores.has(quickChore.id)) classes.push('ring-2 ring-green-500 bg-green-50 dark:bg-green-900/20');
+      return classes.join(' ');
+    },
+    getUnassignedCardClasses(chore) {
+      const classes = [];
+      if (chore.isSelecting) classes.push('opacity-75');
+      if (this.isChoreSelected(chore)) classes.push('ring-2 ring-primary-500 shadow-lg');
+      else classes.push('hover:shadow-md hover:-translate-y-1');
+      return classes.join(' ');
+    },
+    getAssignedCardClasses(chore) {
+      const classes = [];
+      if (chore.isSelecting) classes.push('opacity-75');
+      if (this.isChoreSelected(chore)) classes.push('ring-2 ring-primary-500 shadow-lg');
+      else classes.push('hover:shadow-md hover:-translate-y-1');
+      return classes.join(' ');
+    },
+    handleQuicklistCardClick(quickChore, event) {
+      if (this.selectionMode) {
+        this.toggleChoreSelection(quickChore.id);
+      } else {
+        this.selectQuicklistChore(quickChore, event);
+      }
+    }
   }
 });
 
