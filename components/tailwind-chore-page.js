@@ -134,82 +134,7 @@ const ChoreCard = {
   }
 };
 
-// Legacy component aliases for backward compatibility
-const QuicklistChoreCard = {
-  template: `
-    <chore-card
-      :chore="chore"
-      type="quicklist"
-      :is-selected="isSelected"
-      :Helpers="Helpers"
-      @click="onClick"
-      @delete="onRemove"
-    />
-  `,
-  props: {
-    chore: { type: Object, required: true },
-    isSelected: { type: Boolean, default: false },
-    Helpers: { type: Object, required: true },
-    onClick: { type: Function, required: true },
-    onRemove: { type: Function, required: true }
-  },
-  components: {
-    ChoreCard
-  }
-};
-
-const UnassignedChoreCard = {
-  template: `
-    <chore-card
-      :chore="chore"
-      type="unassigned"
-      :is-selected="isSelected"
-      :Helpers="Helpers"
-      @click="onClick"
-      @toggle-complete="onClick"
-      @delete="onDelete"
-    />
-  `,
-  props: {
-    chore: { type: Object, required: true },
-    isSelected: { type: Boolean, default: false },
-    Helpers: { type: Object, required: true },
-    onClick: { type: Function, required: true },
-    onDelete: { type: Function, required: true }
-  },
-  components: {
-    ChoreCard
-  }
-};
-
-const AssignedChoreCard = {
-  template: `
-    <chore-card
-      :chore="chore"
-      type="assigned"
-      :is-selected="isSelected"
-      :show-approval-button="showApprovalButton"
-      :Helpers="Helpers"
-      @click="onClick"
-      @toggle-complete="onToggleComplete"
-      @approve="onApprove"
-      @delete="onDelete"
-    />
-  `,
-  props: {
-    chore: { type: Object, required: true },
-    isSelected: { type: Boolean, default: false },
-    showApprovalButton: { type: Boolean, default: false },
-    Helpers: { type: Object, required: true },
-    onClick: { type: Function, required: true },
-    onToggleComplete: { type: Function, required: true },
-    onApprove: { type: Function, required: true },
-    onDelete: { type: Function, required: true }
-  },
-  components: {
-    ChoreCard
-  }
-};
+// Legacy component aliases for backward compatibility (not used in current implementation)
 
 const PersonCard = {
   template: `
@@ -276,7 +201,6 @@ const PersonCard = {
     onChoreDelete: { type: Function, required: true }
   },
   components: {
-    AssignedChoreCard,
     ChoreCard
   },
   methods: {
