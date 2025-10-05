@@ -511,7 +511,7 @@ const ShoelaceChorePage = Vue.defineComponent({
 
     async removeFromQuicklist(quicklistId) {
       try {
-        await this.$parent.apiCall(`${CONFIG.API.ENDPOINTS.QUICKLIST}/${quicklistId}`, {
+        await this.$parent.apiCall(CONFIG.API.ENDPOINTS.QUICKLIST + '/' + quicklistId, {
           method: 'DELETE'
         });
         await this.loadQuicklistChores();
