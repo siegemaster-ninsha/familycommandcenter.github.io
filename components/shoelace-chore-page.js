@@ -319,56 +319,44 @@ const ShoelaceChorePage = Vue.defineComponent({
                         chore.isSelecting ? 'opacity-75' : '',
                         isChoreSelected(chore) ? 'ring-2 ring-primary-500 shadow-lg' : 'hover:shadow-md hover:-translate-y-1'
                       ]"
+                      style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);"
                       @click="selectChore(chore, $event)"
                     >
-                      <div slot="header" class="flex items-center gap-3">
-                        <sl-checkbox
-                          :checked="chore.completed"
-                          @sl-change="handleChoreCompletionToggle(chore, $event)"
-                          @click.stop
-                          size="small"
-                        ></sl-checkbox>
-
-                        <div class="category-icon flex items-center justify-center rounded-lg size-10 text-white bg-white bg-opacity-20 shrink-0">
-                          <div v-html="getCategoryIcon(chore.category)"></div>
-                        </div>
-
-                        <div class="flex flex-col flex-1 min-w-0">
-                          <div class="flex items-center gap-2 mb-1">
-                            <h4 :class="chore.completed ? 'line-through opacity-60' : ''" class="font-medium flex-1">
-                              {{ chore.name }}
-                            </h4>
-                            <sl-badge variant="neutral" size="small" class="shrink-0">{{ getCategoryLabel(chore.category) }}</sl-badge>
+                      <div slot="header" class="p-4">
+                        <div class="flex items-center justify-between mb-3">
+                          <div v-if="chore.amount > 0" class="text-lg font-bold text-white">
+                            ${{ chore.amount.toFixed(2) }}
                           </div>
+                          <sl-button variant="danger" size="small" @click.stop="deleteChore(chore)">
+                            <div v-html="Helpers.IconLibrary.getIcon('trash-2', 'lucide', 16)"></div>
+                          </sl-button>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                          <!-- Video game controller icon for Electronics chores -->
+                          <div v-if="chore.category === 'game'" class="shrink-0">
+                            <div v-html="Helpers.IconLibrary.getIcon('gamepad-2', 'lucide', 20, 'text-white')"></div>
+                          </div>
+
+                          <h4 :class="chore.completed ? 'line-through opacity-60' : ''" class="font-medium text-white flex-1">
+                            {{ chore.name }}
+                          </h4>
                         </div>
                       </div>
 
-                      <div slot="content">
-                        <p v-if="chore.details" :class="chore.completed ? 'opacity-50' : 'opacity-80'" class="text-sm mb-2">
-                          {{ chore.details }}
-                        </p>
-                        <div v-if="chore.amount > 0" :class="chore.completed ? 'opacity-50' : ''" class="text-sm font-medium">
-                          \${{ chore.amount.toFixed(2) }}
-                        </div>
-                        <sl-badge v-if="chore.isPendingApproval" variant="warning" size="small" class="mt-2">
-                          Pending approval
-                        </sl-badge>
-                      </div>
-
-                      <div slot="footer" class="flex items-center justify-between">
+                      <div slot="footer" class="p-3 bg-slate-50 dark:bg-slate-800/50">
                         <sl-button
-                          v-if="$parent.currentUser?.role === 'parent' && chore.isPendingApproval"
                           variant="success"
                           size="small"
-                          @click.stop="$parent.approveChore(chore)"
+                          class="w-full"
+                          @click.stop="handleChoreCompletionToggle(chore, $event)"
                         >
-                          Approve
+                          Mark Complete
                         </sl-button>
 
-                        <sl-button variant="danger" size="small" @click.stop="deleteChore(chore)">
-                          <div v-html="Helpers.IconLibrary.getIcon('trash-2', 'lucide', 14)"></div>
-                          Delete
-                        </sl-button>
+                        <sl-badge v-if="chore.isPendingApproval" variant="warning" size="small" class="mt-2 w-full justify-center">
+                          Pending approval
+                        </sl-badge>
                       </div>
                     </sl-card>
                   </div>
@@ -613,7 +601,8 @@ const ShoelaceChorePage = Vue.defineComponent({
         event.stopPropagation();
       }
 
-      chore.completed = event.target.checked;
+      // Toggle the completion status
+      chore.completed = !chore.completed;
       await this.$parent.handleChoreCompletion(chore);
     },
 
@@ -626,23 +615,6 @@ const ShoelaceChorePage = Vue.defineComponent({
       return this.Helpers?.getCategoryLabel?.(category) || '';
     },
 
-    getElectronicsStatusVariant(status) {
-      switch(status) {
-        case 'allowed': return 'success';
-        case 'restricted': return 'warning';
-        case 'blocked': return 'danger';
-        default: return 'success';
-      }
-    },
-
-    getElectronicsStatusText(status) {
-      switch(status) {
-        case 'allowed': return 'Allowed';
-        case 'restricted': return 'Limited';
-        case 'blocked': return 'Blocked';
-        default: return 'Allowed';
-      }
-    },
 
     openSpendModal(person) {
       if (this.$parent.openSpendingModal) {
@@ -660,21 +632,6 @@ const ShoelaceChorePage = Vue.defineComponent({
       this.$forceUpdate(); // Trigger reactivity for visual updates
     },
 
-    // Category styling methods
-    getCategoryBadgeVariant(category) {
-      const variants = {
-        'cleaning': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-        'laundry': 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
-        'kitchen': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-        'bathroom': 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300',
-        'bedroom': 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300',
-        'outdoor': 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
-        'pet': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
-        'car': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
-        'regular': 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
-      };
-      return variants[category] || variants.regular;
-    }
   }
 });
 

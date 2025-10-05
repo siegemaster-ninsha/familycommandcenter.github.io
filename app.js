@@ -1548,6 +1548,7 @@ const app = createApp({
 
     clearAuthForm() {
       this.authForm = {
+        mode: 'parent',
         email: '',
         password: '',
         name: '',
