@@ -260,6 +260,11 @@
                     <shoelace-chore-page></shoelace-chore-page>
                   </div>
 
+                  <!-- Tailwind Chores Page -->
+                  <div v-else-if="currentPage === 'tailwind-chores'">
+                    <tailwind-chore-page></tailwind-chore-page>
+                  </div>
+
                   <!-- Family Page -->
                   <div v-else-if="currentPage === 'family'">
                     <family-page></family-page>
@@ -297,6 +302,7 @@
     <script src="components/family-page.js"></script>
     <script src="components/shopping-page.js"></script>
     <script src="components/chore-page.js"></script>
+    <script src="components/tailwind-chore-page.js"></script>
 
     <!-- Load modular shoelace components -->
     <script src="shoelace-chore-page/shared/LoadingSpinner.js"></script>
