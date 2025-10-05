@@ -32,45 +32,44 @@ const ChorePage = Vue.defineComponent({
         
         <!-- Quicklist items -->
         <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
-          <div
+          <sl-card
             v-for="quickChore in quicklistChores"
             :key="quickChore.id"
-            class="relative group flex items-center gap-3 sm:gap-4 p-4 sm:p-4 rounded-xl transition-all duration-200 cursor-pointer touch-target border-2"
+            class="quicklist-chore-card transition-all duration-200 cursor-pointer touch-target"
             :class="[
               quickChore.isSelecting ? 'opacity-75 pointer-events-none' : '',
-              isQuicklistChoreSelected(quickChore) ? 'shadow-lg shadow-blue-400/25 scale-105 z-10 border-blue-400' : 'hover:shadow-lg hover:-translate-y-0.5 hover:border-primary-400'
+              isQuicklistChoreSelected(quickChore) ? 'shadow-lg shadow-blue-400/25 scale-105 z-10 ring-2 ring-blue-400' : 'hover:shadow-lg hover:-translate-y-0.5'
             ]"
-            :style="isQuicklistChoreSelected(quickChore) ? 'background-color: var(--color-primary-600);' : 'background-color: var(--color-primary-500); border-color: var(--color-primary-600); box-shadow: var(--shadow-sm);'"
+            style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
             @click.stop="onQuicklistClick(quickChore, $event)"
             @touchend.stop="onQuicklistClick(quickChore, $event)"
           >
-            <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-              <!-- Remove button (integrated when selected) -->
-              <button
-                v-if="isQuicklistChoreSelected(quickChore)"
-                @click.stop="removeFromQuicklist(quickChore.id)"
-                class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
-                style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);"
-                :class="'hover:scale-105 active:scale-95'"
-                title="Remove from quicklist"
-              >
-                <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14, 'text-white drop-shadow-sm')"></div>
-              </button>
-
+            <div slot="header" class="flex items-center gap-3 p-1">
               <div
-                class="flex items-center justify-center rounded-lg shrink-0 size-12 sm:size-10 text-white bg-white bg-opacity-20"
+                class="flex items-center justify-center rounded-lg shrink-0 size-10 text-white bg-white bg-opacity-20"
                 v-html="getCategoryIcon(quickChore.category)"
               >
               </div>
               <div class="flex flex-col flex-1 min-w-0">
-                <p class="text-white text-base sm:text-sm font-medium leading-tight line-clamp-2">{{ quickChore.name }}</p>
-                <p v-if="quickChore.amount > 0" class="text-white text-opacity-90 text-sm sm:text-xs mt-1">\${{ quickChore.amount.toFixed(2) }}</p>
+                <h3 class="text-white text-sm font-medium leading-tight line-clamp-2 mb-1">{{ quickChore.name }}</h3>
+                <div v-if="quickChore.amount > 0" class="text-white text-opacity-90 text-xs">\${{ quickChore.amount.toFixed(2) }}</div>
               </div>
+              <sl-badge variant="neutral" size="small" class="shrink-0">{{ getCategoryLabel(quickChore.category) }}</sl-badge>
             </div>
-            <span class="text-xs px-2 py-1 rounded-full shrink-0 self-start bg-white bg-opacity-20 text-white">
-              {{ getCategoryLabel(quickChore.category) }}
-            </span>
-          </div>
+
+            <div slot="footer" class="flex justify-end p-2 pt-0">
+              <sl-button
+                v-if="isQuicklistChoreSelected(quickChore)"
+                variant="danger"
+                size="small"
+                @click.stop="removeFromQuicklist(quickChore.id)"
+                title="Remove from quicklist"
+              >
+                <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14, 'text-white')"></div>
+                Remove
+              </sl-button>
+            </div>
+          </sl-card>
           
           <!-- Add to Quicklist button -->
           <div class="flex items-center justify-center">
@@ -117,47 +116,49 @@ const ChorePage = Vue.defineComponent({
           
             <!-- Container for chores -->
             <div v-else class="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
-              <div
+              <sl-card
                 v-for="chore in choresByPerson.unassigned"
                 :key="chore.id"
-                class="relative flex items-center gap-4 p-4 sm:p-4 rounded-xl transition-all duration-200 cursor-pointer touch-target border-2"
+                class="unassigned-chore-card transition-all duration-200 cursor-pointer touch-target"
                 :class="[
                   chore.isSelecting ? 'opacity-75 pointer-events-none' : '',
-                  isChoreSelected(chore) ? 'shadow-lg shadow-blue-400/25 scale-105 z-10 border-blue-400' : 'hover:shadow-lg hover:-translate-y-0.5 hover:border-primary-400'
+                  isChoreSelected(chore) ? 'shadow-lg shadow-blue-400/25 scale-105 z-10 ring-2 ring-blue-400' : 'hover:shadow-lg hover:-translate-y-0.5'
                 ]"
-                :style="isChoreSelected(chore) ? 'background-color: var(--color-primary-600);' : 'background-color: var(--color-primary-500); border-color: var(--color-primary-600); box-shadow: var(--shadow-sm);'"
+                style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
                 @click.stop="selectChore(chore, $event)"
                 @touchend.stop="selectChore(chore, $event)"
               >
-                <div class="flex items-center gap-4 flex-1 min-w-0">
+                <div slot="header" class="flex items-center gap-3 p-1">
                   <div
-                    class="flex items-center justify-center rounded-lg shrink-0 size-14 sm:size-12 text-white bg-white bg-opacity-20"
+                    class="flex items-center justify-center rounded-lg shrink-0 size-12 text-white bg-white bg-opacity-20"
                     v-html="getCategoryIcon(chore.category)"
                   >
                   </div>
                   <div class="flex flex-col justify-center min-w-0 flex-1">
-                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 mb-2">
-                      <p class="text-white text-base sm:text-base font-medium leading-normal line-clamp-2">{{ chore.name }}</p>
-                      <span class="text-xs px-2 py-1 rounded-full self-start sm:self-center shrink-0 bg-white bg-opacity-20 text-white">
-                        {{ getCategoryLabel(chore.category) }}
-                      </span>
+                    <div class="flex items-center gap-2 mb-2">
+                      <h3 class="text-white text-base font-medium leading-normal line-clamp-2 flex-1">{{ chore.name }}</h3>
+                      <sl-badge variant="neutral" size="small" class="shrink-0">{{ getCategoryLabel(chore.category) }}</sl-badge>
                     </div>
-                    <p v-if="chore.details" class="text-white text-opacity-80 text-sm font-normal leading-normal mb-1">{{ chore.details }}</p>
-                    <p v-if="chore.amount > 0" class="text-white text-opacity-90 text-sm font-normal leading-normal">\${{ chore.amount.toFixed(2) }}</p>
-                  </div>
-                  <div class="flex items-center gap-1">
-                    <button
-                      @click.stop="deleteChore(chore)"
-                      class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
-                      style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 40px; height: 40px;"
-                      :class="'hover:scale-105 active:scale-95'"
-                      title="Delete chore"
-                    >
-                      <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 18, 'text-white drop-shadow-sm')"></div>
-                    </button>
                   </div>
                 </div>
-              </div>
+
+                <div slot="content" class="p-1 pb-2">
+                  <p v-if="chore.details" class="text-white text-opacity-80 text-sm font-normal leading-normal mb-2">{{ chore.details }}</p>
+                  <div v-if="chore.amount > 0" class="text-white text-opacity-90 text-sm font-normal">\${{ chore.amount.toFixed(2) }}</div>
+                </div>
+
+                <div slot="footer" class="flex justify-end p-2 pt-0">
+                  <sl-button
+                    variant="danger"
+                    size="small"
+                    @click.stop="deleteChore(chore)"
+                    title="Delete chore"
+                  >
+                    <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14, 'text-white')"></div>
+                    Delete
+                  </sl-button>
+                </div>
+              </sl-card>
             </div>
           
           <!-- Add new chore button -->
@@ -224,75 +225,77 @@ const ChorePage = Vue.defineComponent({
                 <p class="text-xs mt-1">Select a chore and tap here to assign it</p>
               </div>
 
-              <div
+              <sl-card
                 v-for="chore in choresByPerson[person.name]"
                 :key="chore.id"
-                class="relative flex items-center gap-4 p-3 sm:p-4 rounded-xl transition-all duration-200 cursor-pointer touch-target border-2"
+                class="assigned-chore-card transition-all duration-200 cursor-pointer touch-target"
                 :class="[
                   chore.isSelecting ? 'opacity-75 pointer-events-none' : '',
-                  isChoreSelected(chore) ? 'shadow-lg shadow-blue-400/25 scale-105 z-10 border-blue-400' : 'hover:shadow-lg hover:-translate-y-0.5 hover:border-primary-400'
+                  isChoreSelected(chore) ? 'shadow-lg shadow-blue-400/25 scale-105 z-10 ring-2 ring-blue-400' : 'hover:shadow-lg hover:-translate-y-0.5'
                 ]"
-                :style="isChoreSelected(chore) ? 'background-color: var(--color-primary-600);' : 'background-color: var(--color-primary-500); border-color: var(--color-primary-600); box-shadow: var(--shadow-sm);'"
+                style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
                 @click.stop="selectChore(chore, $event)"
               >
-                <!-- Completion + approval UI -->
-                <div class="shrink-0 flex items-center gap-2">
-                  <input
-                    type="checkbox"
+                <div slot="header" class="flex items-center gap-3 p-1">
+                  <sl-checkbox
                     :checked="chore.completed"
+                    @sl-change="handleChoreCompletionToggle(chore, $event)"
                     @click.stop
-                    @change="handleChoreCompletionToggle(chore, $event)"
-                    class="w-5 h-5 sm:w-4 sm:h-4 rounded focus:outline-none focus:ring-2 focus:ring-success-600 focus:ring-offset-2 touch-target"
-                    :class="chore.completed ? 'text-success-600' : 'text-gray-400'"
-                  >
-                  <button
-                    v-if="$parent.currentUser?.role === 'parent' && chore.isPendingApproval"
-                    @click.stop="$parent.approveChore(chore)"
-                    class="btn btn-success btn-sm"
-                  >Approve</button>
-                </div>
+                    size="small"
+                  ></sl-checkbox>
 
-                <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
                   <div
-                    class="flex items-center justify-center rounded-lg shrink-0 size-12 sm:size-10 text-white bg-white bg-opacity-20"
+                    class="flex items-center justify-center rounded-lg shrink-0 size-10 text-white bg-white bg-opacity-20"
                     v-html="getCategoryIcon(chore.category)"
                   >
                   </div>
+
                   <div class="flex flex-col justify-center min-w-0 flex-1">
-                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 mb-1">
-                      <p
+                    <div class="flex items-center gap-2 mb-1">
+                      <h3
                         :class="chore.completed ? 'line-through text-white opacity-60' : 'text-white'"
-                        class="text-sm sm:text-base font-medium leading-normal line-clamp-2"
+                        class="text-sm font-medium leading-normal line-clamp-2 flex-1"
                       >
                         {{ chore.name }}
-                      </p>
-                      <span class="text-xs px-2 py-1 rounded-full self-start sm:self-center shrink-0 bg-white bg-opacity-20 text-white">
-                        {{ getCategoryLabel(chore.category) }}
-                      </span>
+                      </h3>
+                      <sl-badge variant="neutral" size="small" class="shrink-0">{{ getCategoryLabel(chore.category) }}</sl-badge>
                     </div>
-                    <p v-if="chore.details" :class="chore.completed ? 'text-white opacity-50' : 'text-white text-opacity-80'" class="text-xs sm:text-sm font-normal leading-normal mb-1">
-                      {{ chore.details }}
-                    </p>
-                    <p v-if="chore.amount > 0" :class="chore.completed ? 'text-white opacity-50' : 'text-white text-opacity-90'" class="text-xs sm:text-sm font-normal leading-normal">
-                      \${{ chore.amount.toFixed(2) }}
-                    </p>
-                    <div v-if="chore.isPendingApproval" class="mt-1 inline-flex items-center gap-1 text-xs px-2 py-1 rounded" style="background: var(--color-warning-50); color: var(--color-warning-700);">
-                      <span>Pending approval</span>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-1">
-                    <button
-                      @click.stop="deleteChore(chore)"
-                      class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
-                      style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 40px; height: 40px;"
-                      :class="'hover:scale-105 active:scale-95'"
-                      title="Delete chore"
-                    >
-                      <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 18, 'text-white drop-shadow-sm')"></div>
-                    </button>
                   </div>
                 </div>
-              </div>
+
+                <div slot="content" class="p-1 pb-2">
+                  <p v-if="chore.details" :class="chore.completed ? 'text-white opacity-50' : 'text-white text-opacity-80'" class="text-sm font-normal leading-normal mb-2">
+                    {{ chore.details }}
+                  </p>
+                  <div v-if="chore.amount > 0" :class="chore.completed ? 'text-white opacity-50' : 'text-white text-opacity-90'" class="text-sm font-normal">
+                    \${{ chore.amount.toFixed(2) }}
+                  </div>
+                  <div v-if="chore.isPendingApproval" class="mt-2 inline-flex items-center gap-1 text-xs px-2 py-1 rounded" style="background: var(--color-warning-50); color: var(--color-warning-700);">
+                    <span>Pending approval</span>
+                  </div>
+                </div>
+
+                <div slot="footer" class="flex items-center justify-between p-2 pt-0">
+                  <sl-button
+                    v-if="$parent.currentUser?.role === 'parent' && chore.isPendingApproval"
+                    variant="success"
+                    size="small"
+                    @click.stop="$parent.approveChore(chore)"
+                  >
+                    Approve
+                  </sl-button>
+
+                  <sl-button
+                    variant="danger"
+                    size="small"
+                    @click.stop="deleteChore(chore)"
+                    title="Delete chore"
+                  >
+                    <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14, 'text-white')"></div>
+                    Delete
+                  </sl-button>
+                </div>
+              </sl-card>
             </div>
           </div>
         </div>
