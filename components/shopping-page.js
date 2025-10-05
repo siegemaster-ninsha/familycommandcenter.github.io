@@ -209,7 +209,7 @@ const ShoppingPage = Vue.defineComponent({
         <!-- Quick items list -->
         <div v-else class="space-y-2">
           <div
-            v-for="quickItem in quickItems"
+            v-for="quickItem in sortedQuickItems"
             :key="quickItem.id"
             class="flex items-center gap-4 p-4 sm:p-4 rounded-lg transition-colors cursor-pointer"
             :style="{
@@ -267,7 +267,7 @@ const ShoppingPage = Vue.defineComponent({
             </div>
           </div>
           
-          <div v-if="quickItems.length === 0" class="text-center py-4 sm:py-8 text-secondary-custom">
+          <div v-if="sortedQuickItems.length === 0" class="text-center py-4 sm:py-8 text-secondary-custom">
             <div v-html="Helpers.IconLibrary.getIcon('minus', 'lucide', 32, 'mx-auto mb-2 opacity-50')" class="mx-auto mb-2 opacity-50"></div>
             <p>No quick items available.</p>
             <p class="text-sm mt-1">Click "Add Quick Item" to create some common items!</p>
@@ -696,6 +696,23 @@ const ShoppingPage = Vue.defineComponent({
     // Use injected data with fallback names for template compatibility
     quickItems() {
       return this.shoppingQuickItems;
+    },
+
+    sortedQuickItems() {
+      // Sort quick items by category using the same logical grocery store order, then alphabetically
+      return [...this.quickItems].sort((a, b) => {
+        // First sort by category using a logical grocery store order
+        const categoryOrder = this.getCategoryOrder;
+        const aOrder = categoryOrder[a.category] || 999;
+        const bOrder = categoryOrder[b.category] || 999;
+
+        if (aOrder !== bOrder) {
+          return aOrder - bOrder;
+        }
+
+        // Finally sort by name alphabetically
+        return a.name.localeCompare(b.name);
+      });
     },
 
     categorySections() {
