@@ -42,11 +42,6 @@ const ChoreCard = {
           </p>
 
           <!-- Small category icon next to name -->
-          <div
-            class="flex items-center justify-center rounded-lg w-6 h-6 text-white bg-white bg-opacity-20 shrink-0"
-            v-html="getCategoryIcon(chore.category) || ''"
-          >
-          </div>
         </div>
 
         <p v-if="chore.details" :class="chore.completed && type !== 'quicklist' ? 'text-white opacity-50' : 'text-white text-opacity-80'" class="text-xs font-normal leading-normal mb-1">
@@ -498,7 +493,7 @@ const TailwindChorePage = Vue.defineComponent({
     },
 
     selectChore(chore, event) {
-      if (event && (event.type === 'touchend' || event.type === 'touchstart')) {
+      if (event && (event.type === 'touchend' || event.type === 'touchstart') && typeof event.preventDefault === 'function') {
         event.preventDefault();
         event.stopPropagation();
       }
@@ -531,7 +526,7 @@ const TailwindChorePage = Vue.defineComponent({
     },
 
     onQuicklistClick(quickChore, event) {
-      if (event && (event.type === 'touchend' || event.type === 'touchstart')) {
+      if (event && (event.type === 'touchend' || event.type === 'touchstart') && typeof event.preventDefault === 'function') {
         event.preventDefault();
         event.stopPropagation();
       }
@@ -564,12 +559,14 @@ const TailwindChorePage = Vue.defineComponent({
     },
 
     async handleChoreCompletionToggle(chore, event) {
-      if (event) {
+      // Safely handle event object
+      if (event && typeof event.preventDefault === 'function') {
         event.preventDefault();
         event.stopPropagation();
       }
 
-      const newCompletedState = event.target.checked;
+      // Get the checked state safely
+      const newCompletedState = event && event.target ? event.target.checked : !chore.completed;
       chore.completed = newCompletedState;
 
       await this.$parent.handleChoreCompletion(chore);
