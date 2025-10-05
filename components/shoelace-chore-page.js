@@ -1,13 +1,10 @@
 // Shoelace Chores Page Component - Modern, Reactive Implementation with Modular Components
-// Import modular components
-import { QuicklistSectionComponent, UnassignedChoresSectionComponent, FamilyMembersSectionComponent, EarningsSummarySectionComponent } from './shoelace-chore-page/index.js';
-
 const ShoelaceChorePage = Vue.defineComponent({
   components: {
-    'quicklist-section': QuicklistSectionComponent,
-    'unassigned-chores-section': UnassignedChoresSectionComponent,
-    'family-members-section': FamilyMembersSectionComponent,
-    'earnings-summary-section': EarningsSummarySectionComponent
+    'quicklist-section': window.QuicklistSectionComponent,
+    'unassigned-chores-section': window.UnassignedChoresSectionComponent,
+    'family-members-section': window.ShoelaceFamilyMembersSectionComponent,
+    'earnings-summary-section': window.EarningsSummarySectionComponent
   },
   async mounted() {
     await this.loadQuicklistChores();

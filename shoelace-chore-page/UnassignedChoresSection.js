@@ -1,5 +1,8 @@
 // UnassignedChoresSection Component - Handles unassigned chores display
 const UnassignedChoresSection = Vue.defineComponent({
+  components: {
+    'icon-container': window.IconContainerComponent
+  },
   template: `
     <sl-card class="unassigned-section">
       <template #header>

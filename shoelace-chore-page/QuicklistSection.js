@@ -1,14 +1,11 @@
 // QuicklistSection Component - Handles the quicklist functionality
-// Import shared components
-import { SectionHeaderComponent, LoadingSpinnerComponent, ErrorStateComponent, EmptyStateComponent, IconContainerComponent } from './shared/index.js';
-
 const QuicklistSection = Vue.defineComponent({
   components: {
-    'section-header': SectionHeaderComponent,
-    'loading-spinner': LoadingSpinnerComponent,
-    'error-state': ErrorStateComponent,
-    'empty-state': EmptyStateComponent,
-    'icon-container': IconContainerComponent
+    'section-header': window.SectionHeaderComponent,
+    'loading-spinner': window.LoadingSpinnerComponent,
+    'error-state': window.ErrorStateComponent,
+    'empty-state': window.EmptyStateComponent,
+    'icon-container': window.IconContainerComponent
   },
   template: `
     <sl-card class="quicklist-section shadow-xl">

@@ -1,5 +1,5 @@
-// FamilyMembersSection Component - Handles family members and assigned chores display
-const FamilyMembersSection = Vue.defineComponent({
+// ShoelaceFamilyMembersSection Component - Handles family members and assigned chores display for Shoelace UI
+const ShoelaceFamilyMembersSection = Vue.defineComponent({
   components: {
     'icon-container': window.IconContainerComponent
   },
@@ -193,4 +193,4 @@ const FamilyMembersSection = Vue.defineComponent({
 });
 
 // Export component for manual registration
-window.FamilyMembersSectionComponent = FamilyMembersSection;
+window.ShoelaceFamilyMembersSectionComponent = ShoelaceFamilyMembersSection;
