@@ -67,7 +67,7 @@ const ShoelaceChorePage = Vue.defineComponent({
               </div>
             </template>
 
-            <template #content>
+            <template>
               <!-- Selection mode indicator -->
               <div v-if="selectionMode" class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                 <div class="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2">
@@ -162,7 +162,6 @@ const ShoelaceChorePage = Vue.defineComponent({
                       <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14)"></div>
                       Remove
                     </sl-button>
-                  </div>
                   </template>
                 </sl-card>
 
@@ -203,8 +202,7 @@ const ShoelaceChorePage = Vue.defineComponent({
                 </sl-button>
               </div>
             </template>
-          </div>
-        </sl-card>
+          </sl-card>
       </div>
 
       <!-- Unassigned Chores -->
@@ -252,13 +250,11 @@ const ShoelaceChorePage = Vue.defineComponent({
                       <sl-badge variant="neutral" size="small" class="shrink-0">{{ getCategoryLabel(chore.category) }}</sl-badge>
                     </div>
                   </div>
-                </div>
                 </template>
 
-                <template #content>
+                <template>
                   <p v-if="chore.details" class="text-sm opacity-80 mb-2">{{ chore.details }}</p>
                   <div v-if="chore.amount > 0" class="text-sm font-medium">{{ '$' + chore.amount.toFixed(2) }}</div>
-                </div>
                 </template>
 
                 <template #footer>
@@ -294,26 +290,28 @@ const ShoelaceChorePage = Vue.defineComponent({
                 :class="selectedChore ? 'cursor-pointer' : ''"
                 @click="selectedChore ? assignSelectedChore(person.name) : null"
               >
-                <template #header class="flex items-center justify-between">
-                  <div class="flex items-center gap-3">
-                    <div class="family-avatar rounded-full size-12 flex items-center justify-center font-bold text-white bg-gradient-to-br from-primary-500 to-primary-600 text-lg">
-                      {{ person.name.charAt(0) }}
-                    </div>
-                    <div>
-                      <h3 class="font-semibold text-lg">{{ person.name }}</h3>
-                      <div class="flex items-center gap-2 mt-1">
-                        <sl-badge
-                          :variant="getElectronicsStatusVariant(person.electronicsStatus.status)"
-                          size="small"
-                        >
-                          {{ getElectronicsStatusText(person.electronicsStatus.status) }}
-                        </sl-badge>
+                <template #header>
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                      <div class="family-avatar rounded-full size-12 flex items-center justify-center font-bold text-white bg-gradient-to-br from-primary-500 to-primary-600 text-lg">
+                        {{ person.name.charAt(0) }}
+                      </div>
+                      <div>
+                        <h3 class="font-semibold text-lg">{{ person.name }}</h3>
+                        <div class="flex items-center gap-2 mt-1">
+                          <sl-badge
+                            :variant="getElectronicsStatusVariant(person.electronicsStatus.status)"
+                            size="small"
+                          >
+                            {{ getElectronicsStatusText(person.electronicsStatus.status) }}
+                          </sl-badge>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                </template>
 
-                <template #content>
+                <template>
                   <!-- Person's chores -->
                   <div class="space-y-3 min-h-[60px]">
                     <div v-if="choresByPerson[person.name] && choresByPerson[person.name].length === 0" class="text-center py-4 text-secondary-custom">
@@ -332,45 +330,48 @@ const ShoelaceChorePage = Vue.defineComponent({
                       style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);"
                       @click="selectChore(chore, $event)"
                     >
-                      <template #header class="p-4">
-                        <div class="flex items-center justify-between mb-3">
-                          <div v-if="chore.amount > 0" class="text-lg font-bold text-white">
-                            {{ '$' + chore.amount.toFixed(2) }}
+                      <template #header>
+                        <div class="p-4">
+                          <div class="flex items-center justify-between mb-3">
+                            <div v-if="chore.amount > 0" class="text-lg font-bold text-white">
+                              {{ '$' + chore.amount.toFixed(2) }}
+                            </div>
+                            <sl-button variant="danger" size="small" @click.stop="deleteChore(chore)">
+                              <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 16)"></div>
+                            </sl-button>
                           </div>
-                          <sl-button variant="danger" size="small" @click.stop="deleteChore(chore)">
-                            <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 16)"></div>
+
+                          <div class="flex items-center gap-3">
+                            <!-- Video game controller icon for Electronics chores -->
+                            <div v-if="chore.category === 'game'" class="shrink-0">
+                              <div v-html="Helpers.IconLibrary.getIcon('gamepad-2', 'lucide', 20, 'text-white')"></div>
+                            </div>
+
+                            <h4 :class="chore.completed ? 'line-through opacity-60' : ''" class="font-medium text-white flex-1">
+                              {{ chore.name }}
+                            </h4>
+                          </div>
+                        </div>
+                      </template>
+
+                      <template #footer>
+                        <div class="p-3 bg-slate-50 dark:bg-slate-800/50">
+                          <sl-button
+                            variant="success"
+                            size="small"
+                            class="w-full"
+                            @click.stop="handleChoreCompletionToggle(chore, $event)"
+                          >
+                            Mark Complete
                           </sl-button>
+
+                          <sl-badge v-if="chore.isPendingApproval" variant="warning" size="small" class="mt-2 w-full justify-center">
+                            Pending approval
+                          </sl-badge>
                         </div>
-
-                        <div class="flex items-center gap-3">
-                          <!-- Video game controller icon for Electronics chores -->
-                          <div v-if="chore.category === 'game'" class="shrink-0">
-                            <div v-html="Helpers.IconLibrary.getIcon('gamepad-2', 'lucide', 20, 'text-white')"></div>
-                          </div>
-
-                          <h4 :class="chore.completed ? 'line-through opacity-60' : ''" class="font-medium text-white flex-1">
-                            {{ chore.name }}
-                          </h4>
-                        </div>
-                      </div>
-
-                      <template #footer class="p-3 bg-slate-50 dark:bg-slate-800/50">
-                        <sl-button
-                          variant="success"
-                          size="small"
-                          class="w-full"
-                          @click.stop="handleChoreCompletionToggle(chore, $event)"
-                        >
-                          Mark Complete
-                        </sl-button>
-
-                        <sl-badge v-if="chore.isPendingApproval" variant="warning" size="small" class="mt-2 w-full justify-center">
-                          Pending approval
-                        </sl-badge>
-                      </div>
+                      </template>
                     </sl-card>
                   </div>
-                </div>
               </sl-card>
             </div>
           </template>
@@ -395,13 +396,15 @@ const ShoelaceChorePage = Vue.defineComponent({
                 class="earnings-card cursor-pointer hover:shadow-lg transition-all duration-200"
                 @click="openSpendModal(person)"
               >
-                <template #header class="flex items-center justify-between">
-                  <h3 class="font-semibold">{{ person.displayName || person.name }}</h3>
-                  <div class="text-right">
-                    <p class="text-2xl font-bold text-primary-600">{{ '$' + person.earnings.toFixed(2) }}</p>
-                    <p class="text-xs opacity-75">{{ person.completedChores || 0 }} chores completed</p>
+                <template #header>
+                  <div class="flex items-center justify-between">
+                    <h3 class="font-semibold">{{ person.displayName || person.name }}</h3>
+                    <div class="text-right">
+                      <p class="text-2xl font-bold text-primary-600">{{ '$' + person.earnings.toFixed(2) }}</p>
+                      <p class="text-xs opacity-75">{{ person.completedChores || 0 }} chores completed</p>
+                    </div>
                   </div>
-                </div>
+                </template>
               </sl-card>
             </div>
           </template>
@@ -498,13 +501,11 @@ const ShoelaceChorePage = Vue.defineComponent({
 
     // Modal methods
     openAddToQuicklistModal() {
-      const fn = this.$parent?.openAddToQuicklistModal || this.openAddToQuicklistModal;
-      if (typeof fn === 'function') fn();
+      this.$parent?.openAddToQuicklistModal?.();
     },
 
     openAddChoreModal() {
-      const fn = this.$parent?.openAddChoreModal || this.openAddChoreModal;
-      if (typeof fn === 'function') fn();
+      this.$parent?.openAddChoreModal?.();
     },
 
     // Quicklist methods
