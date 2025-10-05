@@ -2452,6 +2452,10 @@ function initializeApp() {
   }
 
   console.log('✅ Helpers available, initializing app...');
+
+  // Make Helpers available globally to Vue components
+  app.config.globalProperties.Helpers = window.Helpers;
+
   checkAndRegisterComponents();
 }
 
