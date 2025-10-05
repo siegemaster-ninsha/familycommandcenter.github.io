@@ -32,15 +32,18 @@ const QuicklistChoreCard = {
 
         <!-- Chore info -->
         <div class="flex flex-col flex-1 min-w-0">
-          <p class="text-white text-sm font-medium leading-tight line-clamp-2">{{ chore.name }}</p>
+          <div class="flex items-center gap-2">
+            <p class="text-white text-sm font-medium leading-tight line-clamp-2 flex-1">{{ chore.name }}</p>
+            <!-- Small category icon next to name -->
+            <div
+              class="flex items-center justify-center rounded-lg w-6 h-6 text-white bg-white bg-opacity-20 shrink-0"
+              v-html="getCategoryIcon(chore.category) || ''"
+            >
+            </div>
+          </div>
           <p v-if="chore.amount > 0" class="text-white text-opacity-90 text-xs mt-1">\${{ chore.amount.toFixed(2) }}</p>
         </div>
       </div>
-
-      <!-- Category badge -->
-      <span class="text-xs px-2 py-1 rounded-full shrink-0 self-start bg-white bg-opacity-20 text-white">
-        {{ getCategoryLabel(chore.category) || '' }}
-      </span>
     </div>
   `,
   props: {
@@ -58,9 +61,6 @@ const QuicklistChoreCard = {
         console.warn('Failed to get category icon for:', category, error);
         return '';
       }
-    },
-    getCategoryLabel(category) {
-      return this.Helpers?.getCategoryLabel?.(category) || '';
     }
   }
 };
@@ -84,11 +84,14 @@ const UnassignedChoreCard = {
 
       <!-- Chore details -->
       <div class="flex flex-col justify-center min-w-0 flex-1">
-        <div class="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-          <p class="text-white text-base font-medium leading-normal line-clamp-2">{{ chore.name }}</p>
-          <span class="text-xs px-2 py-1 rounded-full self-start sm:self-center shrink-0 bg-white bg-opacity-20 text-white">
-            {{ getCategoryLabel(chore.category) || '' }}
-          </span>
+        <div class="flex items-center gap-2 mb-2">
+          <p class="text-white text-base font-medium leading-normal line-clamp-2 flex-1">{{ chore.name }}</p>
+          <!-- Small category icon next to name -->
+          <div
+            class="flex items-center justify-center rounded-lg w-6 h-6 text-white bg-white bg-opacity-20 shrink-0"
+            v-html="getCategoryIcon(chore.category) || ''"
+          >
+          </div>
         </div>
         <p v-if="chore.details" class="text-white text-opacity-80 text-sm font-normal leading-normal mb-1">{{ chore.details }}</p>
         <p v-if="chore.amount > 0" class="text-white text-opacity-90 text-sm font-normal leading-normal">\${{ chore.amount.toFixed(2) }}</p>
@@ -119,9 +122,6 @@ const UnassignedChoreCard = {
         console.warn('Failed to get category icon for:', category, error);
         return '';
       }
-    },
-    getCategoryLabel(category) {
-      return this.Helpers?.getCategoryLabel?.(category) || '';
     }
   }
 };
@@ -163,16 +163,19 @@ const AssignedChoreCard = {
 
       <!-- Chore details -->
       <div class="flex flex-col justify-center min-w-0 flex-1">
-        <div class="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
+        <div class="flex items-center gap-2 mb-1">
           <p
-            :class="chore.completed ? 'line-through text-white opacity-60' : 'text-white'"
+            :class="chore.completed ? 'line-through text-white opacity-60 flex-1' : 'text-white flex-1'"
             class="text-sm font-medium leading-normal line-clamp-2"
           >
             {{ chore.name }}
           </p>
-          <span class="text-xs px-2 py-1 rounded-full self-start sm:self-center shrink-0 bg-white bg-opacity-20 text-white">
-            {{ getCategoryLabel(chore.category) || '' }}
-          </span>
+          <!-- Small category icon next to name -->
+          <div
+            class="flex items-center justify-center rounded-lg w-6 h-6 text-white bg-white bg-opacity-20 shrink-0"
+            v-html="getCategoryIcon(chore.category) || ''"
+          >
+          </div>
         </div>
         <p v-if="chore.details" :class="chore.completed ? 'text-white opacity-50' : 'text-white text-opacity-80'" class="text-xs font-normal leading-normal mb-1">
           {{ chore.details }}
@@ -180,9 +183,6 @@ const AssignedChoreCard = {
         <p v-if="chore.amount > 0" :class="chore.completed ? 'text-white opacity-50' : 'text-white text-opacity-90'" class="text-xs font-normal leading-normal">
           \${{ chore.amount.toFixed(2) }}
         </p>
-        <div v-if="chore.isPendingApproval" class="mt-1 inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-yellow-100 text-yellow-800">
-          <span>Pending approval</span>
-        </div>
       </div>
 
       <!-- Delete button -->
