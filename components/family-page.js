@@ -337,8 +337,9 @@ const FamilyPage = Vue.defineComponent({
     // Listen for Shoelace ready event and other events
     if (typeof window !== 'undefined') {
       // Listen for our custom shoelace-ready event
-      window.addEventListener('shoelace-ready', () => {
-        console.log('📡 Received shoelace-ready event, checking Shoelace...');
+      window.addEventListener('shoelace-ready', (event) => {
+        const detail = event.detail || {};
+        console.log(`📡 Received shoelace-ready event: v${detail.version || 'unknown'} via ${detail.cdn || 'unknown'}`);
         this.checkShoelaceLoaded();
       });
 

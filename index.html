@@ -19,27 +19,46 @@
 
     <!-- Shoelace Web Components -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.0/dist/themes/light.css" />
+    <!-- Fallback CSS for older version if needed -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0/dist/themes/light.css" />
 
-    <!-- Load Shoelace properly as ESM - this should work with modern browsers -->
+    <!-- Load Shoelace via ESM from a CDN that handles dependencies -->
+    <!-- Note: This works on GitHub Pages because ESM loading happens in the browser, not on the server -->
     <script type="module">
       try {
-        await import('https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.0/dist/shoelace.js');
-        console.log('✅ Shoelace loaded successfully via ESM');
+        // Try esm.sh which should handle dependencies better
+        await import('https://esm.sh/@shoelace-style/shoelace@2.15.0');
+        console.log('✅ Shoelace loaded successfully via esm.sh');
 
         // Dispatch a custom event when Shoelace is ready
-        window.dispatchEvent(new CustomEvent('shoelace-ready'));
+        window.dispatchEvent(new CustomEvent('shoelace-ready', {
+          detail: { version: '2.15.0', cdn: 'esm.sh' }
+        }));
       } catch (error) {
-        console.error('❌ Failed to load Shoelace via ESM:', error);
-        console.warn('This might be due to CORS or module loading restrictions');
+        console.error('❌ Failed to load Shoelace via esm.sh:', error);
 
-        // Try alternative CDN (unpkg might handle ESM better)
+        // Try alternative approach with skypack
         try {
-          console.log('🔄 Trying alternative CDN...');
-          await import('https://unpkg.com/@shoelace-style/shoelace@2.15.0/dist/shoelace.js');
-          console.log('✅ Shoelace loaded via unpkg CDN');
-          window.dispatchEvent(new CustomEvent('shoelace-ready'));
+          console.log('🔄 Trying skypack CDN...');
+          await import('https://cdn.skypack.dev/@shoelace-style/shoelace@2.15.0');
+          console.log('✅ Shoelace loaded via skypack CDN');
+          window.dispatchEvent(new CustomEvent('shoelace-ready', {
+            detail: { version: '2.15.0', cdn: 'skypack' }
+          }));
         } catch (fallbackError) {
           console.error('❌ Both CDN attempts failed:', fallbackError);
+
+          // Last resort: try older version that might not have dependency issues
+          try {
+            console.log('🔄 Trying older Shoelace version...');
+            await import('https://esm.sh/@shoelace-style/shoelace@2.0.0');
+            console.log('✅ Shoelace v2.0.0 loaded via esm.sh');
+            window.dispatchEvent(new CustomEvent('shoelace-ready', {
+              detail: { version: '2.0.0', cdn: 'esm.sh' }
+            }));
+          } catch (finalError) {
+            console.error('❌ All Shoelace loading attempts failed:', finalError);
+          }
         }
       }
     </script>
@@ -124,12 +143,15 @@
       // Auto-run debug check after a delay
       setTimeout(() => {
         console.log('🔍 Auto-checking Shoelace availability...');
+        console.log('🌐 Running on:', window.location.origin);
+        console.log('📡 Testing ESM loading capabilities...');
         window.debugShoelace();
       }, 2000);
 
       // Listen for shoelace-ready event for debugging
-      window.addEventListener('shoelace-ready', () => {
-        console.log('🎉 Shoelace ready event fired - components should be available now');
+      window.addEventListener('shoelace-ready', (event) => {
+        const detail = event.detail || {};
+        console.log(`🎉 Shoelace ready event fired: v${detail.version || 'unknown'} via ${detail.cdn || 'unknown'} - components should be available now`);
         setTimeout(() => window.debugShoelace(), 100);
       });
     </script>
