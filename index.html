@@ -130,8 +130,9 @@
           console.log('  - Error creating sl-switch:', e.message);
         }
 
-        // Check for existing elements
-        console.log('  - Existing sl- elements:', document.querySelectorAll('sl-*').length);
+        // Check for existing elements (escape the selector properly)
+        const slElements = document.querySelectorAll('sl-switch, sl-button, sl-input, sl-dialog');
+        console.log('  - Existing sl- elements:', slElements.length);
 
         // Check for Shoelace globals
         console.log('  - Shoelace globals:', {
