@@ -107,6 +107,7 @@ const app = createApp({
       // Nav items (extensible)
       navItems: [
         { key: 'chores', label: 'Chores' },
+        { key: 'shoelace-chores', label: 'Chores (Shoelace)' },
         { key: 'family', label: 'Family' },
         { key: 'shopping', label: 'Shopping' },
         { key: 'account', label: 'Account' }
