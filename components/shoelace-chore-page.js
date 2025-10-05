@@ -1,5 +1,8 @@
 // Shoelace Chores Page Component - Modern, Reactive Implementation
 const ShoelaceChorePage = Vue.defineComponent({
+  async mounted() {
+    await this.loadQuicklistChores();
+  },
   template: `
     <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       <!-- Main Content -->
@@ -412,9 +415,6 @@ const ShoelaceChorePage = Vue.defineComponent({
       selectedChores: new Set(),
       lastSelectedChore: null
     }
-  },
-  async mounted() {
-    await this.loadQuicklistChores();
   },
   methods: {
     switchToOriginal() { this.$parent.setCurrentPage('chores'); },
