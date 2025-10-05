@@ -6,9 +6,7 @@ const AppModals = Vue.defineComponent({
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="p-2 rounded-full" style="background: var(--color-primary-50);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" style="color: var(--color-primary-600);">
-              <path d="M200,32H163.74a47.92,47.92,0,0,0-71.48,0H56A16,16,0,0,0,40,48V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V48A16,16,0,0,0,200,32Zm-72,0a32,32,0,0,1,32,32H96A32,32,0,0,1,128,32Zm72,184H56V48H72V64a8,8,0,0,0,8,8H176a8,8,0,0,0,8-8V48h16V216Z"></path>
-            </svg>
+            <div v-html="Helpers.IconLibrary.getIcon('monitor', 'lucide', 24, '')" style="color: var(--color-primary-600);"></div>
           </div>
           <h3 class="text-lg font-bold text-primary-custom">Add to Quicklist</h3>
         </div>
@@ -84,9 +82,7 @@ const AppModals = Vue.defineComponent({
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="p-2 rounded-full" style="background: var(--color-error-50);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" style="color: var(--color-error-700);">
-              <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
-            </svg>
+            <div v-html="Helpers.IconLibrary.getIcon('user', 'lucide', 24, '')" style="color: var(--color-error-700);"></div>
           </div>
           <h3 class="text-lg font-bold text-primary-custom">Remove Family Member</h3>
         </div>
@@ -193,9 +189,7 @@ const AppModals = Vue.defineComponent({
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="p-2 rounded-full" style="background: var(--color-warning-50);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" style="color: var(--color-warning-700);">
-              <path d="M128,40a88,88,0,1,0,88,88A88.1,88.1,0,0,0,128,40Zm0,160a72,72,0,1,1,72-72A72.08,72.08,0,0,1,128,200ZM164.49,99.51a8,8,0,0,1,0,11.31L137.66,138.34a8,8,0,0,1-11.32,0L99.51,111.51a8,8,0,0,1,11.31-11.31L128,117.37l21.18-21.18A8,8,0,0,1,164.49,99.51Z"></path>
-            </svg>
+            <div v-html="Helpers.IconLibrary.getIcon('checkCircle', 'lucide', 24, '')" style="color: var(--color-warning-700);"></div>
           </div>
           <h3 class="text-lg font-bold text-primary-custom">Start New Day</h3>
         </div>
@@ -218,10 +212,7 @@ const AppModals = Vue.defineComponent({
             :disabled="newDayLoading"
             class="flex-1 btn-warning disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            <svg v-if="newDayLoading" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
+            <div v-if="newDayLoading" class="animate-spin h-4 w-4" v-html="Helpers.IconLibrary.getIcon('loader', 'lucide', 16, 'text-white')"></div>
             {{ newDayLoading ? 'Starting New Day...' : 'Start New Day' }}
           </button>
           <button 
@@ -240,9 +231,7 @@ const AppModals = Vue.defineComponent({
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="p-2 rounded-full" style="background: var(--color-primary-50);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" style="color: var(--color-primary-600);">
-              <path d="M141.66,133.66l-40,40A8,8,0,0,1,88,168V136H24a8,8,0,0,1,0-16H88V88a8,8,0,0,1,13.66-5.66l40,40A8,8,0,0,1,141.66,133.66ZM192,32H136a8,8,0,0,0,0,16h56V208H136a8,8,0,0,0,0,16h56a16,16,0,0,0,16-16V48A16,16,0,0,0,192,32Z"></path>
-            </svg>
+            <div v-html="Helpers.IconLibrary.getIcon('logIn', 'lucide', 24, '')" style="color: var(--color-primary-600);"></div>
           </div>
           <h3 class="text-lg font-bold text-primary-custom">Sign In</h3>
         </div>
@@ -326,9 +315,7 @@ const AppModals = Vue.defineComponent({
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="p-2 rounded-full" style="background: var(--color-success-50);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" style="color: var(--color-success-600);">
-              <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
-            </svg>
+            <div v-html="Helpers.IconLibrary.getIcon('userPlus', 'lucide', 24, '')" style="color: var(--color-success-600);"></div>
           </div>
           <h3 class="text-lg font-bold text-primary-custom">Create Account</h3>
         </div>
@@ -411,9 +398,7 @@ const AppModals = Vue.defineComponent({
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="p-2 rounded-full" style="background: var(--color-warning-50);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" style="color: var(--color-warning-700);">
-              <path d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48ZM203.43,64,128,133.15,52.57,64ZM216,192H40V74.19l82.59,75.71a8,8,0,0,0,10.82,0L216,74.19V192Z"></path>
-            </svg>
+            <div v-html="Helpers.IconLibrary.getIcon('mail', 'lucide', 24, '')" style="color: var(--color-warning-700);"></div>
           </div>
           <h3 class="text-lg font-bold text-primary-custom">Confirm Email</h3>
         </div>
@@ -459,9 +444,7 @@ const AppModals = Vue.defineComponent({
       <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4 modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="p-2 rounded-full" style="background: var(--color-primary-50);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" style="color: var(--color-primary-600);">
-              <path d="M208,24H72A32,32,0,0,0,40,56V224a8,8,0,0,0,8,8H192a8,8,0,0,0,0-16H56a16,16,0,0,1,16-16H208a8,8,0,0,0,8-8V32A8,8,0,0,0,208,24ZM72,40H200V184H72a31.82,31.82,0,0,0-16,4.29V56A16,16,0,0,1,72,40Z"></path>
-            </svg>
+            <div v-html="Helpers.IconLibrary.getIcon('fileText', 'lucide', 24, '')" style="color: var(--color-primary-600);"></div>
           </div>
           <h3 class="text-lg font-bold text-primary-custom">Add Chore Details</h3>
         </div>
@@ -508,9 +491,7 @@ const AppModals = Vue.defineComponent({
       <div class="bg-white rounded-lg p-6 w-full max-w-sm mx-4 modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="p-2 rounded-full" style="background: var(--color-error-50);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" style="color: var(--color-error-700);">
-              <path d="M224,48H32A16,16,0,0,0,16,64V192a16,16,0,0,0,16,16H224a16,16,0,0,0,16-16V64A16,16,0,0,0,224,48ZM32,64H224V88H32ZM32,192V104H224v88Z"></path>
-            </svg>
+            <div v-html="Helpers.IconLibrary.getIcon('alertTriangle', 'lucide', 24, '')" style="color: var(--color-error-700);"></div>
           </div>
           <div>
             <h3 class="text-lg font-bold text-primary-custom">Spend Money</h3>
@@ -581,7 +562,7 @@ const AppModals = Vue.defineComponent({
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="p-2 rounded-full" style="background: var(--color-success-50);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256" style="color: var(--color-success-600)"><path d="M224,128a96,96,0,1,1-96-96A96.11,96.11,0,0,1,224,128Zm-104,8H88a8,8,0,0,0,0,16h32v32a8,8,0,0,0,16,0V152h32a8,8,0,0,0,0-16H136V120a8,8,0,0,0-16,0Z"></path></svg>
+            <div v-html="Helpers.IconLibrary.getIcon('userPlus', 'lucide', 24, '')" style="color: var(--color-success-600);"></div>
           </div>
           <h3 class="text-lg font-bold text-primary-custom">Add Child Account</h3>
         </div>
@@ -617,7 +598,7 @@ const AppModals = Vue.defineComponent({
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="bg-indigo-100 p-2 rounded-full">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="text-indigo-600" viewBox="0 0 256 256"><path d="M224,80V208a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V80L128,32Z"></path></svg>
+            <div v-html="Helpers.IconLibrary.getIcon('shield', 'lucide', 24, 'text-indigo-600')"></div>
           </div>
           <h3 class="text-lg font-bold text-primary-custom">Invite Parent</h3>
         </div>

@@ -87,9 +87,7 @@ const ChorePage = Vue.defineComponent({
         
         <!-- Empty state -->
         <div v-if="quicklistChores.length === 0 && !quicklistLoading" class="text-center py-8 text-secondary-custom">
-          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="mx-auto mb-3 opacity-50" viewBox="0 0 256 256">
-            <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"></path>
-          </svg>
+          <div v-html="Helpers.IconLibrary.getIcon('minus', 'lucide', 48, 'mx-auto mb-3 opacity-50')" class="mx-auto mb-3 opacity-50"></div>
           <p>No quicklist chores yet.</p>
           <p class="text-sm mt-1">Add common chores for quick assignment!</p>
         </div>

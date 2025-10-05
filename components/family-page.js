@@ -12,9 +12,7 @@ const FamilyPage = Vue.defineComponent({
         <div class="w-full block rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
             <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
-              <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625-7.128h4.125c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H21a9 9 0 0 0-7.5-4.03V2.25c0-.621-.504-1.125-1.125-1.125h-1.5c-.621 0-1.125.504-1.125 1.125V4.02A9 9 0 0 0 3 8.25H2.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125H3a9.38 9.38 0 0 0 2.625 7.128L3.375 21.3c-.331.481-.02 1.125.561 1.262l1.5.375c.581.137 1.125-.02 1.262-.561L9 19.875a9.38 9.38 0 0 0 6 0l2.302 2.401c.137.481.681.698 1.262.561l1.5-.375c.581-.137.892-.781.561-1.262l-2.25-3.3Z"/>
-              </svg>
+              <div v-html="Helpers.IconLibrary.getIcon('settings', 'lucide', 24, 'text-primary-custom')"></div>
               <span>Family Members</span>
             </h2>
             <div class="flex gap-2 sm:gap-3 flex-wrap w-full sm:w-auto">
@@ -22,18 +20,14 @@ const FamilyPage = Vue.defineComponent({
                 @click="$parent.openCreateChildModal()"
                 class="flex items-center gap-2 bg-success-600 hover:bg-success-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center shadow-md hover:shadow-lg"
               >
-                <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-                </svg>
+                <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16, 'text-white')"></div>
                 <span class="font-medium">Add Child</span>
               </button>
               <button
                 @click="$parent.createParentInvite()"
                 class="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center shadow-md hover:shadow-lg"
               >
-                <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/>
-                </svg>
+                <div v-html="Helpers.IconLibrary.getIcon('mail', 'lucide', 16, 'text-white')"></div>
                 <span class="font-medium">Invite Parent</span>
               </button>
             </div>
@@ -82,9 +76,7 @@ const FamilyPage = Vue.defineComponent({
                     :aria-expanded="!!expandedCards[person.id]"
                     title="More options"
                   >
-                    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" :class="[expandedCards[person.id] ? 'rotate-180' : 'rotate-0', 'transition-transform duration-200 w-5 h-5']">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
-                    </svg>
+                    <div v-html="Helpers.IconLibrary.getIcon('chevronDown', 'lucide', 20, 'text-white')" :class="[expandedCards[person.id] ? 'rotate-180' : 'rotate-0', 'transition-transform duration-200']"></div>
                   </button>
                 </div>
 
@@ -101,10 +93,7 @@ const FamilyPage = Vue.defineComponent({
                     <!-- Member Settings Section -->
                     <div class="bg-white bg-opacity-10 rounded-lg p-4">
                       <h4 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-                        <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a6.759 6.759 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/>
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
-                        </svg>
+                        <div v-html="Helpers.IconLibrary.getIcon('user', 'lucide', 16, 'text-white')"></div>
                         Member Settings
                       </h4>
 
@@ -140,9 +129,7 @@ const FamilyPage = Vue.defineComponent({
                     <!-- Actions Section -->
                     <div class="bg-white bg-opacity-10 rounded-lg p-4">
                       <h4 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-                        <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/>
-                        </svg>
+                        <div v-html="Helpers.IconLibrary.getIcon('settings', 'lucide', 16, 'text-white')"></div>
                         Actions
                       </h4>
 
@@ -152,9 +139,7 @@ const FamilyPage = Vue.defineComponent({
                           @click="$parent.openSpendingModal(person)"
                           class="flex items-center justify-center gap-2 bg-success-600 hover:bg-success-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 touch-target min-h-[44px] shadow-md hover:shadow-lg"
                         >
-                          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-                          </svg>
+                          <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16, 'text-white')"></div>
                           <span class="font-medium">Manage Spending</span>
                         </button>
 
@@ -163,9 +148,7 @@ const FamilyPage = Vue.defineComponent({
                           @click="$parent.removeMember(person)"
                           class="flex items-center justify-center gap-2 bg-error-600 hover:bg-error-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 touch-target min-h-[44px] shadow-md hover:shadow-lg"
                         >
-                          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
-                          </svg>
+                          <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 16, 'text-white')"></div>
                           <span class="font-medium">Remove Member</span>
                         </button>
                       </div>
@@ -181,25 +164,19 @@ const FamilyPage = Vue.defineComponent({
             <div class="w-full block rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
               <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <h3 class="text-primary-custom text-xl font-bold flex items-center gap-2">
-                  <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"/>
-                  </svg>
+                  <div v-html="Helpers.IconLibrary.getIcon('credit-card', 'lucide', 24, 'text-primary-custom')"></div>
                   <span>Spending Requests</span>
                 </h3>
                 <button
                   @click="$parent.loadSpendingRequests()"
                   class="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 touch-target min-h-[44px] justify-center shadow-md hover:shadow-lg"
                 >
-                  <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/>
-                  </svg>
+                  <div v-html="Helpers.IconLibrary.getIcon('refresh-cw', 'lucide', 16, 'text-white')"></div>
                   Refresh
                 </button>
               </div>
               <div v-if="$parent.spendingRequests.length === 0" class="text-center py-8 text-secondary-custom">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="mx-auto mb-3 opacity-50" viewBox="0 0 256 256">
-                  <path d="M216,80V208a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V80L128,32Z"/>
-                </svg>
+                <div v-html="Helpers.IconLibrary.getIcon('shield', 'lucide', 48, 'mx-auto mb-3 opacity-50')" class="mx-auto mb-3 opacity-50"></div>
                 <p class="text-base font-medium">No pending requests.</p>
               </div>
               <div v-else class="space-y-3 sm:space-y-4">
@@ -223,9 +200,7 @@ const FamilyPage = Vue.defineComponent({
                     @click="$parent.approveSpendingRequest(req.id)"
                     class="flex items-center gap-2 bg-success-600 hover:bg-success-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 touch-target min-h-[44px] justify-center shadow-md hover:shadow-lg self-start sm:self-center"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
-                      <path d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34Z"/>
-                    </svg>
+                    <div v-html="Helpers.IconLibrary.getIcon('check', 'lucide', 16, 'text-white')"></div>
                     Approve
                   </button>
                 </div>
@@ -236,9 +211,7 @@ const FamilyPage = Vue.defineComponent({
 
         <!-- Empty state -->
         <div v-if="allPeople.length === 0" class="text-center py-12 sm:py-16 text-secondary-custom">
-          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="mx-auto mb-4 opacity-50" viewBox="0 0 256 256">
-            <path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"></path>
-          </svg>
+          <div v-html="Helpers.IconLibrary.getIcon('users', 'lucide', 64, 'mx-auto mb-4 opacity-50')" class="mx-auto mb-4 opacity-50"></div>
           <p class="text-lg sm:text-xl font-medium">No family members added yet.</p>
           <p class="text-sm sm:text-base mt-2">Use "Add Child" or "Invite Parent" to get started.</p>
         </div>
@@ -277,21 +250,13 @@ const FamilyPage = Vue.defineComponent({
     getElectronicsStatusIcon(status) {
       switch(status) {
         case 'allowed':
-          return `<svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/>
-          </svg>`;
+          return `<div style="display: inline-block; width: 16px; height: 16px;">${Helpers.IconLibrary.getIcon('monitor', 'lucide', 16, 'text-current')}</div>`;
         case 'restricted':
-          return `<svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-          </svg>`;
+          return `<div style="display: inline-block; width: 16px; height: 16px;">${Helpers.IconLibrary.getIcon('clock', 'lucide', 16, 'text-current')}</div>`;
         case 'blocked':
-          return `<svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/>
-          </svg>`;
+          return `<div style="display: inline-block; width: 16px; height: 16px;">${Helpers.IconLibrary.getIcon('ban', 'lucide', 16, 'text-current')}</div>`;
         default:
-          return `<svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/>
-          </svg>`;
+          return `<div style="display: inline-block; width: 16px; height: 16px;">${Helpers.IconLibrary.getIcon('monitor', 'lucide', 16, 'text-current')}</div>`;
       }
     }
   }
