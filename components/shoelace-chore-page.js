@@ -1,7 +1,7 @@
 // Shoelace Chores Page Component - Modern, Reactive Implementation with Modular Components
 const ShoelaceChorePage = Vue.defineComponent({
   components: {
-    'quicklist-section': window.QuicklistSectionComponent,
+    'quicklist-section': window.ShoelaceQuicklistSectionComponent,
     'unassigned-chores-section': window.UnassignedChoresSectionComponent,
     'family-members-section': window.ShoelaceFamilyMembersSectionComponent,
     'earnings-summary-section': window.EarningsSummarySectionComponent

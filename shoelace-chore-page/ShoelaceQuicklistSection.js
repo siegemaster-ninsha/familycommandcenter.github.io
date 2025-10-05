@@ -1,7 +1,6 @@
-// QuicklistSection Component - Handles the quicklist functionality
-const QuicklistSection = Vue.defineComponent({
+// ShoelaceQuicklistSection Component - Handles the quicklist functionality for Shoelace UI
+const ShoelaceQuicklistSection = Vue.defineComponent({
   components: {
-    'section-header': window.SectionHeaderComponent,
     'loading-spinner': window.LoadingSpinnerComponent,
     'error-state': window.ErrorStateComponent,
     'empty-state': window.EmptyStateComponent,
@@ -10,13 +9,31 @@ const QuicklistSection = Vue.defineComponent({
   template: `
     <sl-card class="quicklist-section shadow-xl">
       <template #header>
-        <section-header
-          icon="zap"
-          title="Quicklist"
-          description="Quick access to common chores"
-          :primary-button="primaryButton"
-          :secondary-button="secondaryButton"
-        />
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="relative">
+              <div class="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg blur opacity-75"></div>
+              <div class="relative bg-white dark:bg-slate-800 p-2 rounded-lg">
+                <div v-html="Helpers.IconLibrary.getIcon('zap', 'lucide', 20, 'text-yellow-600 dark:text-yellow-400')"></div>
+              </div>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-slate-900 dark:text-white">Quicklist</h2>
+              <p class="text-sm text-slate-600 dark:text-slate-400">Quick access to common chores</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <sl-button variant="outline" size="small" @click="toggleSelectionMode" :disabled="isQuicklistEmpty()">
+              <div v-html="Helpers.IconLibrary.getIcon('check', 'lucide', 16)"></div>
+              {{ getSelectionButtonText() }}
+            </sl-button>
+            <sl-button variant="primary" size="small" @click="openAddToQuicklistModal">
+              <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16)"></div>
+              Add
+            </sl-button>
+          </div>
+        </div>
       </template>
 
       <!-- Selection mode indicator -->
@@ -157,6 +174,24 @@ const QuicklistSection = Vue.defineComponent({
       lastSelectedChore: null
     }
   },
+  computed: {
+    primaryButton() {
+      return {
+        text: 'Add',
+        icon: 'plus',
+        action: this.openAddToQuicklistModal
+      };
+    },
+    secondaryButton() {
+      return {
+        text: this.getSelectionButtonText(),
+        icon: 'check',
+        variant: 'outline',
+        action: this.toggleSelectionMode,
+        disabled: this.isQuicklistEmpty()
+      };
+    }
+  },
   methods: {
     toggleSelectionMode() {
       this.selectionMode = !this.selectionMode;
@@ -245,4 +280,4 @@ const QuicklistSection = Vue.defineComponent({
 });
 
 // Export component for manual registration
-window.QuicklistSectionComponent = QuicklistSection;
+window.ShoelaceQuicklistSectionComponent = ShoelaceQuicklistSection;
