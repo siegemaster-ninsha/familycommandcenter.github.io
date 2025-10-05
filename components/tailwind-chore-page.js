@@ -155,12 +155,6 @@ const AssignedChoreCard = {
           >
             {{ chore.name }}
           </p>
-          <!-- Small category icon next to name -->
-          <div
-            class="flex items-center justify-center rounded-lg w-6 h-6 text-white bg-white bg-opacity-20 shrink-0"
-            v-html="getCategoryIcon(chore.category) || ''"
-          >
-          </div>
         </div>
         <p v-if="chore.details" :class="chore.completed ? 'text-white opacity-50' : 'text-white text-opacity-80'" class="text-xs font-normal leading-normal mb-1">
           {{ chore.details }}
