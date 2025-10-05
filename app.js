@@ -1,18 +1,18 @@
 // Heroicons are loaded via CDN in index.html
 
+// Configure Vue globally for Shoelace custom elements BEFORE creating app
+Vue.config.compilerOptions = Vue.config.compilerOptions || {};
+Vue.config.compilerOptions.isCustomElement = (tag) => {
+  if (tag.startsWith('sl-')) {
+    console.log(`🔧 Global Vue compiler: Treating ${tag} as custom element`);
+    return true;
+  }
+  return false;
+};
+
 const { createApp } = Vue;
 
 const app = createApp({
-  compilerOptions: {
-    // Treat Shoelace elements as custom elements
-    isCustomElement: (tag) => {
-      if (tag.startsWith('sl-')) {
-        console.log(`🔧 Global Vue compiler: Treating ${tag} as custom element`);
-        return true;
-      }
-      return false;
-    }
-  },
   data() {
     return {
       // Authentication state
