@@ -1,103 +1,227 @@
-// Shoelace Chores Page Component
+// Shoelace Chores Page Component - Modern, Reactive Implementation
 const ShoelaceChorePage = Vue.defineComponent({
   template: `
-    <div class="space-y-6 pb-24 sm:pb-0">
-      <!-- Page Header with Toggle -->
-      <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-primary-custom flex items-center gap-2">
-          <div v-html="Helpers.IconLibrary.getIcon('clipboardList', 'lucide', 24, 'text-primary-500')"></div>
-          Chores (Shoelace Version)
-        </h1>
-        <sl-button variant="outline" @click="switchToOriginal">
-          <div v-html="Helpers.IconLibrary.getIcon('arrowLeft', 'lucide', 16)"></div>
-          Back to Original
-        </sl-button>
-      </div>
-
-      <!-- Quicklist Section -->
-      <div class="w-full">
-        <sl-card class="quicklist-section">
-          <div slot="header" class="flex items-center justify-between">
-            <h2 class="text-lg font-semibold text-primary-custom flex items-center gap-2">
-              <div v-html="Helpers.IconLibrary.getIcon('zap', 'lucide', 20, 'text-primary-500')"></div>
-              Quicklist
-            </h2>
-            <sl-button variant="primary" size="small" @click="openAddToQuicklistModal">
-              <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16)"></div>
-              Add to Quicklist
-            </sl-button>
-          </div>
-
-          <div slot="content">
-            <p class="text-secondary-custom text-sm mb-4 text-center">Tap these common chores to assign them quickly</p>
-
-            <!-- Loading state -->
-            <div v-if="quicklistLoading" class="text-center py-8">
-              <sl-spinner></sl-spinner>
-              <p class="text-secondary-custom mt-2">Loading quicklist...</p>
+    <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      <!-- Modern Page Header -->
+      <div class="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex items-center justify-between h-16">
+            <div class="flex items-center gap-3">
+              <div class="relative">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg blur opacity-75"></div>
+                <div class="relative bg-white dark:bg-slate-800 p-2 rounded-lg">
+                  <div v-html="Helpers.IconLibrary.getIcon('clipboardList', 'lucide', 20, 'text-blue-600 dark:text-blue-400')"></div>
+                </div>
+              </div>
+              <div>
+                <h1 class="text-xl font-bold text-slate-900 dark:text-white">Chores</h1>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Modern Shoelace Interface</p>
+              </div>
             </div>
 
-            <!-- Error state -->
-            <div v-else-if="quicklistError" class="text-center py-8" style="color: var(--color-error-700);">
-              <div v-html="Helpers.IconLibrary.getIcon('alertTriangle', 'lucide', 48, 'mx-auto mb-3')" style="color: var(--color-error-700);"></div>
-              <p class="font-medium">Error loading quicklist</p>
-              <p class="text-sm mt-1">{{ quicklistError }}</p>
-              <sl-button variant="outline" @click="loadQuicklistChores" class="mt-3">
-                Try Again
+            <div class="flex items-center gap-3">
+              <!-- Quick Stats -->
+              <div class="hidden sm:flex items-center gap-4 text-sm">
+                <div class="flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                  <div v-html="Helpers.IconLibrary.getIcon('zap', 'lucide', 14, 'text-blue-600 dark:text-blue-400')"></div>
+                  <span class="font-medium text-blue-700 dark:text-blue-300">{{ quicklistChores.length }}</span>
+                </div>
+                <div class="flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
+                  <div v-html="Helpers.IconLibrary.getIcon('users', 'lucide', 14, 'text-green-600 dark:text-green-400')"></div>
+                  <span class="font-medium text-green-700 dark:text-green-300">{{ people.length }}</span>
+                </div>
+              </div>
+
+              <sl-button variant="outline" size="small" @click="$parent.setCurrentPage('chores')" class="hidden sm:flex">
+                <div v-html="Helpers.IconLibrary.getIcon('arrowLeft', 'lucide', 16)"></div>
+                Back to Original
+              </sl-button>
+
+              <!-- Mobile menu button -->
+              <sl-button variant="outline" size="small" @click="toggleMobileMenu" class="sm:hidden">
+                <div v-html="Helpers.IconLibrary.getIcon('menu', 'lucide', 16)"></div>
               </sl-button>
             </div>
+          </div>
+        </div>
 
-            <!-- Quicklist grid -->
-            <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              <sl-card
-                v-for="quickChore in quicklistChores"
-                :key="quickChore.id"
-                class="quicklist-chore-card cursor-pointer transition-all duration-200"
-                :class="[
-                  quickChore.isSelecting ? 'opacity-75' : '',
-                  isQuicklistChoreSelected(quickChore) ? 'ring-2 ring-primary-500 shadow-lg' : 'hover:shadow-md hover:-translate-y-1'
-                ]"
-                @click="onQuicklistClick(quickChore, $event)"
-              >
-                <div slot="header" class="flex items-center gap-3">
-                  <div class="category-icon flex items-center justify-center rounded-lg size-10 text-white bg-white bg-opacity-20 shrink-0">
-                    <div v-html="getCategoryIcon(quickChore.category)"></div>
+        <!-- Mobile menu (when open) -->
+        <div v-if="showMobileMenu" class="sm:hidden border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+          <div class="px-4 py-3 space-y-2">
+            <sl-button variant="outline" size="small" @click="$parent.setCurrentPage('chores')" class="w-full justify-start">
+              <div v-html="Helpers.IconLibrary.getIcon('arrowLeft', 'lucide', 16)"></div>
+              Back to Original
+            </sl-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+
+        <!-- Quicklist Section - Modern Design -->
+        <div class="w-full">
+          <sl-card class="quicklist-section shadow-xl">
+            <div slot="header" class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="relative">
+                  <div class="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg blur opacity-75"></div>
+                  <div class="relative bg-white dark:bg-slate-800 p-2 rounded-lg">
+                    <div v-html="Helpers.IconLibrary.getIcon('zap', 'lucide', 20, 'text-yellow-600 dark:text-yellow-400')"></div>
                   </div>
-                  <div class="flex flex-col flex-1 min-w-0">
-                    <h3 class="font-medium text-sm leading-tight line-clamp-2">{{ quickChore.name }}</h3>
-                    <div v-if="quickChore.amount > 0" class="text-xs opacity-90 mt-1">\${{ quickChore.amount.toFixed(2) }}</div>
-                  </div>
-                  <sl-badge variant="neutral" size="small" class="shrink-0">{{ getCategoryLabel(quickChore.category) }}</sl-badge>
                 </div>
+                <div>
+                  <h2 class="text-xl font-bold text-slate-900 dark:text-white">Quicklist</h2>
+                  <p class="text-sm text-slate-600 dark:text-slate-400">Quick access to common chores</p>
+                </div>
+              </div>
 
-                <div slot="footer" class="flex justify-end">
-                  <sl-button
-                    v-if="isQuicklistChoreSelected(quickChore)"
-                    variant="danger"
-                    size="small"
-                    @click.stop="removeFromQuicklist(quickChore.id)"
-                  >
-                    <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14)"></div>
-                    Remove
-                  </sl-button>
-                </div>
-              </sl-card>
-
-              <!-- Add button -->
-              <sl-card class="add-quicklist-card border-2 border-dashed border-gray-300 hover:border-primary-400 transition-colors cursor-pointer" @click="openAddToQuicklistModal">
-                <div class="flex flex-col items-center justify-center h-full text-center p-4">
-                  <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 24, 'text-gray-400')"></div>
-                  <p class="text-sm text-gray-500 mt-2">Add to Quicklist</p>
-                </div>
-              </sl-card>
+              <div class="flex items-center gap-2">
+                <sl-button variant="outline" size="small" @click="toggleSelectionMode" :disabled="quicklistChores.length === 0">
+                  <div v-html="Helpers.IconLibrary.getIcon('checkSquare', 'lucide', 16)"></div>
+                  {{ selectionMode ? 'Cancel' : 'Select' }}
+                </sl-button>
+                <sl-button variant="primary" size="small" @click="openAddToQuicklistModal">
+                  <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16)"></div>
+                  Add
+                </sl-button>
+              </div>
             </div>
 
-            <!-- Empty state -->
-            <div v-if="quicklistChores.length === 0 && !quicklistLoading" class="text-center py-8 text-secondary-custom">
-              <div v-html="Helpers.IconLibrary.getIcon('minus', 'lucide', 48, 'mx-auto mb-3 opacity-50')"></div>
-              <p>No quicklist chores yet.</p>
-              <p class="text-sm mt-1">Add common chores for quick assignment!</p>
-            </div>
+            <div slot="content" class="p-6">
+              <!-- Selection mode indicator -->
+              <div v-if="selectionMode" class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <p class="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2">
+                  <div v-html="Helpers.IconLibrary.getIcon('info', 'lucide', 16, 'text-blue-600 dark:text-blue-400')"></div>
+                  {{ selectedChores.size }} chore{{ selectedChores.size !== 1 ? 's' : '' }} selected
+                </p>
+              </div>
+
+              <!-- Loading state -->
+              <div v-if="quicklistLoading" class="flex flex-col items-center justify-center py-12">
+                <sl-spinner style="--size: 48px; --track-width: 4px;"></sl-spinner>
+                <p class="text-slate-600 dark:text-slate-400 mt-4 animate-pulse">Loading quicklist...</p>
+              </div>
+
+              <!-- Error state -->
+              <div v-else-if="quicklistError" class="flex flex-col items-center justify-center py-12 text-center">
+                <div class="relative mb-4">
+                  <div class="absolute inset-0 bg-gradient-to-r from-red-400 to-pink-500 rounded-full blur opacity-75"></div>
+                  <div class="relative bg-white dark:bg-slate-800 p-4 rounded-full">
+                    <div v-html="Helpers.IconLibrary.getIcon('alertTriangle', 'lucide', 24, 'text-red-600 dark:text-red-400')"></div>
+                  </div>
+                </div>
+                <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-2">Failed to Load</h3>
+                <p class="text-slate-600 dark:text-slate-400 mb-4 max-w-md">{{ quicklistError }}</p>
+                <sl-button variant="outline" @click="loadQuicklistChores">
+                  <div v-html="Helpers.IconLibrary.getIcon('refreshCw', 'lucide', 16)"></div>
+                  Try Again
+                </sl-button>
+              </div>
+
+              <!-- Quicklist grid - Modern responsive layout -->
+              <div v-else class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                <sl-card
+                  v-for="quickChore in quicklistChores"
+                  :key="quickChore.id"
+                  class="quicklist-chore-card cursor-pointer transition-all duration-300 group"
+                  :class="[
+                    'transform hover:scale-105 hover:shadow-xl',
+                    quickChore.isSelecting ? 'opacity-50 scale-95' : '',
+                    isQuicklistChoreSelected(quickChore) ? 'ring-2 ring-blue-500 shadow-lg scale-105' : '',
+                    selectionMode && selectedChores.has(quickChore.id) ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-900/20' : ''
+                  ]"
+                  @click="selectionMode ? toggleChoreSelection(quickChore.id) : selectQuicklistChore(quickChore, $event)"
+                >
+                  <div slot="header" class="flex items-center gap-3 p-4">
+                    <!-- Selection checkbox (only in selection mode) -->
+                    <sl-checkbox
+                      v-if="selectionMode"
+                      :checked="selectedChores.has(quickChore.id)"
+                      @sl-change="toggleChoreSelection(quickChore.id)"
+                      @click.stop
+                      size="small"
+                      class="mr-2"
+                    ></sl-checkbox>
+
+                    <div class="relative">
+                      <div class="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg blur opacity-75 group-hover:opacity-100 transition-opacity"></div>
+                      <div class="relative bg-white dark:bg-slate-800 p-2 rounded-lg">
+                        <div v-html="getCategoryIcon(quickChore.category)"></div>
+                      </div>
+                    </div>
+
+                    <div class="flex flex-col flex-1 min-w-0">
+                      <h3 class="font-semibold text-sm leading-tight line-clamp-2 text-slate-900 dark:text-white group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">
+                        {{ quickChore.name }}
+                      </h3>
+                      <div v-if="quickChore.amount > 0" class="text-xs text-slate-600 dark:text-slate-400 mt-1 font-medium">
+                        \${{ quickChore.amount.toFixed(2) }}
+                      </div>
+                    </div>
+
+                    <sl-badge
+                      variant="neutral"
+                      size="small"
+                      class="shrink-0"
+                      :class="getCategoryBadgeVariant(quickChore.category)"
+                    >
+                      {{ getCategoryLabel(quickChore.category) }}
+                    </sl-badge>
+                  </div>
+
+                  <div slot="footer" class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/50">
+                    <div class="text-xs text-slate-500 dark:text-slate-400">
+                      {{ isQuicklistChoreSelected(quickChore) ? 'Selected' : 'Click to assign' }}
+                    </div>
+                    <sl-button
+                      v-if="isQuicklistChoreSelected(quickChore)"
+                      variant="danger"
+                      size="small"
+                      @click.stop="removeFromQuicklist(quickChore.id)"
+                    >
+                      <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14)"></div>
+                      Remove
+                    </sl-button>
+                  </div>
+                </sl-card>
+
+                <!-- Modern Add button -->
+                <sl-card
+                  class="add-quicklist-card border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 cursor-pointer group"
+                  @click="openAddToQuicklistModal"
+                >
+                  <div class="flex flex-col items-center justify-center h-full text-center p-6">
+                    <div class="relative mb-3">
+                      <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full blur opacity-75 group-hover:opacity-100 transition-opacity"></div>
+                      <div class="relative bg-white dark:bg-slate-800 p-3 rounded-full group-hover:scale-110 transition-transform">
+                        <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 24, 'text-blue-600 dark:text-blue-400')"></div>
+                      </div>
+                    </div>
+                    <p class="text-sm font-medium text-slate-600 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
+                      Add to Quicklist
+                    </p>
+                  </div>
+                </sl-card>
+              </div>
+
+              <!-- Modern empty state -->
+              <div v-if="quicklistChores.length === 0 && !quicklistLoading" class="flex flex-col items-center justify-center py-16 text-center">
+                <div class="relative mb-6">
+                  <div class="absolute inset-0 bg-gradient-to-r from-slate-400 to-slate-500 rounded-full blur opacity-75"></div>
+                  <div class="relative bg-white dark:bg-slate-800 p-6 rounded-full">
+                    <div v-html="Helpers.IconLibrary.getIcon('sparkles', 'lucide', 32, 'text-slate-600 dark:text-slate-400')"></div>
+                  </div>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Start Building Your Quicklist</h3>
+                <p class="text-slate-600 dark:text-slate-400 mb-6 max-w-md">
+                  Add commonly used chores here for faster assignment. Perfect for daily routines and frequent tasks.
+                </p>
+                <sl-button variant="primary" @click="openAddToQuicklistModal">
+                  <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16)"></div>
+                  Add Your First Chore
+                </sl-button>
+              </div>
           </div>
         </sl-card>
       </div>
@@ -314,13 +438,17 @@ const ShoelaceChorePage = Vue.defineComponent({
     'people', 'choresByPerson', 'selectedChore', 'selectedChoreId', 'selectedQuicklistChore',
     'quicklistChores', 'loading', 'error', 'Helpers',
     'showAddChoreModal', 'showAddToQuicklistModal',
-    'handleChoreClick', 'handleQuicklistChoreClick', 'selectionStore',
-    'currentChorePage'
+    'handleChoreClick', 'handleQuicklistChoreClick', 'selectionStore'
   ],
   data() {
     return {
       quicklistLoading: false,
-      quicklistError: null
+      quicklistError: null,
+      showMobileMenu: false,
+      // Enhanced selection state management
+      selectionMode: false,
+      selectedChores: new Set(),
+      lastSelectedChore: null
     }
   },
   async mounted() {
@@ -329,8 +457,74 @@ const ShoelaceChorePage = Vue.defineComponent({
   methods: {
     // Navigation methods
     switchToOriginal() {
-      // Call parent method to switch back to original page
-      this.$parent.toggleChorePageVersion();
+      this.showMobileMenu = false; // Close mobile menu when switching
+      this.$parent.setCurrentPage('chores');
+    },
+
+    toggleMobileMenu() {
+      this.showMobileMenu = !this.showMobileMenu;
+    },
+
+    // Enhanced selection methods
+    toggleSelectionMode() {
+      this.selectionMode = !this.selectionMode;
+      if (!this.selectionMode) {
+        this.selectedChores.clear();
+      }
+    },
+
+    selectChore(chore, event) {
+      if (event && (event.type === 'touchend' || event.type === 'touchstart')) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+
+      if (chore.isSelecting) return;
+      chore.isSelecting = true;
+
+      try {
+        // Allow cross-assignment if there's a currently selected chore
+        if (this.$parent.selectedChore &&
+            this.$parent.selectedChoreId !== chore.id &&
+            chore.assignedTo &&
+            chore.assignedTo !== 'unassigned') {
+
+          this.assignSelectedChore(chore.assignedTo);
+          this.$parent.selectedChoreId = null;
+          this.$parent.selectedQuicklistChore = null;
+          return;
+        }
+
+        const handler = this.selectionStore?.selectChore || this.handleChoreClick || this.$parent?.handleChoreClick;
+        if (typeof handler === 'function') {
+          handler(chore);
+        }
+      } finally {
+        setTimeout(() => {
+          chore.isSelecting = false;
+        }, 100);
+      }
+    },
+
+    selectQuicklistChore(quickChore, event) {
+      if (event && (event.type === 'touchend' || event.type === 'touchstart')) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+
+      if (quickChore.isSelecting) return;
+      quickChore.isSelecting = true;
+
+      try {
+        const handler = this.selectionStore?.selectQuicklist || this.handleQuicklistChoreClick || this.$parent?.handleQuicklistChoreClick;
+        if (typeof handler === 'function') {
+          handler(quickChore);
+        }
+      } finally {
+        setTimeout(() => {
+          quickChore.isSelecting = false;
+        }, 100);
+      }
     },
 
     // Modal methods
@@ -483,6 +677,32 @@ const ShoelaceChorePage = Vue.defineComponent({
       if (this.$parent.openSpendingModal) {
         this.$parent.openSpendingModal(person);
       }
+    },
+
+    // Selection management methods
+    toggleChoreSelection(choreId) {
+      if (this.selectedChores.has(choreId)) {
+        this.selectedChores.delete(choreId);
+      } else {
+        this.selectedChores.add(choreId);
+      }
+      this.$forceUpdate(); // Trigger reactivity for visual updates
+    },
+
+    // Category styling methods
+    getCategoryBadgeVariant(category) {
+      const variants = {
+        'cleaning': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+        'laundry': 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+        'kitchen': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+        'bathroom': 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300',
+        'bedroom': 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300',
+        'outdoor': 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+        'pet': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
+        'car': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
+        'regular': 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
+      };
+      return variants[category] || variants.regular;
     }
   }
 });

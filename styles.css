@@ -1331,86 +1331,107 @@ button.rounded-full[title*="Delete"] svg {
 }
 
 /* ===========================================
-   SHOELACE CHORE PAGE STYLING
+   MODERN SHOELACE CHORE PAGE STYLING
    =========================================== */
 
-/* Shoelace Card Customizations */
+/* Base Shoelace Card Customizations */
 sl-card {
   --border-radius: 12px;
-  --border-width: 2px;
+  --border-width: 1px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease-in-out;
 }
 
-/* Quicklist Section Styling */
+sl-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Modern Quicklist Section Styling */
 sl-card.quicklist-section {
-  background: var(--color-bg-card);
-  border-color: var(--color-border-card);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 sl-card.quicklist-section::part(header) {
-  background: var(--color-primary-500);
+  background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
   color: white;
-  border-bottom: 1px solid var(--color-primary-600);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 20px 24px;
 }
 
 sl-card.quicklist-section::part(content) {
-  padding: 24px;
+  padding: 0;
 }
 
-/* Quicklist Chore Cards */
+/* Modern Quicklist Chore Cards */
 sl-card.quicklist-chore-card {
-  background: var(--color-primary-500);
-  border-color: var(--color-primary-600);
-  color: white;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
 }
 
 sl-card.quicklist-chore-card::part(header) {
   padding: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #f3f4f6;
+  background: #f9fafb;
+  flex: 1;
 }
 
 sl-card.quicklist-chore-card::part(footer) {
-  padding: 8px 16px;
-  background: rgba(0, 0, 0, 0.1);
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-top: 1px solid #f3f4f6;
 }
 
-/* Add Quicklist Card */
+/* Modern Add Quicklist Card */
 sl-card.add-quicklist-card {
-  background: var(--color-bg-card);
-  border-color: var(--color-border-card);
-  min-height: 120px;
+  background: #f8fafc;
+  border: 2px dashed #cbd5e1;
+  min-height: 140px;
+  transition: all 0.3s ease;
 }
 
 sl-card.add-quicklist-card:hover {
-  background: var(--color-primary-50);
-  border-color: var(--color-primary-300);
+  background: #f1f5f9;
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
 }
 
-/* Unassigned Section */
+/* Modern Unassigned Section */
 sl-card.unassigned-section {
-  background: var(--color-bg-card);
-  border-color: var(--color-border-card);
+  background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+  border: 1px solid #f59e0b;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 sl-card.unassigned-section::part(header) {
-  background: var(--color-primary-500);
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
   color: white;
-  border-bottom: 1px solid var(--color-primary-600);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 20px 24px;
 }
 
 sl-card.unassigned-section::part(content) {
-  padding: 24px;
+  padding: 0;
 }
 
-/* Unassigned Chore Cards */
+/* Modern Unassigned Chore Cards */
 sl-card.unassigned-chore-card {
-  background: var(--color-primary-500);
-  border-color: var(--color-primary-600);
-  color: white;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  min-height: 120px;
 }
 
 sl-card.unassigned-chore-card::part(header) {
   padding: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #f3f4f6;
+  background: #fefce8;
 }
 
 sl-card.unassigned-chore-card::part(content) {
@@ -1418,51 +1439,63 @@ sl-card.unassigned-chore-card::part(content) {
 }
 
 sl-card.unassigned-chore-card::part(footer) {
-  padding: 8px 16px;
-  background: rgba(0, 0, 0, 0.1);
+  padding: 12px 16px;
+  background: #fef3c7;
+  border-top: 1px solid #f59e0b;
 }
 
-/* Family Section */
+/* Modern Family Section */
 sl-card.family-section {
-  background: var(--color-bg-card);
-  border-color: var(--color-border-card);
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border: 1px solid #10b981;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 sl-card.family-section::part(header) {
-  background: var(--color-primary-500);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
   color: white;
-  border-bottom: 1px solid var(--color-primary-600);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 20px 24px;
 }
 
 sl-card.family-section::part(content) {
-  padding: 24px;
+  padding: 0;
 }
 
-/* Family Member Cards */
+/* Modern Family Member Cards */
 sl-card.family-member-card {
-  background: var(--color-primary-500);
-  border-color: var(--color-primary-600);
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+sl-card.family-member-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
 sl-card.family-member-card::part(header) {
   padding: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #f3f4f6;
+  background: #f0fdf4;
 }
 
 sl-card.family-member-card::part(content) {
-  padding: 20px;
+  padding: 0;
 }
 
-/* Assigned Chore Cards (inside family member cards) */
+/* Modern Assigned Chore Cards (inside family member cards) */
 sl-card.assigned-chore-card {
-  background: var(--color-primary-600);
-  border-color: var(--color-primary-700);
-  color: white;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  margin-bottom: 8px;
 }
 
 sl-card.assigned-chore-card::part(header) {
   padding: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #f3f4f6;
+  background: #fefce8;
 }
 
 sl-card.assigned-chore-card::part(content) {
@@ -1471,89 +1504,123 @@ sl-card.assigned-chore-card::part(content) {
 
 sl-card.assigned-chore-card::part(footer) {
   padding: 8px 12px;
-  background: rgba(0, 0, 0, 0.1);
+  background: #fef3c7;
+  border-top: 1px solid #f59e0b;
 }
 
-/* Earnings Section */
+/* Modern Earnings Section */
 sl-card.earnings-section {
-  background: var(--color-bg-card);
-  border-color: var(--color-border-card);
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1px solid #f59e0b;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 sl-card.earnings-section::part(header) {
-  background: var(--color-primary-500);
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
   color: white;
-  border-bottom: 1px solid var(--color-primary-600);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 20px 24px;
 }
 
 sl-card.earnings-section::part(content) {
-  padding: 24px;
+  padding: 0;
 }
 
-/* Earnings Cards */
+/* Modern Earnings Cards */
 sl-card.earnings-card {
-  background: var(--color-primary-500);
-  border-color: var(--color-primary-600);
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 sl-card.earnings-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 sl-card.earnings-card::part(header) {
-  padding: 20px;
+  padding: 24px;
   text-align: center;
+  background: #fffbeb;
 }
 
-/* Category Icons */
+/* Modern Category Icons */
 .category-icon {
   flex-shrink: 0;
+  position: relative;
 }
 
-/* Family Avatar */
+.category-icon::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+  border-radius: 8px;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.category-icon:hover::before {
+  opacity: 1;
+}
+
+/* Modern Family Avatar */
 .family-avatar {
-  background: var(--gradient-ocean);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-/* Text styling for better readability */
+/* Modern Text styling for better readability */
 sl-card h3, sl-card h4 {
-  color: white;
+  color: #1f2937;
   margin: 0;
   font-weight: 600;
+  line-height: 1.4;
 }
 
 sl-card p {
-  color: rgba(255, 255, 255, 0.9);
+  color: #6b7280;
   margin: 0;
+  line-height: 1.5;
 }
 
-/* Badge styling */
+/* Modern Badge styling */
 sl-badge {
   font-size: 0.75rem;
-  padding: 2px 8px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 500;
 }
 
-/* Button styling within cards */
+/* Modern Button styling within cards */
 sl-card sl-button {
   font-size: 0.875rem;
+  border-radius: 8px;
 }
 
-/* Checkbox styling */
+/* Modern Checkbox styling */
 sl-checkbox {
-  --size: 18px;
+  --size: 20px;
+  --border-radius: 4px;
 }
 
-/* Responsive adjustments */
-@media (max-width: 640px) {
-  sl-card.quicklist-section::part(content),
-  sl-card.unassigned-section::part(content),
-  sl-card.family-section::part(content),
-  sl-card.earnings-section::part(content) {
-    padding: 16px;
+/* Modern Responsive Grid - Better breakpoints */
+@media (max-width: 475px) { /* xs breakpoint */
+  .grid-cols-1.xs\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Enhanced responsive adjustments */
+@media (max-width: 768px) {
+  sl-card.quicklist-section::part(header),
+  sl-card.unassigned-section::part(header),
+  sl-card.family-section::part(header),
+  sl-card.earnings-section::part(header) {
+    padding: 16px 20px;
   }
 
   sl-card.family-member-card::part(header),
@@ -1562,6 +1629,100 @@ sl-checkbox {
   }
 
   sl-card.earnings-card::part(header) {
-    padding: 16px;
+    padding: 20px;
+  }
+
+  /* Stack grid on mobile */
+  .grid.grid-cols-1.md\:grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .space-y-8 > * + * {
+    margin-top: 1.5rem;
+  }
+
+  /* Mobile-first header adjustments */
+  .sticky.top-0 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+  }
+
+  /* Ensure content doesn't overlap with fixed header */
+  .max-w-7xl {
+    padding-top: 4rem;
+  }
+}
+
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+  sl-card {
+    --background: #1f2937;
+    --border-color: #374151;
+  }
+
+  sl-card.quicklist-section {
+    background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+  }
+
+  sl-card.unassigned-section {
+    background: linear-gradient(135deg, #451a03 0%, #7c2d12 100%);
+  }
+
+  sl-card.family-section {
+    background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+  }
+
+  sl-card.earnings-section {
+    background: linear-gradient(135deg, #78350f 0%, #92400e 100%);
+  }
+}
+
+/* Animation enhancements */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+sl-card {
+  animation: slideInUp 0.3s ease-out;
+}
+
+/* Focus states for accessibility */
+sl-card:focus-within {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+sl-button:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Loading animation enhancements */
+sl-spinner {
+  --track-color: #e5e7eb;
+  --indicator-color: #3b82f6;
+}
+
+/* Print styles */
+@media print {
+  sl-card {
+    box-shadow: none;
+    border: 1px solid #d1d5db;
+  }
+
+  sl-button {
+    display: none;
   }
 }

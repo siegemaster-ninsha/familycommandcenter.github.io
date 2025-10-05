@@ -83,7 +83,6 @@ const app = createApp({
       spendAmountString: '0',
     // Page navigation
     currentPage: 'chores', // Default to chores page
-    currentChorePage: 'original', // 'original' or 'shoelace'
 
     // Helper methods
     getIcon(iconName, library = 'lucide', size = 16, className = '') {
@@ -1296,11 +1295,6 @@ const app = createApp({
       console.log('📄 Switched to page:', page);
     },
 
-    // Chore page version toggle
-    toggleChorePageVersion() {
-      this.currentChorePage = this.currentChorePage === 'original' ? 'shoelace' : 'original';
-      console.log('🔄 Switched chore page version to:', this.currentChorePage);
-    },
 
     // Authentication and user management
     async handleAuthenticationRequired() {

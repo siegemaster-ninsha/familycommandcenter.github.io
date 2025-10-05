@@ -5,6 +5,7 @@ const NavMenu = Vue.defineComponent({
       type: Array,
       default: () => ([
         { key: 'chores', label: 'Chores' },
+        { key: 'shoelace-chores', label: 'Chores (Shoelace)' },
         { key: 'family', label: 'Family' },
         { key: 'shopping', label: 'Shopping' },
         { key: 'account', label: 'Account' },
