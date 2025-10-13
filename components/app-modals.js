@@ -615,6 +615,7 @@ const AppModals = Vue.defineComponent({
 
     <!-- Multi-Assignment Modal for Quicklist Chores -->
     <div v-if="showMultiAssignModal" class="fixed inset-0 flex items-center justify-center z-50 modal-overlay" :style="{ backgroundColor: 'rgba(0,0,0,0.5)' }">
+      <!-- Debug log -->
       <div class="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="p-2 rounded-full" style="background: var(--color-primary-50);">
@@ -701,6 +702,21 @@ const AppModals = Vue.defineComponent({
       showChildPassword: false,
       multiAssignLoading: false
     };
+  },
+  mounted() {
+    console.log('🔧 AppModals component mounted');
+  },
+  watch: {
+    showMultiAssignModal(newVal, oldVal) {
+      console.log('👀 showMultiAssignModal changed:', { old: oldVal, new: newVal });
+      if (newVal) {
+        console.log('📋 Modal props:', {
+          showMultiAssignModal: this.showMultiAssignModal,
+          selectedQuicklistChore: this.selectedQuicklistChore?.name || 'none',
+          multiAssignSelectedMembers: this.multiAssignSelectedMembers
+        });
+      }
+    }
   },
   inject: [
     'showAddToQuicklistModal', 'newQuicklistChore',

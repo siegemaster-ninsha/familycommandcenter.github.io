@@ -1135,10 +1135,22 @@ const app = createApp({
 
     // Multi-assignment modal methods for quicklist chores
     showMultiAssignModal(quicklistChore) {
+      console.log('🎯 Parent showMultiAssignModal called with:', quicklistChore?.name);
+      console.log('📊 Current modal state before:', {
+        showMultiAssignModal: this.showMultiAssignModal,
+        selectedQuicklistChore: this.selectedQuicklistChore?.name || 'none'
+      });
+
       this.selectedQuicklistChore = quicklistChore;
       this.showMultiAssignModal = true;
       // Reset selected members when opening modal
       this.multiAssignSelectedMembers = [];
+
+      console.log('📊 Modal state after:', {
+        showMultiAssignModal: this.showMultiAssignModal,
+        selectedQuicklistChore: this.selectedQuicklistChore?.name || 'none',
+        multiAssignSelectedMembers: this.multiAssignSelectedMembers
+      });
     },
 
     cancelMultiAssignment() {

@@ -455,8 +455,15 @@ const TailwindChorePage = Vue.defineComponent({
       if (typeof fn === 'function') fn();
     },
     showMultiAssignModal(quicklistChore) {
+      console.log('🚀 showMultiAssignModal called with:', quicklistChore?.name);
+      console.log('🔍 Checking if $parent.showMultiAssignModal exists:', !!this.$parent?.showMultiAssignModal);
+
       if (this.$parent?.showMultiAssignModal) {
+        console.log('✅ Calling $parent.showMultiAssignModal');
         this.$parent.showMultiAssignModal(quicklistChore);
+        console.log('✅ $parent.showMultiAssignModal executed');
+      } else {
+        console.warn('❌ $parent.showMultiAssignModal method not found');
       }
     },
 
@@ -527,17 +534,24 @@ const TailwindChorePage = Vue.defineComponent({
     },
 
     onQuicklistClick(quickChore, event) {
+      console.log('🎯 Quicklist chore clicked:', quickChore.name);
+
       if (event && (event.type === 'touchend' || event.type === 'touchstart') && typeof event.preventDefault === 'function') {
         event.preventDefault();
         event.stopPropagation();
       }
 
-      if (quickChore.isSelecting) return;
+      if (quickChore.isSelecting) {
+        console.log('⚠️ Chore is already being selected, skipping');
+        return;
+      }
       quickChore.isSelecting = true;
 
       try {
+        console.log('🔄 Calling showMultiAssignModal for:', quickChore.name);
         // Show multi-assignment modal instead of selecting the chore
         this.showMultiAssignModal(quickChore);
+        console.log('✅ showMultiAssignModal called successfully');
       } finally {
         setTimeout(() => {
           quickChore.isSelecting = false;
