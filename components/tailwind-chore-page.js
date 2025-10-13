@@ -9,7 +9,7 @@ const ChoreCard = {
       :aria-selected="isSelected"
       role="option"
       :class="[
-        isSelected ? 'shadow-2xl shadow-blue-500/50 scale-105 z-10 border-4 border-blue-300 bg-blue-700 ring-4 ring-blue-300 ring-opacity-50' : 'hover:border-blue-400 bg-blue-500 border-blue-600'
+        isSelected ? 'shadow-2xl shadow-blue-500/50 scale-105 z-10 border-4 border-blue-300 bg-blue-700 ring-8 ring-yellow-400 ring-opacity-80' : 'hover:border-blue-400 bg-blue-500 border-blue-600'
       ]"
       @click.stop="handleClick"
       @touchend.stop="handleClick"
