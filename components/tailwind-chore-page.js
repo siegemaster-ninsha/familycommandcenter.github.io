@@ -24,7 +24,7 @@ const ChoreCard = {
             :checked="chore.completed"
             @click.stop
             @change="handleToggleComplete"
-            class="w-5 h-5 rounded focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2"
+            class="w-[50px] h-[50px] rounded focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2"
             :class="chore.completed ? 'text-green-600' : 'text-gray-400'"
           >
 
