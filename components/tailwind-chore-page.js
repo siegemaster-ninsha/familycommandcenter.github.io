@@ -16,7 +16,7 @@ const ChoreCard = {
     >
       <!-- Chore content -->
       <div class="flex flex-col justify-center min-w-0 flex-1">
-        <div class="flex items-center gap-2 mb-1">
+        <div class="flex items-start gap-3 mb-1">
           <!-- Completion checkbox (not for quicklist) -->
           <input
             v-if="type !== 'quicklist'"
@@ -24,24 +24,28 @@ const ChoreCard = {
             :checked="chore.completed"
             @click.stop
             @change="handleToggleComplete"
-            class="w-[50px] h-[50px] rounded focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2"
+            class="w-[50px] h-[50px] rounded focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 mt-0.5 flex-shrink-0"
             :class="chore.completed ? 'text-green-600' : 'text-gray-400'"
           >
 
-          <p
-            :class="chore.completed && type !== 'quicklist' ? 'line-through text-white opacity-60 flex-1' : 'text-white flex-1'"
-            class="text-sm font-medium leading-normal line-clamp-2"
-          >
-            {{ chore.name }}
-          </p>
-        </div>
+          <div class="flex flex-col flex-1 min-w-0">
+            <p
+              :class="chore.completed && type !== 'quicklist' ? 'line-through text-white opacity-60' : 'text-white'"
+              class="text-sm font-medium leading-normal line-clamp-2"
+            >
+              {{ chore.name }}
+            </p>
 
-        <p v-if="chore.details" :class="chore.completed && type !== 'quicklist' ? 'text-white opacity-50' : 'text-white text-opacity-80'" class="text-xs font-normal leading-normal mb-1">
-          {{ chore.details }}
-        </p>
-        <p v-if="chore.amount > 0" :class="chore.completed && type !== 'quicklist' ? 'text-white opacity-50' : 'text-white text-opacity-90'" class="text-xs font-normal leading-normal">
-          \${{ chore.amount.toFixed(2) }}
-        </p>
+            <div class="flex items-center gap-2 mt-1">
+              <p v-if="chore.amount > 0" :class="chore.completed && type !== 'quicklist' ? 'text-white opacity-50' : 'text-white text-opacity-90'" class="text-xs font-normal leading-normal">
+                \${{ chore.amount.toFixed(2) }}
+              </p>
+              <p v-if="chore.details" :class="chore.completed && type !== 'quicklist' ? 'text-white opacity-50' : 'text-white text-opacity-80'" class="text-xs font-normal leading-normal">
+                {{ chore.details }}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Action buttons -->
