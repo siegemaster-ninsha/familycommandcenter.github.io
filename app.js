@@ -90,6 +90,7 @@ const app = createApp({
     // Existing data
       chores: [],
       selectedChoreId: null, // Changed from selectedChore to selectedChoreId
+      selectedChore: null, // The currently selected chore object
       selectedQuicklistChore: null, // For quicklist selections
       showConfetti: false,
       confettiPieces: [],
@@ -1169,33 +1170,69 @@ const app = createApp({
         this.$refs.appModalsComponent.multiAssignLoading = true;
       }
 
-      try {
-        const selectedMembers = this.multiAssignSelectedMembers;
-        const quicklistChore = this.selectedQuicklistChore;
+      const selectedMembers = this.multiAssignSelectedMembers;
+      const quicklistChore = this.selectedQuicklistChore;
+      const results = [];
 
-        // Create assignments for each selected member
-        for (const memberId of selectedMembers) {
+      try {
+        // Create all assignments in parallel for better performance
+        const assignmentPromises = selectedMembers.map(async (memberId) => {
           const member = this.people.find(p => p.id === memberId);
-          if (member) {
+          if (!member) return { memberId, success: false, error: 'Member not found' };
+
+          try {
             // Check if quicklist chore requires details
             if (quicklistChore.isDetailed) {
               // For detailed chores, we'll need to handle this differently
               // For now, assign without details (could be enhanced later)
               await this.assignQuicklistChoreToMember(quicklistChore, member.name);
+              return { memberId, memberName: member.name, success: true };
             } else {
               await this.assignQuicklistChoreToMember(quicklistChore, member.name);
+              return { memberId, memberName: member.name, success: true };
             }
+          } catch (error) {
+            console.error(`Failed to assign chore to ${member.name}:`, error);
+            return { memberId, memberName: member.name, success: false, error: error.message };
           }
+        });
+
+        // Wait for all assignments to complete (success or failure)
+        const assignmentResults = await Promise.allSettled(assignmentPromises);
+
+        // Process results
+        const successful = assignmentResults.filter(result =>
+          result.status === 'fulfilled' && result.value.success
+        ).map(result => result.value);
+
+        const failed = assignmentResults.filter(result =>
+          result.status === 'rejected' ||
+          (result.status === 'fulfilled' && !result.value.success)
+        ).map(result => result.status === 'rejected' ? result.reason : result.value);
+
+        results.push(...successful, ...failed);
+
+        // Show appropriate message based on results
+        if (successful.length > 0) {
+          const memberNames = successful.map(s => s.memberName).join(', ');
+          this.showSuccessMessage(`✅ Assigned "${quicklistChore.name}" to ${successful.length} member${successful.length !== 1 ? 's' : ''}: ${memberNames}`);
         }
 
-        this.showSuccessMessage(`✅ Assigned "${quicklistChore.name}" to ${selectedMembers.length} family member${selectedMembers.length !== 1 ? 's' : ''}`);
+        if (failed.length > 0) {
+          console.error('Some assignments failed:', failed);
+          if (successful.length === 0) {
+            this.showErrorMessage(`❌ Failed to assign "${quicklistChore.name}" to any family members`);
+          } else {
+            this.showErrorMessage(`⚠️ Assigned to ${successful.length} members, but ${failed.length} assignment${failed.length !== 1 ? 's' : ''} failed`);
+          }
+        }
 
         // Close modal and reset state
         this.cancelMultiAssignment();
 
       } catch (error) {
-        console.error('Failed to assign quicklist chore to multiple members:', error);
-        this.showErrorMessage('❌ Failed to assign chore. Please try again.');
+        console.error('Unexpected error in confirmMultiAssignment:', error);
+        this.showErrorMessage('❌ An unexpected error occurred while assigning chores');
       } finally {
         // Reset loading state on the modal component if available
         if (this.$refs.appModalsComponent) {
@@ -1214,19 +1251,29 @@ const app = createApp({
         details: '',
         assignedTo: memberName,
         completed: false,
-        isPendingApproval: false
+        isPendingApproval: false,
+        isNewFromQuicklist: true
       };
 
       // Add to unassigned chores first (they will be moved to assigned when assigned)
       this.chores.push(newChore);
 
-      // Assign the chore
-      await this.assignSelectedChore(memberName);
+      // Temporarily set as selected chore for assignment (without affecting global state)
+      const originalSelectedChore = this.selectedChore;
+      this.selectedChore = newChore;
 
-      // Remove from unassigned after assignment
-      const index = this.chores.findIndex(c => c.id === newChore.id);
-      if (index > -1) {
-        this.chores.splice(index, 1);
+      try {
+        // Assign the chore
+        await this.assignSelectedChore(memberName);
+      } finally {
+        // Restore original selected chore to avoid interfering with other assignments
+        this.selectedChore = originalSelectedChore;
+
+        // Remove from unassigned after assignment
+        const index = this.chores.findIndex(c => c.id === newChore.id);
+        if (index > -1) {
+          this.chores.splice(index, 1);
+        }
       }
     },
 
@@ -2321,13 +2368,13 @@ const app = createApp({
       // Readonly computed values for display data
       loading: Vue.computed(() => this.loading),
       error: Vue.computed(() => this.error),
-      selectedChore: Vue.computed(() => this.selectedChore),
+      selectedChore: Vue.toRef(this, 'selectedChore'),
       selectedChoreId: Vue.toRef(this, 'selectedChoreId'),
       selectedQuicklistChore: Vue.toRef(this, 'selectedQuicklistChore'),
       // lightweight selection store for centralized selection handling
       selectionStore: {
         state: {
-          selectedChore: Vue.computed(() => this.selectedChore),
+          selectedChore: Vue.toRef(this, 'selectedChore'),
           selectedChoreId: Vue.toRef(this, 'selectedChoreId'),
           selectedQuicklistChore: Vue.toRef(this, 'selectedQuicklistChore')
         },
