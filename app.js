@@ -1134,7 +1134,7 @@ const app = createApp({
     },
 
     // Multi-assignment modal methods for quicklist chores
-    showMultiAssignModal(quicklistChore) {
+    openMultiAssignModal(quicklistChore) {
       console.log('🎯 Parent showMultiAssignModal called with:', quicklistChore?.name);
       console.log('📊 Current modal state before:', {
         showMultiAssignModal: this.showMultiAssignModal,
@@ -2367,6 +2367,8 @@ const app = createApp({
       newDayLoading: Vue.computed(() => this.newDayLoading),
       showSpendingModal: Vue.computed(() => this.showSpendingModal),
       showChoreDetailsModal: Vue.computed(() => this.showChoreDetailsModal),
+      showMultiAssignModal: Vue.computed(() => this.showMultiAssignModal),
+      multiAssignSelectedMembers: Vue.toRef(this, 'multiAssignSelectedMembers'),
       // add child / invite parent modal flags
       showCreateChildModal: Vue.computed(() => this.showCreateChildModal),
       showInviteModal: Vue.computed(() => this.showInviteModal),
@@ -2414,6 +2416,9 @@ const app = createApp({
       cancelChoreDetails: this.cancelChoreDetails,
       startNewDay: this.startNewDay,
       cancelNewDay: this.cancelNewDay,
+      openMultiAssignModal: this.openMultiAssignModal,
+      confirmMultiAssignment: this.confirmMultiAssignment,
+      cancelMultiAssignment: this.cancelMultiAssignment,
       deleteChore: this.deleteChore,
       deletePerson: this.performDeletePerson,
       executeDeletePerson: this.executeDeletePerson,

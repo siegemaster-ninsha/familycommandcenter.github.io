@@ -456,14 +456,14 @@ const TailwindChorePage = Vue.defineComponent({
     },
     showMultiAssignModal(quicklistChore) {
       console.log('🚀 showMultiAssignModal called with:', quicklistChore?.name);
-      console.log('🔍 Checking if $parent.showMultiAssignModal exists:', !!this.$parent?.showMultiAssignModal);
+      console.log('🔍 Checking if $parent.openMultiAssignModal exists:', !!this.$parent?.openMultiAssignModal);
 
-      if (this.$parent?.showMultiAssignModal) {
-        console.log('✅ Calling $parent.showMultiAssignModal');
-        this.$parent.showMultiAssignModal(quicklistChore);
-        console.log('✅ $parent.showMultiAssignModal executed');
+      if (this.$parent?.openMultiAssignModal) {
+        console.log('✅ Calling $parent.openMultiAssignModal');
+        this.$parent.openMultiAssignModal(quicklistChore);
+        console.log('✅ $parent.openMultiAssignModal executed');
       } else {
-        console.warn('❌ $parent.showMultiAssignModal method not found');
+        console.warn('❌ $parent.openMultiAssignModal method not found');
       }
     },
 
