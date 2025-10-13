@@ -1241,38 +1241,47 @@ const app = createApp({
     },
 
     async assignQuicklistChoreToMember(quicklistChore, memberName) {
-      // Create a new chore from the quicklist chore
-      const newChore = {
-        id: `temp-${Date.now()}-${Math.random()}`,
-        name: quicklistChore.name,
-        amount: quicklistChore.amount || 0,
-        category: quicklistChore.category || 'regular',
-        details: '',
-        assignedTo: memberName,
-        completed: false,
-        isPendingApproval: false,
-        isNewFromQuicklist: true
-      };
-
-      // Add to unassigned chores first (they will be moved to assigned when assigned)
-      this.chores.push(newChore);
-
-      // Temporarily set selectedChoreId to point to our new chore for assignment
-      const originalSelectedChoreId = this.selectedChoreId;
-      this.selectedChoreId = newChore.id;
+      // Temporarily clear selectedQuicklistChore to ensure computed selectedChore uses selectedChoreId
+      const originalQuicklistChore = this.selectedQuicklistChore;
+      this.selectedQuicklistChore = null;
 
       try {
-        // Assign the chore
-        await this.assignSelectedChore(memberName);
-      } finally {
-        // Restore original selectedChoreId to avoid interfering with other assignments
-        this.selectedChoreId = originalSelectedChoreId;
+        // Create a new chore from the quicklist chore
+        const newChore = {
+          id: `temp-${Date.now()}-${Math.random()}`,
+          name: quicklistChore.name,
+          amount: quicklistChore.amount || 0,
+          category: quicklistChore.category || 'regular',
+          details: '',
+          assignedTo: memberName,
+          completed: false,
+          isPendingApproval: false,
+          isNewFromQuicklist: true
+        };
 
-        // Remove from unassigned after assignment
-        const index = this.chores.findIndex(c => c.id === newChore.id);
-        if (index > -1) {
-          this.chores.splice(index, 1);
+        // Add to unassigned chores first (they will be moved to assigned when assigned)
+        this.chores.push(newChore);
+
+        // Temporarily set selectedChoreId to point to our new chore for assignment
+        const originalSelectedChoreId = this.selectedChoreId;
+        this.selectedChoreId = newChore.id;
+
+        try {
+          // Assign the chore
+          await this.assignSelectedChore(memberName);
+        } finally {
+          // Restore original selectedChoreId to avoid interfering with other assignments
+          this.selectedChoreId = originalSelectedChoreId;
+
+          // Remove from unassigned after assignment
+          const index = this.chores.findIndex(c => c.id === newChore.id);
+          if (index > -1) {
+            this.chores.splice(index, 1);
+          }
         }
+      } finally {
+        // Restore original selectedQuicklistChore
+        this.selectedQuicklistChore = originalQuicklistChore;
       }
     },
 
@@ -2368,13 +2377,13 @@ const app = createApp({
       loading: Vue.computed(() => this.loading),
       error: Vue.computed(() => this.error),
       selectedChore: Vue.computed(() => {
-        // First check if we have a selectedChoreId (for regular chores)
-        if (this.selectedChoreId) {
-          return this.chores.find(c => c.id === this.selectedChoreId) || null;
-        }
-        // Then check if we have a selectedQuicklistChore
+        // First check if we have a selectedQuicklistChore (for quicklist assignments)
         if (this.selectedQuicklistChore) {
           return this.selectedQuicklistChore;
+        }
+        // Then check if we have a selectedChoreId (for regular chores)
+        if (this.selectedChoreId) {
+          return this.chores.find(c => c.id === this.selectedChoreId) || null;
         }
         return null;
       }),
