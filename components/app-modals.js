@@ -746,6 +746,22 @@ const AppModals = Vue.defineComponent({
         default: return 'Regular';
       }
     },
+    getElectronicsStatusClass(status) {
+      switch(status) {
+        case 'allowed': return 'bg-green-100 text-green-800';
+        case 'restricted': return 'bg-yellow-100 text-yellow-800';
+        case 'blocked': return 'bg-red-100 text-red-800';
+        default: return 'bg-green-100 text-green-800';
+      }
+    },
+    getElectronicsStatusText(status) {
+      switch(status) {
+        case 'allowed': return 'Allowed';
+        case 'restricted': return 'Limited';
+        case 'blocked': return 'Blocked';
+        default: return 'Allowed';
+      }
+    },
     getInviteLink() {
       const token = this.$parent?.inviteData?.token || '';
       const url = new URL(window.location.href);
