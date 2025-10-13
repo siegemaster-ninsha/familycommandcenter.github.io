@@ -612,12 +612,94 @@ const AppModals = Vue.defineComponent({
         </div>
       </div>
     </div>
+
+    <!-- Multi-Assignment Modal for Quicklist Chores -->
+    <div v-if="showMultiAssignModal" class="fixed inset-0 flex items-center justify-center z-50 modal-overlay" :style="{ backgroundColor: 'rgba(0,0,0,0.5)' }">
+      <div class="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 modal-panel">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="p-2 rounded-full" style="background: var(--color-primary-50);">
+            <div v-html="Helpers.IconLibrary.getIcon('users', 'lucide', 24, '')" style="color: var(--color-primary-600);"></div>
+          </div>
+          <h3 class="text-lg font-bold text-primary-custom">Assign "{{ selectedQuicklistChore?.name }}"</h3>
+        </div>
+
+        <p class="text-secondary-custom mb-6">
+          Select which family members should be assigned this chore. Each selected member will get their own copy of the chore.
+        </p>
+
+        <!-- Family Member Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 max-h-96 overflow-y-auto">
+          <div
+            v-for="person in people"
+            :key="person.id"
+            class="relative border-2 rounded-xl p-4 transition-all duration-200 cursor-pointer hover:shadow-lg"
+            :class="multiAssignSelectedMembers.includes(person.id) ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'"
+            @click="toggleMemberSelection(person.id)"
+          >
+            <div class="flex items-center gap-3">
+              <!-- Checkbox -->
+              <input
+                type="checkbox"
+                :checked="multiAssignSelectedMembers.includes(person.id)"
+                @click.stop="toggleMemberSelection(person.id)"
+                class="w-5 h-5 text-primary-600 rounded focus:ring-primary-500"
+              >
+
+              <!-- Person Info -->
+              <div class="flex items-center gap-3 flex-1">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold">
+                  {{ person.name.charAt(0) }}
+                </div>
+                <div>
+                  <h4 class="font-medium text-primary-custom">{{ person.displayName || person.name }}</h4>
+                  <p class="text-sm text-secondary-custom">\${{ person.earnings?.toFixed(2) || '0.00' }} earned</p>
+                </div>
+              </div>
+
+              <!-- Electronics Status -->
+              <div class="shrink-0">
+                <div :class="getElectronicsStatusClass(person.electronicsStatus?.status)" class="px-2 py-1 rounded-full text-xs font-medium">
+                  {{ getElectronicsStatusText(person.electronicsStatus?.status) }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selected Count -->
+        <div v-if="multiAssignSelectedMembers.length > 0" class="mb-4 p-3 bg-primary-50 rounded-lg">
+          <p class="text-sm text-primary-700">
+            <span class="font-medium">{{ multiAssignSelectedMembers.length }}</span> member{{ multiAssignSelectedMembers.length !== 1 ? 's' : '' }} selected
+          </p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-3">
+          <button
+            @click="confirmMultiAssignment"
+            :disabled="multiAssignSelectedMembers.length === 0 || multiAssignLoading"
+            class="flex-1 bg-primary-500 text-white py-2 px-4 rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            <div v-if="multiAssignLoading" class="animate-spin h-4 w-4" v-html="Helpers.IconLibrary.getIcon('loader', 'lucide', 16, 'text-white')"></div>
+            {{ multiAssignLoading ? 'Assigning...' : 'Assign to ' + multiAssignSelectedMembers.length + ' Member' + (multiAssignSelectedMembers.length !== 1 ? 's' : '') }}
+          </button>
+          <button
+            @click="cancelMultiAssignment"
+            :disabled="multiAssignLoading"
+            class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
   `,
   data() {
     return {
       showLoginPassword: false,
       showSignupPassword: false,
-      showChildPassword: false
+      showChildPassword: false,
+      multiAssignLoading: false
     };
   },
   inject: [
@@ -627,14 +709,17 @@ const AppModals = Vue.defineComponent({
     'showChoreDetailsModal', 'choreDetailsForm',
     'showSpendingModal', 'selectedPerson', 'spendAmount', 'spendAmountString',
     'showLoginModal', 'showSignupModal', 'showConfirmModal', 'authForm', 'authError', 'authLoading',
+    'showMultiAssignModal', 'selectedQuicklistChore', 'multiAssignSelectedMembers',
     'addChore', 'cancelAddChore', 'addPerson', 'cancelAddPerson',
     'addToQuicklist', 'cancelAddToQuicklist', 'startNewDay', 'cancelNewDay',
     'executeDeletePerson', 'cancelDeletePerson',
     'confirmChoreDetails', 'cancelChoreDetails',
     'closeSpendingModal', 'addDigit', 'addDecimal', 'clearSpendAmount', 'confirmSpending',
     'handleLogin', 'handleSignup', 'handleConfirmSignup', 'showLoginForm', 'showSignupForm', 'closeAuthModals',
+    'confirmMultiAssignment', 'cancelMultiAssignment',
     // add child / invite parent modals
-    'showCreateChildModal', 'showInviteModal', 'closeCreateChildModal', 'closeInviteModal'
+    'showCreateChildModal', 'showInviteModal', 'closeCreateChildModal', 'closeInviteModal',
+    'people'
   ],
   methods: {
     // Use injected methods directly - they're already bound to the parent context
@@ -683,6 +768,14 @@ const AppModals = Vue.defineComponent({
           await navigator.clipboard.writeText(text);
           alert('Invite text copied. Paste it into your message.');
         } catch {}
+      }
+    },
+    toggleMemberSelection(personId) {
+      const index = this.multiAssignSelectedMembers.indexOf(personId);
+      if (index > -1) {
+        this.multiAssignSelectedMembers.splice(index, 1);
+      } else {
+        this.multiAssignSelectedMembers.push(personId);
       }
     }
   }

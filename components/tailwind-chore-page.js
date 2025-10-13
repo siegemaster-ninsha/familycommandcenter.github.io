@@ -450,6 +450,11 @@ const TailwindChorePage = Vue.defineComponent({
       const fn = this.$parent?.openAddChoreModal || this.openAddChoreModal;
       if (typeof fn === 'function') fn();
     },
+    showMultiAssignModal(quicklistChore) {
+      if (this.$parent?.showMultiAssignModal) {
+        this.$parent.showMultiAssignModal(quicklistChore);
+      }
+    },
 
     // Quicklist methods
     async loadQuicklistChores() {
@@ -527,12 +532,8 @@ const TailwindChorePage = Vue.defineComponent({
       quickChore.isSelecting = true;
 
       try {
-        const handler = this.selectionStore?.selectQuicklist || this.handleQuicklistChoreClick || this.$parent?.handleQuicklistChoreClick;
-        if (typeof handler === 'function') {
-          handler(quickChore);
-        } else {
-          console.warn('handleQuicklistChoreClick not available');
-        }
+        // Show multi-assignment modal instead of selecting the chore
+        this.showMultiAssignModal(quickChore);
       } finally {
         setTimeout(() => {
           quickChore.isSelecting = false;

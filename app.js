@@ -47,8 +47,11 @@ const app = createApp({
         category: 'regular',
         assignedTo: '',
         isNewFromQuicklist: false,
-        quicklistChoreId: null
       },
+      // Multi-assignment modal for quicklist chores
+      showMultiAssignModal: false,
+      selectedQuicklistChore: null,
+      multiAssignSelectedMembers: [],
       // Person management
       people: [],
       // manual add person removed
@@ -1128,6 +1131,91 @@ const app = createApp({
     cancelAddToQuicklist() {
       this.showAddToQuicklistModal = false;
       this.newQuicklistChore = { name: '', amount: 0, category: 'regular', isDetailed: false };
+    },
+
+    // Multi-assignment modal methods for quicklist chores
+    showMultiAssignModal(quicklistChore) {
+      this.selectedQuicklistChore = quicklistChore;
+      this.showMultiAssignModal = true;
+      // Reset selected members when opening modal
+      this.multiAssignSelectedMembers = [];
+    },
+
+    cancelMultiAssignment() {
+      this.showMultiAssignModal = false;
+      this.selectedQuicklistChore = null;
+      this.multiAssignSelectedMembers = [];
+    },
+
+    async confirmMultiAssignment() {
+      if (!this.selectedQuicklistChore || this.multiAssignSelectedMembers.length === 0) {
+        return;
+      }
+
+      // Set loading state on the modal component if available
+      if (this.$refs.appModalsComponent) {
+        this.$refs.appModalsComponent.multiAssignLoading = true;
+      }
+
+      try {
+        const selectedMembers = this.multiAssignSelectedMembers;
+        const quicklistChore = this.selectedQuicklistChore;
+
+        // Create assignments for each selected member
+        for (const memberId of selectedMembers) {
+          const member = this.people.find(p => p.id === memberId);
+          if (member) {
+            // Check if quicklist chore requires details
+            if (quicklistChore.isDetailed) {
+              // For detailed chores, we'll need to handle this differently
+              // For now, assign without details (could be enhanced later)
+              await this.assignQuicklistChoreToMember(quicklistChore, member.name);
+            } else {
+              await this.assignQuicklistChoreToMember(quicklistChore, member.name);
+            }
+          }
+        }
+
+        this.showSuccessMessage(`✅ Assigned "${quicklistChore.name}" to ${selectedMembers.length} family member${selectedMembers.length !== 1 ? 's' : ''}`);
+
+        // Close modal and reset state
+        this.cancelMultiAssignment();
+
+      } catch (error) {
+        console.error('Failed to assign quicklist chore to multiple members:', error);
+        this.showErrorMessage('❌ Failed to assign chore. Please try again.');
+      } finally {
+        // Reset loading state on the modal component if available
+        if (this.$refs.appModalsComponent) {
+          this.$refs.appModalsComponent.multiAssignLoading = false;
+        }
+      }
+    },
+
+    async assignQuicklistChoreToMember(quicklistChore, memberName) {
+      // Create a new chore from the quicklist chore
+      const newChore = {
+        id: `temp-${Date.now()}-${Math.random()}`,
+        name: quicklistChore.name,
+        amount: quicklistChore.amount || 0,
+        category: quicklistChore.category || 'regular',
+        details: '',
+        assignedTo: memberName,
+        completed: false,
+        isPendingApproval: false
+      };
+
+      // Add to unassigned chores first (they will be moved to assigned when assigned)
+      this.chores.push(newChore);
+
+      // Assign the chore
+      await this.assignSelectedChore(memberName);
+
+      // Remove from unassigned after assignment
+      const index = this.chores.findIndex(c => c.id === newChore.id);
+      if (index > -1) {
+        this.chores.splice(index, 1);
+      }
     },
 
     // Chore details modal methods
