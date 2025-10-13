@@ -90,7 +90,6 @@ const app = createApp({
     // Existing data
       chores: [],
       selectedChoreId: null, // Changed from selectedChore to selectedChoreId
-      selectedChore: null, // The currently selected chore object
       selectedQuicklistChore: null, // For quicklist selections
       showConfetti: false,
       confettiPieces: [],
@@ -1258,16 +1257,16 @@ const app = createApp({
       // Add to unassigned chores first (they will be moved to assigned when assigned)
       this.chores.push(newChore);
 
-      // Temporarily set as selected chore for assignment (without affecting global state)
-      const originalSelectedChore = this.selectedChore;
-      this.selectedChore = newChore;
+      // Temporarily set selectedChoreId to point to our new chore for assignment
+      const originalSelectedChoreId = this.selectedChoreId;
+      this.selectedChoreId = newChore.id;
 
       try {
         // Assign the chore
         await this.assignSelectedChore(memberName);
       } finally {
-        // Restore original selected chore to avoid interfering with other assignments
-        this.selectedChore = originalSelectedChore;
+        // Restore original selectedChoreId to avoid interfering with other assignments
+        this.selectedChoreId = originalSelectedChoreId;
 
         // Remove from unassigned after assignment
         const index = this.chores.findIndex(c => c.id === newChore.id);
@@ -2368,13 +2367,28 @@ const app = createApp({
       // Readonly computed values for display data
       loading: Vue.computed(() => this.loading),
       error: Vue.computed(() => this.error),
-      selectedChore: Vue.toRef(this, 'selectedChore'),
+      selectedChore: Vue.computed(() => {
+        // First check if we have a selectedChoreId (for regular chores)
+        if (this.selectedChoreId) {
+          return this.chores.find(c => c.id === this.selectedChoreId) || null;
+        }
+        // Then check if we have a selectedQuicklistChore
+        if (this.selectedQuicklistChore) {
+          return this.selectedQuicklistChore;
+        }
+        return null;
+      }),
       selectedChoreId: Vue.toRef(this, 'selectedChoreId'),
       selectedQuicklistChore: Vue.toRef(this, 'selectedQuicklistChore'),
       // lightweight selection store for centralized selection handling
       selectionStore: {
         state: {
-          selectedChore: Vue.toRef(this, 'selectedChore'),
+          selectedChore: Vue.computed(() => {
+        if (this.selectedChoreId) {
+          return this.chores.find(c => c.id === this.selectedChoreId) || null;
+        }
+        return this.selectedQuicklistChore || null;
+      }),
           selectedChoreId: Vue.toRef(this, 'selectedChoreId'),
           selectedQuicklistChore: Vue.toRef(this, 'selectedQuicklistChore')
         },
