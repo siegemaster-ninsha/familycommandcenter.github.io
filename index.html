@@ -16,6 +16,10 @@
     <!-- External dependencies -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <!-- Pinia with proper dependencies -->
+    <script src="https://unpkg.com/vue-demi@0.14.6/lib/index.iife.js"></script>
+    <script src="https://unpkg.com/pinia@2.1.7/dist/pinia.iife.js"></script>
 
     <!-- Shoelace Web Components -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.0/dist/themes/light.css" />
@@ -113,6 +117,20 @@
 
     <!-- Theme initialization is now handled by config.js -->
     <script src="utils/helpers.js"></script>
+
+    <!-- Phase 0: Infrastructure -->
+    <script src="services/api.js"></script>
+    <script src="widgets/base/widget-types.js"></script>
+    <script src="widgets/base/WidgetBase.js"></script>
+    <script src="widgets/base/widget-registry.js"></script>
+
+    <!-- Phase 1: Pinia Stores -->
+    <script src="stores/auth.js"></script>
+    <script src="stores/ui.js"></script>
+    <script src="stores/chores.js"></script>
+    <script src="stores/shopping.js"></script>
+    <script src="stores/family.js"></script>
+    <script src="stores/dashboard.js"></script>
 
     <!-- Shoelace debugging script -->
     <script>
@@ -226,7 +244,7 @@
                 <!-- Dynamic Page Title -->
                 <div class="flex flex-wrap justify-between gap-3 p-2 sm:p-4">
                   <p class="text-primary-custom tracking-light text-2xl sm:text-[32px] font-bold leading-tight min-w-0">
-                    {{ currentPage === 'chores' ? 'Chores' : currentPage === 'family' ? 'Family Members' : currentPage === 'shopping' ? '' : 'Account Settings' }}
+                    {{ currentPage === 'chores' ? 'Chores' : currentPage === 'dashboard' ? '' : currentPage === 'family' ? 'Family Members' : currentPage === 'shopping' ? '' : 'Account Settings' }}
                   </p>
                   <div class="flex items-center gap-3" v-if="currentPage === 'chores'">
                     <button
@@ -255,14 +273,9 @@
                     <chore-page></chore-page>
                   </div>
 
-                  <!-- Shoelace Chores Page -->
-                  <div v-else-if="currentPage === 'shoelace-chores'">
-                    <shoelace-chore-page></shoelace-chore-page>
-                  </div>
-
-                  <!-- Tailwind Chores Page -->
-                  <div v-else-if="currentPage === 'tailwind-chores'">
-                    <tailwind-chore-page></tailwind-chore-page>
+                  <!-- Dashboard Page -->
+                  <div v-else-if="currentPage === 'dashboard'">
+                    <dashboard-page></dashboard-page>
                   </div>
 
                   <!-- Family Page -->
@@ -301,21 +314,17 @@
     <script src="components/earnings-widget.js"></script>
     <script src="components/family-page.js"></script>
     <script src="components/shopping-page.js"></script>
-    <script src="components/chore-page.js"></script>
     <script src="components/tailwind-chore-page.js"></script>
-
-    <!-- Load modular shoelace components -->
-    <script src="shoelace-chore-page/shared/LoadingSpinner.js"></script>
-    <script src="shoelace-chore-page/shared/ErrorState.js"></script>
-    <script src="shoelace-chore-page/shared/EmptyState.js"></script>
-    <script src="shoelace-chore-page/shared/IconContainer.js"></script>
-    <script src="shoelace-chore-page/ShoelaceQuicklistSection.js"></script>
-    <script src="shoelace-chore-page/UnassignedChoresSection.js"></script>
-    <script src="shoelace-chore-page/ShoelaceFamilyMembersSection.js"></script>
-    <script src="shoelace-chore-page/EarningsSummarySection.js"></script>
-
-    <script src="components/shoelace-chore-page.js"></script>
     <script src="components/account-page.js"></script>
+
+    <!-- Phase 2: Widget System Components -->
+    <script src="components/widget-configurator.js"></script>
+
+    <!-- Phase 2: Example Widgets -->
+    <script src="widgets/earnings-summary-widget.js"></script>
+
+    <!-- Phase 4: Dashboard Page -->
+    <script src="components/dashboard-page.js"></script>
     
     <!-- Load main application -->
     <script src="utils/contrast-audit.js"></script>

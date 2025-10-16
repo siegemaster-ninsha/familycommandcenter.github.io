@@ -259,9 +259,6 @@ const TailwindChorePage = Vue.defineComponent({
           <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('clipboardList', 'lucide', 24, 'text-blue-500') : ''"></div>
           Chores
         </h1>
-        <div class="text-sm text-gray-600">
-          <span class="bg-gray-100 px-2 py-1 rounded">Tailwind Version</span>
-        </div>
       </div>
 
       <!-- Quicklist Section -->

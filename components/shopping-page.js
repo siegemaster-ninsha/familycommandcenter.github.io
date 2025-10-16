@@ -23,7 +23,7 @@ const ShoppingPage = Vue.defineComponent({
                 </button>
             </div>
           </div>
-        
+        </div>
         <!-- Loading state -->
         <div v-if="loading" class="text-center py-8">
           <div class="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full border-primary-500 border-t-transparent"></div>

@@ -3,6 +3,18 @@
 // Configure Vue for Shoelace custom elements
 const { createApp } = Vue;
 
+// Initialize Pinia (state management)
+const pinia = Pinia.createPinia();
+console.log('✅ Pinia initialized');
+
+// Initialize API Service
+if (window.initializeApiService) {
+  window.initializeApiService();
+}
+
+// Phase 1: Store instances will be initialized after app.use(pinia)
+// Store initialization happens in initializeApp() function below
+
 const app = createApp({
   data() {
     return {
@@ -101,8 +113,7 @@ const app = createApp({
       // Nav items (extensible)
       navItems: [
         { key: 'chores', label: 'Chores' },
-        { key: 'shoelace-chores', label: 'Chores (Shoelace)' },
-        { key: 'tailwind-chores', label: 'Chores (Tailwind)' },
+        { key: 'dashboard', label: 'Dashboard' },
         { key: 'family', label: 'Family' },
         { key: 'shopping', label: 'Shopping' },
         { key: 'account', label: 'Account' }
@@ -2563,8 +2574,6 @@ function checkAndRegisterComponents() {
     'EarningsWidgetComponent',
     'FamilyPageComponent',
     'ShoppingPageComponent',
-    'ChorePageComponent',
-    'ShoelaceChorePageComponent',
     'TailwindChorePageComponent',
     'AccountPageComponent',
     'NavMenuComponent'
@@ -2617,13 +2626,7 @@ function checkAndRegisterComponents() {
   app.component('shopping-page', window.ShoppingPageComponent);
   
   console.log('📦 Registering chore-page');
-  app.component('chore-page', window.ChorePageComponent);
-
-  console.log('📦 Registering shoelace-chore-page');
-  app.component('shoelace-chore-page', window.ShoelaceChorePageComponent);
-
-  console.log('📦 Registering tailwind-chore-page');
-  app.component('tailwind-chore-page', window.TailwindChorePageComponent);
+  app.component('chore-page', window.TailwindChorePageComponent);
 
   console.log('📦 Registering account-page');
   app.component('account-page', window.AccountPageComponent);
@@ -2631,8 +2634,63 @@ function checkAndRegisterComponents() {
   console.log('📦 Registering nav-menu');
   app.component('nav-menu', window.NavMenuComponent);
 
+  console.log('📦 Registering widget-configurator');
+  app.component('widget-configurator', window.WidgetConfiguratorComponent);
+
+  console.log('📦 Registering dashboard-page');
+  app.component('dashboard-page', window.DashboardPageComponent);
+
 
   console.log('✅ All components registered, mounting app...');
+
+  // Use Pinia for state management
+  app.use(pinia);
+  console.log('✅ Pinia plugin added to app');
+
+  // Initialize Pinia stores (Phase 1)
+  try {
+    // Create store instances
+    const authStore = useAuthStore();
+    const uiStore = useUIStore();
+    const choresStore = useChoresStore();
+    const shoppingStore = useShoppingStore();
+    const familyStore = useFamilyStore();
+    const dashboardStore = useDashboardStore();
+    
+    console.log('✅ All stores initialized');
+    
+    // Initialize auth from existing session
+    authStore.initAuth().then(() => {
+      console.log('✅ Auth store initialized');
+    }).catch(error => {
+      console.error('Auth initialization error:', error);
+    });
+    
+    // Make stores available globally for debugging
+    if (typeof window !== 'undefined') {
+      window.stores = {
+        auth: authStore,
+        ui: uiStore,
+        chores: choresStore,
+        shopping: shoppingStore,
+        family: familyStore,
+        dashboard: dashboardStore
+      };
+      
+      // Debug helper
+      window.debugStores = function() {
+        console.log('=== Pinia Stores Debug Info ===');
+        console.log('Auth:', authStore.$state);
+        console.log('UI:', uiStore.$state);
+        console.log('Chores:', { count: choresStore.choreCount, quicklist: choresStore.quicklistCount });
+        console.log('Shopping:', { items: shoppingStore.itemCount, stores: shoppingStore.stores.length });
+        console.log('Family:', { members: familyStore.memberCount });
+        console.log('Dashboard:', { widgets: dashboardStore.widgetCount });
+      };
+    }
+  } catch (error) {
+    console.error('❌ Store initialization error:', error);
+  }
 
   // Mount the app
   app.mount('#app');
