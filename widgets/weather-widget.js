@@ -14,38 +14,49 @@
  */
 
 // Widget Metadata
-const WeatherWidgetMetadata = {
+const WeatherWidgetMetadata = window.WidgetTypes.createWidgetMetadata({
   id: 'weather',
   name: 'Weather',
   description: 'Current weather and 7-day forecast',
-  icon: '🌤️',
+  icon: 'cloud',
   category: 'information',
-  version: '1.0.0',
-  author: 'Family Command Center',
   
-  // Widget size and layout
-  defaultSize: {
-    width: 4,
-    height: 3,
-    minWidth: 3,
-    minHeight: 2,
-    maxWidth: 6,
-    maxHeight: 4
-  },
+  defaultSize: { w: 4, h: 3 },
+  minSize: { w: 3, h: 2 },
+  maxSize: { w: 6, h: 4 },
   
-  // Configuration options
   configurable: true,
-  configurableSettings: {
+  refreshable: true,
+  refreshInterval: 1800000, // 30 minutes in milliseconds
+  
+  permissions: [],
+  requiresAuth: false,
+  requiredStores: [],
+  
+  features: {
+    exportData: false,
+    print: false,
+    fullscreen: false,
+    notifications: false
+  }
+});
+
+// Widget Settings Schema
+WeatherWidgetMetadata.settings = {
+  schema: {
     location: {
       type: 'text',
       label: 'Location',
+      description: 'Enter city name (e.g., "Seattle, WA") or "auto" to use device location',
+      required: false,
       default: 'auto',
-      placeholder: 'City name or "auto" for current location',
-      description: 'Enter city name (e.g., "Seattle, WA") or "auto" to use device location'
+      placeholder: 'City name or "auto"'
     },
     units: {
       type: 'select',
       label: 'Temperature Units',
+      description: 'Choose Fahrenheit or Celsius',
+      required: false,
       default: 'imperial',
       options: [
         { value: 'imperial', label: 'Fahrenheit (°F)' },
@@ -55,33 +66,19 @@ const WeatherWidgetMetadata = {
     showForecast: {
       type: 'boolean',
       label: 'Show 7-Day Forecast',
-      default: true
+      description: 'Display the weekly forecast',
+      required: false,
+      default: true,
+      toggleLabel: 'Show forecast'
     },
     showDetails: {
       type: 'boolean',
       label: 'Show Weather Details',
+      description: 'Show humidity, wind speed, etc.',
+      required: false,
       default: true,
-      description: 'Show humidity, wind speed, etc.'
-    },
-    refreshInterval: {
-      type: 'number',
-      label: 'Refresh Interval (minutes)',
-      default: 30,
-      min: 10,
-      max: 120,
-      description: 'How often to refresh weather data'
+      toggleLabel: 'Show details'
     }
-  },
-  
-  // Features
-  refreshable: true,
-  exportable: false,
-  
-  // Permissions
-  permissions: {
-    requiresAuth: false,
-    requiresLocation: true,
-    roles: ['parent', 'child']
   }
 };
 
@@ -134,22 +131,22 @@ const WeatherWidget = {
   computed: {
     // Get location from settings or use 'auto'
     locationSetting() {
-      return this.settings.location || 'auto';
+      return this.config?.settings?.location || this.metadata.settings.schema.location.default;
     },
     
     // Temperature units
     units() {
-      return this.settings.units || 'imperial';
+      return this.config?.settings?.units || this.metadata.settings.schema.units.default;
     },
     
     // Show forecast?
     showForecast() {
-      return this.settings.showForecast !== false;
+      return this.config?.settings?.showForecast !== false;
     },
     
     // Show details?
     showDetails() {
-      return this.settings.showDetails !== false;
+      return this.config?.settings?.showDetails !== false;
     },
     
     // Temperature symbol
@@ -394,7 +391,7 @@ const WeatherWidget = {
       <!-- Widget Header -->
       <div class="widget-header">
         <h3 class="widget-title">
-          {{ metadata.icon }} {{ metadata.name }}
+          🌤️ {{ metadata.name }}
           <span v-if="locationName" class="text-xs text-gray-600 ml-2">{{ locationName }}</span>
         </h3>
         <div class="widget-actions">
@@ -510,12 +507,10 @@ const WeatherWidget = {
   `
 };
 
-// Register the widget
-if (window.widgetRegistry) {
+// Register widget
+if (typeof window !== 'undefined' && window.widgetRegistry) {
   window.widgetRegistry.register(WeatherWidgetMetadata, WeatherWidget);
-  console.log('✅ Weather widget registered');
-} else {
-  console.error('Widget registry not found');
+  console.log('✅ Weather Widget registered');
 }
 
 // Export for use
