@@ -19,7 +19,7 @@ class ApiService {
     const headers = {
       'Content-Type': 'application/json',
       ...(this.accountId && { 'X-Account-Id': this.accountId }),
-      ...authHeader,
+      ...(authHeader && { 'Authorization': authHeader }),
       ...options.headers
     };
 
