@@ -236,8 +236,37 @@ const WeatherWidget = {
     
     // Geocode a location string (city name) to coordinates
     async geocodeLocation(location) {
-      // For demo purposes, use a simple mapping
-      // In production, you'd use OpenWeatherMap Geocoding API or similar
+      // Check if we should use real geocoding API
+      const useRealAPI = window.WEATHER_CONFIG && !window.WEATHER_CONFIG.useMockData;
+      
+      if (useRealAPI) {
+        try {
+          const baseUrl = CONFIG.apiUrl;
+          const url = `${baseUrl}/weather/geocode?location=${encodeURIComponent(location)}`;
+          
+          const response = await fetch(url);
+          if (!response.ok) {
+            throw new Error('Geocoding failed');
+          }
+          
+          const data = await response.json();
+          
+          if (data.location) {
+            this.coordinates = {
+              lat: data.location.lat,
+              lon: data.location.lon
+            };
+            this.locationName = `${data.location.name}${data.location.state ? ', ' + data.location.state : ''}, ${data.location.country}`;
+            this.locationError = null;
+            console.log('✅ Location geocoded via backend:', this.locationName);
+            return;
+          }
+        } catch (error) {
+          console.error('Backend geocoding failed, using fallback:', error);
+        }
+      }
+      
+      // Fallback: Use simple mapping for demo/offline mode
       const locationMap = {
         'seattle': { lat: 47.6062, lon: -122.3321, name: 'Seattle, WA' },
         'new york': { lat: 40.7128, lon: -74.0060, name: 'New York, NY' },
@@ -266,9 +295,116 @@ const WeatherWidget = {
     
     // Fetch weather data from API
     async fetchWeatherData() {
-      // NOTE: In production, you would use a real weather API like OpenWeatherMap
-      // For now, using mock data with randomization
+      // Check if we should use real API or mock data
+      const useRealAPI = window.WEATHER_CONFIG && !window.WEATHER_CONFIG.useMockData;
       
+      if (useRealAPI) {
+        await this.fetchRealWeatherData();
+      } else {
+        await this.fetchMockWeatherData();
+      }
+    },
+    
+    // Fetch real weather data from backend proxy
+    async fetchRealWeatherData() {
+      try {
+        const baseUrl = CONFIG.apiUrl;
+        
+        // Call backend proxy endpoints
+        const currentUrl = `${baseUrl}/weather/current?lat=${this.coordinates.lat}&lon=${this.coordinates.lon}&units=${this.units}`;
+        const forecastUrl = `${baseUrl}/weather/forecast?lat=${this.coordinates.lat}&lon=${this.coordinates.lon}&units=${this.units}`;
+        
+        const [currentResponse, forecastResponse] = await Promise.all([
+          fetch(currentUrl),
+          fetch(forecastUrl)
+        ]);
+        
+        if (!currentResponse.ok || !forecastResponse.ok) {
+          throw new Error('Weather API request failed');
+        }
+        
+        const currentData = await currentResponse.json();
+        const forecastData = await forecastResponse.json();
+        
+        // Parse current weather from backend response
+        this.currentWeather = {
+          temp: currentData.weather.temp,
+          feelsLike: currentData.weather.feelsLike,
+          description: currentData.weather.description,
+          icon: currentData.weather.icon,
+          humidity: currentData.weather.humidity,
+          windSpeed: currentData.weather.windSpeed,
+          windDirection: this.degreesToDirection(currentData.weather.windDeg)
+        };
+        
+        // Use forecast from backend (already grouped by day)
+        this.forecast = forecastData.forecast.slice(0, 7);
+        
+        // Update location name
+        if (currentData.weather.location) {
+          this.locationName = `${currentData.weather.location.name}, ${currentData.weather.location.country}`;
+        }
+        
+        this.useMockData = false;
+        console.log('✅ Real weather data loaded from backend for', this.locationName);
+      } catch (error) {
+        console.error('Failed to fetch real weather data from backend:', error);
+        // Fall back to mock data
+        await this.fetchMockWeatherData();
+      }
+    },
+    
+    // Group forecast by day and calculate daily highs/lows
+    groupForecastByDay(forecastList) {
+      const dailyMap = new Map();
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      
+      forecastList.forEach(item => {
+        const date = new Date(item.dt * 1000);
+        const dayKey = date.toDateString();
+        
+        if (!dailyMap.has(dayKey)) {
+          dailyMap.set(dayKey, {
+            day: days[date.getDay()],
+            date: date,
+            temps: [],
+            icons: [],
+            descriptions: []
+          });
+        }
+        
+        const dayData = dailyMap.get(dayKey);
+        dayData.temps.push(item.main.temp);
+        dayData.icons.push(item.weather[0].icon);
+        dayData.descriptions.push(item.weather[0].description);
+      });
+      
+      // Convert to array and calculate highs/lows
+      return Array.from(dailyMap.values()).map(day => ({
+        day: day.day,
+        high: Math.round(Math.max(...day.temps)),
+        low: Math.round(Math.min(...day.temps)),
+        icon: this.getMostCommonIcon(day.icons),
+        description: this.getMostCommonDescription(day.descriptions)
+      }));
+    },
+    
+    // Get most common icon from list
+    getMostCommonIcon(icons) {
+      const counts = {};
+      icons.forEach(icon => counts[icon] = (counts[icon] || 0) + 1);
+      return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+    },
+    
+    // Get most common description from list
+    getMostCommonDescription(descriptions) {
+      const counts = {};
+      descriptions.forEach(desc => counts[desc] = (counts[desc] || 0) + 1);
+      return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+    },
+    
+    // Fetch mock weather data (fallback/demo mode)
+    async fetchMockWeatherData() {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 500));
       
@@ -393,8 +529,11 @@ const WeatherWidget = {
         <h3 class="widget-title">
           🌤️ {{ metadata.name }}
           <span v-if="locationName" class="text-xs text-gray-600 ml-2">{{ locationName }}</span>
-          <span class="text-xs" style="color: #f59e0b; margin-left: 0.5rem;">
+          <span v-if="useMockData" class="text-xs" style="color: #f59e0b; margin-left: 0.5rem;">
             (Demo Data)
+          </span>
+          <span v-else class="text-xs" style="color: #10b981; margin-left: 0.5rem;">
+            🔴 Live
           </span>
         </h3>
         <div class="widget-actions">
