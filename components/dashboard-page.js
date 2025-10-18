@@ -20,7 +20,16 @@ const DashboardPageComponent = {
       showWidgetPicker: false,
       showConfigurator: false,
       currentWidget: null,
-      loading: true
+      loading: true,
+      
+      // Resize state
+      resizingWidget: null,
+      resizeStartX: 0,
+      resizeStartY: 0,
+      resizeStartWidth: 0,
+      resizeStartHeight: 0,
+      resizeGridCellWidth: 0,
+      resizeGridCellHeight: 0
     };
   },
   
@@ -149,6 +158,107 @@ const DashboardPageComponent = {
         return null;
       }
       return widget.component;
+    },
+    
+    // Resize Methods
+    startResize(event, widget) {
+      event.preventDefault();
+      event.stopPropagation();
+      
+      // Get widget metadata for size constraints
+      const widgetDef = widgetRegistry.get(widget.widgetId);
+      if (!widgetDef) return;
+      
+      this.resizingWidget = widget.instanceId;
+      
+      // Get mouse/touch position
+      const clientX = event.clientX || (event.touches && event.touches[0]?.clientX) || 0;
+      const clientY = event.clientY || (event.touches && event.touches[0]?.clientY) || 0;
+      
+      this.resizeStartX = clientX;
+      this.resizeStartY = clientY;
+      this.resizeStartWidth = widget.size?.w || 2;
+      this.resizeStartHeight = widget.size?.h || 2;
+      
+      // Calculate grid cell dimensions
+      const gridElement = event.target.closest('.dashboard-grid');
+      if (gridElement) {
+        const gridStyles = window.getComputedStyle(gridElement);
+        const gap = parseFloat(gridStyles.gap) || 24;
+        const gridWidth = gridElement.offsetWidth;
+        const columns = parseInt(gridStyles.gridTemplateColumns.split(' ').length) || 12;
+        
+        this.resizeGridCellWidth = (gridWidth - (gap * (columns - 1))) / columns;
+        
+        // Estimate row height from auto-rows minmax
+        this.resizeGridCellHeight = 250; // matches auto-rows minmax(250px, auto)
+      }
+      
+      // Add event listeners
+      document.addEventListener('mousemove', this.handleResize);
+      document.addEventListener('mouseup', this.stopResize);
+      document.addEventListener('touchmove', this.handleResize);
+      document.addEventListener('touchend', this.stopResize);
+      
+      // Add class to body to prevent text selection
+      document.body.classList.add('resizing-widget');
+    },
+    
+    handleResize(event) {
+      if (!this.resizingWidget) return;
+      
+      const widget = this.widgets.find(w => w.instanceId === this.resizingWidget);
+      if (!widget) return;
+      
+      const widgetDef = widgetRegistry.get(widget.widgetId);
+      if (!widgetDef) return;
+      
+      // Get current mouse/touch position
+      const clientX = event.clientX || (event.touches && event.touches[0]?.clientX) || 0;
+      const clientY = event.clientY || (event.touches && event.touches[0]?.clientY) || 0;
+      
+      // Calculate delta
+      const deltaX = clientX - this.resizeStartX;
+      const deltaY = clientY - this.resizeStartY;
+      
+      // Calculate new size in grid units
+      const newWidth = Math.max(
+        widgetDef.metadata.minSize.w,
+        Math.min(
+          widgetDef.metadata.maxSize.w,
+          this.resizeStartWidth + Math.round(deltaX / this.resizeGridCellWidth)
+        )
+      );
+      
+      const newHeight = Math.max(
+        widgetDef.metadata.minSize.h,
+        Math.min(
+          widgetDef.metadata.maxSize.h,
+          this.resizeStartHeight + Math.round(deltaY / this.resizeGridCellHeight)
+        )
+      );
+      
+      // Update widget size
+      if (!widget.size) {
+        widget.size = { w: 2, h: 2 };
+      }
+      widget.size.w = newWidth;
+      widget.size.h = newHeight;
+    },
+    
+    stopResize() {
+      if (!this.resizingWidget) return;
+      
+      // Save the new layout
+      this.dashboardStore.saveDashboard();
+      
+      // Clean up
+      this.resizingWidget = null;
+      document.removeEventListener('mousemove', this.handleResize);
+      document.removeEventListener('mouseup', this.stopResize);
+      document.removeEventListener('touchmove', this.handleResize);
+      document.removeEventListener('touchend', this.stopResize);
+      document.body.classList.remove('resizing-widget');
     }
   },
   
@@ -220,7 +330,7 @@ const DashboardPageComponent = {
           v-for="widget in widgets"
           :key="widget.instanceId"
           class="dashboard-widget-wrapper"
-          :class="{ 'edit-mode': isEditMode }"
+          :class="{ 'edit-mode': isEditMode, 'resizing': resizingWidget === widget.instanceId }"
           :style="{
             gridColumn: 'span ' + (widget.size?.w || 2),
             gridRow: 'span ' + (widget.size?.h || 2)
@@ -244,6 +354,19 @@ const DashboardPageComponent = {
                 Remove
               </button>
             </div>
+          </div>
+          
+          <!-- Resize Handle (Only in Edit Mode) -->
+          <div 
+            v-if="isEditMode"
+            class="widget-resize-handle"
+            @mousedown="startResize($event, widget)"
+            @touchstart="startResize($event, widget)"
+            title="Drag to resize"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M16 0v16h-16l16-16zm-2 14v-2h-2v2h2zm-4 0v-4h-4v4h4z"/>
+            </svg>
           </div>
         </div>
       </div>

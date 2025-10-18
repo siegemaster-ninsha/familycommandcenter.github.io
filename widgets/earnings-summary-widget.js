@@ -9,9 +9,9 @@ const EarningsSummaryMetadata = window.WidgetTypes.createWidgetMetadata({
   icon: 'dollarSign',
   category: 'family',
   
-  defaultSize: { w: 2, h: 2 },
-  minSize: { w: 1, h: 1 },
-  maxSize: { w: 4, h: 3 },
+  defaultSize: { w: 2, h: 3 },
+  minSize: { w: 2, h: 2 },
+  maxSize: { w: 4, h: 4 },
   
   configurable: true,
   refreshable: true,

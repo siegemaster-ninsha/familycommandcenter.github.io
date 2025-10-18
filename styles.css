@@ -1766,7 +1766,7 @@ sl-spinner {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   gap: 1.5rem;
-  auto-rows: minmax(200px, auto);
+  auto-rows: minmax(250px, auto);
   padding-bottom: 2rem;
 }
 
@@ -1787,7 +1787,7 @@ sl-spinner {
   .dashboard-grid {
     grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
-    auto-rows: minmax(180px, auto);
+    auto-rows: minmax(220px, auto);
   }
   
   .dashboard-widget-wrapper {
@@ -1819,13 +1819,71 @@ sl-spinner {
 .dashboard-widget-wrapper.edit-mode {
   outline: 2px dashed var(--color-primary-300);
   outline-offset: 4px;
-  cursor: move;
 }
 
 .dashboard-widget-wrapper.edit-mode:hover {
   outline-color: var(--color-primary-500);
-  transform: scale(1.02);
+  transform: scale(1.01);
   z-index: 10;
+}
+
+.dashboard-widget-wrapper.resizing {
+  outline-color: var(--color-primary-600);
+  outline-width: 3px;
+  outline-style: solid;
+  transform: none;
+  transition: none;
+  z-index: 100;
+}
+
+/* Resize Handle */
+.widget-resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-500);
+  border-top-left-radius: 0.5rem;
+  cursor: nwse-resize;
+  opacity: 0;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+  color: white;
+  z-index: 10;
+}
+
+.dashboard-widget-wrapper.edit-mode:hover .widget-resize-handle {
+  opacity: 0.7;
+}
+
+.widget-resize-handle:hover {
+  opacity: 1 !important;
+  background: var(--color-primary-600);
+}
+
+.widget-resize-handle:active {
+  background: var(--color-primary-700);
+}
+
+.dashboard-widget-wrapper.resizing .widget-resize-handle {
+  opacity: 1;
+  background: var(--color-primary-700);
+}
+
+/* Prevent text selection during resize */
+body.resizing-widget {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  cursor: nwse-resize !important;
+}
+
+body.resizing-widget * {
+  cursor: nwse-resize !important;
 }
 
 /* Widget Container */
@@ -1833,7 +1891,7 @@ sl-spinner {
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: 200px;
+  min-height: 300px;
   background: var(--color-bg-card);
   border: 1px solid var(--color-border-card);
   border-radius: 0.75rem;
