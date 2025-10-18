@@ -130,17 +130,31 @@ const EarningsSummaryWidget = {
     // Required: Implement onRefresh
     async onRefresh() {
       try {
+        // Check if user is authenticated first
+        const authStore = window.stores?.auth;
+        if (!authStore?.isAuthenticated) {
+          console.log('User not authenticated, using mock data');
+          this.useMockData = true;
+          return;
+        }
+        
+        // Try to load real family data
+        console.log('Loading family members from API...');
         await this.familyStore.loadMembers();
+        
         // If we got data, disable mock mode
-        if (this.familyStore.members.length > 0) {
+        if (this.familyStore.members && this.familyStore.members.length > 0) {
+          console.log(`✅ Loaded ${this.familyStore.members.length} family members from API`);
           this.useMockData = false;
         } else {
-          // No real data, use mock data
+          // No real data returned, use mock data
+          console.log('No family members found, using mock data');
           this.useMockData = true;
         }
       } catch (error) {
         // If API fails (CORS, not logged in, etc), use mock data for demo
-        console.log('Could not load family data, using mock data for demo:', error.message);
+        console.warn('Failed to load family data, using mock data for demo:', error.message);
+        console.error('Full error:', error);
         this.useMockData = true;
       }
     },
@@ -180,7 +194,9 @@ const EarningsSummaryWidget = {
       <div class="widget-header">
         <h3 class="widget-title">
           {{ metadata.name }}
-          <span v-if="useMockData" class="text-xs text-gray-500 ml-2">(Demo Data)</span>
+          <span v-if="useMockData" class="text-xs" style="color: #f59e0b; margin-left: 0.5rem;">
+            (Demo Data - <a href="#" @click.prevent="$root.setCurrentPage('account')" style="text-decoration: underline;">Login to see real data</a>)
+          </span>
         </h3>
         <div class="widget-actions">
           <button

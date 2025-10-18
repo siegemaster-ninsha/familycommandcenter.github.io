@@ -393,6 +393,9 @@ const WeatherWidget = {
         <h3 class="widget-title">
           🌤️ {{ metadata.name }}
           <span v-if="locationName" class="text-xs text-gray-600 ml-2">{{ locationName }}</span>
+          <span class="text-xs" style="color: #f59e0b; margin-left: 0.5rem;">
+            (Demo Data)
+          </span>
         </h3>
         <div class="widget-actions">
           <button
@@ -434,9 +437,9 @@ const WeatherWidget = {
         
         <!-- Weather Content -->
         <div v-else-if="hasWeatherData" class="weather-content">
-          <!-- Location Error Notice -->
-          <div v-if="locationError" class="text-xs text-yellow-600 mb-2 p-2 bg-yellow-50 rounded">
-            ⚠️ {{ locationError }}
+          <!-- Location Notice -->
+          <div v-if="locationError" class="text-xs text-blue-600 mb-2 p-2 bg-blue-50 rounded mx-4 mt-4">
+            ℹ️ {{ locationError }}
           </div>
           
           <!-- Current Weather -->
