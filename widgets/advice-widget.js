@@ -166,9 +166,6 @@ const AdviceWidget = {
         <h3 class="widget-title">
           <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon(metadata.icon, 'lucide', 20, 'mr-2') : ''"></div>
           {{ metadata.name }}
-          <span v-if="showFavoritesOnly" class="text-xs text-purple-600 ml-2">
-            (Favorites)
-          </span>
         </h3>
         <div class="widget-actions">
           <button
@@ -198,7 +195,7 @@ const AdviceWidget = {
           <!-- Current Advice -->
           <div class="advice-main">
             <blockquote class="advice-text">
-              "{{ formatAdvice(displayAdvice) }}"
+              "{{ formatAdvice(currentAdvice) }}"
             </blockquote>
 
           </div>

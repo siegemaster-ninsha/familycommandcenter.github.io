@@ -25,7 +25,7 @@ const TriviaWidgetMetadata = window.WidgetTypes.createWidgetMetadata({
 
   configurable: true,
   refreshable: true,
-  refreshInterval: 300000, // 5 minutes
+  refreshInterval: 600000, // 10 minutes (reduced API calls)
 
   permissions: [],
   requiresAuth: false,
@@ -237,9 +237,15 @@ const TriviaWidget = {
   },
 
   mounted() {
-    // Initialize session token & load first question
+    // Initialize session token
     this.initializeSessionToken();
-    this.loadRandomQuestion();
+
+    // Add small random delay to initial API call to prevent simultaneous requests
+    setTimeout(() => {
+      if (this.refreshable && !this.currentQuestion) {
+        this.refresh();
+      }
+    }, Math.random() * 2000); // 0-2 second random delay
 
     // Debug: Track focus events
     this.$nextTick(() => {
