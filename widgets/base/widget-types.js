@@ -147,6 +147,12 @@ const WidgetCategories = {
     description: 'Informational widgets',
     icon: 'info'
   },
+  ENTERTAINMENT: {
+    id: 'entertainment',
+    name: 'Entertainment',
+    description: 'Fun and entertainment widgets',
+    icon: 'gamepad2'
+  },
   OTHER: {
     id: 'other',
     name: 'Other',

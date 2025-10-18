@@ -21,7 +21,7 @@ const TriviaWidgetMetadata = window.WidgetTypes.createWidgetMetadata({
 
   defaultSize: { w: 4, h: 2 },
   minSize: { w: 2, h: 2 },
-  maxSize: { w: 8, h: 4 },
+  maxSize: { w: 12, h: 4 },
 
   configurable: true,
   refreshable: true,
@@ -124,6 +124,10 @@ const TriviaWidget = {
 
       // Current question
       currentQuestion: null,
+      shuffledAnswers: [],
+
+      // Explicit answer selection
+      selectedAnswer: null,
 
       // UI state
       showAnswer: false,
@@ -134,6 +138,11 @@ const TriviaWidget = {
 
       // Question history
       answeredQuestions: [],
+
+      // Rate limiting
+      lastApiCall: 0,
+      apiCallDelay: 1000,
+      maxRetries: 3,
 
       // Mock questions for fallback
       mockQuestions: [
@@ -168,22 +177,26 @@ const TriviaWidget = {
   computed: {
     // Get category from settings
     selectedCategory() {
-      return this.config?.settings?.category || '';
+      const category = this.settings.category;
+      return (typeof category === 'object') ? category?.value || '' : category || '';
     },
 
     // Get difficulty from settings
     selectedDifficulty() {
-      return this.config?.settings?.difficulty || '';
+      const difficulty = this.settings.difficulty;
+      return (typeof difficulty === 'object') ? difficulty?.value || '' : difficulty || '';
     },
 
     // Get question type from settings
     selectedQuestionType() {
-      return this.config?.settings?.questionType || '';
+      const questionType = this.settings.questionType;
+      return (typeof questionType === 'object') ? questionType?.value || '' : questionType || '';
     },
 
     // Auto-reveal enabled?
     autoReveal() {
-      return this.config?.settings?.autoReveal || false;
+      const autoReveal = this.settings.autoReveal;
+      return (typeof autoReveal === 'object') ? autoReveal?.value || false : autoReveal || false;
     },
 
     // Has question to display
@@ -193,13 +206,8 @@ const TriviaWidget = {
 
     // All possible answers (for multiple choice)
     allAnswers() {
-      if (!this.currentQuestion) return [];
-
-      const answers = [...(this.currentQuestion.incorrect_answers || [])];
-      const correctIndex = Math.floor(Math.random() * (answers.length + 1));
-      answers.splice(correctIndex, 0, this.currentQuestion.correct_answer);
-
-      return answers;
+      // Return cached shuffled answers to prevent re-shuffling on re-render
+      return this.shuffledAnswers;
     },
 
     // Correct answer
@@ -220,21 +228,47 @@ const TriviaWidget = {
     // Question type
     questionType() {
       return this.currentQuestion?.type || '';
+    },
+
+    // Check if currently rate limited
+    isRateLimited() {
+      return this.apiCallDelay > 1000; // Consider rate limited if delay > 1 second
     }
   },
 
   mounted() {
-    // Initialize session token
+    // Initialize session token & load first question
     this.initializeSessionToken();
-
-    // Load first question
     this.loadRandomQuestion();
+
+    // Debug: Track focus events
+    this.$nextTick(() => {
+      setTimeout(() => {
+        const buttons = this.$el.querySelectorAll('.answer-option');
+        console.log('🔍 Mounted - Active element:', document.activeElement);
+        console.log('🔍 Answer buttons:', buttons.length);
+        buttons.forEach((btn, idx) => {
+          if (document.activeElement === btn) {
+            console.log(`🔍 Button ${idx} (${btn.textContent.trim()}) IS FOCUSED!`);
+          }
+          btn.addEventListener('focus', () => {
+            console.log(`🔍 FOCUS EVENT on button ${idx}: ${btn.textContent.trim()}`);
+            console.trace('Focus stack trace');
+          });
+        });
+      }, 100);
+    });
   },
 
   beforeUnmount() {
-    // Clean up auto-reveal timer
-    if (this.autoRevealTimer) {
-      clearTimeout(this.autoRevealTimer);
+    if (this.autoRevealTimer) clearTimeout(this.autoRevealTimer);
+  },
+
+  watch: {
+    // Intentionally no-op to avoid unintended refreshes
+    settings: {
+      handler() {},
+      deep: true
     }
   },
 
@@ -244,83 +278,99 @@ const TriviaWidget = {
       await this.loadRandomQuestion();
     },
 
-    // Initialize session token to avoid duplicate questions
     async initializeSessionToken() {
       try {
         const response = await fetch('https://opentdb.com/api_token.php?command=request');
         const data = await response.json();
-
         if (data.response_code === 0) {
           this.sessionToken = data.token;
-          console.log('✅ Trivia session token initialized');
         }
-      } catch (error) {
-        console.warn('Failed to initialize trivia session token:', error);
-        // Continue without session token
+      } catch {
+        // Continue without a token
       }
     },
 
-    // Load random trivia question from API
+    // Core: ensure state is reset before/after fetch
     async loadRandomQuestion() {
+      // rate limiting
+      const now = Date.now();
+      const delta = now - this.lastApiCall;
+      if (delta < this.apiCallDelay) {
+        await new Promise(r => setTimeout(r, this.apiCallDelay - delta));
+      }
+      this.lastApiCall = Date.now();
+
       try {
-        // Build API URL with parameters
         let apiUrl = 'https://opentdb.com/api.php?amount=1';
+        if (this.selectedCategory) apiUrl += `&category=${this.selectedCategory}`;
+        if (this.selectedDifficulty) apiUrl += `&difficulty=${this.selectedDifficulty}`;
+        if (this.selectedQuestionType) apiUrl += `&type=${this.selectedQuestionType}`;
+        if (this.sessionToken) apiUrl += `&token=${this.sessionToken}`;
 
-        if (this.selectedCategory) {
-          apiUrl += `&category=${this.selectedCategory}`;
+        const resp = await fetch(apiUrl);
+        if (!resp.ok) {
+          if (resp.status === 429) {
+            // Exponential backoff for rate limiting
+            this.apiCallDelay = Math.min(this.apiCallDelay * 2, 30000);
+            console.warn(`Rate limited by trivia API. Waiting ${this.apiCallDelay}ms before retry.`);
+            await new Promise(resolve => setTimeout(resolve, this.apiCallDelay));
+            return this.loadRandomQuestion();
+          }
+          throw new Error(`HTTP ${resp.status}`);
         }
 
-        if (this.selectedDifficulty) {
-          apiUrl += `&difficulty=${this.selectedDifficulty}`;
-        }
-
-        if (this.selectedQuestionType) {
-          apiUrl += `&type=${this.selectedQuestionType}`;
-        }
-
-        if (this.sessionToken) {
-          apiUrl += `&token=${this.sessionToken}`;
-        }
-
-        console.log('Loading trivia question from:', apiUrl);
-        const response = await response = await fetch(apiUrl);
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch trivia question');
-        }
-
-        const data = await response.json();
+        const data = await resp.json();
 
         if (data.response_code === 0 && data.results.length > 0) {
-          // Decode HTML entities in question and answers
-          const question = this.decodeHtmlEntities(data.results[0]);
-          this.currentQuestion = question;
+          const raw = data.results[0];
+          const q = {
+            category: this.decodeHtmlEntities(raw.category),
+            type: raw.type,
+            difficulty: raw.difficulty,
+            question: this.decodeHtmlEntities(raw.question),
+            correct_answer: this.decodeHtmlEntities(raw.correct_answer),
+            incorrect_answers: raw.incorrect_answers.map(a => this.decodeHtmlEntities(a))
+          };
+
+          // Reset view state for the new question
+          this.currentQuestion = q;
           this.showAnswer = false;
+          this.selectedAnswer = null;
 
-          // Set up auto-reveal if enabled
+          this.shuffleAnswers();
+          this.apiCallDelay = 1000;
           this.setupAutoReveal();
-
-          console.log('✅ New trivia question loaded');
         } else if (data.response_code === 4) {
-          // Token exhausted, reset it
           await this.resetSessionToken();
-          await this.loadRandomQuestion(); // Retry
+          await this.loadRandomQuestion();
         } else {
-          // Use mock data as fallback
           this.loadMockQuestion();
         }
-      } catch (error) {
-        console.error('Trivia API failed, using mock data:', error);
+      } catch {
         this.loadMockQuestion();
       }
     },
 
-    // Load mock question for fallback
     loadMockQuestion() {
-      const randomIndex = Math.floor(Math.random() * this.mockQuestions.length);
-      this.currentQuestion = this.mockQuestions[randomIndex];
+      const idx = Math.floor(Math.random() * this.mockQuestions.length);
+      this.currentQuestion = this.mockQuestions[idx];
       this.showAnswer = false;
+      this.selectedAnswer = null;
+      this.shuffleAnswers();
       this.setupAutoReveal();
+    },
+
+    shuffleAnswers() {
+      if (!this.currentQuestion) {
+        this.shuffledAnswers = [];
+        return;
+      }
+      const answers = [...(this.currentQuestion.incorrect_answers || [])];
+      const correctIndex = Math.floor(Math.random() * (answers.length + 1));
+      answers.splice(correctIndex, 0, this.currentQuestion.correct_answer);
+
+      // NOTE: keys will be unique per question using question text + index
+      this.shuffledAnswers = answers;
     },
 
     // Decode HTML entities in API response
@@ -330,72 +380,79 @@ const TriviaWidget = {
       return textarea.value;
     },
 
-    // Set up auto-reveal timer
     setupAutoReveal() {
-      if (this.autoRevealTimer) {
-        clearTimeout(this.autoRevealTimer);
-      }
-
+      if (this.autoRevealTimer) clearTimeout(this.autoRevealTimer);
       if (this.autoReveal) {
         this.autoRevealTimer = setTimeout(() => {
-          this.showAnswer = true;
-        }, 10000); // 10 seconds
+          this.revealAnswer();
+        }, 10000);
       }
     },
 
-    // Reveal the answer
+    // New: explicit selection model
+    choose(answer) {
+      if (this.showAnswer) return; // lock selection once revealed
+      this.selectedAnswer = answer;
+    },
+
     revealAnswer() {
       this.showAnswer = true;
-
-      // Clear auto-reveal timer
       if (this.autoRevealTimer) {
         clearTimeout(this.autoRevealTimer);
         this.autoRevealTimer = null;
       }
 
-      // Add to answered questions
+      // Set up auto-advance to next question after 7 seconds
+      if (this.autoReveal) {
+        this.autoRevealTimer = setTimeout(() => {
+          this.nextQuestion();
+        }, 7000);
+      }
+
+      // Track history with correctness based on explicit selection
       if (this.currentQuestion) {
         this.answeredQuestions.unshift({
           ...this.currentQuestion,
           answeredAt: new Date().toISOString(),
-          wasCorrect: null // Could implement scoring later
+          wasCorrect:
+            this.selectedAnswer == null
+              ? null
+              : this.selectedAnswer === this.correctAnswer
         });
-
-        // Keep only last 10 answered questions
         if (this.answeredQuestions.length > 10) {
           this.answeredQuestions = this.answeredQuestions.slice(0, 10);
         }
       }
     },
 
-    // Load next question
     nextQuestion() {
+      // Clear any existing auto-advance timer
+      if (this.autoRevealTimer) {
+        clearTimeout(this.autoRevealTimer);
+        this.autoRevealTimer = null;
+      }
       this.loadRandomQuestion();
     },
 
-    // Reset session token
     async resetSessionToken() {
       if (!this.sessionToken) return;
-
+      const now = Date.now();
+      const delta = now - this.lastApiCall;
+      if (delta < this.apiCallDelay) {
+        await new Promise(r => setTimeout(r, this.apiCallDelay - delta));
+      }
+      this.lastApiCall = Date.now();
       try {
         await fetch(`https://opentdb.com/api_token.php?command=reset&token=${this.sessionToken}`);
-        console.log('✅ Trivia session token reset');
-      } catch (error) {
-        console.warn('Failed to reset trivia session token:', error);
-      }
+      } catch {}
     },
 
-    // Format category name for display
     formatCategory(category) {
       return category.replace(/^(Entertainment|Science):\s/, '');
     },
-
-    // Format difficulty for display
     formatDifficulty(difficulty) {
       return difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
     },
-
-    // Format question type for display
     formatQuestionType(type) {
       return type === 'boolean' ? 'True/False' : 'Multiple Choice';
     }
@@ -433,6 +490,14 @@ const TriviaWidget = {
         </div>
       </div>
 
+      <!-- Rate Limiting Indicator -->
+      <div v-if="isRateLimited" class="rate-limit-indicator">
+        <div class="rate-limit-badge">
+          <span>⏱️ Rate Limited</span>
+          <small>Waiting {{ Math.round(apiCallDelay / 1000) }}s</small>
+        </div>
+      </div>
+
       <!-- Widget Body -->
       <div class="widget-body trivia-body">
         <!-- Question Display -->
@@ -455,23 +520,52 @@ const TriviaWidget = {
 
             <!-- Multiple Choice Answers -->
             <div v-if="questionType === 'multiple'" class="answer-options">
-              <div
-                v-for="(answer, index) in allAnswers"
-                :key="index"
+              <button
+                v-for="(answer, idx) in allAnswers"
+                :key="(currentQuestion?.question || '') + '::' + idx"
+                type="button"
                 class="answer-option"
+                tabindex="-1"
                 :class="{
+                  'selected': !showAnswer && selectedAnswer === answer,
                   'correct': showAnswer && answer === correctAnswer,
-                  'incorrect': showAnswer && answer !== correctAnswer && allAnswers.indexOf(answer) !== allAnswers.indexOf(correctAnswer)
+                  'incorrect': showAnswer && answer !== correctAnswer
                 }"
+                @click="choose(answer)"
+                @mousedown.prevent
+                :aria-pressed="(!showAnswer && selectedAnswer === answer) ? 'true' : 'false'"
               >
                 {{ answer }}
-              </div>
+              </button>
             </div>
 
-            <!-- Answer Section -->
+            <!-- True/False -->
+            <div v-else-if="questionType === 'boolean'" class="answer-options">
+              <button
+                v-for="(answer, idx) in (['True','False'])"
+                :key="(currentQuestion?.question || '') + '::bool::' + idx"
+                type="button"
+                class="answer-option"
+                tabindex="-1"
+                :class="{
+                  'selected': !showAnswer && selectedAnswer === answer,
+                  'correct': showAnswer && answer === correctAnswer,
+                  'incorrect': showAnswer && answer !== correctAnswer
+                }"
+                @click="choose(answer)"
+                @mousedown.prevent
+                :aria-pressed="(!showAnswer && selectedAnswer === answer) ? 'true' : 'false'"
+              >
+                {{ answer }}
+              </button>
+            </div>
+
             <div v-if="showAnswer" class="answer-section">
               <div class="correct-answer">
                 <strong>Correct Answer:</strong> {{ correctAnswer }}
+                <span v-if="selectedAnswer != null">
+                  — You {{ selectedAnswer === correctAnswer ? 'got it right.' : 'chose: ' + selectedAnswer + '.' }}
+                </span>
               </div>
             </div>
 

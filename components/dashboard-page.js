@@ -48,6 +48,12 @@ const DashboardPageComponent = {
     
     gridColumns() {
       return this.dashboardStore.settings.gridColumns;
+    },
+
+    // Get actual grid columns from CSS (for resize calculations)
+    actualGridColumns() {
+      // This will be calculated in the resize logic from CSS grid-template-columns
+      return 24; // Default fallback
     }
   },
   
@@ -177,8 +183,8 @@ const DashboardPageComponent = {
       
       this.resizeStartX = clientX;
       this.resizeStartY = clientY;
-      this.resizeStartWidth = widget.size?.w || 2;
-      this.resizeStartHeight = widget.size?.h || 2;
+      this.resizeStartWidth = widget.size?.w || 1;
+      this.resizeStartHeight = widget.size?.h || 1;
       
       // Calculate grid cell dimensions
       const gridElement = event.target.closest('.dashboard-grid');
@@ -186,12 +192,27 @@ const DashboardPageComponent = {
         const gridStyles = window.getComputedStyle(gridElement);
         const gap = parseFloat(gridStyles.gap) || 16;
         const gridWidth = gridElement.offsetWidth;
-        const columns = parseInt(gridStyles.gridTemplateColumns.split(' ').length) || 24;
+
+        // Parse grid-template-columns to get actual column count
+        // Handle both 'repeat(24, 1fr)' and individual column definitions
+        const templateColumns = gridStyles.gridTemplateColumns;
+        let columns = 24; // fallback
+
+        if (templateColumns.includes('repeat(')) {
+          // Parse repeat function: repeat(24, 1fr)
+          const repeatMatch = templateColumns.match(/repeat\((\d+),\s*[^)]+\)/);
+          if (repeatMatch) {
+            columns = parseInt(repeatMatch[1]);
+          }
+        } else {
+          // Count individual column definitions
+          columns = templateColumns.split(' ').length;
+        }
 
         this.resizeGridCellWidth = (gridWidth - (gap * (columns - 1))) / columns;
-        
+
         // Estimate row height from auto-rows minmax
-        this.resizeGridCellHeight = 180; // matches auto-rows minmax(180px, auto)
+        this.resizeGridCellHeight = 80; // matches auto-rows minmax(160px, auto)
       }
       
       // Add event listeners

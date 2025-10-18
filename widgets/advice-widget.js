@@ -21,7 +21,7 @@ const AdviceWidgetMetadata = window.WidgetTypes.createWidgetMetadata({
 
   defaultSize: { w: 4, h: 2 },
   minSize: { w: 2, h: 2 },
-  maxSize: { w: 8, h: 4 },
+  maxSize: { w: 12, h: 4 },
 
   configurable: true,
   refreshable: true,
@@ -42,14 +42,6 @@ const AdviceWidgetMetadata = window.WidgetTypes.createWidgetMetadata({
 // Widget Settings Schema
 AdviceWidgetMetadata.settings = {
   schema: {
-    showFavoritesOnly: {
-      type: 'boolean',
-      label: 'Show Favorites Only',
-      description: 'Only display advice you\'ve saved as favorites',
-      required: false,
-      default: false,
-      toggleLabel: 'Favorites only'
-    },
     autoRefresh: {
       type: 'boolean',
       label: 'Auto-Refresh',
@@ -88,9 +80,6 @@ const AdviceWidget = {
       // Current advice
       currentAdvice: null,
 
-      // Favorites storage (localStorage)
-      favorites: [],
-
 
       // Categories for filtering
       categories: [
@@ -110,35 +99,13 @@ const AdviceWidget = {
   },
 
   computed: {
-    // Get favorites from localStorage
-    favoritesList() {
-      const stored = localStorage.getItem('advice-widget-favorites');
-      return stored ? JSON.parse(stored) : [];
-    },
-
-    // Show favorites only?
-    showFavoritesOnly() {
-      return this.config?.settings?.showFavoritesOnly || false;
-    },
-
-    // Current advice for display
-    displayAdvice() {
-      if (this.showFavoritesOnly) {
-        return this.favoritesList.length > 0 ? this.favoritesList[0] : null;
-      }
-      return this.currentAdvice;
-    },
-
     // Has advice to display
     hasAdvice() {
-      return this.displayAdvice !== null;
+      return this.currentAdvice !== null;
     }
   },
 
   mounted() {
-    // Load favorites from localStorage
-    this.loadFavorites();
-
     // Get initial advice
     this.loadRandomAdvice();
   },
@@ -171,49 +138,6 @@ const AdviceWidget = {
     },
 
 
-    // Save advice to favorites
-    saveToFavorites(advice) {
-      const favorites = this.favoritesList;
-      const exists = favorites.find(fav => fav.slip_id === advice.slip_id);
-
-      if (!exists) {
-        favorites.unshift(advice);
-        localStorage.setItem('advice-widget-favorites', JSON.stringify(favorites));
-        this.notify('Advice saved to favorites!', 'success');
-      } else {
-        this.notify('Already in favorites', 'info');
-      }
-    },
-
-    // Remove from favorites
-    removeFromFavorites(adviceId) {
-      const favorites = this.favoritesList.filter(fav => fav.slip_id !== adviceId);
-      localStorage.setItem('advice-widget-favorites', JSON.stringify(favorites));
-      this.notify('Removed from favorites', 'info');
-    },
-
-    // Load favorites from localStorage
-    loadFavorites() {
-      this.favorites = this.favoritesList;
-    },
-
-    // Share advice
-    shareAdvice(advice) {
-      const text = `${advice.advice} - Daily Advice`;
-      const url = window.location.href;
-
-      if (navigator.share) {
-        navigator.share({
-          title: 'Daily Advice',
-          text: text,
-          url: url
-        });
-      } else {
-        // Fallback: copy to clipboard
-        navigator.clipboard.writeText(`${text}\n\n${url}`);
-        this.notify('Advice copied to clipboard!', 'success');
-      }
-    },
 
     // Format advice text for display
     formatAdvice(advice) {
@@ -277,54 +201,9 @@ const AdviceWidget = {
               "{{ formatAdvice(displayAdvice) }}"
             </blockquote>
 
-            <div class="advice-actions">
-              <button
-                @click="saveToFavorites(displayAdvice)"
-                class="btn btn-sm btn-secondary"
-                title="Save to favorites"
-              >
-                ❤️ Favorite
-              </button>
-              <button
-                @click="shareAdvice(displayAdvice)"
-                class="btn btn-sm btn-secondary"
-                title="Share advice"
-              >
-                📤 Share
-              </button>
-            </div>
           </div>
 
 
-          <!-- Favorites Section -->
-          <div v-if="favoritesList.length > 0" class="advice-favorites">
-            <h4 class="favorites-title">❤️ Favorites</h4>
-            <div class="favorites-list">
-              <div
-                v-for="favorite in favoritesList.slice(0, 3)"
-                :key="favorite.slip_id"
-                class="favorite-item"
-              >
-                <div class="favorite-advice">
-                  "{{ formatAdvice(favorite) }}"
-                </div>
-                <button
-                  @click="removeFromFavorites(favorite.slip_id)"
-                  class="btn btn-xs btn-secondary favorite-remove"
-                  title="Remove from favorites"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-            <button
-              v-if="favoritesList.length > 3"
-              @click="showFavoritesOnly = !showFavoritesOnly"
-              class="btn btn-sm btn-secondary favorites-toggle"
-            >
-              {{ showFavoritesOnly ? 'Show All' : 'Show More' }}
-            </button>
-          </div>
         </div>
 
         <!-- Loading State -->
