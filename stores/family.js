@@ -85,6 +85,9 @@ const useFamilyStore = Pinia.defineStore('family', {
       try {
         const data = await apiService.get(CONFIG.API.ENDPOINTS.FAMILY_MEMBERS);
         
+        // API returns { familyMembers: [...] } not { people: [...] }
+        const familyMembers = data.familyMembers || data.people || [];
+        
         if (preserveOptimisticUpdates) {
           // preserve earnings from optimistic updates
           const earningsMap = {};
@@ -95,12 +98,12 @@ const useFamilyStore = Pinia.defineStore('family', {
             };
           });
           
-          this.members = (data.people || []).map(member => ({
+          this.members = familyMembers.map(member => ({
             ...member,
             ...(earningsMap[member.name] || {})
           }));
         } else {
-          this.members = data.people || [];
+          this.members = familyMembers;
         }
         
         console.log('✅ Family members loaded:', this.members.length);
