@@ -2624,6 +2624,9 @@ function checkAndRegisterComponents() {
 
   console.log('📦 Registering advice-widget');
   app.component('advice-widget', window.AdviceWidget);
+
+  console.log('📦 Registering trivia-widget');
+  app.component('trivia-widget', window.TriviaWidget);
   
   console.log('📦 Registering family-page');
   app.component('family-page', window.FamilyPageComponent);
