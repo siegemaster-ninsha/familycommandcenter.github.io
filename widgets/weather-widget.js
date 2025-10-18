@@ -241,7 +241,7 @@ const WeatherWidget = {
       
       if (useRealAPI) {
         try {
-          const baseUrl = CONFIG.apiUrl;
+          const baseUrl = CONFIG.API.BASE_URL;
           const url = `${baseUrl}/weather/geocode?location=${encodeURIComponent(location)}`;
           
           const response = await fetch(url);
@@ -308,7 +308,7 @@ const WeatherWidget = {
     // Fetch real weather data from backend proxy
     async fetchRealWeatherData() {
       try {
-        const baseUrl = CONFIG.apiUrl;
+        const baseUrl = CONFIG.API.BASE_URL;
         
         // Call backend proxy endpoints
         const currentUrl = `${baseUrl}/weather/current?lat=${this.coordinates.lat}&lon=${this.coordinates.lon}&units=${this.units}`;
