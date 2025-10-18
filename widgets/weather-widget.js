@@ -21,9 +21,9 @@ const WeatherWidgetMetadata = window.WidgetTypes.createWidgetMetadata({
   icon: 'cloud',
   category: 'information',
   
-  defaultSize: { w: 4, h: 3 },
+  defaultSize: { w: 6, h: 4 },
   minSize: { w: 3, h: 2 },
-  maxSize: { w: 6, h: 4 },
+  maxSize: { w: 12, h: 6 },
   
   configurable: true,
   refreshable: true,
@@ -527,7 +527,8 @@ const WeatherWidget = {
       <!-- Widget Header -->
       <div class="widget-header">
         <h3 class="widget-title">
-          🌤️ {{ metadata.name }}
+          <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon(metadata.icon, 'lucide', 20, 'mr-2') : ''"></div>
+          {{ metadata.name }}
           <span v-if="locationName" class="text-xs text-gray-600 ml-2">{{ locationName }}</span>
           <span v-if="useMockData" class="text-xs" style="color: #f59e0b; margin-left: 0.5rem;">
             (Demo Data)
@@ -543,7 +544,7 @@ const WeatherWidget = {
             class="widget-action-btn"
             title="Configure"
           >
-            ⚙️
+            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('settings', 'lucide', 16, '') : ''"></div>
           </button>
           <button
             v-if="refreshable"
@@ -552,7 +553,7 @@ const WeatherWidget = {
             title="Refresh"
             :disabled="loading"
           >
-            🔄
+            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('refresh-cw', 'lucide', 16, '') : ''"></div>
           </button>
         </div>
       </div>
@@ -638,7 +639,9 @@ const WeatherWidget = {
         
         <!-- No Data State -->
         <div v-else class="text-center py-8">
-          <div class="text-4xl mb-2">🌤️</div>
+          <div class="w-16 h-16 mx-auto mb-3">
+            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('cloud', 'lucide', 64, 'text-gray-400') : ''"></div>
+          </div>
           <p class="text-sm text-gray-600">No weather data available</p>
           <button @click="refresh" class="btn btn-sm btn-primary mt-2">
             Load Weather

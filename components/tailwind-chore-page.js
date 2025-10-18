@@ -406,7 +406,7 @@ const TailwindChorePage = Vue.defineComponent({
       <div class="w-full">
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
           <h2 class="text-gray-900 text-2xl font-bold leading-tight mb-6 flex items-center gap-2">
-            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('dollarSign', 'lucide', 20, 'text-blue-500') : ''"></div>
+            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('dollar-sign', 'lucide', 20, 'text-blue-500') : ''"></div>
             Earnings Summary
           </h2>
 

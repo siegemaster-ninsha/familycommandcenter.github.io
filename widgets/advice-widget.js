@@ -19,9 +19,9 @@ const AdviceWidgetMetadata = window.WidgetTypes.createWidgetMetadata({
   icon: 'lightbulb',
   category: 'lifestyle',
 
-  defaultSize: { w: 2, h: 2 },
+  defaultSize: { w: 4, h: 2 },
   minSize: { w: 2, h: 2 },
-  maxSize: { w: 4, h: 3 },
+  maxSize: { w: 8, h: 4 },
 
   configurable: true,
   refreshable: true,
@@ -91,10 +91,6 @@ const AdviceWidget = {
       // Favorites storage (localStorage)
       favorites: [],
 
-      // Search state
-      searchQuery: '',
-      searchResults: [],
-      isSearching: false,
 
       // Categories for filtering
       categories: [
@@ -174,34 +170,6 @@ const AdviceWidget = {
       }
     },
 
-    // Search for advice by keyword
-    async searchAdvice(query) {
-      if (!query.trim()) {
-        this.searchResults = [];
-        return;
-      }
-
-      this.isSearching = true;
-
-      try {
-        const response = await fetch(`https://api.adviceslip.com/advice/search/${encodeURIComponent(query)}`);
-
-        if (response.ok) {
-          const data = await response.json();
-          this.searchResults = data.slips || [];
-        } else {
-          // If search fails, try to find matches in our mock data
-          this.searchResults = this.mockAdvice.filter(advice =>
-            advice.advice.toLowerCase().includes(query.toLowerCase())
-          );
-        }
-      } catch (error) {
-        console.error('Search failed:', error);
-        this.searchResults = [];
-      } finally {
-        this.isSearching = false;
-      }
-    },
 
     // Save advice to favorites
     saveToFavorites(advice) {
@@ -231,7 +199,7 @@ const AdviceWidget = {
 
     // Share advice
     shareAdvice(advice) {
-      const text = `"${advice.advice}" - Daily Advice`;
+      const text = `${advice.advice} - Daily Advice`;
       const url = window.location.href;
 
       if (navigator.share) {
@@ -272,7 +240,8 @@ const AdviceWidget = {
       <!-- Widget Header -->
       <div class="widget-header">
         <h3 class="widget-title">
-          💡 {{ metadata.name }}
+          <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon(metadata.icon, 'lucide', 20, 'mr-2') : ''"></div>
+          {{ metadata.name }}
           <span v-if="showFavoritesOnly" class="text-xs text-purple-600 ml-2">
             (Favorites)
           </span>
@@ -284,7 +253,7 @@ const AdviceWidget = {
             class="widget-action-btn"
             title="Configure"
           >
-            ⚙️
+            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('settings', 'lucide', 16, '') : ''"></div>
           </button>
           <button
             v-if="refreshable"
@@ -293,7 +262,7 @@ const AdviceWidget = {
             title="New Advice"
             :disabled="loading"
           >
-            🎲
+            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('shuffle', 'lucide', 16, '') : ''"></div>
           </button>
         </div>
       </div>
@@ -326,52 +295,6 @@ const AdviceWidget = {
             </div>
           </div>
 
-          <!-- Search Section -->
-          <div class="advice-search">
-            <div class="search-input-group">
-              <input
-                v-model="searchQuery"
-                @input="searchAdvice(searchQuery)"
-                type="text"
-                placeholder="Search for advice..."
-                class="search-input"
-              />
-              <button
-                v-if="searchQuery"
-                @click="searchQuery = ''"
-                class="btn btn-sm btn-secondary search-clear"
-                title="Clear search"
-              >
-                ✕
-              </button>
-            </div>
-
-            <!-- Search Results -->
-            <div v-if="searchResults.length > 0" class="search-results">
-              <div
-                v-for="result in searchResults.slice(0, 5)"
-                :key="result.slip_id"
-                class="search-result"
-                @click="currentAdvice = result; searchQuery = ''"
-              >
-                <div class="search-advice">
-                  "{{ formatAdvice(result) }}"
-                </div>
-                <button
-                  @click.stop="saveToFavorites(result)"
-                  class="btn btn-xs btn-secondary"
-                  title="Save to favorites"
-                >
-                  ❤️
-                </button>
-              </div>
-            </div>
-
-            <!-- No Search Results -->
-            <div v-else-if="searchQuery && !isSearching" class="search-no-results">
-              No advice found for "{{ searchQuery }}"
-            </div>
-          </div>
 
           <!-- Favorites Section -->
           <div v-if="favoritesList.length > 0" class="advice-favorites">

@@ -6,12 +6,12 @@ const EarningsSummaryMetadata = window.WidgetTypes.createWidgetMetadata({
   id: 'earnings-summary',
   name: 'Earnings Summary',
   description: 'Display family earnings and completion statistics',
-  icon: 'dollarSign',
+  icon: 'dollar-sign',
   category: 'family',
   
-  defaultSize: { w: 2, h: 3 },
+  defaultSize: { w: 4, h: 4 },
   minSize: { w: 2, h: 2 },
-  maxSize: { w: 4, h: 4 },
+  maxSize: { w: 8, h: 6 },
   
   configurable: true,
   refreshable: true,
@@ -193,6 +193,7 @@ const EarningsSummaryWidget = {
       <!-- Widget Header -->
       <div class="widget-header">
         <h3 class="widget-title">
+          <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon(metadata.icon, 'lucide', 20, 'mr-2') : ''"></div>
           {{ metadata.name }}
           <span v-if="useMockData" class="text-xs" style="color: #f59e0b; margin-left: 0.5rem;">
             (Demo Data - <a href="#" @click.prevent="$root.setCurrentPage('account')" style="text-decoration: underline;">Login to see real data</a>)
@@ -205,7 +206,7 @@ const EarningsSummaryWidget = {
             class="widget-action-btn"
             title="Configure"
           >
-            ⚙️
+            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('settings', 'lucide', 16, '') : ''"></div>
           </button>
           <button
             v-if="refreshable"
@@ -214,7 +215,7 @@ const EarningsSummaryWidget = {
             title="Refresh"
             :disabled="loading"
           >
-            🔄
+            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('refresh-cw', 'lucide', 16, '') : ''"></div>
           </button>
           <button
             v-if="metadata.features.exportData"
@@ -222,7 +223,7 @@ const EarningsSummaryWidget = {
             class="widget-action-btn"
             title="Export Data"
           >
-            📥
+            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('download', 'lucide', 16, '') : ''"></div>
           </button>
           <button
             v-if="editable"
@@ -230,7 +231,7 @@ const EarningsSummaryWidget = {
             class="widget-action-btn text-red-500"
             title="Remove Widget"
           >
-            ✕
+            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('x', 'lucide', 16, '') : ''"></div>
           </button>
         </div>
       </div>

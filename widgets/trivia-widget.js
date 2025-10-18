@@ -16,12 +16,12 @@ const TriviaWidgetMetadata = window.WidgetTypes.createWidgetMetadata({
   id: 'trivia',
   name: 'Trivia Challenge',
   description: 'Test your knowledge with trivia questions',
-  icon: 'questionMark',
+  icon: 'help-circle',
   category: 'entertainment',
 
-  defaultSize: { w: 2, h: 2 },
+  defaultSize: { w: 4, h: 2 },
   minSize: { w: 2, h: 2 },
-  maxSize: { w: 4, h: 3 },
+  maxSize: { w: 8, h: 4 },
 
   configurable: true,
   refreshable: true,
@@ -406,7 +406,8 @@ const TriviaWidget = {
       <!-- Widget Header -->
       <div class="widget-header">
         <h3 class="widget-title">
-          🎯 {{ metadata.name }}
+          <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon(metadata.icon, 'lucide', 20, 'mr-2') : ''"></div>
+          {{ metadata.name }}
           <span v-if="questionCategory" class="text-xs text-gray-600 ml-2">
             ({{ formatCategory(questionCategory) }})
           </span>
@@ -418,7 +419,7 @@ const TriviaWidget = {
             class="widget-action-btn"
             title="Configure"
           >
-            ⚙️
+            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('settings', 'lucide', 16, '') : ''"></div>
           </button>
           <button
             v-if="refreshable"
@@ -427,7 +428,7 @@ const TriviaWidget = {
             title="Next Question"
             :disabled="loading"
           >
-            🎲
+            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('shuffle', 'lucide', 16, '') : ''"></div>
           </button>
         </div>
       </div>

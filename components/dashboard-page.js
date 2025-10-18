@@ -184,14 +184,14 @@ const DashboardPageComponent = {
       const gridElement = event.target.closest('.dashboard-grid');
       if (gridElement) {
         const gridStyles = window.getComputedStyle(gridElement);
-        const gap = parseFloat(gridStyles.gap) || 24;
+        const gap = parseFloat(gridStyles.gap) || 16;
         const gridWidth = gridElement.offsetWidth;
-        const columns = parseInt(gridStyles.gridTemplateColumns.split(' ').length) || 12;
-        
+        const columns = parseInt(gridStyles.gridTemplateColumns.split(' ').length) || 24;
+
         this.resizeGridCellWidth = (gridWidth - (gap * (columns - 1))) / columns;
         
         // Estimate row height from auto-rows minmax
-        this.resizeGridCellHeight = 250; // matches auto-rows minmax(250px, auto)
+        this.resizeGridCellHeight = 180; // matches auto-rows minmax(180px, auto)
       }
       
       // Add event listeners
@@ -221,20 +221,23 @@ const DashboardPageComponent = {
       const deltaX = clientX - this.resizeStartX;
       const deltaY = clientY - this.resizeStartY;
       
-      // Calculate new size in grid units
+      // Calculate new size in grid units (more granular for better control)
+      const widthIncrement = Math.round(deltaX / (this.resizeGridCellWidth / 2)); // Half-cell increments
+      const heightIncrement = Math.round(deltaY / (this.resizeGridCellHeight / 2)); // Half-cell increments
+
       const newWidth = Math.max(
         widgetDef.metadata.minSize.w,
         Math.min(
           widgetDef.metadata.maxSize.w,
-          this.resizeStartWidth + Math.round(deltaX / this.resizeGridCellWidth)
+          this.resizeStartWidth + widthIncrement
         )
       );
-      
+
       const newHeight = Math.max(
         widgetDef.metadata.minSize.h,
         Math.min(
           widgetDef.metadata.maxSize.h,
-          this.resizeStartHeight + Math.round(deltaY / this.resizeGridCellHeight)
+          this.resizeStartHeight + heightIncrement
         )
       );
       
@@ -268,7 +271,8 @@ const DashboardPageComponent = {
       <div class="dashboard-header">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div class="flex-1">
-            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
+              <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('layout-dashboard', 'lucide', 24, 'text-primary-600') : ''"></div>
               Dashboard
             </h1>
             <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400">
@@ -281,16 +285,16 @@ const DashboardPageComponent = {
               @click="openWidgetPicker"
               class="btn-primary flex items-center gap-2 px-4 py-2.5"
             >
-              <span class="text-lg">➕</span>
+              <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('plus', 'lucide', 20, 'text-white') : ''"></div>
               <span class="font-medium">Add Widget</span>
             </button>
-            
+
             <button
               @click="toggleEditMode"
               :class="isEditMode ? 'btn-primary' : 'btn-secondary'"
               class="flex items-center gap-2 px-4 py-2.5"
             >
-              <span class="text-lg">{{ isEditMode ? '✓' : '✏️' }}</span>
+              <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon(isEditMode ? 'check' : 'settings', 'lucide', 20, '') : ''"></div>
               <span class="font-medium">{{ isEditMode ? 'Done' : 'Customize' }}</span>
             </button>
           </div>
@@ -355,13 +359,25 @@ const DashboardPageComponent = {
               </button>
             </div>
           </div>
-          
-          <!-- Resize Handle (Only in Edit Mode) -->
-          <div 
+
+          <!-- Remove Button (Top-Right Corner) -->
+          <button
+            v-if="isEditMode"
+            @click.stop="handleRemoveWidget(widget.instanceId)"
+            class="widget-remove-btn"
+            title="Remove widget"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 0C3.58 0 0 3.58 0 8s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8zM5.5 4L8 6.5 10.5 4 12 5.5 9.5 8 12 10.5 10.5 12 8 9.5 5.5 12 4 10.5 6.5 8 4 5.5z"/>
+            </svg>
+          </button>
+
+          <!-- Resize Handle (Bottom-Right Corner) -->
+          <div
             v-if="isEditMode"
             class="widget-resize-handle"
-            @mousedown="startResize($event, widget)"
-            @touchstart="startResize($event, widget)"
+            @mousedown.stop="startResize($event, widget)"
+            @touchstart.stop="startResize($event, widget)"
             title="Drag to resize"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
@@ -394,8 +410,8 @@ const DashboardPageComponent = {
               >
                 <div class="flex flex-col gap-3">
                   <div class="flex items-start gap-3">
-                    <div class="text-4xl flex-shrink-0">
-                      {{ widget.metadata.icon === 'dollarSign' ? '💵' : '📊' }}
+                    <div class="w-12 h-12 flex-shrink-0 flex items-center justify-center">
+                      <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon(widget.metadata.icon, 'lucide', 48, 'text-primary-600') : ''"></div>
                     </div>
                     <div class="flex-1 min-w-0">
                       <h4 class="font-bold text-gray-900 dark:text-gray-100 text-base mb-1">
@@ -411,7 +427,7 @@ const DashboardPageComponent = {
                       {{ widget.metadata.category }}
                     </span>
                     <span v-if="widget.metadata.configurable" class="text-xs px-2.5 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full font-medium">
-                      ⚙️ Config
+                      <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('settings', 'lucide', 16, 'mr-1') : ''"></div>Config
                     </span>
                   </div>
                 </div>
