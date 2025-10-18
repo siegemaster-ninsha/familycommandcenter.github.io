@@ -2621,6 +2621,9 @@ function checkAndRegisterComponents() {
   
   console.log('📦 Registering weather-widget');
   app.component('weather-widget', window.WeatherWidget);
+
+  console.log('📦 Registering advice-widget');
+  app.component('advice-widget', window.AdviceWidget);
   
   console.log('📦 Registering family-page');
   app.component('family-page', window.FamilyPageComponent);

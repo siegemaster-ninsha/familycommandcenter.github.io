@@ -1886,6 +1886,196 @@ body.resizing-widget * {
   cursor: nwse-resize !important;
 }
 
+/* Advice Widget Styles */
+.advice-widget .advice-body {
+  padding: 0;
+}
+
+.advice-widget .advice-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  height: 100%;
+}
+
+.advice-widget .advice-main {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, var(--color-secondary-50) 0%, var(--color-secondary-100) 100%);
+  border-radius: 0.5rem;
+  margin: 1rem;
+  text-align: center;
+}
+
+.advice-widget .advice-text {
+  font-size: 1.125rem;
+  font-style: italic;
+  line-height: 1.6;
+  color: var(--color-text-primary);
+  margin-bottom: 1rem;
+  quotes: '"' '"';
+}
+
+.advice-widget .advice-text::before {
+  content: open-quote;
+}
+
+.advice-widget .advice-text::after {
+  content: close-quote;
+}
+
+.advice-widget .advice-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.advice-widget .advice-search {
+  padding: 0 1rem;
+}
+
+.advice-widget .search-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.advice-widget .search-input {
+  flex: 1;
+  padding: 0.75rem 3rem 0.75rem 1rem;
+  border: 1px solid var(--color-border-card);
+  border-radius: 0.5rem;
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+}
+
+.advice-widget .search-input:focus {
+  outline: none;
+  border-color: var(--color-primary-400);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
+}
+
+.advice-widget .search-clear {
+  position: absolute;
+  right: 0.5rem;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.advice-widget .search-results {
+  margin-top: 1rem;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border-card);
+  border-radius: 0.5rem;
+  background: var(--color-bg-card);
+}
+
+.advice-widget .search-result {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border-card);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.advice-widget .search-result:last-child {
+  border-bottom: none;
+}
+
+.advice-widget .search-result:hover {
+  background: var(--color-primary-50);
+}
+
+.advice-widget .search-advice {
+  flex: 1;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  line-height: 1.4;
+}
+
+.advice-widget .search-no-results {
+  padding: 1rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.advice-widget .advice-favorites {
+  padding: 0 1rem 1rem 1rem;
+  margin-top: auto;
+}
+
+.advice-widget .favorites-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.advice-widget .favorites-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.advice-widget .favorite-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-card);
+  border-radius: 0.5rem;
+}
+
+.advice-widget .favorite-advice {
+  flex: 1;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  line-height: 1.4;
+}
+
+.advice-widget .favorite-remove {
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.advice-widget .favorite-remove:hover {
+  color: var(--color-error, #ef4444);
+  background: var(--color-error-bg, #fef2f2);
+}
+
+.advice-widget .favorites-toggle {
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+/* Responsive adjustments for advice widget */
+@media (max-width: 768px) {
+  .advice-widget .advice-text {
+    font-size: 1rem;
+  }
+
+  .advice-widget .advice-actions {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .advice-widget .search-input {
+    padding: 0.625rem 2.5rem 0.625rem 0.875rem;
+  }
+}
+
 /* Widget Container */
 .widget-container {
   display: flex;
