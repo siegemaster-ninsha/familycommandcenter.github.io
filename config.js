@@ -770,6 +770,130 @@ const ThemeManager = {
   saveTheme(themeId) {
     localStorage.setItem('selectedTheme', themeId);
     this.applyTheme(themeId);
+  },
+
+  // ===========================================
+  // DARK MODE SYNC (iOS/System Preference)
+  // ===========================================
+
+  // Default themes for light/dark system preferences
+  LIGHT_THEME_DEFAULT: 'default',
+  DARK_THEME_DEFAULT: 'nocturne',
+
+  // Get the system's preferred color scheme
+  getSystemColorScheme() {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'light';
+  },
+
+  // Check if user has manually overridden the system preference
+  hasUserOverride() {
+    return localStorage.getItem('themeOverride') === 'true';
+  },
+
+  // Set user override preference
+  setUserOverride(override) {
+    if (override) {
+      localStorage.setItem('themeOverride', 'true');
+    } else {
+      localStorage.removeItem('themeOverride');
+    }
+  },
+
+  // Get the appropriate theme based on system preference
+  getThemeForSystemPreference(colorScheme) {
+    // Check if there's a saved preference for this color scheme
+    const savedLightTheme = localStorage.getItem('lightTheme');
+    const savedDarkTheme = localStorage.getItem('darkTheme');
+    
+    if (colorScheme === 'dark') {
+      return savedDarkTheme || this.DARK_THEME_DEFAULT;
+    }
+    return savedLightTheme || this.LIGHT_THEME_DEFAULT;
+  },
+
+  // Save theme preference for a specific color scheme
+  saveThemeForColorScheme(themeId, colorScheme) {
+    if (colorScheme === 'dark') {
+      localStorage.setItem('darkTheme', themeId);
+    } else {
+      localStorage.setItem('lightTheme', themeId);
+    }
+  },
+
+  // Handle system color scheme change
+  handleColorSchemeChange(event) {
+    const colorScheme = event.matches ? 'dark' : 'light';
+    console.log('🌓 System color scheme changed to:', colorScheme);
+    
+    // Only auto-switch if user hasn't manually overridden
+    if (!ThemeManager.hasUserOverride()) {
+      const themeId = ThemeManager.getThemeForSystemPreference(colorScheme);
+      console.log('🎨 Auto-switching to theme:', themeId);
+      localStorage.setItem('selectedTheme', themeId);
+      ThemeManager.applyTheme(themeId);
+      
+      // Dispatch event for app components to react
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('theme-changed', {
+          detail: { themeId, colorScheme, source: 'system' }
+        }));
+      }
+    } else {
+      console.log('🎨 User has override preference, not auto-switching');
+    }
+  },
+
+  // Initialize dark mode sync listener
+  initDarkModeSync() {
+    if (typeof window === 'undefined' || !window.matchMedia) {
+      console.log('🌓 Dark mode sync not available (no matchMedia support)');
+      return;
+    }
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    // Add listener for changes
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', this.handleColorSchemeChange);
+    } else if (mediaQuery.addListener) {
+      // Fallback for older browsers
+      mediaQuery.addListener(this.handleColorSchemeChange);
+    }
+
+    console.log('🌓 Dark mode sync initialized, current system preference:', 
+      mediaQuery.matches ? 'dark' : 'light');
+  },
+
+  // Save theme with user override (user explicitly chose a theme)
+  saveThemeWithOverride(themeId) {
+    this.setUserOverride(true);
+    localStorage.setItem('selectedTheme', themeId);
+    this.applyTheme(themeId);
+    
+    // Also save for the current color scheme
+    const currentScheme = this.getSystemColorScheme();
+    this.saveThemeForColorScheme(themeId, currentScheme);
+  },
+
+  // Clear user override and sync with system preference
+  clearOverrideAndSync() {
+    this.setUserOverride(false);
+    const colorScheme = this.getSystemColorScheme();
+    const themeId = this.getThemeForSystemPreference(colorScheme);
+    localStorage.setItem('selectedTheme', themeId);
+    this.applyTheme(themeId);
+    
+    console.log('🌓 Cleared override, synced to system preference:', colorScheme, '-> theme:', themeId);
+    
+    // Dispatch event for app components to react
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('theme-changed', {
+        detail: { themeId, colorScheme, source: 'system-sync' }
+      }));
+    }
   }
 };
 
@@ -779,6 +903,9 @@ const ThemeManager = {
 if (typeof document !== 'undefined') {
   // Initialize theme immediately to prevent flash of unstyled content
   ThemeManager.initializeTheme();
+  
+  // Initialize dark mode sync for iOS/system preference
+  ThemeManager.initDarkModeSync();
 }
 
 // Helper function to get full API URL

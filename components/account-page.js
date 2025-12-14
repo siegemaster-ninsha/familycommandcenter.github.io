@@ -286,7 +286,7 @@ const AccountPage = Vue.defineComponent({
           💾 Data Management
         </h3>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div class="p-6 border-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200" style="border-color: var(--color-border-card);">
               <h4 class="font-medium text-primary-custom mb-3 text-lg">Export Data</h4>
               <p class="text-sm text-secondary-custom mb-4">Download all your family's chore and earnings data</p>
@@ -295,6 +295,22 @@ const AccountPage = Vue.defineComponent({
               class="w-full btn-success touch-target min-h-[48px] font-medium"
             >
               Export Data
+            </button>
+          </div>
+          
+          <!-- Clear Offline Data -->
+          <div class="p-6 border-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200" style="border-color: var(--color-border-card);">
+            <h4 class="font-medium text-primary-custom mb-3 text-lg">Clear Offline Data</h4>
+            <p class="text-sm text-secondary-custom mb-2">Clear cached data stored for offline use</p>
+            <p class="text-xs text-secondary-custom mb-4" v-if="storageStats">
+              {{ storageStats.quota.usageFormatted }} used • {{ storageStats.totalItems }} items cached
+            </p>
+            <button
+              @click="showClearCacheConfirmation = true"
+              :disabled="clearCacheLoading"
+              class="w-full bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white py-3 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 shadow-md hover:shadow-lg touch-target min-h-[48px] font-medium"
+            >
+              {{ clearCacheLoading ? 'Clearing...' : 'Clear Offline Data' }}
             </button>
           </div>
           
@@ -348,6 +364,46 @@ const AccountPage = Vue.defineComponent({
           </div>
         </div>
       </div>
+
+      <!-- Clear Cache Confirmation Modal -->
+      <div v-if="showClearCacheConfirmation" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="p-2 rounded-full" style="background: var(--color-warning-50, #FEF3C7);">
+              <div v-html="Helpers.IconLibrary.getIcon('trash2', 'lucide', 24, '')" style="color: var(--color-warning-700, #B45309);"></div>
+            </div>
+            <h3 class="text-lg font-bold text-primary-custom">Clear Offline Data</h3>
+          </div>
+          <p class="text-secondary-custom mb-4">
+            This will clear all locally cached data used for offline access:
+          </p>
+          <ul class="text-sm text-secondary-custom mb-4 space-y-1 ml-4">
+            <li>• Cached chores and quicklist items</li>
+            <li>• Cached family member data</li>
+            <li>• Service worker cached assets</li>
+            <li>• Pending offline changes (if any)</li>
+          </ul>
+          <p class="text-sm text-secondary-custom mb-6">
+            Your server data will not be affected. The app will re-download data when you're online.
+          </p>
+          
+          <div class="flex gap-3">
+            <button 
+              @click="confirmClearCache"
+              :disabled="clearCacheLoading"
+              class="flex-1 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white py-3 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 shadow-md hover:shadow-lg touch-target min-h-[48px] font-medium"
+            >
+              {{ clearCacheLoading ? 'Clearing...' : 'Yes, Clear Cache' }}
+            </button>
+            <button 
+              @click="showClearCacheConfirmation = false"
+              class="flex-1 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-primary-custom py-3 px-4 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg touch-target min-h-[48px] font-medium"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   `,
   inject: ['currentUser'],
@@ -381,6 +437,11 @@ const AccountPage = Vue.defineComponent({
       showResetConfirmation: false,
       resetLoading: false,
       
+      // Clear cache state
+      showClearCacheConfirmation: false,
+      clearCacheLoading: false,
+      storageStats: null,
+      
       availableThemes: Object.values(CONFIG.THEMES)
     };
   },
@@ -396,6 +457,7 @@ const AccountPage = Vue.defineComponent({
     this.loadUserProfile();
     this.loadCurrentTheme();
     this.loadPreferences();
+    this.loadStorageStats();
     
     // Sync preloaded account settings to local state
     if (this.accountSettings) {
@@ -797,6 +859,52 @@ const AccountPage = Vue.defineComponent({
         console.error('Error resetting data:', error);
       } finally {
         this.resetLoading = false;
+      }
+    },
+
+    // Load storage statistics for display
+    async loadStorageStats() {
+      try {
+        if (window.offlineStorage) {
+          this.storageStats = await window.offlineStorage.getStorageStats();
+          console.log('📊 Storage stats loaded:', this.storageStats);
+        }
+      } catch (error) {
+        console.error('Error loading storage stats:', error);
+        this.storageStats = null;
+      }
+    },
+
+    // Clear all offline cached data
+    async confirmClearCache() {
+      this.clearCacheLoading = true;
+      try {
+        if (window.offlineStorage) {
+          const result = await window.offlineStorage.clearAllCachedData();
+          
+          if (result.success) {
+            this.showClearCacheConfirmation = false;
+            this.showSuccessMessage('Offline data cleared successfully!');
+            
+            // Refresh storage stats
+            await this.loadStorageStats();
+            
+            // Update offline store pending count
+            if (window.useOfflineStore) {
+              const offlineStore = window.useOfflineStore();
+              offlineStore.setPendingSyncCount(0);
+            }
+          } else {
+            throw new Error('Failed to clear some cached data');
+          }
+        } else {
+          throw new Error('Offline storage not available');
+        }
+      } catch (error) {
+        console.error('Error clearing cache:', error);
+        this.showSuccessMessage('Error clearing cache: ' + error.message);
+      } finally {
+        this.clearCacheLoading = false;
       }
     },
 

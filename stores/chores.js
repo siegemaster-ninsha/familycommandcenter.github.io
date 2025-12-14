@@ -1,5 +1,6 @@
 // Chores Store
 // Manages chores, quicklist chores, and chore operations
+// Enhanced with offline support - caches data and falls back when offline
 
 const useChoresStore = Pinia.defineStore('chores', {
   state: () => ({
@@ -10,6 +11,8 @@ const useChoresStore = Pinia.defineStore('chores', {
     multiAssignSelectedMembers: [],
     loading: false,
     error: null,
+    // Offline state tracking
+    isUsingCachedData: false,
     
     // form states
     newChore: {
@@ -105,6 +108,19 @@ const useChoresStore = Pinia.defineStore('chores', {
       return state.chores.filter(c => c.isPendingApproval);
     },
     
+    // get chores pending sync (offline modifications)
+    pendingSyncChores: (state) => {
+      return state.chores.filter(c => c._pending);
+    },
+    
+    // check if a specific chore is pending sync
+    isChoresPendingSync: (state) => {
+      return (choreId) => {
+        const chore = state.chores.find(c => c.id === choreId);
+        return chore ? !!chore._pending : false;
+      };
+    },
+    
     // chore count
     choreCount: (state) => state.chores.length,
     
@@ -113,44 +129,164 @@ const useChoresStore = Pinia.defineStore('chores', {
   },
   
   actions: {
-    // load chores from API
+    // load chores from API with offline cache support
     async loadChores() {
       this.loading = true;
       this.error = null;
+      this.isUsingCachedData = false;
+      
+      const offlineStorage = window.offlineStorage;
+      const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
       
       try {
-        const data = await apiService.get(CONFIG.API.ENDPOINTS.CHORES);
-        this.chores = data.chores || [];
-        console.log('✅ Chores loaded:', this.chores.length);
+        if (isOnline) {
+          // Online: fetch from API and cache
+          const data = await apiService.get(CONFIG.API.ENDPOINTS.CHORES);
+          this.chores = data.chores || [];
+          console.log('✅ Chores loaded from API:', this.chores.length);
+          
+          // Cache the data for offline use
+          if (offlineStorage) {
+            try {
+              await offlineStorage.cacheChores(this.chores);
+            } catch (cacheError) {
+              console.warn('Failed to cache chores:', cacheError);
+            }
+          }
+        } else {
+          // Offline: load from cache
+          await this._loadChoresFromCache();
+        }
       } catch (error) {
-        this.error = error.message;
-        console.error('Failed to load chores:', error);
-        this.chores = [];
+        console.error('Failed to load chores from API:', error);
+        
+        // Try to fall back to cached data
+        if (offlineStorage) {
+          await this._loadChoresFromCache();
+        } else {
+          this.error = error.message;
+          this.chores = [];
+        }
       } finally {
         this.loading = false;
       }
     },
     
-    // load quicklist chores
-    async loadQuicklistChores() {
+    // Helper to load chores from cache
+    async _loadChoresFromCache() {
+      const offlineStorage = window.offlineStorage;
+      if (!offlineStorage) {
+        this.chores = [];
+        return;
+      }
+      
       try {
-        const data = await apiService.get(CONFIG.API.ENDPOINTS.QUICKLIST);
-        this.quicklistChores = data.quicklistChores || [];
-        console.log('✅ Quicklist chores loaded:', this.quicklistChores.length);
+        const cachedChores = await offlineStorage.getCachedChores();
+        if (cachedChores && cachedChores.length > 0) {
+          this.chores = cachedChores;
+          this.isUsingCachedData = true;
+          console.log('📦 Chores loaded from cache:', this.chores.length);
+        } else {
+          console.log('📦 No cached chores available');
+          this.chores = [];
+        }
+      } catch (cacheError) {
+        console.error('Failed to load chores from cache:', cacheError);
+        this.chores = [];
+      }
+    },
+    
+    // load quicklist chores with offline cache support
+    async loadQuicklistChores() {
+      const offlineStorage = window.offlineStorage;
+      const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+      
+      try {
+        if (isOnline) {
+          // Online: fetch from API and cache
+          const data = await apiService.get(CONFIG.API.ENDPOINTS.QUICKLIST);
+          this.quicklistChores = data.quicklistChores || [];
+          console.log('✅ Quicklist chores loaded from API:', this.quicklistChores.length);
+          
+          // Cache the data for offline use
+          if (offlineStorage) {
+            try {
+              await offlineStorage.cacheQuicklist(this.quicklistChores);
+            } catch (cacheError) {
+              console.warn('Failed to cache quicklist:', cacheError);
+            }
+          }
+        } else {
+          // Offline: load from cache
+          await this._loadQuicklistFromCache();
+        }
       } catch (error) {
-        console.error('Failed to load quicklist chores:', error);
+        console.error('Failed to load quicklist from API:', error);
+        
+        // Try to fall back to cached data
+        if (offlineStorage) {
+          await this._loadQuicklistFromCache();
+        } else {
+          this.quicklistChores = [];
+        }
+      }
+    },
+    
+    // Helper to load quicklist from cache
+    async _loadQuicklistFromCache() {
+      const offlineStorage = window.offlineStorage;
+      if (!offlineStorage) {
+        this.quicklistChores = [];
+        return;
+      }
+      
+      try {
+        const cachedQuicklist = await offlineStorage.getCachedQuicklist();
+        if (cachedQuicklist && cachedQuicklist.length > 0) {
+          this.quicklistChores = cachedQuicklist;
+          console.log('📦 Quicklist loaded from cache:', this.quicklistChores.length);
+        } else {
+          console.log('📦 No cached quicklist available');
+          this.quicklistChores = [];
+        }
+      } catch (cacheError) {
+        console.error('Failed to load quicklist from cache:', cacheError);
         this.quicklistChores = [];
       }
     },
     
-    // create new chore
+    // create new chore with offline support
     async createChore(choreData) {
+      const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+      
       try {
         const data = await apiService.post(CONFIG.API.ENDPOINTS.CHORES, choreData);
+        
+        // Check if this was queued for offline sync
+        if (data._pending) {
+          // Add to local state with pending flag
+          const pendingChore = {
+            ...data,
+            _pending: true,
+            _queueId: data._queueId,
+            _queuedAt: data._queuedAt
+          };
+          this.chores.push(pendingChore);
+          console.log('📝 Chore queued for sync:', pendingChore.name);
+          
+          // Update local cache with pending chore
+          await this._updateLocalCache();
+          
+          return { success: true, chore: pendingChore, pending: true };
+        }
         
         if (data.chore) {
           this.chores.push(data.chore);
           console.log('✅ Chore created:', data.chore.name);
+          
+          // Update cache after successful creation
+          await this._updateLocalCache();
+          
           return { success: true, chore: data.chore };
         }
         
@@ -161,28 +297,75 @@ const useChoresStore = Pinia.defineStore('chores', {
       }
     },
     
-    // update chore
+    // update chore with offline support
     async updateChore(choreId, updates) {
+      const chore = this.chores.find(c => c.id === choreId);
+      const originalChore = chore ? { ...chore } : null;
+      
+      // Optimistic update
+      if (chore) {
+        Object.assign(chore, updates);
+      }
+      
       try {
-        const data = await apiService.put(`${CONFIG.API.ENDPOINTS.CHORES}/${choreId}`, updates);
+        const data = await apiService.put(`${CONFIG.API.ENDPOINTS.CHORES}/${choreId}`, {
+          ...updates,
+          id: choreId,
+          updatedAt: Date.now()
+        });
+        
+        // Check if this was queued for offline sync
+        if (data._pending) {
+          const index = this.chores.findIndex(c => c.id === choreId);
+          if (index !== -1) {
+            this.chores[index] = {
+              ...this.chores[index],
+              ...updates,
+              _pending: true,
+              _queueId: data._queueId,
+              _queuedAt: data._queuedAt
+            };
+          }
+          console.log('📝 Chore update queued for sync:', choreId);
+          
+          // Update local cache
+          await this._updateLocalCache();
+          
+          return { success: true, chore: this.chores[index], pending: true };
+        }
         
         if (data.chore) {
           const index = this.chores.findIndex(c => c.id === choreId);
           if (index !== -1) {
-            this.chores[index] = { ...this.chores[index], ...data.chore };
+            // Remove pending flags when server confirms
+            this.chores[index] = { 
+              ...this.chores[index], 
+              ...data.chore,
+              _pending: false,
+              _queueId: undefined,
+              _queuedAt: undefined
+            };
           }
           console.log('✅ Chore updated:', choreId);
+          
+          // Update cache after successful update
+          await this._updateLocalCache();
+          
           return { success: true, chore: data.chore };
         }
         
         return { success: false, error: 'Failed to update chore' };
       } catch (error) {
+        // Rollback optimistic update on error
+        if (originalChore && chore) {
+          Object.assign(chore, originalChore);
+        }
         console.error('Failed to update chore:', error);
         return { success: false, error: error.message };
       }
     },
     
-    // delete chore
+    // delete chore with offline support
     async deleteChore(chore) {
       if (!chore || !chore.id) {
         console.warn('Invalid chore for deletion');
@@ -196,8 +379,22 @@ const useChoresStore = Pinia.defineStore('chores', {
       this.chores = this.chores.filter(c => c.id !== chore.id);
       
       try {
-        await apiService.delete(`${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}`);
+        const result = await apiService.delete(`${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}`);
+        
+        // Check if this was queued for offline sync
+        if (result && result._pending) {
+          console.log('📝 Chore deletion queued for sync:', chore.name);
+          
+          // Update local cache
+          await this._updateLocalCache();
+          
+          return { success: true, pending: true };
+        }
+        
         console.log('✅ Chore deleted:', chore.name);
+        
+        // Update cache after successful deletion
+        await this._updateLocalCache();
         
         // reload family members to update earnings if chore was completed
         if (chore.completed && window.useFamilyStore) {
@@ -211,6 +408,18 @@ const useChoresStore = Pinia.defineStore('chores', {
         // rollback on error
         this.chores = originalChores;
         return { success: false, error: error.message };
+      }
+    },
+    
+    // Helper to update local cache after modifications
+    async _updateLocalCache() {
+      const offlineStorage = window.offlineStorage;
+      if (offlineStorage) {
+        try {
+          await offlineStorage.cacheChores(this.chores);
+        } catch (error) {
+          console.warn('Failed to update chores cache:', error);
+        }
       }
     },
     
@@ -292,9 +501,21 @@ const useChoresStore = Pinia.defineStore('chores', {
       }
     },
     
-    // approve chore
+    // approve chore (requires network)
     async approveChore(chore) {
       if (!chore || !chore.id) return { success: false };
+      
+      // Check if feature is available offline
+      const offlineStore = window.useOfflineStore ? window.useOfflineStore() : null;
+      if (offlineStore && !offlineStore.isFeatureAvailable('approveChore')) {
+        const message = offlineStore.getDisabledFeatureMessage('approveChore');
+        console.warn('⚠️ Cannot approve chore while offline');
+        if (window.useUIStore) {
+          const uiStore = window.useUIStore();
+          uiStore.showError(message);
+        }
+        return { success: false, error: message, offlineBlocked: true };
+      }
       
       try {
         await apiService.put(`${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/approve`);
@@ -323,12 +544,24 @@ const useChoresStore = Pinia.defineStore('chores', {
       }
     },
     
-    // start new day
+    // start new day (requires network)
     async startNewDay() {
+      // Check if feature is available offline
+      const offlineStore = window.useOfflineStore ? window.useOfflineStore() : null;
+      if (offlineStore && !offlineStore.isFeatureAvailable('newDay')) {
+        const message = offlineStore.getDisabledFeatureMessage('newDay');
+        console.warn('⚠️ Cannot start new day while offline');
+        if (window.useUIStore) {
+          const uiStore = window.useUIStore();
+          uiStore.showError(message);
+        }
+        return { success: false, error: message, offlineBlocked: true };
+      }
+      
       try {
         console.log('🌅 Starting new day...');
         
-        const data = await apiService.post(CONFIG.API.ENDPOINTS.NEW_DAY);
+        await apiService.post(CONFIG.API.ENDPOINTS.NEW_DAY);
         
         // reload chores and family members
         await this.loadChores();

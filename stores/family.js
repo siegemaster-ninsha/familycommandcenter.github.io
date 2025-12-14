@@ -1,5 +1,6 @@
 // Family Store
 // Manages family members, earnings, and spending requests
+// Enhanced with offline support - caches data and falls back when offline
 
 const useFamilyStore = Pinia.defineStore('family', {
   state: () => ({
@@ -7,6 +8,8 @@ const useFamilyStore = Pinia.defineStore('family', {
     spendingRequests: [],
     loading: false,
     error: null,
+    // Offline state tracking
+    isUsingCachedData: false,
     
     // form states
     childForm: {
@@ -77,47 +80,108 @@ const useFamilyStore = Pinia.defineStore('family', {
   },
   
   actions: {
-    // load family members
+    // load family members with offline cache support
     async loadMembers(preserveOptimisticUpdates = false) {
       this.loading = true;
       this.error = null;
+      this.isUsingCachedData = false;
+      
+      const offlineStorage = window.offlineStorage;
+      const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
       
       try {
-        const data = await apiService.get(CONFIG.API.ENDPOINTS.FAMILY_MEMBERS);
-        
-        // API returns { familyMembers: [...] } - use familyMembers key only
-        const familyMembers = data.familyMembers || [];
-        
-        if (preserveOptimisticUpdates) {
-          // preserve earnings from optimistic updates (keyed by displayName)
-          const earningsMap = {};
-          this.members.forEach(member => {
-            earningsMap[member.displayName] = {
-              earnings: member.earnings,
-              completedChores: member.completedChores
-            };
-          });
+        if (isOnline) {
+          // Online: fetch from API and cache
+          const data = await apiService.get(CONFIG.API.ENDPOINTS.FAMILY_MEMBERS);
           
-          this.members = familyMembers.map(member => ({
-            ...member,
-            ...(earningsMap[member.displayName] || {})
-          }));
+          // API returns { familyMembers: [...] } - use familyMembers key only
+          const familyMembers = data.familyMembers || [];
+          
+          if (preserveOptimisticUpdates) {
+            // preserve earnings from optimistic updates (keyed by displayName)
+            const earningsMap = {};
+            this.members.forEach(member => {
+              earningsMap[member.displayName] = {
+                earnings: member.earnings,
+                completedChores: member.completedChores
+              };
+            });
+            
+            this.members = familyMembers.map(member => ({
+              ...member,
+              ...(earningsMap[member.displayName] || {})
+            }));
+          } else {
+            this.members = familyMembers;
+          }
+          
+          console.log('✅ Family members loaded from API:', this.members.length);
+          
+          // Cache the data for offline use
+          if (offlineStorage) {
+            try {
+              await offlineStorage.cacheFamilyMembers(this.members);
+            } catch (cacheError) {
+              console.warn('Failed to cache family members:', cacheError);
+            }
+          }
         } else {
-          this.members = familyMembers;
+          // Offline: load from cache
+          await this._loadMembersFromCache();
         }
-        
-        console.log('✅ Family members loaded:', this.members.length);
       } catch (error) {
-        this.error = error.message;
-        console.error('Failed to load family members:', error);
-        this.members = [];
+        console.error('Failed to load family members from API:', error);
+        
+        // Try to fall back to cached data
+        if (offlineStorage) {
+          await this._loadMembersFromCache();
+        } else {
+          this.error = error.message;
+          this.members = [];
+        }
       } finally {
         this.loading = false;
       }
     },
     
-    // create child account
+    // Helper to load family members from cache
+    async _loadMembersFromCache() {
+      const offlineStorage = window.offlineStorage;
+      if (!offlineStorage) {
+        this.members = [];
+        return;
+      }
+      
+      try {
+        const cachedMembers = await offlineStorage.getCachedFamilyMembers();
+        if (cachedMembers && cachedMembers.length > 0) {
+          this.members = cachedMembers;
+          this.isUsingCachedData = true;
+          console.log('📦 Family members loaded from cache:', this.members.length);
+        } else {
+          console.log('📦 No cached family members available');
+          this.members = [];
+        }
+      } catch (cacheError) {
+        console.error('Failed to load family members from cache:', cacheError);
+        this.members = [];
+      }
+    },
+    
+    // create child account (requires network)
     async createChild(childData) {
+      // Check if feature is available offline
+      const offlineStore = window.useOfflineStore ? window.useOfflineStore() : null;
+      if (offlineStore && !offlineStore.isFeatureAvailable('createChild')) {
+        const message = offlineStore.getDisabledFeatureMessage('createChild');
+        console.warn('⚠️ Cannot create child while offline');
+        if (window.useUIStore) {
+          const uiStore = window.useUIStore();
+          uiStore.showError(message);
+        }
+        return { success: false, error: message, offlineBlocked: true };
+      }
+      
       try {
         const data = await apiService.post(CONFIG.API.ENDPOINTS.CREATE_CHILD, {
           username: childData.username,
@@ -224,7 +288,20 @@ const useFamilyStore = Pinia.defineStore('family', {
       }
     },
     
+    // create spending request (requires network)
     async createSpendingRequest(personName, amount) {
+      // Check if feature is available offline
+      const offlineStore = window.useOfflineStore ? window.useOfflineStore() : null;
+      if (offlineStore && !offlineStore.isFeatureAvailable('spendingRequest')) {
+        const message = offlineStore.getDisabledFeatureMessage('spendingRequest');
+        console.warn('⚠️ Cannot create spending request while offline');
+        if (window.useUIStore) {
+          const uiStore = window.useUIStore();
+          uiStore.showError(message);
+        }
+        return { success: false, error: message, offlineBlocked: true };
+      }
+      
       try {
         const data = await apiService.post(CONFIG.API.ENDPOINTS.SPENDING_REQUESTS, {
           personName,
@@ -244,7 +321,20 @@ const useFamilyStore = Pinia.defineStore('family', {
       }
     },
     
+    // approve spending request (requires network)
     async approveSpendingRequest(requestId) {
+      // Check if feature is available offline
+      const offlineStore = window.useOfflineStore ? window.useOfflineStore() : null;
+      if (offlineStore && !offlineStore.isFeatureAvailable('spendingRequest')) {
+        const message = offlineStore.getDisabledFeatureMessage('spendingRequest');
+        console.warn('⚠️ Cannot approve spending request while offline');
+        if (window.useUIStore) {
+          const uiStore = window.useUIStore();
+          uiStore.showError(message);
+        }
+        return { success: false, error: message, offlineBlocked: true };
+      }
+      
       try {
         await apiService.put(`${CONFIG.API.ENDPOINTS.SPENDING_REQUESTS}/${requestId}/approve`);
         
@@ -265,7 +355,20 @@ const useFamilyStore = Pinia.defineStore('family', {
       }
     },
     
+    // deny spending request (requires network)
     async denySpendingRequest(requestId) {
+      // Check if feature is available offline
+      const offlineStore = window.useOfflineStore ? window.useOfflineStore() : null;
+      if (offlineStore && !offlineStore.isFeatureAvailable('spendingRequest')) {
+        const message = offlineStore.getDisabledFeatureMessage('spendingRequest');
+        console.warn('⚠️ Cannot deny spending request while offline');
+        if (window.useUIStore) {
+          const uiStore = window.useUIStore();
+          uiStore.showError(message);
+        }
+        return { success: false, error: message, offlineBlocked: true };
+      }
+      
       try {
         await apiService.put(`${CONFIG.API.ENDPOINTS.SPENDING_REQUESTS}/${requestId}/deny`);
         
@@ -283,8 +386,20 @@ const useFamilyStore = Pinia.defineStore('family', {
       }
     },
     
-    // parent invite
+    // parent invite (requires network)
     async createParentInvite() {
+      // Check if feature is available offline
+      const offlineStore = window.useOfflineStore ? window.useOfflineStore() : null;
+      if (offlineStore && !offlineStore.isFeatureAvailable('parentInvite')) {
+        const message = offlineStore.getDisabledFeatureMessage('parentInvite');
+        console.warn('⚠️ Cannot create parent invite while offline');
+        if (window.useUIStore) {
+          const uiStore = window.useUIStore();
+          uiStore.showError(message);
+        }
+        return { success: false, error: message, offlineBlocked: true };
+      }
+      
       try {
         const data = await apiService.post(CONFIG.API.ENDPOINTS.PARENT_INVITE);
         

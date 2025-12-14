@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PWA Icon Generator - Family Command Center</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .icon-preview { display: inline-block; margin: 10px; text-align: center; }
+    .icon-preview canvas { border: 1px solid #ccc; }
+    button { margin: 20px 0; padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    #download-links { margin-top: 20px; }
+    #download-links a { display: block; margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <h1>PWA Icon Generator</h1>
+  <p>Click the button below to generate and download all required PWA icons.</p>
+  <button onclick="generateAllIcons()">Generate All Icons</button>
+  
+  <div id="previews"></div>
+  <div id="download-links"></div>
+
+  <script>
+    const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+    const primaryColor = '#4A90E2';
+    const secondaryColor = '#7B68EE';
+    
+    function drawIcon(canvas, size) {
+      const ctx = canvas.getContext('2d');
+      canvas.width = size;
+      canvas.height = size;
+      
+      // Background gradient
+      const gradient = ctx.createLinearGradient(0, 0, size, size);
+      gradient.addColorStop(0, primaryColor);
+      gradient.addColorStop(1, secondaryColor);
+      
+      // Draw rounded rectangle background
+      const radius = size * 0.15;
+      ctx.beginPath();
+      ctx.moveTo(radius, 0);
+      ctx.lineTo(size - radius, 0);
+      ctx.quadraticCurveTo(size, 0, size, radius);
+      ctx.lineTo(size, size - radius);
+      ctx.quadraticCurveTo(size, size, size - radius, size);
+      ctx.lineTo(radius, size);
+      ctx.quadraticCurveTo(0, size, 0, size - radius);
+      ctx.lineTo(0, radius);
+      ctx.quadraticCurveTo(0, 0, radius, 0);
+      ctx.closePath();
+      ctx.fillStyle = gradient;
+      ctx.fill();
+      
+      // Draw house icon
+      ctx.fillStyle = 'white';
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = size * 0.02;
+      
+      const centerX = size / 2;
+      const centerY = size / 2;
+      const iconSize = size * 0.5;
+      
+      // House roof (triangle)
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY - iconSize * 0.4);
+      ctx.lineTo(centerX - iconSize * 0.45, centerY + iconSize * 0.05);
+      ctx.lineTo(centerX + iconSize * 0.45, centerY + iconSize * 0.05);
+      ctx.closePath();
+      ctx.fill();
+      
+      // House body (rectangle)
+      const bodyWidth = iconSize * 0.7;
+      const bodyHeight = iconSize * 0.45;
+      ctx.fillRect(
+        centerX - bodyWidth / 2,
+        centerY + iconSize * 0.05,
+        bodyWidth,
+        bodyHeight
+      );
+      
+      // Door (darker rectangle)
+      ctx.fillStyle = primaryColor;
+      const doorWidth = iconSize * 0.2;
+      const doorHeight = iconSize * 0.3;
+      ctx.fillRect(
+        centerX - doorWidth / 2,
+        centerY + iconSize * 0.2,
+        doorWidth,
+        doorHeight
+      );
+    }
+    
+    function generateAllIcons() {
+      const previewsDiv = document.getElementById('previews');
+      const linksDiv = document.getElementById('download-links');
+      previewsDiv.innerHTML = '<h2>Icon Previews:</h2>';
+      linksDiv.innerHTML = '<h2>Download Links:</h2>';
+      
+      sizes.forEach(size => {
+        const canvas = document.createElement('canvas');
+        drawIcon(canvas, size);
+        
+        // Preview
+        const preview = document.createElement('div');
+        preview.className = 'icon-preview';
+        preview.innerHTML = `<p>${size}x${size}</p>`;
+        preview.appendChild(canvas);
+        previewsDiv.appendChild(preview);
+        
+        // Download link
+        const link = document.createElement('a');
+        link.download = `icon-${size}x${size}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.textContent = `Download icon-${size}x${size}.png`;
+        linksDiv.appendChild(link);
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,104 +1,434 @@
 // Service Worker for Family Command Center
-// Provides offline capabilities and background token refresh for mobile
+// Provides offline capabilities, caching, and background token refresh
 
-const CACHE_NAME = 'family-command-center-v1';
+// =============================================================================
+// CACHE CONFIGURATION
+// =============================================================================
+
+const CACHE_VERSION = 'v2';
+const STATIC_CACHE = `static-${CACHE_VERSION}`;
+const DATA_CACHE = `data-${CACHE_VERSION}`;
+
 // Use the actual API endpoint for token refresh
 const TOKEN_REFRESH_URL = 'https://cq5lvrvppd.execute-api.us-east-1.amazonaws.com/dev/auth/token-refresh';
+const API_BASE_URL = 'https://cq5lvrvppd.execute-api.us-east-1.amazonaws.com';
 
-// Install service worker
+// Assets to precache on install
+const PRECACHE_ASSETS = [
+  './',
+  './index.html',
+  './app.js',
+  './auth.js',
+  './config.js',
+  './styles.css',
+  './manifest.json',
+  // Services
+  './services/api.js',
+  // Stores
+  './stores/auth.js',
+  './stores/ui.js',
+  './stores/chores.js',
+  './stores/shopping.js',
+  './stores/family.js',
+  './stores/dashboard.js',
+  // Utils
+  './utils/helpers.js',
+  './utils/settings.js',
+  // Components
+  './components/ui-components.js',
+  './components/quicklist-section.js',
+  './components/nav-menu.js',
+  './components/unassigned-section.js',
+  './components/family-members-section.js',
+  './components/trash-section.js',
+  './components/app-modals.js',
+  './components/earnings-widget.js',
+  './components/family-page.js',
+  './components/shopping-page.js',
+  './components/tailwind-chore-page.js',
+  './components/account-page.js',
+  './components/widget-configurator.js',
+  './components/dashboard-page.js',
+  // Widget system
+  './widgets/base/widget-types.js',
+  './widgets/base/WidgetBase.js',
+  './widgets/base/widget-registry.js',
+  './widgets/earnings-summary-widget.js',
+  './widgets/weather-widget.js',
+  './widgets/advice-widget.js',
+  './widgets/trivia-widget.js',
+  './widgets/dad-joke-widget.js',
+  // Config
+  './config/weather-config.js',
+  // Icons
+  './icons/icon-72x72.svg',
+  './icons/icon-96x96.svg',
+  './icons/icon-128x128.svg',
+  './icons/icon-144x144.svg',
+  './icons/icon-152x152.svg',
+  './icons/icon-192x192.svg',
+  './icons/icon-384x384.svg',
+  './icons/icon-512x512.svg'
+];
+
+// =============================================================================
+// INSTALL EVENT - Precache static assets
+// =============================================================================
+
 self.addEventListener('install', (event) => {
-  console.log('🔧 Service Worker installing...');
+  console.log('🔧 Service Worker installing...', CACHE_VERSION);
+  
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('🔧 Service Worker cache opened');
-    })
+    caches.open(STATIC_CACHE)
+      .then((cache) => {
+        console.log('🔧 Precaching static assets...');
+        // Use addAll for atomic caching - if one fails, all fail
+        return cache.addAll(PRECACHE_ASSETS).catch((error) => {
+          console.warn('⚠️ Some assets failed to precache:', error);
+          // Fall back to adding assets individually
+          return Promise.all(
+            PRECACHE_ASSETS.map((url) => 
+              cache.add(url).catch((err) => {
+                console.warn(`⚠️ Failed to cache: ${url}`, err);
+              })
+            )
+          );
+        });
+      })
+      .then(() => {
+        console.log('✅ Static assets precached successfully');
+      })
   );
 });
 
-// Activate service worker
+
+// =============================================================================
+// ACTIVATE EVENT - Clean up old caches
+// =============================================================================
+
 self.addEventListener('activate', (event) => {
-  console.log('🔧 Service Worker activating...');
+  console.log('🔧 Service Worker activating...', CACHE_VERSION);
+  
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('🗑️ Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches.keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            // Delete caches that don't match current version
+            if (cacheName !== STATIC_CACHE && cacheName !== DATA_CACHE) {
+              console.log('🗑️ Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+      .then(() => {
+        console.log('✅ Old caches cleaned up');
+        // Claim all clients immediately
+        return self.clients.claim();
+      })
+      .then(() => {
+        console.log('✅ Service Worker now controlling all clients');
+      })
   );
 });
 
-// Handle fetch events - intercept API calls for token refresh
+// =============================================================================
+// FETCH EVENT - Caching strategies
+// =============================================================================
+
 self.addEventListener('fetch', (event) => {
-  // Only handle API requests that might need authentication
-  if (event.request.url.includes('/api/') && event.request.headers.get('Authorization')) {
-    event.respondWith(
-      handleApiRequest(event.request)
-    );
+  const { request } = event;
+  const url = new URL(request.url);
+  
+  // Skip non-GET requests
+  if (request.method !== 'GET') {
+    return;
   }
+  
+  // Skip chrome-extension and other non-http(s) requests
+  if (!url.protocol.startsWith('http')) {
+    return;
+  }
+  
+  // Handle API requests with network-first strategy
+  if (url.href.includes(API_BASE_URL) || url.pathname.includes('/api/')) {
+    event.respondWith(handleApiRequest(request));
+    return;
+  }
+  
+  // Handle HTML requests with network-first strategy
+  if (request.headers.get('accept')?.includes('text/html') || 
+      url.pathname.endsWith('.html') ||
+      url.pathname === '/' ||
+      url.pathname.endsWith('/')) {
+    event.respondWith(handleHtmlRequest(request));
+    return;
+  }
+  
+  // Handle static assets with cache-first strategy
+  if (isStaticAsset(url)) {
+    event.respondWith(handleStaticAsset(request));
+    return;
+  }
+  
+  // Default: network-first for everything else
+  event.respondWith(handleNetworkFirst(request));
 });
 
-// Handle API requests with token refresh logic
+// =============================================================================
+// CACHING STRATEGY HANDLERS
+// =============================================================================
+
+/**
+ * Cache-first strategy for static assets (CSS, JS, images, fonts)
+ */
+async function handleStaticAsset(request) {
+  const cachedResponse = await caches.match(request);
+  
+  if (cachedResponse) {
+    // Return cached version, but update cache in background
+    updateCacheInBackground(request);
+    return cachedResponse;
+  }
+  
+  // Not in cache, fetch from network and cache
+  try {
+    const networkResponse = await fetch(request);
+    
+    if (networkResponse.ok) {
+      const cache = await caches.open(STATIC_CACHE);
+      cache.put(request, networkResponse.clone());
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    console.error('❌ Failed to fetch static asset:', request.url, error);
+    // Return a fallback response if available
+    return new Response('Asset not available offline', { 
+      status: 503, 
+      statusText: 'Service Unavailable' 
+    });
+  }
+}
+
+/**
+ * Network-first strategy for HTML pages
+ */
+async function handleHtmlRequest(request) {
+  try {
+    const networkResponse = await fetch(request);
+    
+    if (networkResponse.ok) {
+      const cache = await caches.open(STATIC_CACHE);
+      cache.put(request, networkResponse.clone());
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    console.log('📴 Network unavailable, serving cached HTML');
+    const cachedResponse = await caches.match(request);
+    
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
+    // Try to return the main index.html as fallback
+    const fallback = await caches.match('./index.html');
+    if (fallback) {
+      return fallback;
+    }
+    
+    return new Response('Page not available offline', { 
+      status: 503, 
+      statusText: 'Service Unavailable' 
+    });
+  }
+}
+
+/**
+ * Network-first strategy for API calls with cache fallback
+ */
 async function handleApiRequest(request) {
   try {
-    // Try the original request first
-    let response = await fetch(request);
+    // Check if request has auth header that might need refresh
+    if (request.headers.get('Authorization')) {
+      return await handleAuthenticatedApiRequest(request);
+    }
+    
+    const networkResponse = await fetch(request);
+    
+    // Cache successful GET responses
+    if (networkResponse.ok && request.method === 'GET') {
+      const cache = await caches.open(DATA_CACHE);
+      cache.put(request, networkResponse.clone());
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    console.log('📴 Network unavailable, checking cache for API data');
+    const cachedResponse = await caches.match(request);
+    
+    if (cachedResponse) {
+      // Add header to indicate this is cached data
+      const headers = new Headers(cachedResponse.headers);
+      headers.set('X-From-Cache', 'true');
+      
+      return new Response(cachedResponse.body, {
+        status: cachedResponse.status,
+        statusText: cachedResponse.statusText,
+        headers
+      });
+    }
+    
+    return new Response(JSON.stringify({ 
+      error: 'Network unavailable and no cached data',
+      offline: true 
+    }), { 
+      status: 503, 
+      statusText: 'Service Unavailable',
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}
 
+/**
+ * Handle authenticated API requests with token refresh
+ */
+async function handleAuthenticatedApiRequest(request) {
+  try {
+    let response = await fetch(request);
+    
     // If we get a 401, try to refresh the token
     if (response.status === 401) {
       console.log('🔄 Token expired, attempting refresh...');
-
+      
       try {
-        // Try to refresh the token
-        const refreshResponse = await fetch(TOKEN_REFRESH_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            refreshToken: await getStoredRefreshToken()
-          })
-        });
-
-        if (refreshResponse.ok) {
-          const tokenData = await refreshResponse.json();
-
-          // Update stored tokens
-          await storeTokens(tokenData);
-
-          // Retry the original request with new token
-          const newRequest = new Request(request, {
-            headers: {
-              ...request.headers,
-              'Authorization': `Bearer ${tokenData.accessToken}`
-            }
+        const refreshToken = await getStoredRefreshToken();
+        
+        if (refreshToken) {
+          const refreshResponse = await fetch(TOKEN_REFRESH_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refreshToken })
           });
-
-          response = await fetch(newRequest);
+          
+          if (refreshResponse.ok) {
+            const tokenData = await refreshResponse.json();
+            await storeTokens(tokenData);
+            
+            // Retry with new token
+            const newHeaders = new Headers(request.headers);
+            newHeaders.set('Authorization', `Bearer ${tokenData.accessToken}`);
+            
+            const newRequest = new Request(request.url, {
+              method: request.method,
+              headers: newHeaders,
+              body: request.body,
+              mode: request.mode,
+              credentials: request.credentials
+            });
+            
+            response = await fetch(newRequest);
+          }
         }
       } catch (refreshError) {
         console.error('❌ Token refresh failed:', refreshError);
       }
     }
-
+    
+    // Cache successful GET responses
+    if (response.ok && request.method === 'GET') {
+      const cache = await caches.open(DATA_CACHE);
+      cache.put(request, response.clone());
+    }
+    
     return response;
   } catch (error) {
-    console.error('❌ API request failed:', error);
+    console.error('❌ Authenticated API request failed:', error);
+    
+    // Try cache fallback
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
     throw error;
   }
 }
 
-// Helper functions for token management
+/**
+ * Generic network-first strategy
+ */
+async function handleNetworkFirst(request) {
+  try {
+    const networkResponse = await fetch(request);
+    
+    if (networkResponse.ok) {
+      const cache = await caches.open(STATIC_CACHE);
+      cache.put(request, networkResponse.clone());
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    const cachedResponse = await caches.match(request);
+    
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
+    throw error;
+  }
+}
+
+// =============================================================================
+// HELPER FUNCTIONS
+// =============================================================================
+
+/**
+ * Check if URL is a static asset
+ */
+function isStaticAsset(url) {
+  const staticExtensions = ['.js', '.css', '.svg', '.png', '.jpg', '.jpeg', '.gif', '.ico', '.woff', '.woff2', '.ttf', '.eot'];
+  const pathname = url.pathname.toLowerCase();
+  
+  return staticExtensions.some(ext => pathname.endsWith(ext));
+}
+
+/**
+ * Update cache in background without blocking response
+ */
+function updateCacheInBackground(request) {
+  fetch(request)
+    .then((response) => {
+      if (response.ok) {
+        caches.open(STATIC_CACHE).then((cache) => {
+          cache.put(request, response);
+        });
+      }
+    })
+    .catch(() => {
+      // Silently fail - we already have cached version
+    });
+}
+
+/**
+ * Get refresh token from client
+ */
 async function getStoredRefreshToken() {
   try {
     const clients = await self.clients.matchAll();
     if (clients.length > 0) {
-      const client = clients[0];
-      return await client.postMessage({ type: 'GET_REFRESH_TOKEN' });
+      return new Promise((resolve) => {
+        const messageChannel = new MessageChannel();
+        messageChannel.port1.onmessage = (event) => {
+          resolve(event.data?.refreshToken);
+        };
+        clients[0].postMessage({ type: 'GET_REFRESH_TOKEN' }, [messageChannel.port2]);
+        
+        // Timeout after 1 second
+        setTimeout(() => resolve(null), 1000);
+      });
     }
   } catch (error) {
     console.error('Failed to get refresh token:', error);
@@ -106,32 +436,113 @@ async function getStoredRefreshToken() {
   return null;
 }
 
+/**
+ * Store tokens in client
+ */
 async function storeTokens(tokenData) {
   try {
     const clients = await self.clients.matchAll();
-    if (clients.length > 0) {
-      const client = clients[0];
+    clients.forEach((client) => {
       client.postMessage({
         type: 'STORE_TOKENS',
         tokens: tokenData
       });
-    }
+    });
   } catch (error) {
     console.error('Failed to store tokens:', error);
   }
 }
 
-// Handle messages from the main thread
+
+// =============================================================================
+// MESSAGE HANDLING - Communication with app
+// =============================================================================
+
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
+  const { type, data } = event.data || {};
+  
+  switch (type) {
+    case 'SKIP_WAITING':
+      console.log('🔄 Skip waiting requested, activating new service worker');
+      self.skipWaiting();
+      break;
+      
+    case 'GET_CACHE_VERSION':
+      event.ports[0]?.postMessage({ version: CACHE_VERSION });
+      break;
+      
+    case 'CLEAR_CACHE':
+      clearAllCaches().then(() => {
+        event.ports[0]?.postMessage({ success: true });
+      });
+      break;
+      
+    case 'GET_CACHED_URLS':
+      getCachedUrls().then((urls) => {
+        event.ports[0]?.postMessage({ urls });
+      });
+      break;
   }
 });
 
-// Background sync for token refresh (if supported)
+/**
+ * Clear all caches
+ */
+async function clearAllCaches() {
+  const cacheNames = await caches.keys();
+  await Promise.all(cacheNames.map((name) => caches.delete(name)));
+  console.log('🗑️ All caches cleared');
+}
+
+/**
+ * Get list of cached URLs
+ */
+async function getCachedUrls() {
+  const urls = [];
+  const cacheNames = await caches.keys();
+  
+  for (const name of cacheNames) {
+    const cache = await caches.open(name);
+    const keys = await cache.keys();
+    urls.push(...keys.map((req) => req.url));
+  }
+  
+  return urls;
+}
+
+// =============================================================================
+// SERVICE WORKER UPDATE NOTIFICATION
+// =============================================================================
+
+// When a new service worker is installed and waiting, notify the app
+self.addEventListener('install', () => {
+  // This runs when a new SW is installed
+  // The app will be notified via the 'controllerchange' event
+});
+
+// Notify clients when this service worker takes control
+self.addEventListener('activate', () => {
+  self.clients.matchAll().then((clients) => {
+    clients.forEach((client) => {
+      client.postMessage({
+        type: 'SW_ACTIVATED',
+        version: CACHE_VERSION
+      });
+    });
+  });
+});
+
+// =============================================================================
+// BACKGROUND SYNC (if supported)
+// =============================================================================
+
 self.addEventListener('sync', (event) => {
   if (event.tag === 'token-refresh') {
     event.waitUntil(refreshTokensInBackground());
+  }
+  
+  if (event.tag === 'sync-queue') {
+    event.waitUntil(processSyncQueue());
   }
 });
 
@@ -142,12 +553,10 @@ async function refreshTokensInBackground() {
     if (refreshToken) {
       const response = await fetch(TOKEN_REFRESH_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refreshToken })
       });
-
+      
       if (response.ok) {
         const tokenData = await response.json();
         await storeTokens(tokenData);
@@ -157,4 +566,29 @@ async function refreshTokensInBackground() {
   } catch (error) {
     console.error('❌ Background token refresh failed:', error);
   }
+}
+
+async function processSyncQueue() {
+  console.log('🔄 Processing sync queue...');
+  // This will be implemented by the SyncQueue service
+  // The service worker just triggers the sync
+  const clients = await self.clients.matchAll();
+  clients.forEach((client) => {
+    client.postMessage({ type: 'PROCESS_SYNC_QUEUE' });
+  });
+}
+
+// =============================================================================
+// EXPORTS FOR TESTING
+// =============================================================================
+
+// Export constants and functions for testing (only in test environment)
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    CACHE_VERSION,
+    STATIC_CACHE,
+    DATA_CACHE,
+    PRECACHE_ASSETS,
+    isStaticAsset
+  };
 }

@@ -2649,6 +2649,10 @@ function checkAndRegisterComponents() {
   console.log('📦 Registering dashboard-page');
   app.component('dashboard-page', window.DashboardPageComponent);
 
+  console.log('📦 Registering offline-indicator');
+  if (window.OfflineIndicator) {
+    app.component('offline-indicator', window.OfflineIndicator);
+  }
 
   console.log('✅ All components registered, mounting app...');
 
@@ -2665,8 +2669,18 @@ function checkAndRegisterComponents() {
     const shoppingStore = useShoppingStore();
     const familyStore = useFamilyStore();
     const dashboardStore = useDashboardStore();
+    const offlineStore = useOfflineStore();
     
     console.log('✅ All stores initialized');
+    
+    // Initialize network status service and connect to offline store
+    if (window.networkStatus) {
+      window.networkStatus.init();
+      window.networkStatus.subscribe((isOnline) => {
+        offlineStore.setOnlineStatus(isOnline);
+      });
+      console.log('✅ Network status service initialized');
+    }
     
     // Initialize auth from existing session
     authStore.initAuth().then(() => {
@@ -2683,7 +2697,8 @@ function checkAndRegisterComponents() {
         chores: choresStore,
         shopping: shoppingStore,
         family: familyStore,
-        dashboard: dashboardStore
+        dashboard: dashboardStore,
+        offline: offlineStore
       };
       
       // Debug helper
@@ -2695,6 +2710,7 @@ function checkAndRegisterComponents() {
         console.log('Shopping:', { items: shoppingStore.itemCount, stores: shoppingStore.stores.length });
         console.log('Family:', { members: familyStore.memberCount });
         console.log('Dashboard:', { widgets: dashboardStore.widgetCount });
+        console.log('Offline:', offlineStore.$state);
       };
     }
   } catch (error) {

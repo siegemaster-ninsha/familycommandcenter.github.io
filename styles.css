@@ -2638,3 +2638,39 @@ body.resizing-widget * {
     padding-right: 1rem;
   }
 }
+
+
+/* ===========================================
+   OFFLINE INDICATOR STYLES
+   =========================================== */
+
+/* Offline banner transition */
+.offline-banner-enter-active,
+.offline-banner-leave-active {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.offline-banner-enter-from,
+.offline-banner-leave-to {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
+.offline-banner-enter-to,
+.offline-banner-leave-from {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Offline banner base styles */
+.offline-banner {
+  background-color: #f59e0b; /* amber-500 */
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 9999;
+}
+
+/* Add padding to body when offline banner is shown */
+body.has-offline-banner {
+  padding-top: 40px;
+}

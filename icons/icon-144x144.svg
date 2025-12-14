@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="144" height="144" viewBox="0 0 144 144" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4A90E2"/>
+      <stop offset="100%" style="stop-color:#7B68EE"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Rounded background -->
+  <rect x="0" y="0" width="144" height="144" rx="21.599999999999998" ry="21.599999999999998" fill="url(#bg-gradient)"/>
+  
+  <!-- House roof -->
+  <polygon points="72,43.2 39.6,75.6 104.4,75.6" fill="white"/>
+  
+  <!-- House body -->
+  <rect x="46.8" y="75.6" width="50.4" height="32.4" fill="white"/>
+  
+  <!-- Door -->
+  <rect x="64.8" y="86.4" width="14.4" height="21.599999999999998" fill="#4A90E2"/>
+</svg>

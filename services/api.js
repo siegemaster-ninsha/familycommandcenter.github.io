@@ -1,5 +1,6 @@
 // Base API service - centralizes all API logic
 // Extracted from app.js to enable reuse across stores
+// Enhanced with offline support - queues changes when offline
 
 class ApiService {
   constructor(config, authService) {
@@ -10,6 +11,54 @@ class ApiService {
 
   setAccountId(accountId) {
     this.accountId = accountId;
+  }
+
+  /**
+   * Check if the browser is currently online
+   * @returns {boolean}
+   */
+  isOnline() {
+    return typeof navigator !== 'undefined' ? navigator.onLine : true;
+  }
+
+  /**
+   * Get the sync queue service
+   * @returns {Object|null}
+   */
+  getSyncQueue() {
+    return typeof window !== 'undefined' ? window.syncQueue : null;
+  }
+
+  /**
+   * Get the offline store
+   * @returns {Object|null}
+   */
+  getOfflineStore() {
+    if (typeof window !== 'undefined' && window.useOfflineStore) {
+      return window.useOfflineStore();
+    }
+    return null;
+  }
+
+  /**
+   * Extract entity type and ID from endpoint
+   * @param {string} endpoint - API endpoint
+   * @returns {{entity: string, entityId: string|null}}
+   */
+  parseEndpoint(endpoint) {
+    const parts = endpoint.split('/').filter(Boolean);
+    
+    // Map endpoint prefixes to entity types
+    const entityMap = {
+      'chores': 'chore',
+      'family': 'familyMember',
+      'quicklist': 'quicklist'
+    };
+
+    const entity = entityMap[parts[0]] || parts[0];
+    const entityId = parts.length > 1 ? parts[1] : null;
+
+    return { entity, entityId };
   }
 
   async call(endpoint, options = {}) {
@@ -48,7 +97,16 @@ class ApiService {
     return this.call(endpoint, { method: 'GET', ...options });
   }
 
-  post(endpoint, data, options) {
+  /**
+   * POST request with offline support
+   * Queues the request if offline
+   */
+  async post(endpoint, data, options = {}) {
+    // Check if this is a modifying request that can be queued
+    if (!this.isOnline() && !options.skipOfflineQueue) {
+      return this._queueChange('CREATE', endpoint, data);
+    }
+
     return this.call(endpoint, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -56,7 +114,15 @@ class ApiService {
     });
   }
 
-  put(endpoint, data, options) {
+  /**
+   * PUT request with offline support
+   * Queues the request if offline
+   */
+  async put(endpoint, data, options = {}) {
+    if (!this.isOnline() && !options.skipOfflineQueue) {
+      return this._queueChange('UPDATE', endpoint, data);
+    }
+
     return this.call(endpoint, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -64,8 +130,62 @@ class ApiService {
     });
   }
 
-  delete(endpoint, options) {
+  /**
+   * DELETE request with offline support
+   * Queues the request if offline
+   */
+  async delete(endpoint, options = {}) {
+    if (!this.isOnline() && !options.skipOfflineQueue) {
+      return this._queueChange('DELETE', endpoint, null);
+    }
+
     return this.call(endpoint, { method: 'DELETE', ...options });
+  }
+
+  /**
+   * Queue a change for later synchronization
+   * @param {string} type - 'CREATE' | 'UPDATE' | 'DELETE'
+   * @param {string} endpoint - API endpoint
+   * @param {Object|null} data - Request payload
+   * @returns {Object} - Queued response with pending flag
+   */
+  async _queueChange(type, endpoint, data) {
+    const syncQueue = this.getSyncQueue();
+    const offlineStore = this.getOfflineStore();
+
+    if (!syncQueue) {
+      throw new Error('Sync queue not available - cannot queue offline changes');
+    }
+
+    const { entity, entityId } = this.parseEndpoint(endpoint);
+
+    // For CREATE, generate a temporary ID if not provided
+    const tempId = data?.id || `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Queue the change
+    const queueId = await syncQueue.enqueue({
+      type,
+      entity,
+      entityId: entityId || tempId,
+      data: data ? { ...data, id: data.id || tempId } : null,
+      serverTimestamp: data?.updatedAt || null
+    });
+
+    // Update pending count in offline store
+    if (offlineStore) {
+      offlineStore.incrementPendingSync();
+    }
+
+    console.log(`📝 Queued offline ${type} for ${entity}:${entityId || tempId}`);
+
+    // Return a response that indicates the change is pending
+    return {
+      ...data,
+      id: data?.id || tempId,
+      _pending: true,
+      _queueId: queueId,
+      _queuedAt: Date.now()
+    };
   }
 }
 
