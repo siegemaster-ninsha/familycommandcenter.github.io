@@ -359,27 +359,27 @@ const RecipePage = Vue.defineComponent({
           
           <!-- Modal Content -->
           <div class="p-6 space-y-6">
-            <!-- Serving Size Selector -->
+            <!-- Recipe Scale Selector -->
             <div class="flex items-center gap-4 p-4 rounded-lg bg-gray-50">
-              <label class="font-medium">Servings:</label>
+              <label class="font-medium">Scale:</label>
               <div class="flex items-center gap-2">
                 <button
-                  @click="decreaseServings"
+                  @click="decreaseScale"
                   class="w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors"
-                  :disabled="scaledServings <= 1"
+                  :disabled="scaleMultiplier <= 1"
                 >
                   <div v-html="Helpers.IconLibrary.getIcon('minus', 'lucide', 16, '')"></div>
                 </button>
-                <span class="w-12 text-center font-bold text-lg">{{ scaledServings }}</span>
+                <span class="w-12 text-center font-bold text-lg">{{ scaleMultiplier }}x</span>
                 <button
-                  @click="increaseServings"
+                  @click="increaseScale"
                   class="w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors"
                 >
                   <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16, '')"></div>
                 </button>
               </div>
               <span class="text-sm text-secondary-custom">
-                (Original: {{ currentRecipe?.servings || 'N/A' }})
+                ({{ scaledServings }} servings)
               </span>
             </div>
             
@@ -642,7 +642,7 @@ const RecipePage = Vue.defineComponent({
       // Recipe modal
       showRecipeModal: false,
       currentRecipe: null,
-      scaledServings: 1,
+      scaleMultiplier: 1,
       
       // Edit modal
       showEditModal: false,
@@ -709,11 +709,12 @@ const RecipePage = Vue.defineComponent({
       
       return result;
     },
+    scaledServings() {
+      const originalServings = this.currentRecipe?.servings || 1;
+      return originalServings * this.scaleMultiplier;
+    },
     scaledIngredients() {
       if (!this.currentRecipe?.ingredients) return [];
-      
-      const originalServings = this.currentRecipe.servings || 1;
-      const scaleFactor = this.scaledServings / originalServings;
       
       return this.currentRecipe.ingredients.map(ing => {
         if (ing.quantity === null || ing.quantity === undefined) {
@@ -721,7 +722,7 @@ const RecipePage = Vue.defineComponent({
         }
         return {
           ...ing,
-          quantity: Math.round(ing.quantity * scaleFactor * 100) / 100
+          quantity: Math.round(ing.quantity * this.scaleMultiplier * 100) / 100
         };
       });
     }
@@ -846,23 +847,23 @@ const RecipePage = Vue.defineComponent({
     
     openRecipeModal(recipe) {
       this.currentRecipe = recipe;
-      this.scaledServings = recipe.servings || 1;
+      this.scaleMultiplier = 1;
       this.showRecipeModal = true;
     },
     
     closeRecipeModal() {
       this.showRecipeModal = false;
       this.currentRecipe = null;
-      this.scaledServings = 1;
+      this.scaleMultiplier = 1;
     },
     
-    increaseServings() {
-      this.scaledServings++;
+    increaseScale() {
+      this.scaleMultiplier++;
     },
     
-    decreaseServings() {
-      if (this.scaledServings > 1) {
-        this.scaledServings--;
+    decreaseScale() {
+      if (this.scaleMultiplier > 1) {
+        this.scaleMultiplier--;
       }
     },
     
