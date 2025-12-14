@@ -2,6 +2,10 @@
 
 This folder contains all the frontend files for the Family Command Center application, organized for easy deployment to GitHub Pages.
 
+## 📚 Central Documentation
+
+For comprehensive documentation including architecture, security review, API reference, and deployment guides, see the **[docs folder in fcc_API](../fcc_API/docs/README.md)** repository.
+
 ## 📂 Project Structure
 
 ```
