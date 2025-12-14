@@ -510,11 +510,11 @@ const app = createApp({
             });
           } else {
             console.log('👥 Full refresh - replacing all family member data');
-            console.log('👥 Server data:', response.familyMembers.map(m => `${m.name}: completedChores=${m.completedChores}`));
+            console.log('👥 Server data:', response.familyMembers.map(m => `${m.displayName || m.name}: completedChores=${m.completedChores}`));
             // Normal full refresh - replace all data
             this.people = response.familyMembers.map(member => ({
-              id: member.id || member.name.toLowerCase(),
-              name: member.name,
+              id: member.id || (member.displayName || member.name || '').toLowerCase(),
+              name: member.displayName || member.name,
               displayName: member.displayName || member.name,
               userId: member.userId || null,
               role: member.role || null,
@@ -1190,20 +1190,23 @@ const app = createApp({
           const member = this.people.find(p => p.id === memberId);
           if (!member) return { memberId, success: false, error: 'Member not found' };
 
+          // Use displayName with fallback to name for backward compatibility
+          const memberDisplayName = member.displayName || member.name;
+
           try {
             // Check if quicklist chore requires details
             if (quicklistChore.isDetailed) {
               // For detailed chores, we'll need to handle this differently
               // For now, assign without details (could be enhanced later)
-              await this.assignQuicklistChoreToMember(quicklistChore, member.name);
-              return { memberId, memberName: member.name, success: true };
+              await this.assignQuicklistChoreToMember(quicklistChore, memberDisplayName);
+              return { memberId, memberName: memberDisplayName, success: true };
             } else {
-              await this.assignQuicklistChoreToMember(quicklistChore, member.name);
-              return { memberId, memberName: member.name, success: true };
+              await this.assignQuicklistChoreToMember(quicklistChore, memberDisplayName);
+              return { memberId, memberName: memberDisplayName, success: true };
             }
           } catch (error) {
-            console.error(`Failed to assign chore to ${member.name}:`, error);
-            return { memberId, memberName: member.name, success: false, error: error.message };
+            console.error(`Failed to assign chore to ${memberDisplayName}:`, error);
+            return { memberId, memberName: memberDisplayName, success: false, error: error.message };
           }
         });
 
