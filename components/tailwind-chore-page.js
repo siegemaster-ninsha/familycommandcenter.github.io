@@ -304,6 +304,8 @@ const TailwindChorePage = Vue.defineComponent({
               :is-selected="isQuicklistChoreSelected(quickChore)"
               :Helpers="Helpers"
               @click="onQuicklistClick(quickChore, $event)"
+              @touchstart="onTouchStart($event)"
+              @touchmove="onTouchMove($event)"
               @delete="removeFromQuicklist(quickChore.id)"
             />
 
@@ -433,6 +435,7 @@ const TailwindChorePage = Vue.defineComponent({
     'showAddChoreModal', 'showAddToQuicklistModal',
     'handleChoreClick', 'handleQuicklistChoreClick', 'selectionStore'
   ],
+  mixins: [window.TouchAwareMixin || {}],
   components: {
     ChoreCard,
     PersonCard,
@@ -537,6 +540,12 @@ const TailwindChorePage = Vue.defineComponent({
 
     onQuicklistClick(quickChore, event) {
       console.log('🎯 Quicklist chore clicked:', quickChore.name);
+
+      // Use mixin's scroll detection - if user scrolled, ignore the click
+      if (!this.isTapNotScroll()) {
+        console.log('⚠️ Scroll detected, ignoring click');
+        return;
+      }
 
       if (event && (event.type === 'touchend' || event.type === 'touchstart') && typeof event.preventDefault === 'function') {
         event.preventDefault();
