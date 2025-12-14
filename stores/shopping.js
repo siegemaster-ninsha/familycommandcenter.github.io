@@ -182,24 +182,74 @@ const useShoppingStore = Pinia.defineStore('shopping', {
       }
     },
     
-    // update shopping item
+    // update shopping item (offline-first)
     async updateItem(itemId, updates) {
+      const item = this.items.find(i => i.id === itemId);
+      if (!item) {
+        console.warn('Item not found for update:', itemId);
+        return { success: false, error: 'Item not found' };
+      }
+      
+      // Store original state for potential rollback
+      const originalItem = { ...item };
+      
+      // Optimistic update - apply changes immediately
+      const index = this.items.findIndex(i => i.id === itemId);
+      if (index !== -1) {
+        this.items[index] = { ...this.items[index], ...updates };
+      }
+      console.log('✅ Shopping item updated locally:', itemId);
+      
+      // Check if online
+      const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+      
+      if (!isOnline) {
+        // Queue for later sync
+        if (window.syncQueue) {
+          await window.syncQueue.enqueue({
+            type: 'UPDATE',
+            entity: 'shoppingItem',
+            entityId: itemId,
+            data: updates
+          });
+          
+          if (window.useOfflineStore) {
+            window.useOfflineStore().incrementPendingSync();
+          }
+        }
+        return { success: true, item: this.items[index], offline: true };
+      }
+      
+      // Online - try to sync immediately
       try {
         const data = await apiService.put(`${CONFIG.API.ENDPOINTS.SHOPPING_ITEMS}/${itemId}`, updates);
         
         if (data.item) {
-          const index = this.items.findIndex(item => item.id === itemId);
+          // Update with server response
           if (index !== -1) {
             this.items[index] = { ...this.items[index], ...data.item };
           }
-          console.log('✅ Shopping item updated:', itemId);
+          console.log('✅ Shopping item update synced:', itemId);
           return { success: true, item: data.item };
         }
         
-        return { success: false, error: 'Failed to update item' };
+        return { success: true, item: this.items[index] };
       } catch (error) {
-        console.error('Failed to update shopping item:', error);
-        return { success: false, error: error.message };
+        console.warn('Failed to sync item update, keeping local state:', error.message);
+        // Keep local state, queue for sync
+        if (window.syncQueue) {
+          await window.syncQueue.enqueue({
+            type: 'UPDATE',
+            entity: 'shoppingItem',
+            entityId: itemId,
+            data: updates
+          });
+          
+          if (window.useOfflineStore) {
+            window.useOfflineStore().incrementPendingSync();
+          }
+        }
+        return { success: true, item: this.items[index], offline: true };
       }
     },
     

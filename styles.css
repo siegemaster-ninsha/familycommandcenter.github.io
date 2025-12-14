@@ -2681,3 +2681,112 @@ body.resizing-widget * {
 body.has-offline-banner {
   padding-top: 40px;
 }
+
+
+/* ===========================================
+   iOS PWA LIFECYCLE FIXES
+   =========================================== 
+   
+   These styles help fix issues when iOS PWA goes to 
+   background and returns - CSS can get partially unloaded
+   causing black backgrounds and broken styling.
+   
+   =========================================== */
+
+/* Helper class for forcing style refresh */
+html.ios-refresh {
+  /* Force a repaint by changing a property */
+  transform: translateZ(0);
+}
+
+/* Ensure body always has a background color fallback */
+body {
+  /* Fallback background color in case CSS variables fail */
+  background-color: #F8FAFC;
+}
+
+/* iOS PWA: Ensure backgrounds are always rendered */
+@supports (-webkit-touch-callout: none) {
+  /* iOS-specific styles */
+  body {
+    /* Force GPU layer for better rendering stability */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+  
+  /* Ensure main app container maintains its background */
+  #app > div {
+    /* Fallback background */
+    background-color: var(--color-bg-primary, #F8FAFC);
+    /* Force compositing layer */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    will-change: background-color;
+  }
+  
+  /* Prevent background from being optimized away */
+  .layout-container {
+    background-color: inherit;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+}
+
+/* Standalone PWA mode specific fixes */
+@media all and (display-mode: standalone) {
+  body {
+    /* Ensure background persists in standalone mode */
+    background-color: var(--color-bg-primary, #F8FAFC);
+    background-image: linear-gradient(135deg, var(--color-bg-primary, #F8FAFC) 0%, var(--color-bg-secondary, #f1f5f9) 100%);
+    /* Force layer creation */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  
+  #app {
+    /* Ensure app container has background */
+    min-height: 100vh;
+    background-color: inherit;
+  }
+  
+  #app > div {
+    /* Force background inheritance */
+    background-color: var(--color-bg-primary, #F8FAFC);
+    background-image: linear-gradient(135deg, var(--color-bg-primary, #F8FAFC) 0%, var(--color-bg-secondary, #f1f5f9) 100%);
+  }
+}
+
+/* iOS Safari PWA: Handle visibility state changes */
+@supports (-webkit-overflow-scrolling: touch) {
+  /* Older iOS Safari detection */
+  body {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Ensure cards maintain their backgrounds */
+  .card,
+  .modal-panel,
+  .nav-menu {
+    background-color: var(--color-bg-card, #ffffff);
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+}
+
+/* Prevent black flash on iOS when returning from background */
+html {
+  /* Ensure html element has a background */
+  background-color: var(--color-bg-primary, #F8FAFC);
+}
+
+/* Force repaint animation - used by JavaScript */
+@keyframes ios-force-repaint {
+  0% { opacity: 0.999; }
+  100% { opacity: 1; }
+}
+
+.ios-force-repaint {
+  animation: ios-force-repaint 0.01s linear;
+}

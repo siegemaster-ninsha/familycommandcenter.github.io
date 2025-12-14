@@ -862,29 +862,131 @@ const ShoppingPage = Vue.defineComponent({
 
     async saveItem() {
       this.actionLoading = true;
+      
+      // Check if online
+      const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+      
       try {
         if (this.editMode && this.editingItem) {
           // Update existing item
-          await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_ITEMS}/${this.editingItem.id}`, {
-            method: 'PUT',
-            body: JSON.stringify(this.editingItem)
-          });
-          this.showSuccessMessage('Item updated successfully!');
+          const itemId = this.editingItem.id;
+          const updates = { ...this.editingItem };
+          delete updates.id; // Don't send id in body
+          
+          // Optimistic update - apply locally immediately
+          const itemIndex = this.shoppingItems.findIndex(item => item.id === itemId);
+          if (itemIndex !== -1) {
+            this.shoppingItems[itemIndex] = { ...this.shoppingItems[itemIndex], ...updates };
+          }
+          
+          if (!isOnline) {
+            // Queue for later sync
+            if (window.syncQueue) {
+              await window.syncQueue.enqueue({
+                type: 'UPDATE',
+                entity: 'shoppingItem',
+                entityId: itemId,
+                data: updates
+              });
+              
+              if (window.useOfflineStore) {
+                window.useOfflineStore().incrementPendingSync();
+              }
+            }
+            this.showSuccessMessage('Item updated (will sync when online)');
+          } else {
+            try {
+              await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_ITEMS}/${itemId}`, {
+                method: 'PUT',
+                body: JSON.stringify(updates)
+              });
+              this.showSuccessMessage('Item updated successfully!');
+            } catch (error) {
+              console.warn('Failed to sync item update, queuing for later:', error.message);
+              // Keep optimistic update, queue for sync
+              if (window.syncQueue) {
+                await window.syncQueue.enqueue({
+                  type: 'UPDATE',
+                  entity: 'shoppingItem',
+                  entityId: itemId,
+                  data: updates
+                });
+                
+                if (window.useOfflineStore) {
+                  window.useOfflineStore().incrementPendingSync();
+                }
+              }
+              this.showSuccessMessage('Item updated (will sync when online)');
+            }
+          }
         } else {
-          // Add new item
-          await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS, {
-            method: 'POST',
-            body: JSON.stringify(this.newItem)
-          });
-          this.showSuccessMessage('Item added successfully!');
+          // Add new item - use offline-first approach
+          const tempId = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          const localItem = {
+            ...this.newItem,
+            id: tempId,
+            completed: false,
+            createdAt: new Date().toISOString()
+          };
+          
+          // Optimistic add
+          this.shoppingItems.push(localItem);
+          
+          if (!isOnline) {
+            // Queue for later sync
+            if (window.syncQueue) {
+              await window.syncQueue.enqueue({
+                type: 'CREATE',
+                entity: 'shoppingItem',
+                entityId: tempId,
+                data: this.newItem
+              });
+              
+              if (window.useOfflineStore) {
+                window.useOfflineStore().incrementPendingSync();
+              }
+            }
+            this.showSuccessMessage('Item added (will sync when online)');
+          } else {
+            try {
+              const response = await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS, {
+                method: 'POST',
+                body: JSON.stringify(this.newItem)
+              });
+              
+              // Replace temp item with server item
+              if (response && response.item) {
+                const index = this.shoppingItems.findIndex(i => i.id === tempId);
+                if (index !== -1) {
+                  this.shoppingItems[index] = response.item;
+                }
+              }
+              this.showSuccessMessage('Item added successfully!');
+            } catch (error) {
+              console.warn('Failed to sync new item, queuing for later:', error.message);
+              // Keep optimistic add, queue for sync
+              if (window.syncQueue) {
+                await window.syncQueue.enqueue({
+                  type: 'CREATE',
+                  entity: 'shoppingItem',
+                  entityId: tempId,
+                  data: this.newItem
+                });
+                
+                if (window.useOfflineStore) {
+                  window.useOfflineStore().incrementPendingSync();
+                }
+              }
+              this.showSuccessMessage('Item added (will sync when online)');
+            }
+          }
         }
 
-        await this.$parent.loadShoppingItems();
         this.cancelEdit();
         this.newItem = { name: '', category: 'General', quantity: '', notes: '', store: '' };
       } catch (error) {
         console.error('Error saving item:', error);
-        alert('Error saving item: ' + (error?.message || 'unknown error'));
+        this.showErrorMessage('Error saving item: ' + (error?.message || 'unknown error'));
       } finally {
         this.actionLoading = false;
       }
@@ -907,6 +1009,28 @@ const ShoppingPage = Vue.defineComponent({
       // Optimistic update - immediately toggle the local state
       this.shoppingItems[itemIndex].completed = !previousState;
 
+      // Check if online
+      const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+
+      if (!isOnline) {
+        // Queue for later sync
+        if (window.syncQueue) {
+          await window.syncQueue.enqueue({
+            type: 'UPDATE',
+            entity: 'shoppingItem',
+            entityId: itemId,
+            data: { completed: !previousState }
+          });
+          
+          if (window.useOfflineStore) {
+            window.useOfflineStore().incrementPendingSync();
+          }
+        }
+        console.log('✅ Item toggle queued for sync (offline)');
+        this.shoppingItems[itemIndex].isToggling = false;
+        return;
+      }
+
       try {
         // Make the API call to persist the change
         const response = await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_ITEMS}/${itemId}/toggle`, {
@@ -920,13 +1044,21 @@ const ShoppingPage = Vue.defineComponent({
 
         // Note: Store clearing functionality removed since we no longer group by store
       } catch (error) {
-        console.error('Error toggling item:', error);
+        console.warn('Failed to sync item toggle, queuing for later:', error.message);
 
-        // Rollback the optimistic update on error
-        this.shoppingItems[itemIndex].completed = previousState;
-
-        // Show user-friendly error message instead of alert
-        this.showErrorMessage('Failed to update item. Please try again.');
+        // Keep the optimistic update, queue for sync instead of rolling back
+        if (window.syncQueue) {
+          await window.syncQueue.enqueue({
+            type: 'UPDATE',
+            entity: 'shoppingItem',
+            entityId: itemId,
+            data: { completed: !previousState }
+          });
+          
+          if (window.useOfflineStore) {
+            window.useOfflineStore().incrementPendingSync();
+          }
+        }
       } finally {
         // Remove loading state
         this.shoppingItems[itemIndex].isToggling = false;
@@ -934,14 +1066,58 @@ const ShoppingPage = Vue.defineComponent({
     },
 
     async removeItem(itemId) {
+      // Optimistic delete - remove from local state immediately
+      const deletedItem = this.shoppingItems.find(item => item.id === itemId);
+      const originalItems = [...this.shoppingItems];
+      this.shoppingItems = this.shoppingItems.filter(item => item.id !== itemId);
+      
+      // If it's a local-only item that was never synced, no need to sync delete
+      if (itemId.startsWith('local_')) {
+        console.log('✅ Local-only item removed');
+        return;
+      }
+      
+      // Check if online
+      const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+      
+      if (!isOnline) {
+        // Queue for later sync
+        if (window.syncQueue) {
+          await window.syncQueue.enqueue({
+            type: 'DELETE',
+            entity: 'shoppingItem',
+            entityId: itemId,
+            data: {}
+          });
+          
+          if (window.useOfflineStore) {
+            window.useOfflineStore().incrementPendingSync();
+          }
+        }
+        console.log('✅ Item delete queued for sync (offline)');
+        return;
+      }
+      
       try {
         await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_ITEMS}/${itemId}`, {
           method: 'DELETE'
         });
-        await this.$parent.loadShoppingItems();
+        console.log('✅ Item deleted and synced');
       } catch (error) {
-        console.error('Error removing item:', error);
-        alert('Error removing item: ' + (error?.message || 'unknown error'));
+        console.warn('Failed to sync item delete, queuing for later:', error.message);
+        // Keep optimistic delete, queue for sync
+        if (window.syncQueue) {
+          await window.syncQueue.enqueue({
+            type: 'DELETE',
+            entity: 'shoppingItem',
+            entityId: itemId,
+            data: {}
+          });
+          
+          if (window.useOfflineStore) {
+            window.useOfflineStore().incrementPendingSync();
+          }
+        }
       }
     },
 
