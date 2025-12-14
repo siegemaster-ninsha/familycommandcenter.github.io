@@ -75,13 +75,13 @@ const EarningsWidget = Vue.defineComponent({
             :key="person.id"
             @click="openSpendingModal(person)"
             class="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-            :title="'Click to spend money for ' + person.name"
+            :title="'Click to spend money for ' + (person.displayName || person.name || '')"
           >
             <div class="flex items-center gap-3">
               <div class="earnings-avatar rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">
-                {{ person.name.charAt(0).toUpperCase() }}
+                {{ (person.displayName || person.name || '').charAt(0).toUpperCase() }}
               </div>
-              <span class="text-base font-medium text-primary-custom">{{ person.name }}</span>
+              <span class="text-base font-medium text-primary-custom">{{ person.displayName || person.name || '' }}</span>
             </div>
             <span class="badge badge-success">\${{ person.earnings.toFixed(2) }}</span>
           </div>
