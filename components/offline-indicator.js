@@ -9,7 +9,7 @@ const OfflineIndicator = Vue.defineComponent({
     <transition name="offline-banner">
       <div 
         v-if="showBanner" 
-        class="offline-banner fixed top-14 left-0 right-0 z-40 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium"
+        class="offline-banner fixed top-14 left-0 right-0 z-50 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium"
         :class="bannerClass"
         role="alert"
         aria-live="polite"
