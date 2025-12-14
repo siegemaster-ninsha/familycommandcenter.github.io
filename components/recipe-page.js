@@ -310,7 +310,8 @@ const RecipePage = Vue.defineComponent({
               <div class="flex items-center gap-3 flex-shrink-0">
                 <button
                   @click="decreaseScale"
-                  class="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                  class="rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  style="width: 40px; height: 40px; min-width: 40px; min-height: 40px;"
                   :disabled="scaleMultiplier <= 1"
                 >
                   <div v-html="Helpers.IconLibrary.getIcon('minus', 'lucide', 20, '')"></div>
@@ -318,7 +319,8 @@ const RecipePage = Vue.defineComponent({
                 <span class="w-12 text-center font-bold text-xl flex-shrink-0">{{ scaleMultiplier }}x</span>
                 <button
                   @click="increaseScale"
-                  class="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors flex-shrink-0"
+                  class="rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors"
+                  style="width: 40px; height: 40px; min-width: 40px; min-height: 40px;"
                 >
                   <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 20, '')"></div>
                 </button>
