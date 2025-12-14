@@ -415,16 +415,12 @@ class AuthService {
   }
 
   /**
-   * store tokens in persistent storage (localStorage for web, sessionStorage for mobile)
+   * store tokens in persistent storage
    */
   storeTokens(tokens) {
     try {
-      // Use sessionStorage on mobile devices for better persistence across app restarts
-      // Use localStorage on desktop for longer-term persistence
-      const isMobile = this.isMobileDevice();
-      const storage = isMobile ? sessionStorage : localStorage;
-      storage.setItem('fcc_auth_tokens', JSON.stringify(tokens));
-      console.log(`💾 Tokens stored in ${isMobile ? 'sessionStorage' : 'localStorage'}`);
+      localStorage.setItem('fcc_auth_tokens', JSON.stringify(tokens));
+      console.log('💾 Tokens stored in localStorage');
     } catch (error) {
       console.error('Failed to store tokens:', error);
     }
@@ -435,24 +431,12 @@ class AuthService {
    */
   getStoredTokens() {
     try {
-      // Use sessionStorage on mobile devices for better persistence across app restarts
-      // Use localStorage on desktop for longer-term persistence
-      const isMobile = this.isMobileDevice();
-      const storage = isMobile ? sessionStorage : localStorage;
-      const stored = storage.getItem('fcc_auth_tokens');
+      const stored = localStorage.getItem('fcc_auth_tokens');
       return stored ? JSON.parse(stored) : null;
     } catch (error) {
       console.error('Failed to get stored tokens:', error);
       return null;
     }
-  }
-
-  /**
-   * detect if running on mobile device
-   */
-  isMobileDevice() {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-           (window.innerWidth <= 768 && window.innerHeight <= 1024);
   }
 
   /**
