@@ -2671,6 +2671,11 @@ function checkAndRegisterComponents() {
     app.component('offline-indicator', window.OfflineIndicator);
   }
 
+  console.log('📦 Registering update-prompt');
+  if (window.UpdatePrompt) {
+    app.component('update-prompt', window.UpdatePrompt);
+  }
+
   console.log('✅ All components registered, mounting app...');
 
   // Use Pinia for state management

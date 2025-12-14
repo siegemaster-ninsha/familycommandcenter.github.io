@@ -64,7 +64,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.3 - Valiant Xerus (Dec 14, 2025)',
+    VERSION: '1.0.4 - Luminous Lion (Dec 14, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
