@@ -1255,47 +1255,61 @@ const app = createApp({
     },
 
     async assignQuicklistChoreToMember(quicklistChore, memberName) {
-      // Temporarily clear selectedQuicklistChore to ensure computed selectedChore uses selectedChoreId
-      const originalQuicklistChore = this.selectedQuicklistChore;
-      this.selectedQuicklistChore = null;
+      // Create optimistic chore with temp ID
+      const tempId = `temp-${Date.now()}-${Math.random()}`;
+      const newChore = {
+        id: tempId,
+        name: quicklistChore.name,
+        amount: quicklistChore.amount || 0,
+        category: quicklistChore.category || 'regular',
+        details: '',
+        assignedTo: memberName,
+        completed: false,
+        isPendingApproval: false,
+        isOptimistic: true
+      };
+
+      // Add optimistic chore to UI immediately
+      this.chores.push(newChore);
+      console.log('✨ Optimistic UI updated - quicklist chore added for', memberName);
+
+      // Update electronics status optimistically if needed
+      if (newChore.category === 'game') {
+        this.updateElectronicsStatusOptimistically(memberName);
+      }
 
       try {
-        // Create a new chore from the quicklist chore
-        const newChore = {
-          id: `temp-${Date.now()}-${Math.random()}`,
-          name: quicklistChore.name,
-          amount: quicklistChore.amount || 0,
-          category: quicklistChore.category || 'regular',
-          details: '',
+        // Make API call to create the chore
+        const choreData = {
+          name: newChore.name,
+          amount: newChore.amount,
+          category: newChore.category,
           assignedTo: memberName,
-          completed: false,
-          isPendingApproval: false,
-          isNewFromQuicklist: true
+          completed: false
         };
 
-        // Add to unassigned chores first (they will be moved to assigned when assigned)
-        this.chores.push(newChore);
+        const response = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
+          method: 'POST',
+          body: JSON.stringify(choreData)
+        });
 
-        // Temporarily set selectedChoreId to point to our new chore for assignment
-        const originalSelectedChoreId = this.selectedChoreId;
-        this.selectedChoreId = newChore.id;
-
-        try {
-          // Assign the chore
-          await this.assignSelectedChore(memberName);
-        } finally {
-          // Restore original selectedChoreId to avoid interfering with other assignments
-          this.selectedChoreId = originalSelectedChoreId;
-
-          // Remove from unassigned after assignment
-          const index = this.chores.findIndex(c => c.id === newChore.id);
-          if (index > -1) {
-            this.chores.splice(index, 1);
-          }
+        // Update the optimistic chore with real data from server
+        const choreIndex = this.chores.findIndex(c => c.id === tempId);
+        if (choreIndex !== -1) {
+          this.chores[choreIndex] = {
+            ...response.chore,
+            isOptimistic: false
+          };
         }
-      } finally {
-        // Restore original selectedQuicklistChore
-        this.selectedQuicklistChore = originalQuicklistChore;
+        console.log('✅ Server confirmed quicklist chore creation for', memberName);
+      } catch (error) {
+        // Rollback optimistic update on error
+        const choreIndex = this.chores.findIndex(c => c.id === tempId);
+        if (choreIndex !== -1) {
+          this.chores.splice(choreIndex, 1);
+        }
+        console.error('Failed to create quicklist chore:', error);
+        throw error;
       }
     },
 
