@@ -139,10 +139,10 @@ const PersonCard = {
       <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xl font-bold">
-            {{ person.name.charAt(0) }}
+            {{ personDisplayName.charAt(0) }}
           </div>
           <div>
-            <h3 class="font-bold text-gray-900 text-xl">{{ person.name }}</h3>
+            <h3 class="font-bold text-gray-900 text-xl">{{ personDisplayName }}</h3>
           </div>
         </div>
 
@@ -193,6 +193,11 @@ const PersonCard = {
   },
   components: {
     ChoreCard
+  },
+  computed: {
+    personDisplayName() {
+      return this.person.displayName || this.person.name || '';
+    }
   },
   methods: {
     getElectronicsStatusClass(status) {
@@ -386,13 +391,13 @@ const TailwindChorePage = Vue.defineComponent({
               v-for="person in people"
               :key="person.id"
               :person="person"
-              :person-chores="choresByPerson[person.name] || []"
+              :person-chores="choresByPerson[person.displayName] || []"
               :can-assign="!!selectedChore"
               :show-approval-button="currentUser?.role === 'parent'"
               :selected-chore-id="selectedChoreId"
               :selected-quicklist-chore="selectedQuicklistChore"
               :Helpers="Helpers"
-              @assign="assignSelectedChore(person.name)"
+              @assign="assignSelectedChore(person.displayName)"
               @chore-click="selectChore"
               @chore-toggle="handleChoreCompletionToggle"
               @chore-approve="approveChore"

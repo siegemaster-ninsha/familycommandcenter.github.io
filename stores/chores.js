@@ -49,7 +49,7 @@ const useChoresStore = Pinia.defineStore('chores', {
       return null;
     },
     
-    // group chores by person
+    // group chores by person (uses displayName field)
     choresByPerson: (state) => {
       const useFamilyStore = window.useFamilyStore;
       if (!useFamilyStore) {
@@ -62,11 +62,11 @@ const useChoresStore = Pinia.defineStore('chores', {
         unassigned: []
       };
       
-      // add each person to the grouped object
+      // add each person to the grouped object (keyed by displayName)
       if (Array.isArray(familyStore.members)) {
         familyStore.members.forEach(person => {
-          if (person && person.name) {
-            grouped[person.name] = [];
+          if (person && person.displayName) {
+            grouped[person.displayName] = [];
           }
         });
       }

@@ -11,12 +11,12 @@ const FamilyMembersSection = Vue.defineComponent({
         <div 
           v-for="person in people"
           :key="person.id"
-          :class="getDropZoneClasses(person.name)"
-          @click="assignSelectedChore(person.name)"
-          :data-person="person.name"
+          :class="getDropZoneClasses(person.displayName)"
+          @click="assignSelectedChore(person.displayName)"
+          :data-person="person.displayName"
         >
           <div class="flex items-center justify-between px-3 sm:px-4 pb-3 pt-4 sm:pt-5">
-            <h3 class="text-primary-custom text-lg sm:text-[20px] font-bold leading-tight tracking-[-0.015em]">{{ person.name }}</h3>
+            <h3 class="text-primary-custom text-lg sm:text-[20px] font-bold leading-tight tracking-[-0.015em]">{{ person.displayName || person.name }}</h3>
             <div class="flex items-center gap-2">
               <div class="text-xs px-2 py-1 rounded-full"
                    :style="person.electronicsStatus.status === 'allowed' ? { background: 'var(--color-success-50)', color: 'var(--color-success-700)' } : { background: 'var(--color-error-50)', color: 'var(--color-error-700)' }">
@@ -26,7 +26,7 @@ const FamilyMembersSection = Vue.defineComponent({
           </div>
           <div class="min-h-[120px] px-3 sm:px-4 pb-4">
             <div 
-              v-for="chore in choresByPerson[person.name]" 
+              v-for="chore in choresByPerson[person.displayName]" 
               :key="chore.id"
               :class="getChoreClasses(chore)"
               @click.stop="selectChore(chore, $event)"
@@ -70,8 +70,8 @@ const FamilyMembersSection = Vue.defineComponent({
             </div>
             
             <!-- Assignment zone indicator -->
-            <div v-if="choresByPerson[person.name].length === 0" class="text-center text-secondary-custom py-8 sm:py-8 border-2 border-dashed rounded-lg min-h-[80px] flex flex-col items-center justify-center" :style="{ background: 'var(--color-bg-card)', borderColor: 'var(--color-border-card)' }">
-              <p class="text-sm px-2">No chores assigned to {{ person.name }}</p>
+            <div v-if="choresByPerson[person.displayName]?.length === 0" class="text-center text-secondary-custom py-8 sm:py-8 border-2 border-dashed rounded-lg min-h-[80px] flex flex-col items-center justify-center" :style="{ background: 'var(--color-bg-card)', borderColor: 'var(--color-border-card)' }">
+              <p class="text-sm px-2">No chores assigned to {{ person.displayName || person.name }}</p>
               <p v-if="selectedChore" class="text-xs mt-2 text-primary-600 px-2">Tap here to assign selected chore</p>
             </div>
           </div>

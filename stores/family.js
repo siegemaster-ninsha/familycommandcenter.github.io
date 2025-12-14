@@ -47,9 +47,9 @@ const useFamilyStore = Pinia.defineStore('family', {
       return (id) => state.members.find(member => member.id === id);
     },
     
-    // get member by name
+    // get member by name (uses displayName field)
     memberByName: (state) => {
-      return (name) => state.members.find(member => member.name === name);
+      return (name) => state.members.find(member => member.displayName === name);
     },
     
     // get total family earnings
@@ -85,14 +85,14 @@ const useFamilyStore = Pinia.defineStore('family', {
       try {
         const data = await apiService.get(CONFIG.API.ENDPOINTS.FAMILY_MEMBERS);
         
-        // API returns { familyMembers: [...] } not { people: [...] }
-        const familyMembers = data.familyMembers || data.people || [];
+        // API returns { familyMembers: [...] } - use familyMembers key only
+        const familyMembers = data.familyMembers || [];
         
         if (preserveOptimisticUpdates) {
-          // preserve earnings from optimistic updates
+          // preserve earnings from optimistic updates (keyed by displayName)
           const earningsMap = {};
           this.members.forEach(member => {
-            earningsMap[member.name] = {
+            earningsMap[member.displayName] = {
               earnings: member.earnings,
               completedChores: member.completedChores
             };
@@ -100,7 +100,7 @@ const useFamilyStore = Pinia.defineStore('family', {
           
           this.members = familyMembers.map(member => ({
             ...member,
-            ...(earningsMap[member.name] || {})
+            ...(earningsMap[member.displayName] || {})
           }));
         } else {
           this.members = familyMembers;
@@ -310,9 +310,9 @@ const useFamilyStore = Pinia.defineStore('family', {
       await this.loadMembers();
     },
     
-    // update earnings for a specific member (optimistic)
+    // update earnings for a specific member (optimistic, uses displayName)
     updateMemberEarnings(memberName, earningsChange, choresChange = 0) {
-      const member = this.members.find(m => m.name === memberName);
+      const member = this.members.find(m => m.displayName === memberName);
       if (member) {
         member.earnings = (member.earnings || 0) + earningsChange;
         member.completedChores = (member.completedChores || 0) + choresChange;

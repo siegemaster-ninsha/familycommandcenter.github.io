@@ -87,7 +87,7 @@ const AppModals = Vue.defineComponent({
           <h3 class="text-lg font-bold text-primary-custom">Remove Family Member</h3>
         </div>
         <p class="text-secondary-custom mb-6">
-          Are you sure you want to remove "<span class="font-medium text-primary-custom">{{ personToDelete?.name }}</span>" from the family? 
+          Are you sure you want to remove "<span class="font-medium text-primary-custom">{{ personToDelete?.displayName || personToDelete?.name || '' }}</span>" from the family? 
           All their assigned chores will be moved to unassigned. This action cannot be undone.
         </p>
         <div class="flex gap-3">
@@ -495,7 +495,7 @@ const AppModals = Vue.defineComponent({
           </div>
           <div>
             <h3 class="text-lg font-bold text-primary-custom">Spend Money</h3>
-            <p class="text-sm text-secondary-custom">{{ selectedPerson?.name }} - \${{ selectedPerson?.earnings.toFixed(2) }} available</p>
+            <p class="text-sm text-secondary-custom">{{ selectedPerson?.displayName || selectedPerson?.name || '' }} - \${{ selectedPerson?.earnings.toFixed(2) }} available</p>
           </div>
         </div>
         
@@ -649,10 +649,10 @@ const AppModals = Vue.defineComponent({
               <!-- Person Info -->
               <div class="flex items-center gap-3 flex-1">
                 <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold">
-                  {{ person.name.charAt(0) }}
+                  {{ (person.displayName || person.name || '').charAt(0) }}
                 </div>
                 <div>
-                  <h4 class="font-medium text-primary-custom">{{ person.displayName || person.name }}</h4>
+                  <h4 class="font-medium text-primary-custom">{{ person.displayName || person.name || '' }}</h4>
                   <p class="text-sm text-secondary-custom">\${{ person.earnings?.toFixed(2) || '0.00' }} earned</p>
                 </div>
               </div>
