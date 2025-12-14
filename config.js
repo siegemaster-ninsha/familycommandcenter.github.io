@@ -67,7 +67,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.11 - Dynamic Gorilla (Dec 14, 2025)',
+    VERSION: '1.0.12 - Quick Walrus (Dec 14, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {

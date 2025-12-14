@@ -1,5 +1,5 @@
 // Recipe Store
-// Manages recipes, categories, tags, and recipe scraping
+// Manages recipes, tags, and recipe scraping
 // Supports offline-first operations with sync queue
 //
 // **Feature: recipe-scraper**
@@ -8,7 +8,6 @@
 const useRecipeStore = Pinia.defineStore('recipes', {
   state: () => ({
     recipes: [],
-    categories: [],
     tags: [],
     currentRecipe: null,
     loading: false,
@@ -24,13 +23,6 @@ const useRecipeStore = Pinia.defineStore('recipes', {
   }),
   
   getters: {
-    // Get recipes by category
-    recipesByCategory: (state) => {
-      return (category) => state.recipes.filter(recipe => 
-        recipe.categories && recipe.categories.includes(category)
-      );
-    },
-    
     // Get recipes by tag
     recipesByTag: (state) => {
       return (tag) => state.recipes.filter(recipe => 
@@ -373,72 +365,6 @@ const useRecipeStore = Pinia.defineStore('recipes', {
       this.scrapeError = null;
     },
 
-    // === Category Management ===
-    
-    /**
-     * Load categories for the account
-     */
-    async loadCategories() {
-      try {
-        const data = await apiService.get(`${CONFIG.API.ENDPOINTS.RECIPES}/categories`);
-        this.categories = data.categories || [];
-        console.log('✅ Categories loaded:', this.categories.length);
-      } catch (error) {
-        console.error('Failed to load categories:', error);
-        this.categories = [];
-      }
-    },
-    
-    /**
-     * Create a new category
-     * @param {string} name - Category name
-     * @returns {Object} Result with updated categories
-     */
-    async createCategory(name) {
-      // Optimistic update
-      const originalCategories = [...this.categories];
-      if (!this.categories.includes(name)) {
-        this.categories.push(name);
-        this.categories.sort();
-      }
-      
-      try {
-        const data = await apiService.post(`${CONFIG.API.ENDPOINTS.RECIPES}/categories`, { name });
-        this.categories = data.categories || this.categories;
-        console.log('✅ Category created:', name);
-        return { success: true, categories: this.categories };
-      } catch (error) {
-        console.error('Failed to create category:', error);
-        // Rollback on error
-        this.categories = originalCategories;
-        return { success: false, error: error.message };
-      }
-    },
-    
-    /**
-     * Delete a category (only if no recipes use it)
-     * @param {string} name - Category name to delete
-     * @returns {Object} Result with updated categories
-     */
-    async deleteCategory(name) {
-      // Optimistic update
-      const originalCategories = [...this.categories];
-      this.categories = this.categories.filter(c => c !== name);
-      
-      try {
-        const encodedName = encodeURIComponent(name);
-        const data = await apiService.delete(`${CONFIG.API.ENDPOINTS.RECIPES}/categories/${encodedName}`);
-        this.categories = data.categories || this.categories;
-        console.log('✅ Category deleted:', name);
-        return { success: true, categories: this.categories };
-      } catch (error) {
-        console.error('Failed to delete category:', error);
-        // Rollback on error
-        this.categories = originalCategories;
-        return { success: false, error: error.message };
-      }
-    },
-    
     // === Tag Management ===
     
     /**
@@ -489,7 +415,6 @@ const useRecipeStore = Pinia.defineStore('recipes', {
      */
     reset() {
       this.recipes = [];
-      this.categories = [];
       this.tags = [];
       this.currentRecipe = null;
       this.loading = false;

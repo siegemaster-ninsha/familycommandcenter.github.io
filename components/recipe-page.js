@@ -126,48 +126,6 @@ const RecipePage = Vue.defineComponent({
             <div class="border-t pt-4 mt-4" style="border-color: var(--color-border-card);">
               <h4 class="font-semibold text-primary-custom mb-3">Save Recipe</h4>
               
-              <!-- Category Selection -->
-              <div class="mb-3">
-                <label class="block text-sm font-medium mb-1">Categories</label>
-                <div class="flex flex-wrap gap-2">
-                  <button
-                    v-for="cat in availableCategories"
-                    :key="cat"
-                    @click="toggleCategory(cat)"
-                    class="px-3 py-1 rounded-full text-sm transition-colors"
-                    :class="selectedCategories.includes(cat) 
-                      ? 'bg-primary-500 text-white' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                  >
-                    {{ cat }}
-                  </button>
-                  <button
-                    @click="showNewCategoryInput = true"
-                    v-if="!showNewCategoryInput"
-                    class="px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 flex items-center gap-1"
-                  >
-                    <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 14, '')"></div>
-                    New
-                  </button>
-                  <div v-if="showNewCategoryInput" class="flex items-center gap-2">
-                    <input
-                      v-model="newCategoryName"
-                      type="text"
-                      placeholder="Category name"
-                      class="px-3 py-1 border rounded-lg text-sm"
-                      style="border-color: var(--color-border-card)"
-                      @keyup.enter="addNewCategory"
-                    >
-                    <button @click="addNewCategory" class="text-green-600 hover:text-green-700">
-                      <div v-html="Helpers.IconLibrary.getIcon('check', 'lucide', 16, '')"></div>
-                    </button>
-                    <button @click="showNewCategoryInput = false; newCategoryName = ''" class="text-red-600 hover:text-red-700">
-                      <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 16, '')"></div>
-                    </button>
-                  </div>
-                </div>
-              </div>
-              
               <!-- Tag Input -->
               <div class="mb-4">
                 <label class="block text-sm font-medium mb-1">Tags</label>
@@ -248,22 +206,9 @@ const RecipePage = Vue.defineComponent({
             </h2>
           </div>
           
-          <!-- Filters -->
+          <!-- Tag Filter -->
           <div class="flex flex-wrap gap-3 mb-4">
-            <!-- Category Filter -->
-            <div class="flex-1 min-w-[150px]">
-              <select
-                v-model="filterCategory"
-                class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
-                style="border-color: var(--color-border-card)"
-              >
-                <option value="">All Categories</option>
-                <option v-for="cat in availableCategories" :key="cat" :value="cat">{{ cat }}</option>
-              </select>
-            </div>
-            
-            <!-- Tag Filter -->
-            <div class="flex-1 min-w-[150px]">
+            <div class="flex-1 min-w-[200px]">
               <select
                 v-model="filterTag"
                 class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
@@ -274,14 +219,14 @@ const RecipePage = Vue.defineComponent({
               </select>
             </div>
             
-            <!-- Clear Filters -->
+            <!-- Clear Filter -->
             <button
-              v-if="filterCategory || filterTag"
+              v-if="filterTag"
               @click="clearFilters"
               class="px-4 py-2 text-sm text-secondary-custom hover:text-primary-custom transition-colors flex items-center gap-1"
             >
               <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 14, '')"></div>
-              Clear Filters
+              Clear Filter
             </button>
           </div>
           
@@ -324,14 +269,14 @@ const RecipePage = Vue.defineComponent({
               <h3 class="font-semibold text-primary-custom mb-2 line-clamp-2">{{ recipe.title }}</h3>
               <div class="flex flex-wrap gap-1 mb-2">
                 <span
-                  v-for="cat in recipe.categories?.slice(0, 2)"
-                  :key="cat"
+                  v-for="tag in recipe.tags?.slice(0, 3)"
+                  :key="tag"
                   class="px-2 py-0.5 rounded-full text-xs bg-primary-100 text-primary-700"
                 >
-                  {{ cat }}
+                  {{ tag }}
                 </span>
-                <span v-if="recipe.categories?.length > 2" class="text-xs text-secondary-custom">
-                  +{{ recipe.categories.length - 2 }}
+                <span v-if="recipe.tags?.length > 3" class="text-xs text-secondary-custom">
+                  +{{ recipe.tags.length - 3 }}
                 </span>
               </div>
               <div class="flex items-center justify-between text-sm text-secondary-custom">
@@ -383,19 +328,12 @@ const RecipePage = Vue.defineComponent({
               </span>
             </div>
             
-            <!-- Categories & Tags -->
-            <div class="flex flex-wrap gap-2">
-              <span
-                v-for="cat in currentRecipe?.categories"
-                :key="'cat-' + cat"
-                class="px-3 py-1 rounded-full text-sm bg-primary-500 text-white"
-              >
-                {{ cat }}
-              </span>
+            <!-- Tags -->
+            <div v-if="currentRecipe?.tags?.length" class="flex flex-wrap gap-2">
               <span
                 v-for="tag in currentRecipe?.tags"
                 :key="'tag-' + tag"
-                class="px-3 py-1 rounded-full text-sm bg-secondary-500 text-white"
+                class="px-3 py-1 rounded-full text-sm bg-primary-500 text-white"
               >
                 {{ tag }}
               </span>
@@ -512,25 +450,6 @@ const RecipePage = Vue.defineComponent({
                 >
               </div>
               
-              <!-- Categories -->
-              <div>
-                <label class="block text-sm font-medium mb-1">Categories</label>
-                <div class="flex flex-wrap gap-2">
-                  <button
-                    v-for="cat in availableCategories"
-                    :key="cat"
-                    type="button"
-                    @click="toggleEditCategory(cat)"
-                    class="px-3 py-1 rounded-full text-sm transition-colors"
-                    :class="editForm.categories.includes(cat) 
-                      ? 'bg-primary-500 text-white' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                  >
-                    {{ cat }}
-                  </button>
-                </div>
-              </div>
-              
               <!-- Tags -->
               <div>
                 <label class="block text-sm font-medium mb-1">Tags</label>
@@ -628,15 +547,11 @@ const RecipePage = Vue.defineComponent({
       scrapeUrl: '',
       
       // Save options for scraped recipe
-      selectedCategories: [],
       selectedTags: [],
       newTagInput: '',
-      showNewCategoryInput: false,
-      newCategoryName: '',
       saving: false,
       
       // Filters
-      filterCategory: '',
       filterTag: '',
       
       // Recipe modal
@@ -649,7 +564,6 @@ const RecipePage = Vue.defineComponent({
       editForm: {
         title: '',
         servings: 1,
-        categories: [],
         tags: []
       },
       editTagInput: '',
@@ -683,11 +597,6 @@ const RecipePage = Vue.defineComponent({
     llmHealth() {
       return this.recipeStore.llmHealth;
     },
-    availableCategories() {
-      return this.recipeStore.categories.length > 0 
-        ? this.recipeStore.categories 
-        : ['Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Snack', 'Appetizer'];
-    },
     availableTags() {
       return this.recipeStore.allTags;
     },
@@ -698,10 +607,6 @@ const RecipePage = Vue.defineComponent({
     },
     filteredRecipes() {
       let result = this.recipes;
-      
-      if (this.filterCategory) {
-        result = result.filter(r => r.categories?.includes(this.filterCategory));
-      }
       
       if (this.filterTag) {
         result = result.filter(r => r.tags?.includes(this.filterTag));
@@ -730,7 +635,6 @@ const RecipePage = Vue.defineComponent({
   
   async mounted() {
     await this.loadRecipes();
-    await this.recipeStore.loadCategories();
     await this.recipeStore.loadTags();
     await this.checkLLMHealth();
   },
@@ -751,14 +655,12 @@ const RecipePage = Vue.defineComponent({
       if (result.success) {
         this.scrapeUrl = '';
         // Reset save options
-        this.selectedCategories = [];
         this.selectedTags = [];
       }
     },
     
     clearScrapedRecipe() {
       this.recipeStore.clearScrapedRecipe();
-      this.selectedCategories = [];
       this.selectedTags = [];
       this.newTagInput = '';
     },
@@ -779,25 +681,6 @@ const RecipePage = Vue.defineComponent({
         parts.push(`(${ing.notes})`);
       }
       return parts.join(' ');
-    },
-    
-    toggleCategory(cat) {
-      const idx = this.selectedCategories.indexOf(cat);
-      if (idx === -1) {
-        this.selectedCategories.push(cat);
-      } else {
-        this.selectedCategories.splice(idx, 1);
-      }
-    },
-    
-    async addNewCategory() {
-      if (!this.newCategoryName.trim()) return;
-      
-      const name = this.newCategoryName.trim();
-      await this.recipeStore.createCategory(name);
-      this.selectedCategories.push(name);
-      this.newCategoryName = '';
-      this.showNewCategoryInput = false;
     },
     
     addTag() {
@@ -825,7 +708,6 @@ const RecipePage = Vue.defineComponent({
       try {
         const recipeData = {
           ...this.scrapedRecipe,
-          categories: this.selectedCategories,
           tags: this.selectedTags
         };
         
@@ -841,7 +723,6 @@ const RecipePage = Vue.defineComponent({
     },
     
     clearFilters() {
-      this.filterCategory = '';
       this.filterTag = '';
     },
     
@@ -873,7 +754,6 @@ const RecipePage = Vue.defineComponent({
       this.editForm = {
         title: this.currentRecipe.title,
         servings: this.currentRecipe.servings || 1,
-        categories: [...(this.currentRecipe.categories || [])],
         tags: [...(this.currentRecipe.tags || [])]
       };
       this.editTagInput = '';
@@ -882,17 +762,8 @@ const RecipePage = Vue.defineComponent({
     
     closeEditModal() {
       this.showEditModal = false;
-      this.editForm = { title: '', servings: 1, categories: [], tags: [] };
+      this.editForm = { title: '', servings: 1, tags: [] };
       this.editTagInput = '';
-    },
-    
-    toggleEditCategory(cat) {
-      const idx = this.editForm.categories.indexOf(cat);
-      if (idx === -1) {
-        this.editForm.categories.push(cat);
-      } else {
-        this.editForm.categories.splice(idx, 1);
-      }
     },
     
     addEditTag() {
@@ -915,7 +786,6 @@ const RecipePage = Vue.defineComponent({
         const result = await this.recipeStore.updateRecipe(this.currentRecipe.id, {
           title: this.editForm.title,
           servings: this.editForm.servings,
-          categories: this.editForm.categories,
           tags: this.editForm.tags
         });
         
