@@ -116,6 +116,7 @@ const app = createApp({
         { key: 'dashboard', label: 'Dashboard' },
         { key: 'family', label: 'Family' },
         { key: 'shopping', label: 'Shopping' },
+        { key: 'recipes', label: 'Recipes' },
         { key: 'account', label: 'Account' }
       ],
       
@@ -2656,6 +2657,9 @@ function checkAndRegisterComponents() {
 
   console.log('📦 Registering account-page');
   app.component('account-page', window.AccountPageComponent);
+
+  console.log('📦 Registering recipe-page');
+  app.component('recipe-page', window.RecipePageComponent);
 
   console.log('📦 Registering nav-menu');
   app.component('nav-menu', window.NavMenuComponent);

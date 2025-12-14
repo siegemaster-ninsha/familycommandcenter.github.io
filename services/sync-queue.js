@@ -320,6 +320,7 @@ class SyncQueue {
       if (typeof window !== 'undefined' && window.useOfflineStore) {
         const offlineStore = window.useOfflineStore();
         const newCount = await this.getPendingCount();
+        console.log(`📊 Sync queue: dequeued ${successIds.length}, new pending count: ${newCount}`);
         offlineStore.setPendingSyncCount(newCount);
         offlineStore.updateLastSyncTime();
         offlineStore.setSyncInProgress(false);
@@ -332,6 +333,10 @@ class SyncQueue {
       
       if (typeof window !== 'undefined' && window.useOfflineStore) {
         const offlineStore = window.useOfflineStore();
+        // Still update pending count even on error
+        const newCount = await this.getPendingCount();
+        console.log(`📊 Sync queue error: pending count is ${newCount}`);
+        offlineStore.setPendingSyncCount(newCount);
         offlineStore.setSyncInProgress(false);
         offlineStore.setSyncError(error.message);
       }
@@ -406,15 +411,16 @@ class SyncQueue {
     }
 
     // Execute the API call
+    // IMPORTANT: skipOfflineQueue prevents re-queuing if network check is flaky
     switch (type) {
       case 'CREATE':
-        await api.post(endpoint, payload);
+        await api.post(endpoint, payload, { skipOfflineQueue: true });
         break;
       case 'UPDATE':
-        await api.put(`${endpoint}/${entityId}`, payload);
+        await api.put(`${endpoint}/${entityId}`, payload, { skipOfflineQueue: true });
         break;
       case 'DELETE':
-        await api.delete(endpoint);
+        await api.delete(endpoint, { skipOfflineQueue: true });
         break;
       default:
         throw new Error(`Unknown change type: ${type}`);

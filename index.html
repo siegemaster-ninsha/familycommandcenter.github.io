@@ -166,6 +166,7 @@
     <script src="stores/family.js"></script>
     <script src="stores/dashboard.js"></script>
     <script src="stores/offline.js"></script>
+    <script src="stores/recipes.js"></script>
 
     <!-- Shoelace debugging script -->
     <script>
@@ -279,7 +280,7 @@
                 <!-- Dynamic Page Title -->
                 <div class="flex flex-wrap justify-between gap-3 p-2 sm:p-4">
                   <p class="text-primary-custom tracking-light text-2xl sm:text-[32px] font-bold leading-tight min-w-0">
-                    {{ currentPage === 'chores' ? 'Chores' : currentPage === 'dashboard' ? '' : currentPage === 'family' ? 'Family Members' : currentPage === 'shopping' ? '' : 'Account Settings' }}
+                    {{ currentPage === 'chores' ? 'Chores' : currentPage === 'dashboard' ? '' : currentPage === 'family' ? 'Family Members' : currentPage === 'shopping' ? '' : currentPage === 'recipes' ? 'Recipes' : 'Account Settings' }}
                   </p>
                   <div class="flex items-center gap-3" v-if="currentPage === 'chores'">
                     <button
@@ -323,6 +324,11 @@
                     <shopping-page></shopping-page>
                   </div>
 
+                  <!-- Recipes Page -->
+                  <div v-else-if="currentPage === 'recipes'">
+                    <recipe-page></recipe-page>
+                  </div>
+
                   <!-- Account Settings Page -->
                   <div v-else-if="currentPage === 'account'">
                     <account-page></account-page>
@@ -359,6 +365,7 @@
     <script src="components/shopping-page.js"></script>
     <script src="components/tailwind-chore-page.js"></script>
     <script src="components/account-page.js"></script>
+    <script src="components/recipe-page.js"></script>
 
     <!-- Phase 2: Widget System Components -->
     <script src="components/widget-configurator.js"></script>

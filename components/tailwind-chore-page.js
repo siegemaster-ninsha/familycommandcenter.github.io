@@ -447,8 +447,10 @@ const TailwindChorePage = Vue.defineComponent({
       quicklistError: null
     }
   },
-  async mounted() {
-    await this.loadQuicklistChores();
+  // NOTE: Data is preloaded by parent app.js in loadAllData() - no need to load on mount
+  // This prevents the double-load issue where data appears, then loading bar shows again
+  mounted() {
+    console.log('🎯 Chores page mounted with preloaded data');
   },
   methods: {
     openAddToQuicklistModal() {

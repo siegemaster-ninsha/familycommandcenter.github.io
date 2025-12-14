@@ -42,6 +42,9 @@ const CONFIG = {
       // Stores
       STORES: '/stores',
       
+      // Recipes
+      RECIPES: '/recipes',
+      
       // Account Settings
       ACCOUNT_SETTINGS: '/account-settings',
       // Membership & Invites & Spending
@@ -64,7 +67,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.9 - Mighty Penguin (Dec 14, 2025)',
+    VERSION: '1.0.10 - Dynamic Nightingale (Dec 14, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {

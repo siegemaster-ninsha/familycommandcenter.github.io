@@ -11,6 +11,7 @@ const OfflineIndicator = Vue.defineComponent({
         v-if="showBanner" 
         class="offline-banner fixed top-14 left-0 right-0 z-50 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium"
         :class="bannerClass"
+        :style="bannerStyle"
         role="alert"
         aria-live="polite"
       >
@@ -21,6 +22,7 @@ const OfflineIndicator = Vue.defineComponent({
           @click="triggerSync"
           class="ml-2 px-2 py-1 text-xs rounded hover:opacity-80 transition-opacity"
           :class="buttonClass"
+          :style="buttonStyle"
         >
           Sync Now
         </button>
@@ -67,19 +69,30 @@ const OfflineIndicator = Vue.defineComponent({
       return '';
     });
     
-    const bannerClass = Vue.computed(() => {
+    // Use inline styles for solid colors that won't be affected by theme
+    const bannerStyle = Vue.computed(() => {
       if (offlineStore.syncInProgress) {
-        return 'bg-blue-500 text-white shadow-md';
+        // Blue for syncing
+        return 'background-color: #3b82f6; color: white;';
       }
       if (!offlineStore.isOnline) {
-        return 'bg-amber-500 text-white shadow-md';
+        // Red/orange for offline - high visibility
+        return 'background-color: #dc2626; color: white;';
       }
-      // Online with pending changes
-      return 'bg-yellow-500 text-white shadow-md';
+      // Amber/orange for pending changes
+      return 'background-color: #f59e0b; color: white;';
+    });
+    
+    const bannerClass = Vue.computed(() => {
+      return 'shadow-lg';
     });
     
     const buttonClass = Vue.computed(() => {
-      return 'bg-white/20 text-white';
+      return 'text-white';
+    });
+    
+    const buttonStyle = Vue.computed(() => {
+      return 'background-color: rgba(255, 255, 255, 0.25);';
     });
     
     const statusIcon = Vue.computed(() => {
@@ -118,7 +131,9 @@ const OfflineIndicator = Vue.defineComponent({
       showBanner,
       statusMessage,
       bannerClass,
+      bannerStyle,
       buttonClass,
+      buttonStyle,
       statusIcon,
       triggerSync
     };
