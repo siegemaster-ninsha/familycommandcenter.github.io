@@ -251,10 +251,32 @@ class MobileLifecycleManager {
                           'default';
       this._log('Re-applying theme:', currentTheme);
       ThemeManager.applyTheme(currentTheme);
+    } else {
+      // Fallback: Try to restore CSS variables from localStorage
+      this._restoreCSSVariablesFromStorage();
     }
     
     // Force repaint
     this._forceRepaint();
+  }
+  
+  /**
+   * Fallback method to restore CSS variables if ThemeManager isn't available
+   */
+  _restoreCSSVariablesFromStorage() {
+    try {
+      const savedVars = localStorage.getItem('fcc_css_variables');
+      if (savedVars) {
+        const vars = JSON.parse(savedVars);
+        const root = document.documentElement;
+        Object.entries(vars).forEach(([key, value]) => {
+          root.style.setProperty(key, value);
+        });
+        this._log('Restored CSS variables from storage');
+      }
+    } catch (e) {
+      this._log('Failed to restore CSS variables:', e);
+    }
   }
   
   /**
@@ -272,13 +294,36 @@ class MobileLifecycleManager {
       });
     });
     
-    // Force body background refresh
+    // Force body background refresh - more aggressive for iOS
     const body = document.body;
     if (body) {
-      const currentBg = body.style.backgroundColor;
-      body.style.backgroundColor = 'transparent';
+      // Get computed background color from CSS variable
+      const computedBg = getComputedStyle(body).backgroundColor;
+      const varBg = getComputedStyle(root).getPropertyValue('--color-bg-primary').trim();
+      
+      // Force a style recalculation
+      body.style.display = 'none';
+      body.offsetHeight; // Force reflow
+      body.style.display = '';
+      
+      // Re-apply background if it was lost
+      if (computedBg === 'rgba(0, 0, 0, 0)' || computedBg === 'transparent' || computedBg === 'rgb(0, 0, 0)') {
+        if (varBg) {
+          body.style.backgroundColor = varBg;
+        } else {
+          // Ultimate fallback - apply a light background
+          body.style.backgroundColor = '#f5f5f5';
+        }
+        this._log('Fixed black/transparent background');
+      }
+    }
+    
+    // Also refresh the app container if it exists
+    const appContainer = document.getElementById('app');
+    if (appContainer) {
+      appContainer.style.opacity = '0.99';
       requestAnimationFrame(() => {
-        body.style.backgroundColor = currentBg || '';
+        appContainer.style.opacity = '1';
       });
     }
   }

@@ -67,7 +67,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.15 - Adventurous Phoenix (Dec 14, 2025)',
+    VERSION: '1.0.16 - Cosmic Salamander (Dec 14, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
@@ -755,6 +755,30 @@ const ThemeManager = {
     root.style.setProperty('--color-primary-900', this.hexToRgb(this.darkenColor(theme.colors.primary, 40)));
 
     console.log('🎨 Theme applied:', themeId, theme);
+    
+    // Cache critical CSS variables for iOS resume recovery
+    this._cacheCSSVariables();
+  },
+  
+  // Cache CSS variables to localStorage for iOS PWA resume recovery
+  _cacheCSSVariables() {
+    try {
+      const root = document.documentElement;
+      const style = getComputedStyle(root);
+      const criticalVars = {
+        '--color-bg-primary': style.getPropertyValue('--color-bg-primary').trim(),
+        '--color-bg-secondary': style.getPropertyValue('--color-bg-secondary').trim(),
+        '--color-bg-card': style.getPropertyValue('--color-bg-card').trim(),
+        '--color-text-primary': style.getPropertyValue('--color-text-primary').trim(),
+        '--color-text-secondary': style.getPropertyValue('--color-text-secondary').trim(),
+        '--color-primary-500': style.getPropertyValue('--color-primary-500').trim(),
+        '--color-secondary-500': style.getPropertyValue('--color-secondary-500').trim(),
+        '--color-border-card': style.getPropertyValue('--color-border-card').trim()
+      };
+      localStorage.setItem('fcc_css_variables', JSON.stringify(criticalVars));
+    } catch (e) {
+      console.warn('Failed to cache CSS variables:', e);
+    }
   },
 
   // initialize theme on page load
