@@ -539,7 +539,7 @@ const RecipePage = Vue.defineComponent({
   `,
   
   setup() {
-    const recipeStore = useRecipeStore();
+    const recipeStore = window.useRecipeStore();
     return { recipeStore };
   },
   
