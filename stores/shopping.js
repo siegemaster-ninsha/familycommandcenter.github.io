@@ -1,5 +1,6 @@
 // Shopping Store
 // Manages shopping items, quick items, and stores
+// Supports offline-first operations with sync queue
 
 const useShoppingStore = Pinia.defineStore('shopping', {
   state: () => ({
@@ -7,7 +8,9 @@ const useShoppingStore = Pinia.defineStore('shopping', {
     quickItems: [],
     stores: [],
     loading: false,
-    error: null
+    error: null,
+    // Track local-only items (created offline, not yet synced)
+    localItemIds: new Set()
   }),
   
   getters: {
@@ -107,21 +110,75 @@ const useShoppingStore = Pinia.defineStore('shopping', {
       }
     },
     
-    // add shopping item
+    // add shopping item (offline-first)
     async addItem(itemData) {
+      // Generate a temporary local ID for offline items
+      const tempId = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const localItem = {
+        ...itemData,
+        id: tempId,
+        completed: false,
+        createdAt: new Date().toISOString()
+      };
+      
+      // Optimistically add to local state immediately
+      this.items.push(localItem);
+      this.localItemIds.add(tempId);
+      console.log('✅ Shopping item added locally:', localItem.name);
+      
+      // Check if online
+      const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+      
+      if (!isOnline) {
+        // Queue for later sync
+        if (window.syncQueue) {
+          await window.syncQueue.enqueue({
+            type: 'CREATE',
+            entity: 'shoppingItem',
+            entityId: tempId,
+            data: itemData
+          });
+          
+          // Update offline store pending count
+          if (window.useOfflineStore) {
+            window.useOfflineStore().incrementPendingSync();
+          }
+        }
+        return { success: true, item: localItem, offline: true };
+      }
+      
+      // Online - try to sync immediately
       try {
         const data = await apiService.post(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS, itemData);
         
         if (data.item) {
-          this.items.push(data.item);
-          console.log('✅ Shopping item added:', data.item.name);
+          // Replace temp item with server item
+          const index = this.items.findIndex(i => i.id === tempId);
+          if (index !== -1) {
+            this.items[index] = data.item;
+          }
+          this.localItemIds.delete(tempId);
+          console.log('✅ Shopping item synced:', data.item.name);
           return { success: true, item: data.item };
         }
         
-        return { success: false, error: 'Failed to add item' };
+        return { success: true, item: localItem };
       } catch (error) {
-        console.error('Failed to add shopping item:', error);
-        return { success: false, error: error.message };
+        console.warn('Failed to sync shopping item, keeping local:', error.message);
+        // Keep the local item, queue for sync
+        if (window.syncQueue) {
+          await window.syncQueue.enqueue({
+            type: 'CREATE',
+            entity: 'shoppingItem',
+            entityId: tempId,
+            data: itemData
+          });
+          
+          if (window.useOfflineStore) {
+            window.useOfflineStore().incrementPendingSync();
+          }
+        }
+        return { success: true, item: localItem, offline: true };
       }
     },
     
@@ -146,25 +203,64 @@ const useShoppingStore = Pinia.defineStore('shopping', {
       }
     },
     
-    // delete shopping item
+    // delete shopping item (offline-first)
     async deleteItem(itemId) {
-      // optimistic update
-      const originalItems = [...this.items];
+      // Optimistic update - always remove from local state immediately
+      const deletedItem = this.items.find(item => item.id === itemId);
       this.items = this.items.filter(item => item.id !== itemId);
+      this.localItemIds.delete(itemId);
+      console.log('✅ Shopping item deleted locally:', itemId);
       
+      // If it's a local-only item that was never synced, no need to sync delete
+      if (itemId.startsWith('local_')) {
+        return { success: true };
+      }
+      
+      // Check if online
+      const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+      
+      if (!isOnline) {
+        // Queue for later sync
+        if (window.syncQueue) {
+          await window.syncQueue.enqueue({
+            type: 'DELETE',
+            entity: 'shoppingItem',
+            entityId: itemId,
+            data: {}
+          });
+          
+          if (window.useOfflineStore) {
+            window.useOfflineStore().incrementPendingSync();
+          }
+        }
+        return { success: true, offline: true };
+      }
+      
+      // Online - try to sync
       try {
         await apiService.delete(`${CONFIG.API.ENDPOINTS.SHOPPING_ITEMS}/${itemId}`);
-        console.log('✅ Shopping item deleted:', itemId);
+        console.log('✅ Shopping item delete synced:', itemId);
         return { success: true };
       } catch (error) {
-        console.error('Failed to delete shopping item:', error);
-        // rollback on error
-        this.items = originalItems;
-        return { success: false, error: error.message };
+        console.warn('Failed to sync item delete, queuing:', error.message);
+        // Queue for sync (item already removed from local state)
+        if (window.syncQueue) {
+          await window.syncQueue.enqueue({
+            type: 'DELETE',
+            entity: 'shoppingItem',
+            entityId: itemId,
+            data: {}
+          });
+          
+          if (window.useOfflineStore) {
+            window.useOfflineStore().incrementPendingSync();
+          }
+        }
+        return { success: true, offline: true };
       }
     },
     
-    // toggle item completion
+    // toggle item completion (offline-first)
     async toggleItemComplete(itemId) {
       const item = this.items.find(i => i.id === itemId);
       if (!item) {
@@ -172,18 +268,52 @@ const useShoppingStore = Pinia.defineStore('shopping', {
         return { success: false };
       }
       
-      // optimistic update
+      // Optimistic update - always update local state immediately
       const originalCompleted = item.completed;
       item.completed = !item.completed;
+      console.log('✅ Item completion toggled locally:', item.name, '→', item.completed);
       
+      // Check if online
+      const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+      
+      if (!isOnline) {
+        // Queue for later sync
+        if (window.syncQueue) {
+          await window.syncQueue.enqueue({
+            type: 'UPDATE',
+            entity: 'shoppingItem',
+            entityId: itemId,
+            data: { completed: item.completed }
+          });
+          
+          if (window.useOfflineStore) {
+            window.useOfflineStore().incrementPendingSync();
+          }
+        }
+        return { success: true, offline: true };
+      }
+      
+      // Online - try to sync
       try {
-        await this.updateItem(itemId, { completed: item.completed });
-        console.log('✅ Item completion toggled:', item.name);
+        await apiService.put(`${CONFIG.API.ENDPOINTS.SHOPPING_ITEMS}/${itemId}`, { completed: item.completed });
+        console.log('✅ Item completion synced:', item.name);
         return { success: true };
       } catch (error) {
-        // rollback on error
-        item.completed = originalCompleted;
-        return { success: false, error: error.message };
+        console.warn('Failed to sync item toggle, keeping local state:', error.message);
+        // Keep local state, queue for sync
+        if (window.syncQueue) {
+          await window.syncQueue.enqueue({
+            type: 'UPDATE',
+            entity: 'shoppingItem',
+            entityId: itemId,
+            data: { completed: item.completed }
+          });
+          
+          if (window.useOfflineStore) {
+            window.useOfflineStore().incrementPendingSync();
+          }
+        }
+        return { success: true, offline: true };
       }
     },
     

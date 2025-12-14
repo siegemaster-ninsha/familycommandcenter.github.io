@@ -368,6 +368,12 @@ class SyncQueue {
       case 'quicklist':
         endpoint = type === 'DELETE' ? `/quicklist/${entityId}` : '/quicklist';
         break;
+      case 'shoppingItem':
+        endpoint = type === 'DELETE' ? `/shopping-items/${entityId}` : '/shopping-items';
+        break;
+      case 'shoppingQuickItem':
+        endpoint = type === 'DELETE' ? `/shopping-quick-items/${entityId}` : '/shopping-quick-items';
+        break;
       default:
         throw new Error(`Unknown entity type: ${entity}`);
     }

@@ -99,6 +99,13 @@ const useOfflineStore = Pinia.defineStore('offline', {
           await familyStore.loadMembers();
         }
         
+        // Refresh shopping items
+        if (window.useShoppingStore) {
+          const shoppingStore = window.useShoppingStore();
+          await shoppingStore.loadItems();
+          await shoppingStore.loadQuickItems();
+        }
+        
         console.log('✅ Data refreshed from server');
       } catch (error) {
         console.error('Failed to refresh data from server:', error);
