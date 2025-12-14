@@ -136,7 +136,15 @@
     <script src="utils/settings.js"></script>
     <link rel="stylesheet" href="styles.css">
 
-    <!-- Theme initialization is now handled by config.js -->
+    <!-- Early theme initialization to prevent flash of unstyled content -->
+    <script>
+      (function() {
+        // Apply cached theme immediately before page renders
+        if (typeof ThemeManager !== 'undefined' && ThemeManager.initializeTheme) {
+          ThemeManager.initializeTheme();
+        }
+      })();
+    </script>
     <script src="utils/helpers.js"></script>
     <script src="utils/touch-utils.js"></script>
 
