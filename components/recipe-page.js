@@ -343,10 +343,21 @@ const RecipePage = Vue.defineComponent({
             
             <!-- Ingredients -->
             <div>
-              <h3 class="text-lg font-bold text-primary-custom mb-3 flex items-center gap-2">
-                <div v-html="Helpers.IconLibrary.getIcon('list', 'lucide', 18, '')"></div>
-                Ingredients
-              </h3>
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-lg font-bold text-primary-custom flex items-center gap-2">
+                  <div v-html="Helpers.IconLibrary.getIcon('list', 'lucide', 18, '')"></div>
+                  Ingredients
+                </h3>
+                <button
+                  @click="openIngredientSelector"
+                  class="btn-secondary flex items-center gap-2 px-3 py-1.5 text-sm"
+                  title="Send ingredients to shopping list"
+                >
+                  <div v-html="Helpers.IconLibrary.getIcon('shoppingCart', 'lucide', 16, '')"></div>
+                  <span class="hidden sm:inline">Send to Shopping List</span>
+                  <span class="sm:hidden">Add to Cart</span>
+                </button>
+              </div>
               <ul class="space-y-2">
                 <li
                   v-for="(ing, idx) in scaledIngredients"
@@ -535,6 +546,107 @@ const RecipePage = Vue.defineComponent({
           </div>
         </div>
       </div>
+      
+      <!-- Ingredient Selection Modal -->
+      <!-- **Feature: recipe-shopping-integration** -->
+      <!-- **Validates: Requirements 1.1, 1.2, 2.1** -->
+      <div v-if="showIngredientSelector" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+          <!-- Modal Header -->
+          <div class="sticky top-0 bg-white border-b p-4" style="border-color: var(--color-border-card);">
+            <div class="flex items-center justify-between">
+              <h2 class="text-xl font-bold text-primary-custom">Send to Shopping List</h2>
+              <button
+                @click="closeIngredientSelector"
+                class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 20, '')"></div>
+              </button>
+            </div>
+            <p class="text-sm text-secondary-custom mt-1">Select ingredients to add to your shopping list</p>
+          </div>
+          
+          <!-- Modal Content -->
+          <div class="p-4 space-y-4">
+            <!-- Quantity Toggle -->
+            <div class="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+              <label class="text-sm font-medium">Include quantity & unit</label>
+              <button
+                @click="includeQuantity = !includeQuantity"
+                class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+                :class="includeQuantity ? 'bg-primary-500' : 'bg-gray-300'"
+              >
+                <span
+                  class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                  :class="includeQuantity ? 'translate-x-6' : 'translate-x-1'"
+                ></span>
+              </button>
+            </div>
+            
+            <!-- Select/Deselect All Buttons -->
+            <div class="flex gap-2">
+              <button
+                @click="selectAllIngredients"
+                class="flex-1 px-3 py-2 text-sm border rounded-lg hover:bg-gray-50 transition-colors"
+                style="border-color: var(--color-border-card)"
+              >
+                Select All
+              </button>
+              <button
+                @click="deselectAllIngredients"
+                class="flex-1 px-3 py-2 text-sm border rounded-lg hover:bg-gray-50 transition-colors"
+                style="border-color: var(--color-border-card)"
+              >
+                Deselect All
+              </button>
+            </div>
+            
+            <!-- Ingredient List with Checkboxes -->
+            <div class="space-y-2 max-h-[40vh] overflow-y-auto">
+              <div
+                v-for="(ing, idx) in scaledIngredients"
+                :key="idx"
+                @click="toggleIngredient(idx)"
+                class="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors"
+                :class="selectedIngredients.has(idx) ? 'bg-primary-50 border border-primary-200' : 'bg-gray-50 hover:bg-gray-100'"
+              >
+                <input
+                  type="checkbox"
+                  :checked="selectedIngredients.has(idx)"
+                  @click.stop="toggleIngredient(idx)"
+                  class="w-5 h-5 rounded text-primary-500 focus:ring-primary-500"
+                >
+                <span class="flex-1">{{ formatIngredient(ing) }}</span>
+              </div>
+            </div>
+            
+            <!-- Selection Count -->
+            <div class="text-sm text-secondary-custom text-center">
+              {{ selectedIngredients.size }} of {{ scaledIngredients.length }} ingredients selected
+            </div>
+          </div>
+          
+          <!-- Modal Footer -->
+          <div class="sticky bottom-0 bg-white border-t p-4 flex gap-3" style="border-color: var(--color-border-card);">
+            <button
+              @click="closeIngredientSelector"
+              class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
+              style="border-color: var(--color-border-card)"
+            >
+              Cancel
+            </button>
+            <button
+              @click="sendToShoppingList"
+              class="flex-1 btn-success flex items-center justify-center gap-2"
+              :disabled="sendingToShopping || selectedIngredients.size === 0"
+            >
+              <div v-if="sendingToShopping" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <div v-else v-html="Helpers.IconLibrary.getIcon('shoppingCart', 'lucide', 18, 'text-white')"></div>
+              <span>{{ sendingToShopping ? 'Adding...' : 'Add to Shopping List' }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   `,
   
@@ -573,7 +685,15 @@ const RecipePage = Vue.defineComponent({
       
       // Delete confirmation
       showDeleteConfirm: false,
-      deleting: false
+      deleting: false,
+      
+      // Ingredient selection for shopping list
+      // **Feature: recipe-shopping-integration**
+      // **Validates: Requirements 1.2, 1.4**
+      showIngredientSelector: false,
+      selectedIngredients: new Set(),
+      includeQuantity: true,
+      sendingToShopping: false
     };
   },
   
@@ -819,6 +939,231 @@ const RecipePage = Vue.defineComponent({
       } finally {
         this.deleting = false;
       }
+    },
+    
+    // Ingredient Selection Methods
+    // **Feature: recipe-shopping-integration**
+    // **Validates: Requirements 1.3, 2.2, 2.3, 2.4**
+    
+    /**
+     * Opens the ingredient selector modal and pre-selects all ingredients
+     * **Validates: Requirements 1.3**
+     */
+    openIngredientSelector() {
+      if (!this.currentRecipe?.ingredients) return;
+      
+      // Pre-select all ingredients
+      this.selectedIngredients = new Set();
+      for (let i = 0; i < this.scaledIngredients.length; i++) {
+        this.selectedIngredients.add(i);
+      }
+      this.includeQuantity = true;
+      this.showIngredientSelector = true;
+    },
+    
+    /**
+     * Closes the ingredient selector modal and resets state
+     */
+    closeIngredientSelector() {
+      this.showIngredientSelector = false;
+      this.selectedIngredients = new Set();
+      this.sendingToShopping = false;
+    },
+    
+    /**
+     * Toggles the selection state of a single ingredient
+     * **Validates: Requirements 2.2**
+     * @param {number} index - The index of the ingredient to toggle
+     */
+    toggleIngredient(index) {
+      // Create a new Set to trigger Vue reactivity
+      const newSet = new Set(this.selectedIngredients);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      this.selectedIngredients = newSet;
+    },
+    
+    /**
+     * Selects all ingredients
+     * **Validates: Requirements 2.3**
+     */
+    selectAllIngredients() {
+      const newSet = new Set();
+      for (let i = 0; i < this.scaledIngredients.length; i++) {
+        newSet.add(i);
+      }
+      this.selectedIngredients = newSet;
+    },
+    
+    /**
+     * Deselects all ingredients
+     * **Validates: Requirements 2.4**
+     */
+    deselectAllIngredients() {
+      this.selectedIngredients = new Set();
+    },
+    
+    /**
+     * Sends selected ingredients to the shopping list
+     * **Feature: recipe-shopping-integration**
+     * **Validates: Requirements 2.5, 3.1, 3.2, 3.3, 3.4**
+     */
+    async sendToShoppingList() {
+      if (this.selectedIngredients.size === 0) {
+        this.showToast('Please select at least one ingredient', 'warning');
+        return;
+      }
+      
+      this.sendingToShopping = true;
+      
+      try {
+        const shoppingStore = window.useShoppingStore();
+        const selectedCount = this.selectedIngredients.size;
+        let successCount = 0;
+        let offlineCount = 0;
+        let errorCount = 0;
+        
+        // Get selected ingredients and format them
+        const selectedIngredientsList = [];
+        for (const index of this.selectedIngredients) {
+          if (index < this.scaledIngredients.length) {
+            selectedIngredientsList.push(this.scaledIngredients[index]);
+          }
+        }
+        
+        // Import the formatter function (it's in src/utils but we need frontend version)
+        const formatIngredientForShopping = (ingredient, includeQuantity) => {
+          if (!ingredient || typeof ingredient.name !== 'string') {
+            return {
+              name: '',
+              category: 'Grocery',
+              notes: '',
+              quantity: ''
+            };
+          }
+
+          let name = ingredient.name.trim();
+
+          if (includeQuantity && ingredient.quantity != null) {
+            const unit = ingredient.unit ? ingredient.unit.trim() : '';
+            const quantityStr = String(ingredient.quantity);
+            name = unit 
+              ? `${ingredient.name.trim()}, ${quantityStr} ${unit}`.trim()
+              : `${ingredient.name.trim()}, ${quantityStr}`.trim();
+          }
+
+          return {
+            name: name,
+            category: 'Grocery',
+            notes: ingredient.notes || '',
+            quantity: ''
+          };
+        };
+        
+        // Add each selected ingredient to shopping list
+        for (const ingredient of selectedIngredientsList) {
+          const shoppingItem = formatIngredientForShopping(ingredient, this.includeQuantity);
+          
+          if (!shoppingItem.name) {
+            errorCount++;
+            continue;
+          }
+          
+          try {
+            const result = await shoppingStore.addItem(shoppingItem);
+            if (result.success) {
+              if (result.offline) {
+                offlineCount++;
+              }
+              successCount++;
+            } else {
+              errorCount++;
+            }
+          } catch (error) {
+            console.error('Failed to add ingredient to shopping list:', error);
+            errorCount++;
+          }
+        }
+        
+        // Show appropriate toast notification
+        if (errorCount === selectedCount) {
+          // All failed
+          this.showToast('Failed to add ingredients to shopping list', 'error');
+        } else if (offlineCount > 0 && offlineCount === successCount) {
+          // All offline
+          this.showToast(`${successCount} item${successCount !== 1 ? 's' : ''} added - will sync when online`, 'info');
+          this.closeIngredientSelector();
+        } else if (errorCount > 0) {
+          // Partial success
+          this.showToast(`Added ${successCount} of ${selectedCount} items (${errorCount} failed)`, 'warning');
+          this.closeIngredientSelector();
+        } else {
+          // All succeeded
+          this.showToast(`${successCount} item${successCount !== 1 ? 's' : ''} added to shopping list`, 'success');
+          this.closeIngredientSelector();
+        }
+      } catch (error) {
+        console.error('Error sending to shopping list:', error);
+        this.showToast(`Failed to add items: ${error.message}`, 'error');
+      } finally {
+        this.sendingToShopping = false;
+      }
+    },
+    
+    /**
+     * Shows a toast notification
+     * **Feature: recipe-shopping-integration**
+     * **Validates: Requirements 3.1, 3.2, 3.3, 3.4**
+     * @param {string} message - The message to display
+     * @param {string} type - The type of toast: 'success', 'error', 'warning', 'info'
+     */
+    showToast(message, type = 'info') {
+      // Create toast element
+      const toast = document.createElement('div');
+      toast.className = `fixed bottom-20 sm:bottom-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg z-[100] transition-all duration-300 flex items-center gap-2`;
+      
+      // Set colors based on type
+      const colors = {
+        success: 'bg-green-500 text-white',
+        error: 'bg-red-500 text-white',
+        warning: 'bg-yellow-500 text-white',
+        info: 'bg-blue-500 text-white'
+      };
+      toast.className += ` ${colors[type] || colors.info}`;
+      
+      // Set icon based on type
+      const icons = {
+        success: '✓',
+        error: '✕',
+        warning: '⚠',
+        info: 'ℹ'
+      };
+      
+      toast.innerHTML = `
+        <span class="font-bold">${icons[type] || icons.info}</span>
+        <span>${message}</span>
+      `;
+      
+      // Add to DOM
+      document.body.appendChild(toast);
+      
+      // Animate in
+      requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+      });
+      
+      // Remove after delay
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => {
+          if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+          }
+        }, 300);
+      }, 3000);
     }
   }
 });

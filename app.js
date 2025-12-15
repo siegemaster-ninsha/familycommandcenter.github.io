@@ -684,11 +684,15 @@ const app = createApp({
           prefKeys: Object.keys(this.accountSettings?.preferences || {}),
           membersChoresEnabled: this.accountSettings?.preferences?.membersChoresEnabled || {}
         });
-        // apply user-specific theme if present
+        // Sync backend theme to localStorage (backend -> localStorage)
+        // Only update if backend has a theme and it differs from localStorage
         const userTheme = response?.userTheme;
         if (userTheme) {
-          ThemeManager.applyTheme(userTheme);
-          localStorage.setItem('selectedTheme', userTheme);
+          const currentLocalTheme = ThemeManager.getCurrentTheme();
+          if (userTheme !== currentLocalTheme) {
+            console.log('🎨 Syncing backend theme to localStorage:', userTheme, '(was:', currentLocalTheme, ')');
+            ThemeManager.saveTheme(userTheme);
+          }
         }
         console.log('✅ Account settings loaded:', this.accountSettings);
       } catch (error) {

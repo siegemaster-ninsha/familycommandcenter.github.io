@@ -67,7 +67,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.17 - Valiant Fox (Dec 14, 2025)',
+    VERSION: '1.0.18 - Stellar Salamander (Dec 14, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
@@ -643,121 +643,139 @@ const ThemeManager = {
 
   // apply a theme to CSS custom properties
   applyTheme(themeId) {
+    // Handle invalid theme IDs gracefully
+    if (!themeId || typeof themeId !== 'string') {
+      console.warn(`Invalid theme ID: '${themeId}', falling back to default`);
+      themeId = 'default';
+    }
+    
     const theme = CONFIG.THEMES[themeId];
     if (!theme) {
       console.warn(`Theme '${themeId}' not found, falling back to default`);
+      // Update localStorage with valid theme to prevent future errors
+      try {
+        localStorage.setItem('selectedTheme', 'default');
+      } catch (e) {
+        this._inMemoryTheme = 'default';
+      }
       return this.applyTheme('default');
     }
 
     const root = document.documentElement;
     const isDark = this.isDarkTheme(theme);
-
-    // Primary colors
-    root.style.setProperty('--color-primary-500', theme.colors.primary);
-    root.style.setProperty('--color-primary-600', this.darkenColor(theme.colors.primary, 10));
-    root.style.setProperty('--color-primary-100', this.lightenColor(theme.colors.primary, 40));
-    root.style.setProperty('--color-primary-50', this.lightenColor(theme.colors.primary, 45));
-
-    // Secondary colors
-    root.style.setProperty('--color-secondary-500', theme.colors.secondary);
-    root.style.setProperty('--color-secondary-600', this.darkenColor(theme.colors.secondary, 10));
-    root.style.setProperty('--color-secondary-50', this.lightenColor(theme.colors.secondary, 45));
-
-    // Success colors
-    root.style.setProperty('--color-success-500', theme.colors.success);
-    root.style.setProperty('--color-success-600', this.darkenColor(theme.colors.success, 10));
-
-    // Warning colors (prefer explicit theme warning; fallback to secondary)
-    const warnBase = theme.colors.warning || theme.colors.secondary;
-    root.style.setProperty('--color-warning-500', warnBase);
-    root.style.setProperty('--color-warning-600', this.darkenColor(warnBase, 10));
-
-    // Error colors (prefer explicit theme error; fallback to darkened primary)
-    const errorBase = theme.colors.error || this.darkenColor(theme.colors.primary, 15);
-    root.style.setProperty('--color-error-500', errorBase);
-    root.style.setProperty('--color-error-600', this.darkenColor(errorBase, 10));
-
-    // Text colors
-    root.style.setProperty('--color-text-primary', theme.colors.textPrimary);
-    root.style.setProperty('--color-text-secondary', theme.colors.textSecondary);
-
-    // Background colors - handle dark themes differently
-    let bgPrimary, bgSecondary, cardBg, borderColor;
     
-    if (isDark) {
-      // For dark themes: use much darker colors for backgrounds to contrast with light text
-      bgPrimary = this.darkenColor(theme.colors.primary, 60);
-      bgSecondary = this.darkenColor(theme.colors.secondary, 60);
-      cardBg = this.darkenColor(theme.colors.primary, 50);
-      borderColor = this.darkenColor(theme.colors.primary, 40);
-    } else {
-      // For light themes: use lightened colors for backgrounds
-      bgPrimary = this.lightenColor(theme.colors.primary, 48);
-      bgSecondary = this.lightenColor(theme.colors.secondary, 48);
-      cardBg = this.lightenColor(theme.colors.primary, 50);
-      borderColor = this.lightenColor(theme.colors.primary, 42);
-    }
+    try {
+      // Primary colors
+      root.style.setProperty('--color-primary-500', theme.colors.primary);
+      root.style.setProperty('--color-primary-600', this.darkenColor(theme.colors.primary, 10));
+      root.style.setProperty('--color-primary-100', this.lightenColor(theme.colors.primary, 40));
+      root.style.setProperty('--color-primary-50', this.lightenColor(theme.colors.primary, 45));
 
-    root.style.setProperty('--color-bg-primary', bgPrimary);
-    root.style.setProperty('--color-bg-secondary', bgSecondary);
-    root.style.setProperty('--color-bg-card', cardBg);
-    root.style.setProperty('--color-border-card', borderColor);
+      // Secondary colors
+      root.style.setProperty('--color-secondary-500', theme.colors.secondary);
+      root.style.setProperty('--color-secondary-600', this.darkenColor(theme.colors.secondary, 10));
+      root.style.setProperty('--color-secondary-50', this.lightenColor(theme.colors.secondary, 45));
 
-    // Update neutral colors for dark themes
-    if (isDark) {
-      root.style.setProperty('--color-neutral-50', this.darkenColor(theme.colors.primary, 70));
-      root.style.setProperty('--color-neutral-100', this.darkenColor(theme.colors.primary, 65));
-      root.style.setProperty('--color-neutral-200', this.darkenColor(theme.colors.primary, 55));
-      root.style.setProperty('--color-neutral-300', this.darkenColor(theme.colors.primary, 45));
-      root.style.setProperty('--color-neutral-400', this.darkenColor(theme.colors.primary, 35));
-      root.style.setProperty('--color-neutral-500', this.darkenColor(theme.colors.primary, 25));
-      root.style.setProperty('--color-neutral-600', this.darkenColor(theme.colors.primary, 15));
-      root.style.setProperty('--color-neutral-700', this.darkenColor(theme.colors.primary, 5));
-      root.style.setProperty('--color-neutral-800', theme.colors.primary);
-      root.style.setProperty('--color-neutral-900', this.lightenColor(theme.colors.primary, 10));
-    } else {
-      // Reset to default neutral colors for light themes
-      root.style.setProperty('--color-neutral-50', '#F8FAFC');
-      root.style.setProperty('--color-neutral-100', '#f1f5f9');
-      root.style.setProperty('--color-neutral-200', '#e2e8f0');
-      root.style.setProperty('--color-neutral-300', '#cbd5e1');
-      root.style.setProperty('--color-neutral-400', '#94a3b8');
-      root.style.setProperty('--color-neutral-500', '#718096');
-      root.style.setProperty('--color-neutral-600', '#475569');
-      root.style.setProperty('--color-neutral-700', '#334155');
-      root.style.setProperty('--color-neutral-800', '#2D3748');
-      root.style.setProperty('--color-neutral-900', '#1a202c');
-    }
+      // Success colors
+      root.style.setProperty('--color-success-500', theme.colors.success);
+      root.style.setProperty('--color-success-600', this.darkenColor(theme.colors.success, 10));
 
-    // Update component colors to match theme
-    root.style.setProperty('--color-quicklist-border', borderColor);
-    root.style.setProperty('--color-quicklist-bg', cardBg);
-    root.style.setProperty('--color-family-card-bg', cardBg);
-    root.style.setProperty('--color-family-card-border', borderColor);
-    root.style.setProperty('--color-unassigned-bg', cardBg);
-    root.style.setProperty('--color-unassigned-border', borderColor);
+      // Warning colors (prefer explicit theme warning; fallback to secondary)
+      const warnBase = theme.colors.warning || theme.colors.secondary;
+      root.style.setProperty('--color-warning-500', warnBase);
+      root.style.setProperty('--color-warning-600', this.darkenColor(warnBase, 10));
 
-    // Update gradients to use the new theme colors
-    root.style.setProperty('--gradient-primary', `linear-gradient(135deg, ${theme.colors.primary}, ${this.darkenColor(theme.colors.primary, 10)})`);
-    root.style.setProperty('--gradient-secondary', `linear-gradient(135deg, ${theme.colors.secondary}, ${this.darkenColor(theme.colors.secondary, 10)})`);
-    root.style.setProperty('--gradient-success', `linear-gradient(135deg, ${theme.colors.success}, ${this.darkenColor(theme.colors.success, 10)})`);
-    root.style.setProperty('--gradient-warning', `linear-gradient(135deg, ${warnBase}, ${this.darkenColor(warnBase, 10)})`);
-    root.style.setProperty('--gradient-error', `linear-gradient(135deg, ${errorBase}, ${this.darkenColor(errorBase, 10)})`);
+      // Error colors (prefer explicit theme error; fallback to darkened primary)
+      const errorBase = theme.colors.error || this.darkenColor(theme.colors.primary, 15);
+      root.style.setProperty('--color-error-500', errorBase);
+      root.style.setProperty('--color-error-600', this.darkenColor(errorBase, 10));
 
-    // RGB versions for Tailwind opacity support
-    root.style.setProperty('--color-primary-50', this.hexToRgb(this.lightenColor(theme.colors.primary, 45)));
-    root.style.setProperty('--color-primary-100', this.hexToRgb(this.lightenColor(theme.colors.primary, 40)));
-    root.style.setProperty('--color-primary-200', this.hexToRgb(this.lightenColor(theme.colors.primary, 30)));
-    root.style.setProperty('--color-primary-300', this.hexToRgb(this.lightenColor(theme.colors.primary, 20)));
-    root.style.setProperty('--color-primary-400', this.hexToRgb(this.lightenColor(theme.colors.primary, 10)));
-    root.style.setProperty('--color-primary-700', this.hexToRgb(this.darkenColor(theme.colors.primary, 20)));
-    root.style.setProperty('--color-primary-800', this.hexToRgb(this.darkenColor(theme.colors.primary, 30)));
-    root.style.setProperty('--color-primary-900', this.hexToRgb(this.darkenColor(theme.colors.primary, 40)));
+      // Text colors
+      root.style.setProperty('--color-text-primary', theme.colors.textPrimary);
+      root.style.setProperty('--color-text-secondary', theme.colors.textSecondary);
 
-    console.log('🎨 Theme applied:', themeId, theme);
+      // Background colors - handle dark themes differently
+      let bgPrimary, bgSecondary, cardBg, borderColor;
+      
+      if (isDark) {
+        // For dark themes: use much darker colors for backgrounds to contrast with light text
+        bgPrimary = this.darkenColor(theme.colors.primary, 60);
+        bgSecondary = this.darkenColor(theme.colors.secondary, 60);
+        cardBg = this.darkenColor(theme.colors.primary, 50);
+        borderColor = this.darkenColor(theme.colors.primary, 40);
+      } else {
+        // For light themes: use lightened colors for backgrounds
+        bgPrimary = this.lightenColor(theme.colors.primary, 48);
+        bgSecondary = this.lightenColor(theme.colors.secondary, 48);
+        cardBg = this.lightenColor(theme.colors.primary, 50);
+        borderColor = this.lightenColor(theme.colors.primary, 42);
+      }
+
+      root.style.setProperty('--color-bg-primary', bgPrimary);
+      root.style.setProperty('--color-bg-secondary', bgSecondary);
+      root.style.setProperty('--color-bg-card', cardBg);
+      root.style.setProperty('--color-border-card', borderColor);
+
+      // Update neutral colors for dark themes
+      if (isDark) {
+        root.style.setProperty('--color-neutral-50', this.darkenColor(theme.colors.primary, 70));
+        root.style.setProperty('--color-neutral-100', this.darkenColor(theme.colors.primary, 65));
+        root.style.setProperty('--color-neutral-200', this.darkenColor(theme.colors.primary, 55));
+        root.style.setProperty('--color-neutral-300', this.darkenColor(theme.colors.primary, 45));
+        root.style.setProperty('--color-neutral-400', this.darkenColor(theme.colors.primary, 35));
+        root.style.setProperty('--color-neutral-500', this.darkenColor(theme.colors.primary, 25));
+        root.style.setProperty('--color-neutral-600', this.darkenColor(theme.colors.primary, 15));
+        root.style.setProperty('--color-neutral-700', this.darkenColor(theme.colors.primary, 5));
+        root.style.setProperty('--color-neutral-800', theme.colors.primary);
+        root.style.setProperty('--color-neutral-900', this.lightenColor(theme.colors.primary, 10));
+      } else {
+        // Reset to default neutral colors for light themes
+        root.style.setProperty('--color-neutral-50', '#F8FAFC');
+        root.style.setProperty('--color-neutral-100', '#f1f5f9');
+        root.style.setProperty('--color-neutral-200', '#e2e8f0');
+        root.style.setProperty('--color-neutral-300', '#cbd5e1');
+        root.style.setProperty('--color-neutral-400', '#94a3b8');
+        root.style.setProperty('--color-neutral-500', '#718096');
+        root.style.setProperty('--color-neutral-600', '#475569');
+        root.style.setProperty('--color-neutral-700', '#334155');
+        root.style.setProperty('--color-neutral-800', '#2D3748');
+        root.style.setProperty('--color-neutral-900', '#1a202c');
+      }
+
+      // Update component colors to match theme
+      root.style.setProperty('--color-quicklist-border', borderColor);
+      root.style.setProperty('--color-quicklist-bg', cardBg);
+      root.style.setProperty('--color-family-card-bg', cardBg);
+      root.style.setProperty('--color-family-card-border', borderColor);
+      root.style.setProperty('--color-unassigned-bg', cardBg);
+      root.style.setProperty('--color-unassigned-border', borderColor);
+
+      // Update gradients to use the new theme colors
+      root.style.setProperty('--gradient-primary', `linear-gradient(135deg, ${theme.colors.primary}, ${this.darkenColor(theme.colors.primary, 10)})`);
+      root.style.setProperty('--gradient-secondary', `linear-gradient(135deg, ${theme.colors.secondary}, ${this.darkenColor(theme.colors.secondary, 10)})`);
+      root.style.setProperty('--gradient-success', `linear-gradient(135deg, ${theme.colors.success}, ${this.darkenColor(theme.colors.success, 10)})`);
+      root.style.setProperty('--gradient-warning', `linear-gradient(135deg, ${warnBase}, ${this.darkenColor(warnBase, 10)})`);
+      root.style.setProperty('--gradient-error', `linear-gradient(135deg, ${errorBase}, ${this.darkenColor(errorBase, 10)})`);
+
+      // RGB versions for Tailwind opacity support
+      root.style.setProperty('--color-primary-50', this.hexToRgb(this.lightenColor(theme.colors.primary, 45)));
+      root.style.setProperty('--color-primary-100', this.hexToRgb(this.lightenColor(theme.colors.primary, 40)));
+      root.style.setProperty('--color-primary-200', this.hexToRgb(this.lightenColor(theme.colors.primary, 30)));
+      root.style.setProperty('--color-primary-300', this.hexToRgb(this.lightenColor(theme.colors.primary, 20)));
+      root.style.setProperty('--color-primary-400', this.hexToRgb(this.lightenColor(theme.colors.primary, 10)));
+      root.style.setProperty('--color-primary-700', this.hexToRgb(this.darkenColor(theme.colors.primary, 20)));
+      root.style.setProperty('--color-primary-800', this.hexToRgb(this.darkenColor(theme.colors.primary, 30)));
+      root.style.setProperty('--color-primary-900', this.hexToRgb(this.darkenColor(theme.colors.primary, 40)));
+
+      console.log('🎨 Theme applied:', themeId, theme);
     
-    // Cache critical CSS variables for iOS resume recovery
-    this._cacheCSSVariables();
+      // Cache critical CSS variables for iOS resume recovery
+      this._cacheCSSVariables();
+    } catch (e) {
+      console.error('Failed to apply theme CSS variables:', e);
+      // Apply fallback colors on error
+      this._applyFallbackColors();
+    }
   },
   
   // Cache CSS variables to localStorage for iOS PWA resume recovery
@@ -773,11 +791,116 @@ const ThemeManager = {
         '--color-text-secondary': style.getPropertyValue('--color-text-secondary').trim(),
         '--color-primary-500': style.getPropertyValue('--color-primary-500').trim(),
         '--color-secondary-500': style.getPropertyValue('--color-secondary-500').trim(),
-        '--color-border-card': style.getPropertyValue('--color-border-card').trim()
+        '--color-border-card': style.getPropertyValue('--color-border-card').trim(),
+        '--color-success-500': style.getPropertyValue('--color-success-500').trim(),
+        '--color-warning-500': style.getPropertyValue('--color-warning-500').trim(),
+        '--color-error-500': style.getPropertyValue('--color-error-500').trim()
       };
       localStorage.setItem('fcc_css_variables', JSON.stringify(criticalVars));
     } catch (e) {
       console.warn('Failed to cache CSS variables:', e);
+    }
+  },
+
+  // ===========================================
+  // iOS PWA RECOVERY METHODS
+  // ===========================================
+
+  // Hardcoded fallback colors for when CSS variables are lost and cannot be recovered
+  FALLBACK_COLORS: {
+    '--color-bg-primary': '#f8fafc',
+    '--color-bg-secondary': '#f1f5f9',
+    '--color-bg-card': '#ffffff',
+    '--color-text-primary': '#2D3748',
+    '--color-text-secondary': '#718096',
+    '--color-primary-500': '#4A90E2',
+    '--color-secondary-500': '#7B68EE',
+    '--color-border-card': '#e2e8f0',
+    '--color-success-500': '#22C55E',
+    '--color-warning-500': '#F59E0B',
+    '--color-error-500': '#EF4444'
+  },
+
+  // In-memory theme fallback when localStorage is unavailable
+  _inMemoryTheme: 'default',
+
+  // Force refresh the current theme (for iOS PWA resume recovery)
+  forceRefresh() {
+    const currentTheme = this.getCurrentTheme();
+    console.log('🔄 ThemeManager.forceRefresh() - re-applying theme:', currentTheme);
+    this.applyTheme(currentTheme);
+  },
+
+  // Verify that CSS variables are correctly applied
+  verifyThemeApplied() {
+    try {
+      const root = document.documentElement;
+      const style = getComputedStyle(root);
+      
+      // Check critical CSS variables
+      const bgPrimary = style.getPropertyValue('--color-bg-primary').trim();
+      const textPrimary = style.getPropertyValue('--color-text-primary').trim();
+      const primary500 = style.getPropertyValue('--color-primary-500').trim();
+      
+      // Variables should not be empty or transparent
+      const isValid = bgPrimary && bgPrimary !== '' && bgPrimary !== 'rgba(0, 0, 0, 0)' &&
+                      textPrimary && textPrimary !== '' &&
+                      primary500 && primary500 !== '';
+      
+      // Also verify against cached values if available
+      if (isValid) {
+        try {
+          const cached = localStorage.getItem('fcc_css_variables');
+          if (cached) {
+            const cachedVars = JSON.parse(cached);
+            // Check if at least the primary color matches
+            if (cachedVars['--color-primary-500'] && cachedVars['--color-primary-500'] !== primary500) {
+              console.warn('🎨 CSS variables do not match cached values');
+              return false;
+            }
+          }
+        } catch (e) {
+          // Ignore cache comparison errors
+        }
+      }
+      
+      return isValid;
+    } catch (e) {
+      console.warn('Failed to verify theme:', e);
+      return false;
+    }
+  },
+
+  // Detect if CSS variables were lost (e.g., after iOS bfcache restoration)
+  _detectCSSVariableLoss() {
+    try {
+      const root = document.documentElement;
+      const style = getComputedStyle(root);
+      const bgPrimary = style.getPropertyValue('--color-bg-primary').trim();
+      
+      // Check for signs of CSS variable loss
+      return !bgPrimary || 
+             bgPrimary === '' || 
+             bgPrimary === 'rgba(0, 0, 0, 0)' ||
+             bgPrimary === 'transparent' ||
+             bgPrimary === 'rgb(0, 0, 0)';
+    } catch (e) {
+      console.warn('Failed to detect CSS variable loss:', e);
+      return true; // Assume loss on error
+    }
+  },
+
+  // Apply hardcoded fallback colors when theme recovery fails
+  _applyFallbackColors() {
+    console.warn('🎨 Applying fallback colors due to theme recovery failure');
+    try {
+      const root = document.documentElement;
+      Object.entries(this.FALLBACK_COLORS).forEach(([key, value]) => {
+        root.style.setProperty(key, value);
+      });
+      console.log('🎨 Fallback colors applied successfully');
+    } catch (e) {
+      console.error('Failed to apply fallback colors:', e);
     }
   },
 
@@ -788,14 +911,24 @@ const ThemeManager = {
     this.applyTheme(savedTheme);
   },
 
-  // get current theme
+  // get current theme (with localStorage error handling)
   getCurrentTheme() {
-    return localStorage.getItem('selectedTheme') || 'default';
+    try {
+      return localStorage.getItem('selectedTheme') || this._inMemoryTheme || 'default';
+    } catch (e) {
+      console.warn('localStorage unavailable, using in-memory theme:', e);
+      return this._inMemoryTheme || 'default';
+    }
   },
 
-  // save theme selection
+  // save theme selection (with localStorage error handling)
   saveTheme(themeId) {
-    localStorage.setItem('selectedTheme', themeId);
+    try {
+      localStorage.setItem('selectedTheme', themeId);
+    } catch (e) {
+      console.warn('localStorage unavailable, using in-memory theme:', e);
+      this._inMemoryTheme = themeId;
+    }
     this.applyTheme(themeId);
   },
 
@@ -851,47 +984,20 @@ const ThemeManager = {
   },
 
   // Handle system color scheme change
+  // DISABLED: Dark mode auto-sync is disabled to prevent theme conflicts on iOS PWA resume
+  // The user's explicitly selected theme should always be preserved
   handleColorSchemeChange(event) {
-    const colorScheme = event.matches ? 'dark' : 'light';
-    console.log('🌓 System color scheme changed to:', colorScheme);
-    
-    // Only auto-switch if user hasn't manually overridden
-    if (!ThemeManager.hasUserOverride()) {
-      const themeId = ThemeManager.getThemeForSystemPreference(colorScheme);
-      console.log('🎨 Auto-switching to theme:', themeId);
-      localStorage.setItem('selectedTheme', themeId);
-      ThemeManager.applyTheme(themeId);
-      
-      // Dispatch event for app components to react
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('theme-changed', {
-          detail: { themeId, colorScheme, source: 'system' }
-        }));
-      }
-    } else {
-      console.log('🎨 User has override preference, not auto-switching');
-    }
+    // NO-OP: Dark mode sync disabled for iOS PWA stability
+    console.log('🌓 Dark mode sync disabled - ignoring system color scheme change');
+    return;
   },
 
   // Initialize dark mode sync listener
+  // DISABLED: Dark mode auto-sync is disabled to prevent theme conflicts on iOS PWA resume
   initDarkModeSync() {
-    if (typeof window === 'undefined' || !window.matchMedia) {
-      console.log('🌓 Dark mode sync not available (no matchMedia support)');
-      return;
-    }
-
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    // Add listener for changes
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', this.handleColorSchemeChange);
-    } else if (mediaQuery.addListener) {
-      // Fallback for older browsers
-      mediaQuery.addListener(this.handleColorSchemeChange);
-    }
-
-    console.log('🌓 Dark mode sync initialized, current system preference:', 
-      mediaQuery.matches ? 'dark' : 'light');
+    // NO-OP: Dark mode sync disabled for iOS PWA stability
+    console.log('🌓 Dark mode sync disabled - not registering system preference listener');
+    return;
   },
 
   // Save theme with user override (user explicitly chose a theme)

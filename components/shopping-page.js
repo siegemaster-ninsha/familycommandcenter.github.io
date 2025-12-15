@@ -168,109 +168,162 @@ const ShoppingPage = Vue.defineComponent({
         </div>
       </div>
 
-      <!-- Quick List -->
-      <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
-        <div class="flex items-center justify-between mb-4 sm:mb-6">
-          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
-            <div v-html="Helpers.IconLibrary.getIcon('zap', 'lucide', 20, 'text-primary-custom')"></div>
-            Quick List
-          </h2>
-          <div class="flex gap-2">
+      <!-- Quick List Accordion (Requirements 5.1, 5.2, 4.1) -->
+      <div class="rounded-lg border" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
+        <!-- Accordion Header - Always visible -->
+        <div 
+          class="flex items-center justify-between p-6 cursor-pointer select-none"
+          @click="toggleQuicklistAccordion"
+        >
+          <div class="flex items-center gap-2">
+            <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
+              <div v-html="Helpers.IconLibrary.getIcon('zap', 'lucide', 20, 'text-primary-custom')"></div>
+              Quick List
+            </h2>
+            <span class="text-sm font-normal text-secondary-custom">({{ sortedQuickItems.length }} items)</span>
+          </div>
+          <div class="flex items-center gap-2">
             <button
-              @click="showAddQuickItemModal = true"
+              @click.stop="showAddQuickItemModal = true"
               class="flex items-center gap-2 bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-colors text-sm"
               :disabled="quickLoading"
             >
               <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 14, 'text-white')"></div>
               Add Quick Item
             </button>
+            <!-- Expand/Collapse Icon -->
+            <div 
+              class="transition-transform duration-200"
+              :class="quicklistExpanded ? 'rotate-180' : 'rotate-0'"
+              v-html="Helpers.IconLibrary.getIcon('chevronDown', 'lucide', 20, 'text-secondary-custom')"
+            ></div>
           </div>
         </div>
         
-        <p class="text-sm text-secondary-custom mb-4">Tap any item below to quickly add it to your shopping list!</p>
-        
-        <!-- Quick loading state -->
-        <div v-if="quickLoading" class="text-center py-4">
-          <div class="spinner-border animate-spin inline-block w-6 h-6 border-4 rounded-full" style="border-color: var(--color-primary-500); border-top-color: transparent;"></div>
-          <p class="text-secondary-custom mt-2 text-sm">Loading quick items...</p>
-        </div>
-        
-        <!-- Quick error state -->
-          <div v-else-if="quickError" class="text-center py-4" style="color: var(--color-error-700);">
-          <p class="text-sm">{{ quickError }}</p>
-          <button 
-            @click="loadQuickItems"
-            class="mt-2 px-3 py-1 bg-primary-500 text-white rounded text-sm hover:bg-primary-600 transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-        
-        <!-- Quick items list -->
-        <div v-else class="space-y-2">
-          <div
-            v-for="quickItem in sortedQuickItems"
-            :key="quickItem.id"
-            class="flex items-center gap-4 p-4 sm:p-4 rounded-lg transition-colors cursor-pointer"
-            :style="{
-              backgroundColor: getCategoryColors(quickItem.category).background,
-              borderColor: getCategoryColors(quickItem.category).border
-            }"
-            @click="addQuickItemToList(quickItem.id)"
-          >
-            <!-- Quick item doesn't need checkbox since it's not toggleable -->
-            <div class="w-6 h-6 sm:w-5 sm:h-5 flex items-center justify-center">
-              <!-- Quick add icon instead of checkbox -->
-              <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16, 'text-white opacity-60')"></div>
+        <!-- Accordion Content - Collapsible -->
+        <div v-show="quicklistExpanded" class="px-6 pb-6">
+          <!-- Search Input (Requirements 4.1, 4.2) -->
+          <div class="relative mb-4">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <div v-html="Helpers.IconLibrary.getIcon('search', 'lucide', 16, 'text-secondary-custom opacity-60')"></div>
             </div>
-
-            <div class="flex-1">
-              <span class="font-medium text-lg sm:text-base text-white block">
-                {{ quickItem.name }}
-              </span>
-              <div v-if="quickItem.defaultQuantity" class="text-base sm:text-sm text-white text-opacity-90 mt-1">
-                <span class="font-medium">Qty: {{ quickItem.defaultQuantity }}</span>
-              </div>
-              <div class="text-base sm:text-sm text-white text-opacity-90 flex items-center gap-2 mt-1">
-                <span class="inline-flex items-center gap-1">
-                  <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 16, 'opacity-90')"></div>
-                  <span>{{ quickItem.category }}</span>
-                </span>
-                <span v-if="quickItem.defaultNotes">• {{ quickItem.defaultNotes }}</span>
-                <span v-if="quickItem.defaultStore" class="inline-flex items-center gap-1 text-xs bg-white bg-opacity-20 px-2 py-1 rounded">
-                  <div v-html="Helpers.IconLibrary.getIcon('home', 'lucide', 12, '')"></div>
-                  {{ quickItem.defaultStore }}
-                </span>
-              </div>
-            </div>
-            <div class="flex items-center gap-2">
-              <button
-                @click.stop="startEditQuickItem(quickItem)"
-                class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
-                style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 40px; height: 40px;"
-                :class="'hover:scale-105 active:scale-95'"
-                title="Edit quick item"
-                :disabled="quickActionLoading"
-              >
-                <div v-html="Helpers.IconLibrary.getIcon('edit', 'lucide', 20, '')"></div>
-              </button>
-              <button
-                @click.stop="removeQuickItem(quickItem.id)"
-                class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
-                style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 40px; height: 40px;"
-                :class="'hover:scale-105 active:scale-95'"
-                title="Remove quick item"
-                :disabled="quickActionLoading"
-              >
-                <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 18, 'text-white drop-shadow-sm')"></div>
-              </button>
-            </div>
+            <input
+              v-model="quicklistSearch"
+              type="text"
+              placeholder="Search quick items..."
+              class="w-full pl-10 pr-10 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+              style="border-color: var(--color-border-card); background-color: var(--color-bg-card);"
+            >
+            <!-- Clear button -->
+            <button
+              v-if="quicklistSearch"
+              @click="clearQuicklistSearch"
+              class="absolute inset-y-0 right-0 pr-3 flex items-center"
+              title="Clear search"
+            >
+              <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 16, 'text-secondary-custom hover:text-primary-custom')"></div>
+            </button>
           </div>
           
-          <div v-if="sortedQuickItems.length === 0" class="text-center py-4 sm:py-8 text-secondary-custom">
-            <div v-html="Helpers.IconLibrary.getIcon('minus', 'lucide', 32, 'mx-auto mb-2 opacity-50')" class="mx-auto mb-2 opacity-50"></div>
-            <p>No quick items available.</p>
-            <p class="text-sm mt-1">Click "Add Quick Item" to create some common items!</p>
+          <p class="text-sm text-secondary-custom mb-4">Tap any item below to quickly add it to your shopping list!</p>
+          
+          <!-- Quick loading state -->
+          <div v-if="quickLoading" class="text-center py-4">
+            <div class="spinner-border animate-spin inline-block w-6 h-6 border-4 rounded-full" style="border-color: var(--color-primary-500); border-top-color: transparent;"></div>
+            <p class="text-secondary-custom mt-2 text-sm">Loading quick items...</p>
+          </div>
+          
+          <!-- Quick error state -->
+          <div v-else-if="quickError" class="text-center py-4" style="color: var(--color-error-700);">
+            <p class="text-sm">{{ quickError }}</p>
+            <button 
+              @click="loadQuickItems"
+              class="mt-2 px-3 py-1 bg-primary-500 text-white rounded text-sm hover:bg-primary-600 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+          
+          <!-- Quick items list - now uses filteredQuickItems -->
+          <div v-else class="space-y-2">
+            <div
+              v-for="quickItem in filteredQuickItems"
+              :key="quickItem.id"
+              class="flex items-center gap-4 p-4 sm:p-4 rounded-lg transition-colors cursor-pointer"
+              :style="{
+                backgroundColor: getCategoryColors(quickItem.category).background,
+                borderColor: getCategoryColors(quickItem.category).border
+              }"
+              @click="addQuickItemToList(quickItem.id)"
+            >
+              <!-- Quick item doesn't need checkbox since it's not toggleable -->
+              <div class="w-6 h-6 sm:w-5 sm:h-5 flex items-center justify-center">
+                <!-- Quick add icon instead of checkbox -->
+                <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16, 'text-white opacity-60')"></div>
+              </div>
+
+              <div class="flex-1">
+                <span class="font-medium text-lg sm:text-base text-white block">
+                  {{ quickItem.name }}
+                </span>
+                <div v-if="quickItem.defaultQuantity" class="text-base sm:text-sm text-white text-opacity-90 mt-1">
+                  <span class="font-medium">Qty: {{ quickItem.defaultQuantity }}</span>
+                </div>
+                <div class="text-base sm:text-sm text-white text-opacity-90 flex items-center gap-2 mt-1">
+                  <span class="inline-flex items-center gap-1">
+                    <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 16, 'opacity-90')"></div>
+                    <span>{{ quickItem.category }}</span>
+                  </span>
+                  <span v-if="quickItem.defaultNotes">• {{ quickItem.defaultNotes }}</span>
+                  <span v-if="quickItem.defaultStore" class="inline-flex items-center gap-1 text-xs bg-white bg-opacity-20 px-2 py-1 rounded">
+                    <div v-html="Helpers.IconLibrary.getIcon('home', 'lucide', 12, '')"></div>
+                    {{ quickItem.defaultStore }}
+                  </span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button
+                  @click.stop="startEditQuickItem(quickItem)"
+                  class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
+                  style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 40px; height: 40px;"
+                  :class="'hover:scale-105 active:scale-95'"
+                  title="Edit quick item"
+                  :disabled="quickActionLoading"
+                >
+                  <div v-html="Helpers.IconLibrary.getIcon('edit', 'lucide', 20, '')"></div>
+                </button>
+                <button
+                  @click.stop="removeQuickItem(quickItem.id)"
+                  class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
+                  style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 40px; height: 40px;"
+                  :class="'hover:scale-105 active:scale-95'"
+                  title="Remove quick item"
+                  :disabled="quickActionLoading"
+                >
+                  <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 18, 'text-white drop-shadow-sm')"></div>
+                </button>
+              </div>
+            </div>
+            
+            <!-- No matches found message (Requirements 4.5) -->
+            <div v-if="filteredQuickItems.length === 0 && quicklistSearch && sortedQuickItems.length > 0" class="text-center py-4 sm:py-8 text-secondary-custom">
+              <div v-html="Helpers.IconLibrary.getIcon('search', 'lucide', 32, 'mx-auto mb-2 opacity-50')" class="mx-auto mb-2 opacity-50"></div>
+              <p>No matches found</p>
+              <p class="text-sm mt-1">Try a different search term</p>
+              <button 
+                @click="clearQuicklistSearch"
+                class="mt-2 px-3 py-1 bg-primary-500 text-white rounded text-sm hover:bg-primary-600 transition-colors"
+              >
+                Clear Search
+              </button>
+            </div>
+            
+            <!-- Empty quicklist message -->
+            <div v-if="sortedQuickItems.length === 0" class="text-center py-4 sm:py-8 text-secondary-custom">
+              <div v-html="Helpers.IconLibrary.getIcon('minus', 'lucide', 32, 'mx-auto mb-2 opacity-50')" class="mx-auto mb-2 opacity-50"></div>
+              <p>No quick items available.</p>
+              <p class="text-sm mt-1">Click "Add Quick Item" to create some common items!</p>
+            </div>
           </div>
         </div>
       </div>
@@ -648,6 +701,9 @@ const ShoppingPage = Vue.defineComponent({
       quickActionLoading: false,
       error: null,
       quickError: null,
+      // Quicklist accordion and search state (Requirements 5.1, 4.1)
+      quicklistExpanded: true,
+      quicklistSearch: '',
       showAddItemModal: false,
       showAddQuickItemModal: false,
       showAddStoreModal: false,
@@ -713,6 +769,28 @@ const ShoppingPage = Vue.defineComponent({
         // Finally sort by name alphabetically
         return a.name.localeCompare(b.name);
       });
+    },
+
+    // Filtered quick items using fuzzy search (Requirements 4.3, 4.4)
+    filteredQuickItems() {
+      if (!this.quicklistSearch || this.quicklistSearch.trim() === '') {
+        return this.sortedQuickItems;
+      }
+      // Use fuzzyMatch function - imported at top of file or available globally
+      const fuzzyMatch = window.fuzzyMatch || ((query, name) => {
+        if (!query || query.trim() === '') return true;
+        if (!name) return false;
+        const normalizedQuery = query.toLowerCase().trim();
+        const normalizedName = name.toLowerCase();
+        let queryIndex = 0;
+        for (let i = 0; i < normalizedName.length && queryIndex < normalizedQuery.length; i++) {
+          if (normalizedName[i] === normalizedQuery[queryIndex]) {
+            queryIndex++;
+          }
+        }
+        return queryIndex === normalizedQuery.length;
+      });
+      return this.sortedQuickItems.filter(item => fuzzyMatch(this.quicklistSearch, item.name));
     },
 
     categorySections() {
@@ -833,6 +911,19 @@ const ShoppingPage = Vue.defineComponent({
     console.log('  - Stores:', this.stores.length);
   },
   methods: {
+    // === Quicklist Accordion Methods (Requirements 5.3, 5.5) ===
+    toggleQuicklistAccordion() {
+      // Prevent collapse when search has text (Requirements 5.5)
+      if (this.quicklistSearch && this.quicklistSearch.trim() !== '' && this.quicklistExpanded) {
+        return; // Don't collapse while searching
+      }
+      this.quicklistExpanded = !this.quicklistExpanded;
+    },
+
+    clearQuicklistSearch() {
+      this.quicklistSearch = '';
+    },
+
     // === API Methods ===
     async reloadShoppingItems() {
       this.localLoading = true;

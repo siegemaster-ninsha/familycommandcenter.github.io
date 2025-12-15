@@ -209,9 +209,22 @@ class MobileLifecycleManager {
   _handleResume(info) {
     this.state.resumeCount++;
     info.resumeCount = this.state.resumeCount;
+    this._log('Resume handler triggered', new Date().toISOString(), info);
     
     // Always refresh styles
     this.refreshStyles();
+    
+    // Verify theme was applied correctly after refresh
+    if (typeof ThemeManager !== 'undefined' && ThemeManager.verifyThemeApplied) {
+      const themeValid = ThemeManager.verifyThemeApplied();
+      this._log('Theme verification result:', themeValid);
+      if (!themeValid) {
+        this._log('Theme verification failed, applying fallback colors');
+        if (ThemeManager._applyFallbackColors) {
+          ThemeManager._applyFallbackColors();
+        }
+      }
+    }
     
     // Deep refresh if needed
     const needsDeepRefresh = info.timeInBackground > this.options.deepRefreshThreshold || info.fromBfcache;
@@ -236,7 +249,7 @@ class MobileLifecycleManager {
    * Refresh CSS styles - main fix for iOS background issue
    */
   refreshStyles() {
-    this._log('Refreshing styles...');
+    this._log('Refreshing styles...', new Date().toISOString());
     
     // Use custom refresh function if provided
     if (this.options.refreshStyles) {
@@ -244,8 +257,19 @@ class MobileLifecycleManager {
       return;
     }
     
+    // Check for CSS variable loss before refresh
+    const cssLost = this._detectCSSVariableLoss();
+    if (cssLost) {
+      this._log('CSS variables lost, triggering recovery...');
+    }
+    
     // Default: Re-apply theme if ThemeManager exists
-    if (typeof ThemeManager !== 'undefined' && ThemeManager.applyTheme) {
+    if (typeof ThemeManager !== 'undefined' && ThemeManager.forceRefresh) {
+      // Use the new forceRefresh method for iOS recovery
+      this._log('Using ThemeManager.forceRefresh()');
+      ThemeManager.forceRefresh();
+    } else if (typeof ThemeManager !== 'undefined' && ThemeManager.applyTheme) {
+      // Fallback to direct applyTheme if forceRefresh not available
       const currentTheme = ThemeManager.getCurrentTheme?.() || 
                           localStorage.getItem('selectedTheme') || 
                           'default';
@@ -258,6 +282,27 @@ class MobileLifecycleManager {
     
     // Force repaint
     this._forceRepaint();
+  }
+  
+  /**
+   * Detect if CSS variables were lost (e.g., after iOS bfcache restoration)
+   */
+  _detectCSSVariableLoss() {
+    try {
+      const root = document.documentElement;
+      const style = getComputedStyle(root);
+      const bgPrimary = style.getPropertyValue('--color-bg-primary').trim();
+      
+      // Check for signs of CSS variable loss
+      return !bgPrimary || 
+             bgPrimary === '' || 
+             bgPrimary === 'rgba(0, 0, 0, 0)' ||
+             bgPrimary === 'transparent' ||
+             bgPrimary === 'rgb(0, 0, 0)';
+    } catch (e) {
+      this._log('Failed to detect CSS variable loss:', e);
+      return true; // Assume loss on error
+    }
   }
   
   /**
@@ -280,7 +325,7 @@ class MobileLifecycleManager {
   }
   
   /**
-   * Force browser repaint
+   * Force browser repaint - more aggressive for iOS recovery
    */
   _forceRepaint() {
     const root = document.documentElement;
@@ -300,6 +345,7 @@ class MobileLifecycleManager {
       // Get computed background color from CSS variable
       const computedBg = getComputedStyle(body).backgroundColor;
       const varBg = getComputedStyle(root).getPropertyValue('--color-bg-primary').trim();
+      const textColor = getComputedStyle(root).getPropertyValue('--color-text-primary').trim();
       
       // Force a style recalculation
       body.style.display = 'none';
@@ -316,11 +362,22 @@ class MobileLifecycleManager {
         }
         this._log('Fixed black/transparent background');
       }
+      
+      // Also re-apply text color if needed
+      if (textColor) {
+        body.style.color = textColor;
+      }
     }
     
     // Also refresh the app container if it exists
     const appContainer = document.getElementById('app');
     if (appContainer) {
+      // Force style recalculation on app container
+      const appBg = getComputedStyle(root).getPropertyValue('--color-bg-primary').trim();
+      if (appBg) {
+        appContainer.style.backgroundColor = appBg;
+      }
+      
       appContainer.style.opacity = '0.99';
       requestAnimationFrame(() => {
         appContainer.style.opacity = '1';

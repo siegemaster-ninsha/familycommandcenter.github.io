@@ -698,70 +698,75 @@ const AccountPage = Vue.defineComponent({
       }
     },
     
-    async selectTheme(themeId) {
+    selectTheme(themeId) {
       if (themeId === this.currentTheme) return; // Don't reapply the same theme
       
       console.log('🎨 Theme selected and applying:', themeId);
+      
+      const theme = CONFIG.THEMES[themeId];
+      if (!theme) {
+        console.error('Theme not found:', themeId);
+        return;
+      }
+      
+      // 1. Apply theme immediately (synchronous) - this is the critical path
+      ThemeManager.applyTheme(themeId);
+      
+      // 2. Save to localStorage immediately (synchronous)
+      try {
+        localStorage.setItem('selectedTheme', themeId);
+      } catch (e) {
+        console.warn('Failed to save theme to localStorage:', e);
+      }
+      
+      // 3. Update local state immediately
       this.selectedTheme = themeId;
-      this.themeLoading = true;
+      this.currentTheme = themeId;
+      
+      // 4. Show success message immediately
+      this.showSuccessMessage(`${theme.name} theme applied successfully!`);
+      
+      // 5. Save to backend asynchronously (non-blocking)
+      this._saveThemeToBackend(themeId);
+    },
+    
+    // Non-blocking backend save for theme
+    async _saveThemeToBackend(themeId) {
+      if (!this.accountId) {
+        console.log('🎨 No account ID, skipping backend save');
+        return;
+      }
       
       try {
-        const theme = CONFIG.THEMES[themeId];
-        if (!theme) {
-          console.error('Theme not found:', themeId);
-          return;
+        const authHeader = authService.getAuthHeader();
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+        
+        if (authHeader) {
+          headers.Authorization = authHeader;
         }
         
-        // Use centralized ThemeManager to apply theme immediately
-        ThemeManager.applyTheme(themeId);
-        
-        // Save to backend if available
-        if (this.accountId) {
-          try {
-            const authHeader = authService.getAuthHeader();
-            const headers = {
-              'Content-Type': 'application/json'
-            };
-            
-            if (authHeader) {
-              headers.Authorization = authHeader;
-            }
-            
-            const response = await fetch(`${CONFIG.API.BASE_URL}/account-settings/theme`, {
-              method: 'PUT',
-              headers,
-              body: JSON.stringify({ theme: themeId })
-            });
+        const response = await fetch(`${CONFIG.API.BASE_URL}/account-settings/theme`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({ theme: themeId })
+        });
 
-            if (response.ok) {
-              await this.$parent.loadAccountSettings(); // Reload account settings
-              console.log('✅ Theme saved to backend');
-              // Also save to localStorage for immediate future loads
-              localStorage.setItem('selectedTheme', themeId);
-            } else {
-              console.warn('Failed to save theme to backend, using localStorage');
-              // Save to localStorage as fallback
-              localStorage.setItem('selectedTheme', themeId);
-            }
-          } catch (error) {
-            console.warn('Backend unavailable, using localStorage:', error);
-            // Save to localStorage as fallback
-            localStorage.setItem('selectedTheme', themeId);
+        if (response.ok) {
+          console.log('✅ Theme saved to backend');
+          // Optionally reload account settings in background
+          if (this.$parent && this.$parent.loadAccountSettings) {
+            this.$parent.loadAccountSettings().catch(err => {
+              console.warn('Failed to reload account settings:', err);
+            });
           }
         } else {
-          // No accountId available, save to localStorage only
-          console.log('🎨 No account ID, saving theme to localStorage only');
-          localStorage.setItem('selectedTheme', themeId);
+          console.warn('Failed to save theme to backend (non-critical)');
         }
-        
-        // Update local state
-        this.currentTheme = themeId;
-        
-        this.showSuccessMessage(`${theme.name} theme applied successfully!`);
       } catch (error) {
-        console.error('Error applying theme:', error);
-      } finally {
-        this.themeLoading = false;
+        console.warn('Backend unavailable for theme save (non-critical):', error);
+        // Theme is already applied locally, so this is non-critical
       }
     },
     
