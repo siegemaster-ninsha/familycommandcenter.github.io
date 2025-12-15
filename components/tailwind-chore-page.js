@@ -19,15 +19,17 @@ const ChoreCard = {
       <div class="flex flex-col justify-center min-w-0 flex-1">
         <div class="flex items-start gap-3 mb-1">
           <!-- Completion checkbox (not for quicklist) -->
-          <input
+          <button
             v-if="type !== 'quicklist'"
-            type="checkbox"
-            :checked="chore.completed"
-            @click.stop
-            @change="handleToggleComplete"
-            class="w-[50px] h-[50px] rounded focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 mt-0.5 flex-shrink-0"
-            :class="chore.completed ? 'text-green-600' : 'text-gray-400'"
+            @click.stop="handleToggleComplete"
+            class="w-[50px] h-[50px] flex items-center justify-center flex-shrink-0 mt-0.5 rounded transition-colors"
+            :class="chore.completed ? 'text-green-400' : 'text-white text-opacity-50 hover:text-opacity-80'"
+            :aria-checked="chore.completed"
+            role="checkbox"
           >
+            <div v-if="chore.completed" v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('squareCheck', 'lucide', 32, '') : ''"></div>
+            <div v-else v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('square', 'lucide', 32, '') : ''"></div>
+          </button>
 
           <div class="flex flex-col flex-1 min-w-0">
             <p
@@ -142,9 +144,10 @@ const ChoreCard = {
       this.touchStartY = null;
       this.onClick(this.chore, event);
     },
-    handleToggleComplete(event) {
+    handleToggleComplete() {
       if (this.onToggleComplete) {
-        this.onToggleComplete(this.chore, event);
+        // Pass a synthetic event-like object with the new state
+        this.onToggleComplete(this.chore, { target: { checked: !this.chore.completed } });
       }
     },
     handleApprove() {
