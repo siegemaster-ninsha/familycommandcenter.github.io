@@ -67,7 +67,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.35 - Ultimate Unicorn (Dec 15, 2025)',
+    VERSION: '1.0.36 - Brilliant Otter (Dec 15, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {

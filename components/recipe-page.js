@@ -425,34 +425,31 @@ const RecipePage = Vue.defineComponent({
                   <div v-html="Helpers.IconLibrary.getIcon('list', 'lucide', 18, '')"></div>
                   Ingredients
                 </h3>
-                <button
-                  @click="sendSelectedToShoppingList"
-                  class="btn-success flex items-center gap-2 px-3 py-1.5 text-sm"
-                  title="Send selected ingredients to shopping list"
-                  :disabled="sendingToShopping || selectedIngredients.size === 0"
-                >
-                  <div v-if="sendingToShopping" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <div v-else v-html="Helpers.IconLibrary.getIcon('shoppingCart', 'lucide', 16, 'text-white')"></div>
-                  <span class="hidden sm:inline">Add {{ selectedIngredients.size > 0 ? '(' + selectedIngredients.size + ')' : '' }} to Cart</span>
-                  <span class="sm:hidden">{{ selectedIngredients.size > 0 ? selectedIngredients.size : '' }}</span>
-                </button>
               </div>
               
-              <!-- Quick select buttons -->
-              <div class="flex gap-2 mb-3 text-xs">
+              <!-- Quick select buttons + Add to Cart -->
+              <div class="flex gap-2 mb-3 text-xs items-center">
                 <button
                   @click="selectAllIngredients"
-                  class="px-2 py-1 border rounded hover:bg-gray-50 transition-colors"
-                  style="border-color: var(--color-border-card)"
+                  class="btn-secondary px-2 py-1 text-xs"
                 >
                   Select All
                 </button>
                 <button
                   @click="deselectAllIngredients"
-                  class="px-2 py-1 border rounded hover:bg-gray-50 transition-colors"
-                  style="border-color: var(--color-border-card)"
+                  class="btn-secondary px-2 py-1 text-xs"
                 >
                   Deselect All
+                </button>
+                <button
+                  @click="sendSelectedToShoppingList"
+                  class="btn-success flex items-center gap-1.5 px-2 py-1 text-xs ml-auto"
+                  title="Send selected ingredients to shopping list"
+                  :disabled="sendingToShopping || selectedIngredients.size === 0"
+                >
+                  <div v-if="sendingToShopping" class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <div v-else v-html="Helpers.IconLibrary.getIcon('shoppingCart', 'lucide', 14, 'text-white')"></div>
+                  <span>Add ({{ selectedIngredients.size }}) to Cart</span>
                 </button>
               </div>
               
