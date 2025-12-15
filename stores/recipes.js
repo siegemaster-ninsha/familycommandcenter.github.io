@@ -520,26 +520,39 @@ const useRecipeStore = Pinia.defineStore('recipes', {
     },
     
     /**
-     * Process uploaded recipe image
+     * Process uploaded recipe image (async with polling)
      * **Validates: Requirements 5.2, 5.3, 5.4, 6.1, 6.2, 7.4**
      * @param {string} s3Key - S3 key of the uploaded image
      * @returns {Object} Result with extracted recipe
      */
     async processRecipeImage(s3Key) {
       this.imageProcessing = true;
-      this.imageProcessingStatus = 'Extracting recipe from image...';
+      this.imageProcessingStatus = 'Starting image processing...';
       this.imageError = null;
       this.scrapedRecipe = null;
       
       try {
-        const data = await apiService.post(`${CONFIG.API.ENDPOINTS.RECIPES}/image/process`, {
+        // Start the async processing job
+        const startData = await apiService.post(`${CONFIG.API.ENDPOINTS.RECIPES}/image/process`, {
           s3Key
         });
         
-        this.imageProcessingStatus = 'Formatting recipe...';
-        this.scrapedRecipe = data.recipe;
-        console.log('✅ Recipe extracted from image:', this.scrapedRecipe?.title);
-        return { success: true, recipe: this.scrapedRecipe };
+        const jobId = startData.jobId;
+        console.log('✅ Image processing job started:', jobId);
+        
+        // Poll for completion
+        this.imageProcessingStatus = 'Extracting recipe from image...';
+        const result = await this.pollJobStatus(jobId);
+        
+        if (result.status === 'completed') {
+          this.scrapedRecipe = result.recipe;
+          console.log('✅ Recipe extracted from image:', this.scrapedRecipe?.title);
+          return { success: true, recipe: this.scrapedRecipe };
+        } else if (result.status === 'failed') {
+          throw new Error(result.error || 'Image processing failed');
+        } else {
+          throw new Error('Image processing timed out');
+        }
       } catch (error) {
         // Map technical errors to user-friendly messages
         const userFriendlyError = this.mapImageProcessingError(error.message);
@@ -550,6 +563,41 @@ const useRecipeStore = Pinia.defineStore('recipes', {
         this.imageProcessing = false;
         this.imageProcessingStatus = '';
       }
+    },
+    
+    /**
+     * Poll for job status until completion or timeout
+     * @param {string} jobId - Job ID to poll
+     * @param {number} maxAttempts - Maximum polling attempts (default 60 = 2 minutes)
+     * @param {number} interval - Polling interval in ms (default 2000 = 2 seconds)
+     * @returns {Object} Final job status
+     */
+    async pollJobStatus(jobId, maxAttempts = 60, interval = 2000) {
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        try {
+          const data = await apiService.get(`${CONFIG.API.ENDPOINTS.RECIPES}/image/job/${jobId}`);
+          
+          // Update status message based on job status
+          if (data.status === 'processing') {
+            this.imageProcessingStatus = 'Reading recipe from image...';
+          }
+          
+          // Return if job is complete (success or failure)
+          if (data.status === 'completed' || data.status === 'failed') {
+            return data;
+          }
+          
+          // Wait before next poll
+          await new Promise(resolve => setTimeout(resolve, interval));
+        } catch (error) {
+          console.warn(`Poll attempt ${attempt + 1} failed:`, error.message);
+          // Continue polling on transient errors
+          await new Promise(resolve => setTimeout(resolve, interval));
+        }
+      }
+      
+      // Timeout after max attempts
+      return { status: 'timeout', error: 'Image processing timed out' };
     },
     
     /**
