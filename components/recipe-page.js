@@ -434,7 +434,7 @@ const RecipePage = Vue.defineComponent({
                   <div v-if="sendingToShopping" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   <div v-else v-html="Helpers.IconLibrary.getIcon('shoppingCart', 'lucide', 16, 'text-white')"></div>
                   <span class="hidden sm:inline">Add {{ selectedIngredients.size > 0 ? '(' + selectedIngredients.size + ')' : '' }} to Cart</span>
-                  <span class="sm:hidden">{{ selectedIngredients.size > 0 ? selectedIngredients.size : '' }} 🛒</span>
+                  <span class="sm:hidden">{{ selectedIngredients.size > 0 ? selectedIngredients.size : '' }}</span>
                 </button>
               </div>
               
@@ -495,19 +495,13 @@ const RecipePage = Vue.defineComponent({
                     {{ ing.category }}
                   </span>
                   
-                  <!-- Quantity toggle icon -->
-                  <!-- **Validates: Requirements 11.1, 11.2, 11.3, 11.4, 11.5** -->
+                  <!-- Shopping cart icon for quick add -->
                   <button
-                    @click.stop="toggleIngredientQty(idx)"
-                    class="flex-shrink-0 p-1.5 rounded transition-colors"
-                    :class="ingredientQtySettings[idx] !== false 
-                      ? 'text-primary-600 bg-primary-50' 
-                      : 'text-gray-400 hover:text-gray-600'"
-                    :title="ingredientQtySettings[idx] !== false 
-                      ? 'Quantity will be included - click to exclude' 
-                      : 'Quantity excluded - click to include'"
+                    @click.stop="addSingleIngredientToShopping(idx)"
+                    class="flex-shrink-0 p-1.5 rounded text-gray-400 hover:text-green-600 hover:bg-green-50 transition-colors"
+                    title="Add to shopping list"
                   >
-                    <div v-html="Helpers.IconLibrary.getIcon('scale', 'lucide', 18, '')"></div>
+                    <div v-html="Helpers.IconLibrary.getIcon('shoppingCart', 'lucide', 18, '')"></div>
                   </button>
                 </li>
               </ul>
@@ -628,25 +622,25 @@ const RecipePage = Vue.defineComponent({
           </div>
           
           <!-- Modal Footer -->
-          <div class="sticky bottom-0 bg-white border-t p-4 flex justify-between" style="border-color: var(--color-border-card);">
+          <div class="sticky bottom-0 bg-white border-t px-4 py-2 flex justify-between items-center" style="border-color: var(--color-border-card);">
             <button
               @click="confirmDeleteRecipe"
-              class="btn-warning flex items-center gap-2 px-4 py-2"
+              class="btn-warning flex items-center gap-1.5 px-3 py-1.5 text-sm"
             >
-              <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 16, 'text-white')"></div>
+              <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14, 'text-white')"></div>
               Delete
             </button>
             <div class="flex gap-2">
               <button
                 @click="openEditModal"
-                class="btn-secondary flex items-center gap-2 px-4 py-2"
+                class="btn-secondary flex items-center gap-1.5 px-3 py-1.5 text-sm"
               >
-                <div v-html="Helpers.IconLibrary.getIcon('edit', 'lucide', 16, '')"></div>
+                <div v-html="Helpers.IconLibrary.getIcon('edit', 'lucide', 14, '')"></div>
                 Edit
               </button>
               <button
                 @click="closeRecipeModal"
-                class="btn-primary px-6 py-2"
+                class="btn-primary px-4 py-1.5 text-sm"
               >
                 Close
               </button>
@@ -825,7 +819,6 @@ const RecipePage = Vue.defineComponent({
       // **Feature: recipe-shopping-integration**
       // **Validates: Requirements 1.2, 1.4**
       selectedIngredients: new Set(),
-      ingredientQtySettings: {}, // Per-ingredient qty toggle: { index: boolean }
       sendingToShopping: false,
       
       // Category dropdown state
@@ -1515,21 +1508,6 @@ const RecipePage = Vue.defineComponent({
     },
     
     /**
-     * Toggles the quantity setting for a single ingredient
-     * **Feature: multi-image-recipe-categories**
-     * **Validates: Requirements 11.4**
-     * @param {number} index - The index of the ingredient
-     */
-    toggleIngredientQty(index) {
-      // Default is true (include qty), so undefined/true -> false, false -> true
-      const currentSetting = this.ingredientQtySettings[index];
-      this.ingredientQtySettings = {
-        ...this.ingredientQtySettings,
-        [index]: currentSetting === false ? true : false
-      };
-    },
-    
-    /**
      * Opens the category dropdown for an ingredient
      * **Feature: multi-image-recipe-categories**
      * **Validates: Requirements 6.3**
@@ -1710,6 +1688,38 @@ const RecipePage = Vue.defineComponent({
     },
     
     /**
+     * Adds a single ingredient to the shopping list
+     * @param {number} index - The index of the ingredient to add
+     */
+    async addSingleIngredientToShopping(index) {
+      if (index >= this.scaledIngredients.length) return;
+      
+      const ingredient = this.scaledIngredients[index];
+      const shoppingItem = window.formatIngredientForShopping(ingredient, true);
+      
+      if (!shoppingItem.name) {
+        this.showToast('Could not add ingredient', 'error');
+        return;
+      }
+      
+      try {
+        const result = await this.shoppingStore.addItem(shoppingItem);
+        if (result.success) {
+          if (result.offline) {
+            this.showToast('Added - will sync when online', 'info');
+          } else {
+            this.showToast('Added to shopping list', 'success');
+          }
+        } else {
+          this.showToast('Failed to add ingredient', 'error');
+        }
+      } catch (error) {
+        console.error('Failed to add ingredient:', error);
+        this.showToast('Failed to add ingredient', 'error');
+      }
+    },
+    
+    /**
      * Sends selected ingredients to the shopping list
      * Uses per-ingredient qty settings via Pinia store (single source of truth)
      * **Feature: recipe-shopping-integration**
@@ -1734,9 +1744,8 @@ const RecipePage = Vue.defineComponent({
           if (index >= this.scaledIngredients.length) continue;
           
           const ingredient = this.scaledIngredients[index];
-          // Use per-ingredient qty setting (default true if not set)
-          const includeQty = this.ingredientQtySettings[index] !== false;
-          const shoppingItem = window.formatIngredientForShopping(ingredient, includeQty);
+          // Always include quantity when sending to shopping list
+          const shoppingItem = window.formatIngredientForShopping(ingredient, true);
           
           if (!shoppingItem.name) {
             errorCount++;
@@ -1776,7 +1785,6 @@ const RecipePage = Vue.defineComponent({
         
         // Clear selection after successful add
         this.selectedIngredients = new Set();
-        this.ingredientQtySettings = {};
       } catch (error) {
         console.error('Error sending to shopping list:', error);
         this.showToast(`Failed to add items: ${error.message}`, 'error');
