@@ -318,9 +318,19 @@ const RecipePage = Vue.defineComponent({
             >
               <div class="flex items-start justify-between gap-2 mb-2">
                 <h3 class="font-semibold text-primary-custom line-clamp-2 flex-1">{{ recipe.title }}</h3>
-                <!-- Source indicator: image or URL -->
+                <!-- Source indicator: multi-image, single image, or URL -->
+                <!-- **Feature: multi-image-recipe-categories** -->
+                <!-- **Validates: Requirements 9.2** -->
                 <div 
-                  v-if="recipe.sourceImageKey" 
+                  v-if="recipe.sourceImageKeys?.length > 1" 
+                  class="flex-shrink-0 text-blue-500 flex items-center gap-0.5" 
+                  :title="recipe.sourceImageKeys.length + ' photos'"
+                >
+                  <div v-html="Helpers.IconLibrary.getIcon('images', 'lucide', 16, '')"></div>
+                  <span class="text-xs">{{ recipe.sourceImageKeys.length }}</span>
+                </div>
+                <div 
+                  v-else-if="recipe.sourceImageKeys?.length === 1 || recipe.sourceImageKey" 
                   class="flex-shrink-0 text-blue-500" 
                   title="From photo"
                 >
@@ -446,45 +456,83 @@ const RecipePage = Vue.defineComponent({
                 </button>
               </div>
               
+              <!-- Redesigned ingredient selection UI -->
+              <!-- **Feature: multi-image-recipe-categories** -->
+              <!-- **Validates: Requirements 10.1, 10.2, 10.3, 10.4, 10.5, 11.1, 11.2, 11.3, 11.4, 11.5** -->
               <ul class="space-y-2">
                 <li
                   v-for="(ing, idx) in scaledIngredients"
                   :key="idx"
-                  class="flex items-center gap-2 p-2 rounded transition-colors"
-                  :class="selectedIngredients.has(idx) ? 'bg-green-50' : 'hover:bg-gray-50'"
+                  @click="toggleIngredient(idx)"
+                  class="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all"
+                  :class="selectedIngredients.has(idx) 
+                    ? 'bg-green-50 border-green-200 border' 
+                    : 'hover:bg-gray-50 border border-transparent'"
                 >
-                  <!-- Selection checkbox -->
-                  <input 
-                    type="checkbox" 
-                    :checked="selectedIngredients.has(idx)"
-                    @change="toggleIngredient(idx)"
-                    class="w-4 h-4 rounded text-primary-500 focus:ring-primary-500 flex-shrink-0"
-                  >
+                  <!-- Selection indicator icon -->
+                  <!-- **Validates: Requirements 10.3, 10.4** -->
+                  <div class="flex-shrink-0 w-6 h-6 flex items-center justify-center">
+                    <div v-if="selectedIngredients.has(idx)" 
+                         v-html="Helpers.IconLibrary.getIcon('checkCircle', 'lucide', 20, 'text-green-600')">
+                    </div>
+                    <div v-else 
+                         v-html="Helpers.IconLibrary.getIcon('circle', 'lucide', 20, 'text-gray-300')">
+                    </div>
+                  </div>
                   
                   <!-- Ingredient text -->
                   <span class="flex-1">{{ formatIngredient(ing) }}</span>
                   
-                  <!-- Qty toggle for this ingredient -->
+                  <!-- Category badge (if ingredient has category) -->
+                  <!-- **Feature: multi-image-recipe-categories** -->
+                  <!-- **Validates: Requirements 6.1, 6.2** -->
+                  <span 
+                    v-if="ing.category"
+                    @click.stop="openCategoryDropdown(idx, $event)"
+                    class="px-2 py-0.5 rounded-full text-xs font-medium cursor-pointer hover:opacity-80 transition-opacity"
+                    :style="getCategoryBadgeStyle(ing.category)"
+                  >
+                    {{ ing.category }}
+                  </span>
+                  
+                  <!-- Quantity toggle icon -->
+                  <!-- **Validates: Requirements 11.1, 11.2, 11.3, 11.4, 11.5** -->
                   <button
                     @click.stop="toggleIngredientQty(idx)"
-                    class="flex-shrink-0 px-2 py-1 text-xs rounded transition-colors"
-                    :class="ingredientQtySettings[idx] !== false ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-500'"
-                    :title="ingredientQtySettings[idx] !== false ? 'Quantity will be included' : 'Quantity will NOT be included'"
+                    class="flex-shrink-0 p-1.5 rounded transition-colors"
+                    :class="ingredientQtySettings[idx] !== false 
+                      ? 'text-primary-600 bg-primary-50' 
+                      : 'text-gray-400 hover:text-gray-600'"
+                    :title="ingredientQtySettings[idx] !== false 
+                      ? 'Quantity will be included - click to exclude' 
+                      : 'Quantity excluded - click to include'"
                   >
-                    {{ ingredientQtySettings[idx] !== false ? 'Qty ✓' : 'Qty ✗' }}
-                  </button>
-                  
-                  <!-- Quick add to cart button -->
-                  <button
-                    @click.stop="addSingleIngredientToCart(idx)"
-                    class="flex-shrink-0 p-1.5 rounded-full hover:bg-green-100 transition-colors"
-                    :class="selectedIngredients.has(idx) ? 'text-green-600' : 'text-gray-400'"
-                    title="Add this ingredient to shopping cart"
-                  >
-                    <div v-html="Helpers.IconLibrary.getIcon('shoppingCart', 'lucide', 16, '')"></div>
+                    <div v-html="Helpers.IconLibrary.getIcon('scale', 'lucide', 18, '')"></div>
                   </button>
                 </li>
               </ul>
+              
+              <!-- Category dropdown (positioned absolutely) -->
+              <div 
+                v-if="categoryDropdownVisible"
+                class="fixed z-50 bg-white rounded-lg shadow-lg border py-1 min-w-[140px]"
+                :style="categoryDropdownStyle"
+                @click.stop
+              >
+                <button
+                  v-for="cat in shoppingCategories"
+                  :key="cat"
+                  @click="selectCategory(cat)"
+                  class="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 transition-colors flex items-center gap-2"
+                  :class="{ 'bg-gray-50': currentRecipe?.ingredients?.[categoryDropdownIndex]?.category === cat }"
+                >
+                  <span 
+                    class="w-3 h-3 rounded-full"
+                    :style="{ backgroundColor: getCategoryColors(cat).background }"
+                  ></span>
+                  {{ cat }}
+                </button>
+              </div>
             </div>
             
             <!-- Instructions -->
@@ -520,16 +568,61 @@ const RecipePage = Vue.defineComponent({
               </a>
             </div>
             
-            <!-- Source Image -->
-            <!-- **Feature: recipe-image-capture** -->
-            <!-- **Validates: Requirements 8.2** -->
-            <div v-if="currentRecipe?.sourceImageKey" class="text-sm text-secondary-custom">
+            <!-- Source Image(s) -->
+            <!-- **Feature: multi-image-recipe-categories** -->
+            <!-- **Validates: Requirements 9.2, 9.3** -->
+            <div v-if="hasSourceImages" class="border-t pt-4" style="border-color: var(--color-border-card);">
+              <h4 class="font-semibold text-primary-custom mb-3 flex items-center gap-2">
+                <div v-html="Helpers.IconLibrary.getIcon('image', 'lucide', 18, '')"></div>
+                Source Images
+                <span v-if="sourceImageCount > 1" class="text-sm font-normal text-secondary-custom">
+                  ({{ currentImageIndex + 1 }} of {{ sourceImageCount }})
+                </span>
+              </h4>
+              
+              <!-- Multi-image navigation -->
+              <div v-if="sourceImageCount > 1" class="flex items-center justify-center gap-4 mb-3">
+                <button
+                  @click="prevSourceImage"
+                  :disabled="currentImageIndex === 0"
+                  class="p-2 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Previous image"
+                >
+                  <div v-html="Helpers.IconLibrary.getIcon('chevronLeft', 'lucide', 20, '')"></div>
+                </button>
+                
+                <!-- Image indicator dots -->
+                <div class="flex gap-2">
+                  <button
+                    v-for="(_, idx) in sourceImageCount"
+                    :key="idx"
+                    @click="goToSourceImage(idx)"
+                    class="w-2.5 h-2.5 rounded-full transition-colors"
+                    :class="idx === currentImageIndex ? 'bg-primary-500' : 'bg-gray-300 hover:bg-gray-400'"
+                    :title="'Image ' + (idx + 1)"
+                  ></button>
+                </div>
+                
+                <button
+                  @click="nextSourceImage"
+                  :disabled="currentImageIndex >= sourceImageCount - 1"
+                  class="p-2 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Next image"
+                >
+                  <div v-html="Helpers.IconLibrary.getIcon('chevronRight', 'lucide', 20, '')"></div>
+                </button>
+              </div>
+              
+              <!-- View image button -->
               <button 
-                @click="viewSourceImage(currentRecipe)"
-                class="flex items-center gap-1 hover:text-primary-500 transition-colors"
+                @click="viewCurrentSourceImage"
+                :disabled="loadingSourceImage"
+                class="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-gray-50 transition-colors"
+                style="border-color: var(--color-border-card)"
               >
-                <div v-html="Helpers.IconLibrary.getIcon('image', 'lucide', 14, '')"></div>
-                View original image
+                <div v-if="loadingSourceImage" class="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+                <div v-else v-html="Helpers.IconLibrary.getIcon('externalLink', 'lucide', 16, '')"></div>
+                <span>{{ loadingSourceImage ? 'Loading...' : 'View original image' }}</span>
               </button>
             </div>
           </div>
@@ -734,10 +827,24 @@ const RecipePage = Vue.defineComponent({
       ingredientQtySettings: {}, // Per-ingredient qty toggle: { index: boolean }
       sendingToShopping: false,
       
+      // Category dropdown state
+      // **Feature: multi-image-recipe-categories**
+      // **Validates: Requirements 6.3**
+      categoryDropdownVisible: false,
+      categoryDropdownIndex: -1,
+      categoryDropdownStyle: {},
+      shoppingCategories: ['General', 'Dairy', 'Bakery', 'Produce', 'Meat', 'Frozen', 'Pantry', 'Household', 'Personal Care'],
+      
       // Image capture
       // **Feature: recipe-image-capture**
       // **Validates: Requirements 1.1, 5.2, 5.3, 5.4**
-      showImageCapture: false
+      showImageCapture: false,
+      
+      // Multi-image viewer state
+      // **Feature: multi-image-recipe-categories**
+      // **Validates: Requirements 9.2, 9.3**
+      currentImageIndex: 0,
+      loadingSourceImage: false
     };
   },
   
@@ -813,6 +920,25 @@ const RecipePage = Vue.defineComponent({
           quantity: Math.round(ing.quantity * this.scaleMultiplier * 100) / 100
         };
       });
+    },
+    
+    // Multi-image viewer computed properties
+    // **Feature: multi-image-recipe-categories**
+    // **Validates: Requirements 9.2, 9.3**
+    hasSourceImages() {
+      return this.currentRecipe?.sourceImageKeys?.length > 0 || this.currentRecipe?.sourceImageKey;
+    },
+    sourceImageCount() {
+      if (this.currentRecipe?.sourceImageKeys?.length > 0) {
+        return this.currentRecipe.sourceImageKeys.length;
+      }
+      return this.currentRecipe?.sourceImageKey ? 1 : 0;
+    },
+    currentSourceImageKey() {
+      if (this.currentRecipe?.sourceImageKeys?.length > 0) {
+        return this.currentRecipe.sourceImageKeys[this.currentImageIndex];
+      }
+      return this.currentRecipe?.sourceImageKey || null;
     }
   },
   
@@ -1043,6 +1169,65 @@ const RecipePage = Vue.defineComponent({
       }
     },
     
+    /**
+     * View the current source image in multi-image viewer
+     * **Feature: multi-image-recipe-categories**
+     * **Validates: Requirements 9.2, 9.3**
+     */
+    async viewCurrentSourceImage() {
+      const imageKey = this.currentSourceImageKey;
+      if (!imageKey) return;
+      
+      this.loadingSourceImage = true;
+      try {
+        const result = await this.recipeStore.getImageViewUrl(imageKey);
+        if (result.success && result.viewUrl) {
+          window.open(result.viewUrl, '_blank');
+        } else {
+          this.showToast('Failed to load original image', 'error');
+        }
+      } catch (error) {
+        console.error('Failed to get image view URL:', error);
+        this.showToast('Failed to load original image', 'error');
+      } finally {
+        this.loadingSourceImage = false;
+      }
+    },
+    
+    /**
+     * Navigate to previous source image
+     * **Feature: multi-image-recipe-categories**
+     * **Validates: Requirements 9.2, 9.3**
+     */
+    prevSourceImage() {
+      if (this.currentImageIndex > 0) {
+        this.currentImageIndex--;
+      }
+    },
+    
+    /**
+     * Navigate to next source image
+     * **Feature: multi-image-recipe-categories**
+     * **Validates: Requirements 9.2, 9.3**
+     */
+    nextSourceImage() {
+      if (this.currentImageIndex < this.sourceImageCount - 1) {
+        this.currentImageIndex++;
+      }
+    },
+    
+    /**
+     * Go to a specific source image by index
+     * **Feature: multi-image-recipe-categories**
+     * **Validates: Requirements 9.2, 9.3**
+     * @param {number} index - Image index to navigate to
+     */
+    goToSourceImage(index) {
+      if (index >= 0 && index < this.sourceImageCount) {
+        this.currentImageIndex = index;
+      }
+    },
+    
     clearScrapedRecipe() {
       this.recipeStore.clearScrapedRecipe();
       this.selectedTags = [];
@@ -1113,6 +1298,7 @@ const RecipePage = Vue.defineComponent({
     openRecipeModal(recipe) {
       this.currentRecipe = recipe;
       this.scaleMultiplier = 1;
+      this.currentImageIndex = 0; // Reset image index for multi-image viewer
       this.showRecipeModal = true;
     },
     
@@ -1120,6 +1306,7 @@ const RecipePage = Vue.defineComponent({
       this.showRecipeModal = false;
       this.currentRecipe = null;
       this.scaleMultiplier = 1;
+      this.currentImageIndex = 0; // Reset image index
     },
     
     increaseScale() {
@@ -1225,6 +1412,8 @@ const RecipePage = Vue.defineComponent({
     
     /**
      * Toggles the quantity setting for a single ingredient
+     * **Feature: multi-image-recipe-categories**
+     * **Validates: Requirements 11.4**
      * @param {number} index - The index of the ingredient
      */
     toggleIngredientQty(index) {
@@ -1234,6 +1423,130 @@ const RecipePage = Vue.defineComponent({
         ...this.ingredientQtySettings,
         [index]: currentSetting === false ? true : false
       };
+    },
+    
+    /**
+     * Opens the category dropdown for an ingredient
+     * **Feature: multi-image-recipe-categories**
+     * **Validates: Requirements 6.3**
+     * @param {number} index - The index of the ingredient
+     * @param {Event} event - The click event
+     */
+    openCategoryDropdown(index, event) {
+      const rect = event.target.getBoundingClientRect();
+      this.categoryDropdownIndex = index;
+      this.categoryDropdownStyle = {
+        top: `${rect.bottom + 4}px`,
+        left: `${Math.min(rect.left, window.innerWidth - 160)}px`
+      };
+      this.categoryDropdownVisible = true;
+      
+      // Close dropdown when clicking outside
+      const closeHandler = (e) => {
+        if (!e.target.closest('.category-dropdown')) {
+          this.closeCategoryDropdown();
+          document.removeEventListener('click', closeHandler);
+        }
+      };
+      setTimeout(() => document.addEventListener('click', closeHandler), 0);
+    },
+    
+    /**
+     * Closes the category dropdown
+     * **Feature: multi-image-recipe-categories**
+     */
+    closeCategoryDropdown() {
+      this.categoryDropdownVisible = false;
+      this.categoryDropdownIndex = -1;
+    },
+    
+    /**
+     * Selects a category for the current ingredient
+     * **Feature: multi-image-recipe-categories**
+     * **Validates: Requirements 6.3**
+     * @param {string} category - The selected category
+     */
+    selectCategory(category) {
+      if (this.categoryDropdownIndex >= 0 && this.currentRecipe?.ingredients) {
+        // Update the ingredient's category
+        this.currentRecipe.ingredients[this.categoryDropdownIndex].category = category;
+      }
+      this.closeCategoryDropdown();
+    },
+    
+    /**
+     * Gets the badge style for a category
+     * **Feature: multi-image-recipe-categories**
+     * **Validates: Requirements 6.2**
+     * @param {string} category - The category name
+     * @returns {Object} Style object with backgroundColor and color
+     */
+    getCategoryBadgeStyle(category) {
+      const colors = this.getCategoryColors(category);
+      return {
+        backgroundColor: colors.background,
+        color: 'white',
+        borderColor: colors.border
+      };
+    },
+    
+    /**
+     * Gets the color scheme for a category (matches shopping page)
+     * **Feature: multi-image-recipe-categories**
+     * **Validates: Requirements 6.2**
+     * @param {string} category - The category name
+     * @returns {Object} Color scheme with background, border, accent
+     */
+    getCategoryColors(category) {
+      const colorSchemes = {
+        'Produce': {
+          background: '#22c55e', // green-500
+          border: '#16a34a',     // green-600
+          accent: '#15803d'      // green-700
+        },
+        'Dairy': {
+          background: '#3b82f6', // blue-500
+          border: '#2563eb',    // blue-600
+          accent: '#1d4ed8'     // blue-700
+        },
+        'Meat': {
+          background: '#ef4444', // red-500
+          border: '#dc2626',    // red-600
+          accent: '#b91c1c'     // red-700
+        },
+        'Bakery': {
+          background: '#f59e0b', // amber-500
+          border: '#d97706',    // amber-600
+          accent: '#b45309'     // amber-700
+        },
+        'Frozen': {
+          background: '#8b5cf6', // violet-500
+          border: '#7c3aed',    // violet-600
+          accent: '#6d28d9'     // violet-700
+        },
+        'Pantry': {
+          background: '#cd853f', // peru-600 (medium brown/tan)
+          border: '#b8860b',    // darkgoldenrod (darker brown)
+          accent: '#8b4513'     // saddlebrown (dark brown)
+        },
+        'Household': {
+          background: '#9ca3af', // gray-400 (lighter gray)
+          border: '#6b7280',    // gray-500 (medium gray)
+          accent: '#4b5563'     // gray-600 (darker gray)
+        },
+        'Personal Care': {
+          background: '#ec4899', // pink-500
+          border: '#db2777',    // pink-600
+          accent: '#be185d'     // pink-700
+        },
+        'General': {
+          background: 'var(--color-primary-500)',
+          border: 'var(--color-primary-600)',
+          accent: 'var(--color-primary-700, #1f2937)'
+        }
+      };
+
+      return colorSchemes[category] || colorSchemes['General'];
     },
     
     /**

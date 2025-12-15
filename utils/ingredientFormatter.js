@@ -69,16 +69,29 @@ function cleanIngredientName(name) {
 }
 
 /**
+ * Valid shopping categories that match the shopping page
+ * **Feature: multi-image-recipe-categories**
+ * **Validates: Requirements 4.2, 7.1, 7.2**
+ */
+const VALID_SHOPPING_CATEGORIES = [
+  'General', 'Dairy', 'Bakery', 'Produce', 
+  'Meat', 'Frozen', 'Pantry', 'Household', 'Personal Care'
+];
+
+/**
  * Format an ingredient for the shopping list
- * @param {Object} ingredient - Recipe ingredient object with name, quantity, unit, notes
+ * @param {Object} ingredient - Recipe ingredient object with name, quantity, unit, notes, category
  * @param {boolean} includeQuantity - Whether to include quantity/unit in the name
  * @returns {Object} Shopping item data with formatted name
+ * 
+ * **Feature: multi-image-recipe-categories**
+ * **Validates: Requirements 7.1, 7.2**
  */
 function formatIngredientForShopping(ingredient, includeQuantity) {
   if (!ingredient || typeof ingredient.name !== 'string') {
     return {
       name: '',
-      category: 'Grocery',
+      category: 'General',
       notes: '',
       quantity: ''
     };
@@ -90,7 +103,7 @@ function formatIngredientForShopping(ingredient, includeQuantity) {
   if (!name) {
     return {
       name: '',
-      category: 'Grocery',
+      category: 'General',
       notes: '',
       quantity: ''
     };
@@ -104,9 +117,16 @@ function formatIngredientForShopping(ingredient, includeQuantity) {
       : `${name}, ${quantityStr}`.trim();
   }
 
+  // Use ingredient's category if valid, otherwise default to "General"
+  // **Feature: multi-image-recipe-categories**
+  // **Validates: Requirements 7.1, 7.2**
+  const category = ingredient.category && VALID_SHOPPING_CATEGORIES.includes(ingredient.category)
+    ? ingredient.category
+    : 'General';
+
   return {
     name: name,
-    category: 'Grocery',
+    category: category,
     notes: ingredient.notes || '',
     quantity: ''
   };

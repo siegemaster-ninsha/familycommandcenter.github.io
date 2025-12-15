@@ -224,6 +224,34 @@ class ApiService {
   async getRecipeImageViewUrl(s3Key) {
     return this.get(`${CONFIG.API.ENDPOINTS.RECIPES}/image/${encodeURIComponent(s3Key)}`);
   }
+  
+  // === Multi-Image Recipe Methods ===
+  // **Feature: multi-image-recipe-categories**
+  // **Validates: Requirements 1.6, 3.1**
+  
+  /**
+   * Get presigned URLs for multiple recipe image uploads
+   * **Validates: Requirements 1.6**
+   * @param {string[]} fileExtensions - Array of file extensions (jpg, png, heic, webp)
+   * @returns {Promise<Object>} Array of upload URLs with S3 keys
+   */
+  async getRecipeMultipleImageUploadUrls(fileExtensions) {
+    return this.post(`${CONFIG.API.ENDPOINTS.RECIPES}/image/upload-urls`, {
+      fileExtensions
+    });
+  }
+  
+  /**
+   * Process multiple uploaded recipe images
+   * **Validates: Requirements 3.1**
+   * @param {string[]} s3Keys - Array of S3 keys of the uploaded images
+   * @returns {Promise<Object>} Extracted recipe data with categories and sourceImageKeys
+   */
+  async processMultipleRecipeImages(s3Keys) {
+    return this.post(`${CONFIG.API.ENDPOINTS.RECIPES}/images/process`, {
+      s3Keys
+    });
+  }
 }
 
 // Export singleton

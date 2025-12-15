@@ -487,6 +487,29 @@ const useRecipeStore = Pinia.defineStore('recipes', {
     },
     
     /**
+     * Get presigned URLs for multiple image uploads
+     * **Feature: multi-image-recipe-categories**
+     * **Validates: Requirements 1.6**
+     * @param {string[]} fileExtensions - Array of file extensions (jpg, png, heic, webp)
+     * @returns {Object} Result with array of upload URLs
+     */
+    async getMultipleImageUploadUrls(fileExtensions) {
+      this.imageError = null;
+      
+      try {
+        const data = await apiService.getRecipeMultipleImageUploadUrls(fileExtensions);
+        console.log('✅ Multiple image upload URLs generated:', data.uploads?.length);
+        return { success: true, uploads: data.uploads };
+      } catch (error) {
+        // Map technical errors to user-friendly messages
+        const userFriendlyError = this.mapUploadUrlError(error.message);
+        this.imageError = userFriendlyError;
+        console.error('Failed to get multiple image upload URLs:', error);
+        return { success: false, error: userFriendlyError };
+      }
+    },
+    
+    /**
      * Map upload URL errors to user-friendly messages
      * **Validates: Requirements 6.1, 6.2**
      * @param {string} error - Technical error message
@@ -558,6 +581,51 @@ const useRecipeStore = Pinia.defineStore('recipes', {
         const userFriendlyError = this.mapImageProcessingError(error.message);
         this.imageError = userFriendlyError;
         console.error('Failed to process recipe image:', error);
+        return { success: false, error: userFriendlyError };
+      } finally {
+        this.imageProcessing = false;
+        this.imageProcessingStatus = '';
+      }
+    },
+    
+    /**
+     * Process multiple uploaded recipe images (async with polling)
+     * **Feature: multi-image-recipe-categories**
+     * **Validates: Requirements 3.1, 3.4**
+     * @param {string[]} s3Keys - Array of S3 keys of the uploaded images
+     * @returns {Object} Result with extracted recipe including categories and sourceImageKeys
+     */
+    async processMultipleRecipeImages(s3Keys) {
+      this.imageProcessing = true;
+      this.imageProcessingStatus = `Processing ${s3Keys.length} image${s3Keys.length > 1 ? 's' : ''}...`;
+      this.imageError = null;
+      this.scrapedRecipe = null;
+      
+      try {
+        // Start the async processing job for multiple images
+        const startData = await apiService.processMultipleRecipeImages(s3Keys);
+        
+        const jobId = startData.jobId;
+        console.log('✅ Multi-image processing job started:', jobId);
+        
+        // Poll for completion
+        this.imageProcessingStatus = `Extracting recipe from ${s3Keys.length} image${s3Keys.length > 1 ? 's' : ''}...`;
+        const result = await this.pollJobStatus(jobId);
+        
+        if (result.status === 'completed') {
+          this.scrapedRecipe = result.recipe;
+          console.log('✅ Recipe extracted from multiple images:', this.scrapedRecipe?.title);
+          return { success: true, recipe: this.scrapedRecipe };
+        } else if (result.status === 'failed') {
+          throw new Error(result.error || 'Multi-image processing failed');
+        } else {
+          throw new Error('Multi-image processing timed out');
+        }
+      } catch (error) {
+        // Map technical errors to user-friendly messages
+        const userFriendlyError = this.mapImageProcessingError(error.message);
+        this.imageError = userFriendlyError;
+        console.error('Failed to process multiple recipe images:', error);
         return { success: false, error: userFriendlyError };
       } finally {
         this.imageProcessing = false;
