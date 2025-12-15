@@ -690,9 +690,14 @@ const ShoppingPage = Vue.defineComponent({
       </button>
     </div>
   `,
+  setup() {
+    // Use Pinia store as single source of truth for shopping data
+    const shoppingStore = window.useShoppingStore();
+    return { shoppingStore };
+  },
   data() {
     return {
-      // Note: shoppingItems, quickItems, and stores are now provided by parent (preloaded)
+      // Note: shoppingItems, quickItems, and stores now come from Pinia store via setup()
       localLoading: false,
       quickLoading: false,
       storeLoading: false,
@@ -736,6 +741,17 @@ const ShoppingPage = Vue.defineComponent({
     };
   },
   computed: {
+    // Access store data via computed properties for reactivity
+    shoppingItems() {
+      return this.shoppingStore.items;
+    },
+    shoppingQuickItems() {
+      return this.shoppingStore.quickItems;
+    },
+    stores() {
+      return this.shoppingStore.stores;
+    },
+    
     completedItems() {
       return this.shoppingItems.filter(item => item.completed).length;
     },
@@ -749,7 +765,7 @@ const ShoppingPage = Vue.defineComponent({
     },
 
     
-    // Use injected data with fallback names for template compatibility
+    // Use store data with fallback names for template compatibility
     quickItems() {
       return this.shoppingQuickItems;
     },
@@ -892,10 +908,7 @@ const ShoppingPage = Vue.defineComponent({
     }
   },
   inject: [
-    // Preloaded data from parent
-    'shoppingItems',
-    'shoppingQuickItems',
-    'stores',
+    // Shopping data now comes from Pinia store via setup()
     // shared api helper
     'apiCall',
     // app loading state for top-level loading gate
@@ -929,7 +942,7 @@ const ShoppingPage = Vue.defineComponent({
       this.localLoading = true;
       this.error = null;
       try {
-        await this.$parent.loadShoppingItems();
+        await this.shoppingStore.loadItems();
       } catch (error) {
         console.error('Error reloading shopping items:', error);
         this.error = error.message;
@@ -942,7 +955,7 @@ const ShoppingPage = Vue.defineComponent({
       this.quickLoading = true;
       this.quickError = null;
       try {
-        await this.$parent.loadShoppingQuickItems();
+        await this.shoppingStore.loadQuickItems();
       } catch (error) {
         console.error('Error reloading quick items:', error);
         this.quickError = error.message;
@@ -954,122 +967,34 @@ const ShoppingPage = Vue.defineComponent({
     async saveItem() {
       this.actionLoading = true;
       
-      // Check if online
-      const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
-      
       try {
         if (this.editMode && this.editingItem) {
-          // Update existing item
+          // Update existing item via store
           const itemId = this.editingItem.id;
           const updates = { ...this.editingItem };
           delete updates.id; // Don't send id in body
           
-          // Optimistic update - apply locally immediately
-          const itemIndex = this.shoppingItems.findIndex(item => item.id === itemId);
-          if (itemIndex !== -1) {
-            this.shoppingItems[itemIndex] = { ...this.shoppingItems[itemIndex], ...updates };
-          }
-          
-          if (!isOnline) {
-            // Queue for later sync
-            if (window.syncQueue) {
-              await window.syncQueue.enqueue({
-                type: 'UPDATE',
-                entity: 'shoppingItem',
-                entityId: itemId,
-                data: updates
-              });
-              
-              if (window.useOfflineStore) {
-                window.useOfflineStore().incrementPendingSync();
-              }
-            }
-            this.showSuccessMessage('Item updated (will sync when online)');
-          } else {
-            try {
-              await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_ITEMS}/${itemId}`, {
-                method: 'PUT',
-                body: JSON.stringify(updates)
-              });
-              this.showSuccessMessage('Item updated successfully!');
-            } catch (error) {
-              console.warn('Failed to sync item update, queuing for later:', error.message);
-              // Keep optimistic update, queue for sync
-              if (window.syncQueue) {
-                await window.syncQueue.enqueue({
-                  type: 'UPDATE',
-                  entity: 'shoppingItem',
-                  entityId: itemId,
-                  data: updates
-                });
-                
-                if (window.useOfflineStore) {
-                  window.useOfflineStore().incrementPendingSync();
-                }
-              }
+          const result = await this.shoppingStore.updateItem(itemId, updates);
+          if (result.success) {
+            if (result.offline) {
               this.showSuccessMessage('Item updated (will sync when online)');
+            } else {
+              this.showSuccessMessage('Item updated successfully!');
             }
+          } else {
+            this.showErrorMessage('Failed to update item: ' + (result.error || 'unknown error'));
           }
         } else {
-          // Add new item - use offline-first approach
-          const tempId = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-          const localItem = {
-            ...this.newItem,
-            id: tempId,
-            completed: false,
-            createdAt: new Date().toISOString()
-          };
-          
-          // Optimistic add
-          this.shoppingItems.push(localItem);
-          
-          if (!isOnline) {
-            // Queue for later sync
-            if (window.syncQueue) {
-              await window.syncQueue.enqueue({
-                type: 'CREATE',
-                entity: 'shoppingItem',
-                entityId: tempId,
-                data: this.newItem
-              });
-              
-              if (window.useOfflineStore) {
-                window.useOfflineStore().incrementPendingSync();
-              }
-            }
-            this.showSuccessMessage('Item added (will sync when online)');
-          } else {
-            try {
-              const response = await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS, {
-                method: 'POST',
-                body: JSON.stringify(this.newItem)
-              });
-              
-              // Replace temp item with server item
-              if (response && response.item) {
-                const index = this.shoppingItems.findIndex(i => i.id === tempId);
-                if (index !== -1) {
-                  this.shoppingItems[index] = response.item;
-                }
-              }
-              this.showSuccessMessage('Item added successfully!');
-            } catch (error) {
-              console.warn('Failed to sync new item, queuing for later:', error.message);
-              // Keep optimistic add, queue for sync
-              if (window.syncQueue) {
-                await window.syncQueue.enqueue({
-                  type: 'CREATE',
-                  entity: 'shoppingItem',
-                  entityId: tempId,
-                  data: this.newItem
-                });
-                
-                if (window.useOfflineStore) {
-                  window.useOfflineStore().incrementPendingSync();
-                }
-              }
+          // Add new item via store
+          const result = await this.shoppingStore.addItem(this.newItem);
+          if (result.success) {
+            if (result.offline) {
               this.showSuccessMessage('Item added (will sync when online)');
+            } else {
+              this.showSuccessMessage('Item added successfully!');
             }
+          } else {
+            this.showErrorMessage('Failed to add item: ' + (result.error || 'unknown error'));
           }
         }
 
@@ -1084,145 +1009,27 @@ const ShoppingPage = Vue.defineComponent({
     },
 
     async handleToggleItem(itemId) {
-      // Find the item in the local array for optimistic update
-      const itemIndex = this.shoppingItems.findIndex(item => item.id === itemId);
-      if (itemIndex === -1) {
-        console.error('Item not found:', itemId);
-        return;
-      }
-
-      // Store the previous state for potential rollback
-      const previousState = this.shoppingItems[itemIndex].completed;
-
-      // Set loading state for this specific item
-      this.shoppingItems[itemIndex].isToggling = true;
-
-      // Optimistic update - immediately toggle the local state
-      this.shoppingItems[itemIndex].completed = !previousState;
-
-      // Check if online
-      const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
-
-      if (!isOnline) {
-        // Queue for later sync
-        if (window.syncQueue) {
-          await window.syncQueue.enqueue({
-            type: 'UPDATE',
-            entity: 'shoppingItem',
-            entityId: itemId,
-            data: { completed: !previousState }
-          });
-          
-          if (window.useOfflineStore) {
-            window.useOfflineStore().incrementPendingSync();
-          }
-        }
-        console.log('✅ Item toggle queued for sync (offline)');
-        this.shoppingItems[itemIndex].isToggling = false;
-        return;
-      }
-
-      try {
-        // Make the API call to persist the change
-        const response = await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_ITEMS}/${itemId}/toggle`, {
-          method: 'PUT'
-        });
-
-        // Update with server response if it differs from our optimistic update
-        if (response && response.item && typeof response.item.completed === 'boolean' && response.item.completed !== this.shoppingItems[itemIndex].completed) {
-          this.shoppingItems[itemIndex].completed = response.item.completed;
-        }
-
-        // Note: Store clearing functionality removed since we no longer group by store
-      } catch (error) {
-        console.warn('Failed to sync item toggle, queuing for later:', error.message);
-
-        // Keep the optimistic update, queue for sync instead of rolling back
-        if (window.syncQueue) {
-          await window.syncQueue.enqueue({
-            type: 'UPDATE',
-            entity: 'shoppingItem',
-            entityId: itemId,
-            data: { completed: !previousState }
-          });
-          
-          if (window.useOfflineStore) {
-            window.useOfflineStore().incrementPendingSync();
-          }
-        }
-      } finally {
-        // Remove loading state
-        this.shoppingItems[itemIndex].isToggling = false;
-      }
+      // Use store's toggleItemComplete method - handles offline-first logic
+      await this.shoppingStore.toggleItemComplete(itemId);
     },
 
     async removeItem(itemId) {
-      // Optimistic delete - remove from local state immediately
-      const deletedItem = this.shoppingItems.find(item => item.id === itemId);
-      const originalItems = [...this.shoppingItems];
-      this.shoppingItems = this.shoppingItems.filter(item => item.id !== itemId);
-      
-      // If it's a local-only item that was never synced, no need to sync delete
-      if (itemId.startsWith('local_')) {
-        console.log('✅ Local-only item removed');
-        return;
-      }
-      
-      // Check if online
-      const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
-      
-      if (!isOnline) {
-        // Queue for later sync
-        if (window.syncQueue) {
-          await window.syncQueue.enqueue({
-            type: 'DELETE',
-            entity: 'shoppingItem',
-            entityId: itemId,
-            data: {}
-          });
-          
-          if (window.useOfflineStore) {
-            window.useOfflineStore().incrementPendingSync();
-          }
-        }
-        console.log('✅ Item delete queued for sync (offline)');
-        return;
-      }
-      
-      try {
-        await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_ITEMS}/${itemId}`, {
-          method: 'DELETE'
-        });
-        console.log('✅ Item deleted and synced');
-      } catch (error) {
-        console.warn('Failed to sync item delete, queuing for later:', error.message);
-        // Keep optimistic delete, queue for sync
-        if (window.syncQueue) {
-          await window.syncQueue.enqueue({
-            type: 'DELETE',
-            entity: 'shoppingItem',
-            entityId: itemId,
-            data: {}
-          });
-          
-          if (window.useOfflineStore) {
-            window.useOfflineStore().incrementPendingSync();
-          }
-        }
-      }
+      // Use store's deleteItem method - handles offline-first logic
+      await this.shoppingStore.deleteItem(itemId);
     },
 
     async clearCompleted() {
       this.actionLoading = true;
       try {
-        const data = await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS_CLEAR_COMPLETED, {
-          method: 'POST'
-        });
-        await this.$parent.loadShoppingItems();
-        this.showSuccessMessage(`${data.clearedCount} completed items cleared!`);
+        const result = await this.shoppingStore.clearCompleted();
+        if (result.success) {
+          this.showSuccessMessage('Completed items cleared!');
+        } else {
+          this.showErrorMessage('Error clearing completed items: ' + (result.error || 'unknown error'));
+        }
       } catch (error) {
         console.error('Error clearing completed items:', error);
-        alert('Error clearing completed items: ' + (error?.message || 'unknown error'));
+        this.showErrorMessage('Error clearing completed items: ' + (error?.message || 'unknown error'));
       } finally {
         this.actionLoading = false;
       }
@@ -1231,14 +1038,15 @@ const ShoppingPage = Vue.defineComponent({
     async markAllComplete() {
       this.actionLoading = true;
       try {
-        const data = await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS_MARK_ALL_COMPLETE, {
-          method: 'POST'
-        });
-        await this.$parent.loadShoppingItems();
-        this.showSuccessMessage(`${data.updatedCount} items marked as complete!`);
+        const result = await this.shoppingStore.markAllComplete();
+        if (result.success) {
+          this.showSuccessMessage('All items marked as complete!');
+        } else {
+          this.showErrorMessage('Error marking items complete: ' + (result.error || 'unknown error'));
+        }
       } catch (error) {
         console.error('Error marking all items complete:', error);
-        alert('Error marking all items complete: ' + (error?.message || 'unknown error'));
+        this.showErrorMessage('Error marking all items complete: ' + (error?.message || 'unknown error'));
       } finally {
         this.actionLoading = false;
       }
@@ -1248,14 +1056,15 @@ const ShoppingPage = Vue.defineComponent({
       if (!confirm('Are you sure you want to clear all items?')) return;
       this.actionLoading = true;
       try {
-        const data = await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS_CLEAR_ALL, {
-          method: 'POST'
-        });
-        await this.$parent.loadShoppingItems();
-        this.showSuccessMessage(`${data.clearedCount} items cleared!`);
+        const result = await this.shoppingStore.clearAll();
+        if (result.success) {
+          this.showSuccessMessage('All items cleared!');
+        } else {
+          this.showErrorMessage('Error clearing items: ' + (result.error || 'unknown error'));
+        }
       } catch (error) {
         console.error('Error clearing all items:', error);
-        alert('Error clearing all items: ' + (error?.message || 'unknown error'));
+        this.showErrorMessage('Error clearing all items: ' + (error?.message || 'unknown error'));
       } finally {
         this.actionLoading = false;
       }
@@ -1266,7 +1075,7 @@ const ShoppingPage = Vue.defineComponent({
       this.quickActionLoading = true;
       try {
         if (this.editMode && this.editingQuickItem) {
-          // Update existing quick item
+          // Update existing quick item - still use API directly for quick items
           await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS}/${this.editingQuickItem.id}`, {
             method: 'PUT',
             body: JSON.stringify(this.editingQuickItem)
@@ -1274,19 +1083,21 @@ const ShoppingPage = Vue.defineComponent({
           this.showSuccessMessage('Quick item updated successfully!');
         } else {
           // Add new quick item
-          await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS, {
-            method: 'POST',
-            body: JSON.stringify(this.newQuickItem)
-          });
-          this.showSuccessMessage('Quick item added successfully!');
+          const result = await this.shoppingStore.addQuickItem(this.newQuickItem);
+          if (result.success) {
+            this.showSuccessMessage('Quick item added successfully!');
+          } else {
+            this.showErrorMessage('Error adding quick item: ' + (result.error || 'unknown error'));
+            return;
+          }
         }
 
-        await this.$parent.loadShoppingQuickItems();
+        await this.shoppingStore.loadQuickItems();
         this.cancelEdit();
         this.newQuickItem = { name: '', category: 'General', defaultQuantity: '', defaultNotes: '', defaultStore: '' };
       } catch (error) {
         console.error('Error saving quick item:', error);
-        alert('Error saving quick item: ' + (error?.message || 'unknown error'));
+        this.showErrorMessage('Error saving quick item: ' + (error?.message || 'unknown error'));
       } finally {
         this.quickActionLoading = false;
       }
@@ -1298,11 +1109,12 @@ const ShoppingPage = Vue.defineComponent({
         await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS}/${quickItemId}/add-to-list`, {
           method: 'POST'
         });
-        await this.$parent.loadShoppingItems();
+        // Reload items from store
+        await this.shoppingStore.loadItems();
         this.showSuccessMessage('Item added to shopping list!');
       } catch (error) {
         console.error('Error adding quick item to list:', error);
-        alert('Error adding item to list: ' + (error?.message || 'unknown error'));
+        this.showErrorMessage('Error adding item to list: ' + (error?.message || 'unknown error'));
       } finally {
         this.quickActionLoading = false;
       }
@@ -1311,13 +1123,13 @@ const ShoppingPage = Vue.defineComponent({
     async removeQuickItem(quickItemId) {
       if (!confirm('Are you sure you want to remove this quick item?')) return;
       try {
-        await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS}/${quickItemId}`, {
-          method: 'DELETE'
-        });
-        await this.$parent.loadShoppingQuickItems();
+        const result = await this.shoppingStore.deleteQuickItem(quickItemId);
+        if (!result.success) {
+          this.showErrorMessage('Error removing quick item: ' + (result.error || 'unknown error'));
+        }
       } catch (error) {
         console.error('Error removing quick item:', error);
-        alert('Error removing quick item: ' + (error?.message || 'unknown error'));
+        this.showErrorMessage('Error removing quick item: ' + (error?.message || 'unknown error'));
       }
     },
 

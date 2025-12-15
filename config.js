@@ -67,7 +67,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.18 - Stellar Salamander (Dec 14, 2025)',
+    VERSION: '1.0.19 - Turbo Quail (Dec 14, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {

@@ -343,29 +343,79 @@ const RecipePage = Vue.defineComponent({
             
             <!-- Ingredients -->
             <div>
-              <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
                 <h3 class="text-lg font-bold text-primary-custom flex items-center gap-2">
                   <div v-html="Helpers.IconLibrary.getIcon('list', 'lucide', 18, '')"></div>
                   Ingredients
                 </h3>
                 <button
-                  @click="openIngredientSelector"
-                  class="btn-secondary flex items-center gap-2 px-3 py-1.5 text-sm"
-                  title="Send ingredients to shopping list"
+                  @click="sendSelectedToShoppingList"
+                  class="btn-success flex items-center gap-2 px-3 py-1.5 text-sm"
+                  title="Send selected ingredients to shopping list"
+                  :disabled="sendingToShopping || selectedIngredients.size === 0"
                 >
-                  <div v-html="Helpers.IconLibrary.getIcon('shoppingCart', 'lucide', 16, '')"></div>
-                  <span class="hidden sm:inline">Send to Shopping List</span>
-                  <span class="sm:hidden">Add to Cart</span>
+                  <div v-if="sendingToShopping" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <div v-else v-html="Helpers.IconLibrary.getIcon('shoppingCart', 'lucide', 16, 'text-white')"></div>
+                  <span class="hidden sm:inline">Add {{ selectedIngredients.size > 0 ? '(' + selectedIngredients.size + ')' : '' }} to Cart</span>
+                  <span class="sm:hidden">{{ selectedIngredients.size > 0 ? selectedIngredients.size : '' }} 🛒</span>
                 </button>
               </div>
+              
+              <!-- Quick select buttons -->
+              <div class="flex gap-2 mb-3 text-xs">
+                <button
+                  @click="selectAllIngredients"
+                  class="px-2 py-1 border rounded hover:bg-gray-50 transition-colors"
+                  style="border-color: var(--color-border-card)"
+                >
+                  Select All
+                </button>
+                <button
+                  @click="deselectAllIngredients"
+                  class="px-2 py-1 border rounded hover:bg-gray-50 transition-colors"
+                  style="border-color: var(--color-border-card)"
+                >
+                  Deselect All
+                </button>
+              </div>
+              
               <ul class="space-y-2">
                 <li
                   v-for="(ing, idx) in scaledIngredients"
                   :key="idx"
-                  class="flex items-start gap-2 p-2 rounded hover:bg-gray-50"
+                  class="flex items-center gap-2 p-2 rounded transition-colors"
+                  :class="selectedIngredients.has(idx) ? 'bg-green-50' : 'hover:bg-gray-50'"
                 >
-                  <input type="checkbox" class="mt-1 w-4 h-4 rounded">
-                  <span>{{ formatIngredient(ing) }}</span>
+                  <!-- Selection checkbox -->
+                  <input 
+                    type="checkbox" 
+                    :checked="selectedIngredients.has(idx)"
+                    @change="toggleIngredient(idx)"
+                    class="w-4 h-4 rounded text-primary-500 focus:ring-primary-500 flex-shrink-0"
+                  >
+                  
+                  <!-- Ingredient text -->
+                  <span class="flex-1">{{ formatIngredient(ing) }}</span>
+                  
+                  <!-- Qty toggle for this ingredient -->
+                  <button
+                    @click.stop="toggleIngredientQty(idx)"
+                    class="flex-shrink-0 px-2 py-1 text-xs rounded transition-colors"
+                    :class="ingredientQtySettings[idx] !== false ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-500'"
+                    :title="ingredientQtySettings[idx] !== false ? 'Quantity will be included' : 'Quantity will NOT be included'"
+                  >
+                    {{ ingredientQtySettings[idx] !== false ? 'Qty ✓' : 'Qty ✗' }}
+                  </button>
+                  
+                  <!-- Quick add to cart button -->
+                  <button
+                    @click.stop="addSingleIngredientToCart(idx)"
+                    class="flex-shrink-0 p-1.5 rounded-full hover:bg-green-100 transition-colors"
+                    :class="selectedIngredients.has(idx) ? 'text-green-600' : 'text-gray-400'"
+                    title="Add this ingredient to shopping cart"
+                  >
+                    <div v-html="Helpers.IconLibrary.getIcon('shoppingCart', 'lucide', 16, '')"></div>
+                  </button>
                 </li>
               </ul>
             </div>
@@ -547,112 +597,13 @@ const RecipePage = Vue.defineComponent({
         </div>
       </div>
       
-      <!-- Ingredient Selection Modal -->
-      <!-- **Feature: recipe-shopping-integration** -->
-      <!-- **Validates: Requirements 1.1, 1.2, 2.1** -->
-      <div v-if="showIngredientSelector" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
-          <!-- Modal Header -->
-          <div class="sticky top-0 bg-white border-b p-4" style="border-color: var(--color-border-card);">
-            <div class="flex items-center justify-between">
-              <h2 class="text-xl font-bold text-primary-custom">Send to Shopping List</h2>
-              <button
-                @click="closeIngredientSelector"
-                class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 20, '')"></div>
-              </button>
-            </div>
-            <p class="text-sm text-secondary-custom mt-1">Select ingredients to add to your shopping list</p>
-          </div>
-          
-          <!-- Modal Content -->
-          <div class="p-4 space-y-4">
-            <!-- Quantity Toggle -->
-            <div class="flex items-center justify-between p-3 rounded-lg bg-gray-50">
-              <label class="text-sm font-medium">Include quantity & unit</label>
-              <button
-                @click="includeQuantity = !includeQuantity"
-                class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
-                :class="includeQuantity ? 'bg-primary-500' : 'bg-gray-300'"
-              >
-                <span
-                  class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                  :class="includeQuantity ? 'translate-x-6' : 'translate-x-1'"
-                ></span>
-              </button>
-            </div>
-            
-            <!-- Select/Deselect All Buttons -->
-            <div class="flex gap-2">
-              <button
-                @click="selectAllIngredients"
-                class="flex-1 px-3 py-2 text-sm border rounded-lg hover:bg-gray-50 transition-colors"
-                style="border-color: var(--color-border-card)"
-              >
-                Select All
-              </button>
-              <button
-                @click="deselectAllIngredients"
-                class="flex-1 px-3 py-2 text-sm border rounded-lg hover:bg-gray-50 transition-colors"
-                style="border-color: var(--color-border-card)"
-              >
-                Deselect All
-              </button>
-            </div>
-            
-            <!-- Ingredient List with Checkboxes -->
-            <div class="space-y-2 max-h-[40vh] overflow-y-auto">
-              <div
-                v-for="(ing, idx) in scaledIngredients"
-                :key="idx"
-                @click="toggleIngredient(idx)"
-                class="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors"
-                :class="selectedIngredients.has(idx) ? 'bg-primary-50 border border-primary-200' : 'bg-gray-50 hover:bg-gray-100'"
-              >
-                <input
-                  type="checkbox"
-                  :checked="selectedIngredients.has(idx)"
-                  @click.stop="toggleIngredient(idx)"
-                  class="w-5 h-5 rounded text-primary-500 focus:ring-primary-500"
-                >
-                <span class="flex-1">{{ formatIngredient(ing) }}</span>
-              </div>
-            </div>
-            
-            <!-- Selection Count -->
-            <div class="text-sm text-secondary-custom text-center">
-              {{ selectedIngredients.size }} of {{ scaledIngredients.length }} ingredients selected
-            </div>
-          </div>
-          
-          <!-- Modal Footer -->
-          <div class="sticky bottom-0 bg-white border-t p-4 flex gap-3" style="border-color: var(--color-border-card);">
-            <button
-              @click="closeIngredientSelector"
-              class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
-              style="border-color: var(--color-border-card)"
-            >
-              Cancel
-            </button>
-            <button
-              @click="sendToShoppingList"
-              class="flex-1 btn-success flex items-center justify-center gap-2"
-              :disabled="sendingToShopping || selectedIngredients.size === 0"
-            >
-              <div v-if="sendingToShopping" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <div v-else v-html="Helpers.IconLibrary.getIcon('shoppingCart', 'lucide', 18, 'text-white')"></div>
-              <span>{{ sendingToShopping ? 'Adding...' : 'Add to Shopping List' }}</span>
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   `,
   
   setup() {
     const recipeStore = window.useRecipeStore();
-    return { recipeStore };
+    const shoppingStore = window.useShoppingStore();
+    return { recipeStore, shoppingStore };
   },
   
   data() {
@@ -690,9 +641,8 @@ const RecipePage = Vue.defineComponent({
       // Ingredient selection for shopping list
       // **Feature: recipe-shopping-integration**
       // **Validates: Requirements 1.2, 1.4**
-      showIngredientSelector: false,
       selectedIngredients: new Set(),
-      includeQuantity: true,
+      ingredientQtySettings: {}, // Per-ingredient qty toggle: { index: boolean }
       sendingToShopping: false
     };
   },
@@ -946,31 +896,6 @@ const RecipePage = Vue.defineComponent({
     // **Validates: Requirements 1.3, 2.2, 2.3, 2.4**
     
     /**
-     * Opens the ingredient selector modal and pre-selects all ingredients
-     * **Validates: Requirements 1.3**
-     */
-    openIngredientSelector() {
-      if (!this.currentRecipe?.ingredients) return;
-      
-      // Pre-select all ingredients
-      this.selectedIngredients = new Set();
-      for (let i = 0; i < this.scaledIngredients.length; i++) {
-        this.selectedIngredients.add(i);
-      }
-      this.includeQuantity = true;
-      this.showIngredientSelector = true;
-    },
-    
-    /**
-     * Closes the ingredient selector modal and resets state
-     */
-    closeIngredientSelector() {
-      this.showIngredientSelector = false;
-      this.selectedIngredients = new Set();
-      this.sendingToShopping = false;
-    },
-    
-    /**
      * Toggles the selection state of a single ingredient
      * **Validates: Requirements 2.2**
      * @param {number} index - The index of the ingredient to toggle
@@ -984,6 +909,55 @@ const RecipePage = Vue.defineComponent({
         newSet.add(index);
       }
       this.selectedIngredients = newSet;
+    },
+    
+    /**
+     * Toggles the quantity setting for a single ingredient
+     * @param {number} index - The index of the ingredient
+     */
+    toggleIngredientQty(index) {
+      // Default is true (include qty), so undefined/true -> false, false -> true
+      const currentSetting = this.ingredientQtySettings[index];
+      this.ingredientQtySettings = {
+        ...this.ingredientQtySettings,
+        [index]: currentSetting === false ? true : false
+      };
+    },
+    
+    /**
+     * Adds a single ingredient to the shopping cart
+     * @param {number} index - The index of the ingredient to add
+     */
+    async addSingleIngredientToCart(index) {
+      if (index >= this.scaledIngredients.length) return;
+      
+      const ingredient = this.scaledIngredients[index];
+      const includeQty = this.ingredientQtySettings[index] !== false;
+      
+      const shoppingItem = window.formatIngredientForShopping(ingredient, includeQty);
+      
+      if (!shoppingItem.name) {
+        this.showToast('Invalid ingredient', 'error');
+        return;
+      }
+      
+      try {
+        // Use Pinia store - single source of truth
+        const result = await this.shoppingStore.addItem(shoppingItem);
+        
+        if (result.success) {
+          if (result.offline) {
+            this.showToast(`${shoppingItem.name} added - will sync when online`, 'info');
+          } else {
+            this.showToast(`${shoppingItem.name} added to cart`, 'success');
+          }
+        } else {
+          this.showToast('Failed to add item', 'error');
+        }
+      } catch (error) {
+        console.error('Failed to add ingredient:', error);
+        this.showToast(`Failed: ${error.message}`, 'error');
+      }
     },
     
     /**
@@ -1008,10 +982,11 @@ const RecipePage = Vue.defineComponent({
     
     /**
      * Sends selected ingredients to the shopping list
+     * Uses per-ingredient qty settings via Pinia store (single source of truth)
      * **Feature: recipe-shopping-integration**
      * **Validates: Requirements 2.5, 3.1, 3.2, 3.3, 3.4**
      */
-    async sendToShoppingList() {
+    async sendSelectedToShoppingList() {
       if (this.selectedIngredients.size === 0) {
         this.showToast('Please select at least one ingredient', 'warning');
         return;
@@ -1020,52 +995,19 @@ const RecipePage = Vue.defineComponent({
       this.sendingToShopping = true;
       
       try {
-        const shoppingStore = window.useShoppingStore();
         const selectedCount = this.selectedIngredients.size;
         let successCount = 0;
         let offlineCount = 0;
         let errorCount = 0;
         
-        // Get selected ingredients and format them
-        const selectedIngredientsList = [];
+        // Add each selected ingredient to shopping list via Pinia store
         for (const index of this.selectedIngredients) {
-          if (index < this.scaledIngredients.length) {
-            selectedIngredientsList.push(this.scaledIngredients[index]);
-          }
-        }
-        
-        // Import the formatter function (it's in src/utils but we need frontend version)
-        const formatIngredientForShopping = (ingredient, includeQuantity) => {
-          if (!ingredient || typeof ingredient.name !== 'string') {
-            return {
-              name: '',
-              category: 'Grocery',
-              notes: '',
-              quantity: ''
-            };
-          }
-
-          let name = ingredient.name.trim();
-
-          if (includeQuantity && ingredient.quantity != null) {
-            const unit = ingredient.unit ? ingredient.unit.trim() : '';
-            const quantityStr = String(ingredient.quantity);
-            name = unit 
-              ? `${ingredient.name.trim()}, ${quantityStr} ${unit}`.trim()
-              : `${ingredient.name.trim()}, ${quantityStr}`.trim();
-          }
-
-          return {
-            name: name,
-            category: 'Grocery',
-            notes: ingredient.notes || '',
-            quantity: ''
-          };
-        };
-        
-        // Add each selected ingredient to shopping list
-        for (const ingredient of selectedIngredientsList) {
-          const shoppingItem = formatIngredientForShopping(ingredient, this.includeQuantity);
+          if (index >= this.scaledIngredients.length) continue;
+          
+          const ingredient = this.scaledIngredients[index];
+          // Use per-ingredient qty setting (default true if not set)
+          const includeQty = this.ingredientQtySettings[index] !== false;
+          const shoppingItem = window.formatIngredientForShopping(ingredient, includeQty);
           
           if (!shoppingItem.name) {
             errorCount++;
@@ -1073,12 +1015,12 @@ const RecipePage = Vue.defineComponent({
           }
           
           try {
-            const result = await shoppingStore.addItem(shoppingItem);
+            const result = await this.shoppingStore.addItem(shoppingItem);
             if (result.success) {
+              successCount++;
               if (result.offline) {
                 offlineCount++;
               }
-              successCount++;
             } else {
               errorCount++;
             }
@@ -1095,16 +1037,17 @@ const RecipePage = Vue.defineComponent({
         } else if (offlineCount > 0 && offlineCount === successCount) {
           // All offline
           this.showToast(`${successCount} item${successCount !== 1 ? 's' : ''} added - will sync when online`, 'info');
-          this.closeIngredientSelector();
         } else if (errorCount > 0) {
           // Partial success
           this.showToast(`Added ${successCount} of ${selectedCount} items (${errorCount} failed)`, 'warning');
-          this.closeIngredientSelector();
         } else {
           // All succeeded
           this.showToast(`${successCount} item${successCount !== 1 ? 's' : ''} added to shopping list`, 'success');
-          this.closeIngredientSelector();
         }
+        
+        // Clear selection after successful add
+        this.selectedIngredients = new Set();
+        this.ingredientQtySettings = {};
       } catch (error) {
         console.error('Error sending to shopping list:', error);
         this.showToast(`Failed to add items: ${error.message}`, 'error');

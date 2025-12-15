@@ -120,10 +120,9 @@ const app = createApp({
         { key: 'account', label: 'Account' }
       ],
       
-      // Shopping page data (preloaded for instant page switching)
-      shoppingItems: [],
-      shoppingQuickItems: [],
-      stores: [],
+      // Shopping page data now managed by Pinia store (stores/shopping.js)
+      // These are kept for backward compatibility but delegate to the store
+      // shoppingItems, shoppingQuickItems, stores - accessed via computed properties
       
       // Account page data (preloaded for instant page switching)
       accountSettings: null,
@@ -635,39 +634,21 @@ const app = createApp({
 
     // Shopping page data loading methods
     async loadShoppingItems() {
-      try {
-        console.log('🛒 Loading shopping items...');
-        const response = await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS);
-        this.shoppingItems = response.items || [];
-        console.log('✅ Shopping items loaded:', this.shoppingItems.length);
-      } catch (error) {
-        console.error('Failed to load shopping items:', error);
-        this.shoppingItems = [];
-      }
+      // Delegate to Pinia store - single source of truth
+      const shoppingStore = window.useShoppingStore();
+      await shoppingStore.loadItems();
     },
 
     async loadShoppingQuickItems() {
-      try {
-        console.log('🛒 Loading shopping quick items...');
-        const response = await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS);
-        this.shoppingQuickItems = response.items || [];
-        console.log('✅ Shopping quick items loaded:', this.shoppingQuickItems.length);
-      } catch (error) {
-        console.error('Failed to load shopping quick items:', error);
-        this.shoppingQuickItems = [];
-      }
+      // Delegate to Pinia store - single source of truth
+      const shoppingStore = window.useShoppingStore();
+      await shoppingStore.loadQuickItems();
     },
 
     async loadStores() {
-      try {
-        console.log('🏪 Loading stores...');
-        const response = await this.apiCall(CONFIG.API.ENDPOINTS.STORES);
-        this.stores = response.stores || [];
-        console.log('✅ Stores loaded:', this.stores.length);
-      } catch (error) {
-        console.error('Failed to load stores:', error);
-        this.stores = [];
-      }
+      // Delegate to Pinia store - single source of truth
+      const shoppingStore = window.useShoppingStore();
+      await shoppingStore.loadStores();
     },
 
     // Account page data loading methods
@@ -2451,10 +2432,19 @@ const app = createApp({
       allPeople: Vue.computed(() => this.people || []),
       personToDelete: Vue.computed(() => this.personToDelete),
       
-      // Preloaded shopping page data
-      shoppingItems: Vue.computed(() => this.shoppingItems || []),
-      shoppingQuickItems: Vue.computed(() => this.shoppingQuickItems || []),
-      stores: Vue.computed(() => this.stores || []),
+      // Shopping page data - provided from Pinia store (single source of truth)
+      shoppingItems: Vue.computed(() => {
+        const store = window.useShoppingStore();
+        return store.items || [];
+      }),
+      shoppingQuickItems: Vue.computed(() => {
+        const store = window.useShoppingStore();
+        return store.quickItems || [];
+      }),
+      stores: Vue.computed(() => {
+        const store = window.useShoppingStore();
+        return store.stores || [];
+      }),
       
       // Preloaded account page data
       accountSettings: Vue.computed(() => this.accountSettings),
