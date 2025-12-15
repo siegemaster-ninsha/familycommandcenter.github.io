@@ -67,7 +67,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.32 - Vibrant Mongoose (Dec 15, 2025)',
+    VERSION: '1.0.33 - Nimble Cheetah (Dec 15, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
