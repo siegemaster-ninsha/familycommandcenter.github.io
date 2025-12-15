@@ -169,10 +169,10 @@ const PersonCard = {
           :is-selected="isChoreSelected(chore)"
           :show-approval-button="showApprovalButton"
           :Helpers="Helpers"
-          @click="onChoreClick(chore, $event)"
-          @toggle-complete="onChoreToggle(chore, $event)"
-          @approve="onChoreApprove(chore)"
-          @delete="onChoreDelete(chore)"
+          :on-click="(c, event) => onChoreClick(c, event)"
+          :on-toggle-complete="(c, event) => onChoreToggle(c, event)"
+          :on-approve="(c) => onChoreApprove(c)"
+          :on-delete="(c) => onChoreDelete(c)"
         />
       </div>
     </div>
@@ -303,10 +303,8 @@ const TailwindChorePage = Vue.defineComponent({
               type="quicklist"
               :is-selected="isQuicklistChoreSelected(quickChore)"
               :Helpers="Helpers"
-              @click="onQuicklistClick(quickChore, $event)"
-              @touchstart="onTouchStart($event)"
-              @touchmove="onTouchMove($event)"
-              @delete="removeFromQuicklist(quickChore.id)"
+              :on-click="(chore, event) => onQuicklistClick(chore, event)"
+              :on-delete="() => removeFromQuicklist(quickChore.id)"
             />
 
             <!-- Add to Quicklist button -->
@@ -360,8 +358,8 @@ const TailwindChorePage = Vue.defineComponent({
                 type="unassigned"
                 :is-selected="isChoreSelected(chore)"
                 :Helpers="Helpers"
-                @click="selectChore(chore, $event)"
-                @delete="deleteChore(chore)"
+                :on-click="(c, event) => selectChore(c, event)"
+                :on-delete="() => deleteChore(chore)"
               />
             </div>
 
@@ -399,11 +397,11 @@ const TailwindChorePage = Vue.defineComponent({
               :selected-chore-id="selectedChoreId"
               :selected-quicklist-chore="selectedQuicklistChore"
               :Helpers="Helpers"
-              @assign="assignSelectedChore(person.displayName)"
-              @chore-click="selectChore"
-              @chore-toggle="handleChoreCompletionToggle"
-              @chore-approve="approveChore"
-              @chore-delete="deleteChore"
+              :on-assign="() => assignSelectedChore(person.displayName)"
+              :on-chore-click="selectChore"
+              :on-chore-toggle="handleChoreCompletionToggle"
+              :on-chore-approve="approveChore"
+              :on-chore-delete="deleteChore"
             />
           </div>
         </div>
@@ -422,7 +420,7 @@ const TailwindChorePage = Vue.defineComponent({
               v-for="person in people"
               :key="person.id"
               :person="person"
-              @click="openSpendModal(person)"
+              :on-click="() => openSpendModal(person)"
             />
           </div>
         </div>

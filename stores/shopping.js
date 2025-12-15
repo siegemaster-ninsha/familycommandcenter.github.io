@@ -90,7 +90,8 @@ const useShoppingStore = Pinia.defineStore('shopping', {
     async loadQuickItems() {
       try {
         const data = await apiService.get(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS);
-        this.quickItems = data.quickItems || [];
+        // Backend returns { items: [...] }, not { quickItems: [...] }
+        this.quickItems = data.items || data.quickItems || [];
         console.log('✅ Quick items loaded:', this.quickItems.length);
       } catch (error) {
         console.error('Failed to load quick items:', error);
