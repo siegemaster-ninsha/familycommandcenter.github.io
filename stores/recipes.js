@@ -19,7 +19,14 @@ const useRecipeStore = Pinia.defineStore('recipes', {
     // LLM health status
     llmHealth: null,
     // Track local-only items (created offline, not yet synced)
-    localRecipeIds: new Set()
+    localRecipeIds: new Set(),
+    // Image capture state
+    // **Feature: recipe-image-capture**
+    // **Validates: Requirements 5.1, 5.2, 5.3, 5.4**
+    imageUploading: false,
+    imageProcessing: false,
+    imageProcessingStatus: '',
+    imageError: null
   }),
   
   getters: {
@@ -63,7 +70,11 @@ const useRecipeStore = Pinia.defineStore('recipes', {
         }
       });
       return Array.from(tagSet).sort();
-    }
+    },
+    
+    // Check if image is being processed
+    // **Feature: recipe-image-capture**
+    isImageProcessing: (state) => state.imageProcessing || state.imageUploading
   },
   
   actions: {
@@ -106,6 +117,7 @@ const useRecipeStore = Pinia.defineStore('recipes', {
 
     /**
      * Scrape a recipe from URL
+     * **Validates: Requirements 6.1, 6.2**
      * @param {string} url - Recipe URL to scrape
      * @returns {Object} Scraped recipe data (not saved)
      */
@@ -120,12 +132,58 @@ const useRecipeStore = Pinia.defineStore('recipes', {
         console.log('✅ Recipe scraped:', this.scrapedRecipe?.title);
         return { success: true, recipe: this.scrapedRecipe };
       } catch (error) {
-        this.scrapeError = error.message;
+        // Map technical errors to user-friendly messages
+        const userFriendlyError = this.mapScrapeError(error.message);
+        this.scrapeError = userFriendlyError;
         console.error('Failed to scrape recipe:', error);
-        return { success: false, error: error.message };
+        return { success: false, error: userFriendlyError };
       } finally {
         this.scraping = false;
       }
+    },
+    
+    /**
+     * Map scrape errors to user-friendly messages
+     * **Validates: Requirements 6.1, 6.2**
+     * @param {string} error - Technical error message
+     * @returns {string} User-friendly error message
+     */
+    mapScrapeError(error) {
+      if (!error) return 'Could not scrape recipe. Please try again.';
+      
+      const errorLower = error.toLowerCase();
+      
+      // Invalid URL
+      if (errorLower.includes('invalid url')) {
+        return 'Invalid URL. Please enter a valid recipe URL.';
+      }
+      
+      // Timeout
+      if (errorLower.includes('timeout') || errorLower.includes('timed out')) {
+        return 'Request timed out. The website may be slow or unavailable.';
+      }
+      
+      // Could not fetch
+      if (errorLower.includes('could not fetch')) {
+        return 'Could not access the website. Please check the URL and try again.';
+      }
+      
+      // Service unavailable
+      if (errorLower.includes('unavailable') || errorLower.includes('503')) {
+        return 'Recipe extraction service temporarily unavailable. Please try again later.';
+      }
+      
+      // Could not extract
+      if (errorLower.includes('could not extract')) {
+        return 'Could not extract recipe from this page. The website format may not be supported.';
+      }
+      
+      // Network errors
+      if (errorLower.includes('network') || errorLower.includes('fetch')) {
+        return 'Network error. Please check your connection and try again.';
+      }
+      
+      return error;
     },
     
     /**
@@ -400,6 +458,177 @@ const useRecipeStore = Pinia.defineStore('recipes', {
       }
     },
     
+    // === Image Capture Actions ===
+    // **Feature: recipe-image-capture**
+    // **Validates: Requirements 5.1, 5.2, 5.3, 5.4, 7.1, 7.4**
+    
+    /**
+     * Get presigned URL for image upload
+     * **Validates: Requirements 6.1, 6.2, 7.1**
+     * @param {string} fileExtension - File extension (jpg, png, heic, webp)
+     * @returns {Object} Result with uploadUrl and s3Key
+     */
+    async getImageUploadUrl(fileExtension) {
+      this.imageError = null;
+      
+      try {
+        const data = await apiService.post(`${CONFIG.API.ENDPOINTS.RECIPES}/image/upload-url`, {
+          fileExtension
+        });
+        console.log('✅ Image upload URL generated');
+        return { success: true, uploadUrl: data.uploadUrl, s3Key: data.s3Key, expiresAt: data.expiresAt };
+      } catch (error) {
+        // Map technical errors to user-friendly messages
+        const userFriendlyError = this.mapUploadUrlError(error.message);
+        this.imageError = userFriendlyError;
+        console.error('Failed to get image upload URL:', error);
+        return { success: false, error: userFriendlyError };
+      }
+    },
+    
+    /**
+     * Map upload URL errors to user-friendly messages
+     * **Validates: Requirements 6.1, 6.2**
+     * @param {string} error - Technical error message
+     * @returns {string} User-friendly error message
+     */
+    mapUploadUrlError(error) {
+      if (!error) return 'Could not prepare image upload. Please try again.';
+      
+      const errorLower = error.toLowerCase();
+      
+      // File validation errors - already user-friendly
+      if (errorLower.includes('unsupported image format')) {
+        return 'Unsupported image format. Please use JPG, PNG, HEIC, or WebP.';
+      }
+      
+      if (errorLower.includes('too large') || errorLower.includes('maximum size')) {
+        return 'Image too large. Maximum size is 10MB.';
+      }
+      
+      // Network errors
+      if (errorLower.includes('network') || errorLower.includes('fetch')) {
+        return 'Network error. Please check your connection and try again.';
+      }
+      
+      // Service errors
+      if (errorLower.includes('unavailable') || errorLower.includes('503')) {
+        return 'Upload service temporarily unavailable. Please try again later.';
+      }
+      
+      return error;
+    },
+    
+    /**
+     * Process uploaded recipe image
+     * **Validates: Requirements 5.2, 5.3, 5.4, 6.1, 6.2, 7.4**
+     * @param {string} s3Key - S3 key of the uploaded image
+     * @returns {Object} Result with extracted recipe
+     */
+    async processRecipeImage(s3Key) {
+      this.imageProcessing = true;
+      this.imageProcessingStatus = 'Extracting recipe from image...';
+      this.imageError = null;
+      this.scrapedRecipe = null;
+      
+      try {
+        const data = await apiService.post(`${CONFIG.API.ENDPOINTS.RECIPES}/image/process`, {
+          s3Key
+        });
+        
+        this.imageProcessingStatus = 'Formatting recipe...';
+        this.scrapedRecipe = data.recipe;
+        console.log('✅ Recipe extracted from image:', this.scrapedRecipe?.title);
+        return { success: true, recipe: this.scrapedRecipe };
+      } catch (error) {
+        // Map technical errors to user-friendly messages
+        const userFriendlyError = this.mapImageProcessingError(error.message);
+        this.imageError = userFriendlyError;
+        console.error('Failed to process recipe image:', error);
+        return { success: false, error: userFriendlyError };
+      } finally {
+        this.imageProcessing = false;
+        this.imageProcessingStatus = '';
+      }
+    },
+    
+    /**
+     * Map image processing errors to user-friendly messages
+     * **Validates: Requirements 6.1, 6.2**
+     * @param {string} error - Technical error message
+     * @returns {string} User-friendly error message
+     */
+    mapImageProcessingError(error) {
+      if (!error) return 'An unexpected error occurred while processing the image.';
+      
+      const errorLower = error.toLowerCase();
+      
+      // Timeout errors
+      if (errorLower.includes('timeout') || errorLower.includes('timed out')) {
+        return 'Image processing timed out. Please try again with a clearer image.';
+      }
+      
+      // Service unavailable
+      if (errorLower.includes('unavailable') || errorLower.includes('503')) {
+        return 'Image processing service temporarily unavailable. Please try again in a few moments.';
+      }
+      
+      // Vision/extraction errors
+      if (errorLower.includes('could not read recipe') || errorLower.includes('could not extract')) {
+        return 'Could not read recipe from image. Please ensure the recipe text is clearly visible and try again.';
+      }
+      
+      // Image not found
+      if (errorLower.includes('not found') || errorLower.includes('404')) {
+        return 'Image not found. Please try uploading again.';
+      }
+      
+      // Access denied
+      if (errorLower.includes('access denied') || errorLower.includes('403')) {
+        return 'Access denied. Please try uploading the image again.';
+      }
+      
+      // Network errors
+      if (errorLower.includes('network') || errorLower.includes('fetch')) {
+        return 'Network error. Please check your connection and try again.';
+      }
+      
+      return error;
+    },
+    
+    /**
+     * Get presigned URL for viewing a recipe source image
+     * **Validates: Requirements 8.3**
+     * @param {string} s3Key - S3 key of the image
+     * @returns {Object} Result with viewUrl
+     */
+    async getImageViewUrl(s3Key) {
+      try {
+        const data = await apiService.get(`${CONFIG.API.ENDPOINTS.RECIPES}/image/${encodeURIComponent(s3Key)}`);
+        console.log('✅ Image view URL generated');
+        return { success: true, viewUrl: data.viewUrl };
+      } catch (error) {
+        console.error('Failed to get image view URL:', error);
+        return { success: false, error: error.message };
+      }
+    },
+    
+    /**
+     * Set image uploading state
+     * **Validates: Requirements 5.1**
+     * @param {boolean} uploading - Whether upload is in progress
+     */
+    setImageUploading(uploading) {
+      this.imageUploading = uploading;
+    },
+    
+    /**
+     * Clear image-related errors
+     */
+    clearImageError() {
+      this.imageError = null;
+    },
+    
     // === Utility Actions ===
     
     /**
@@ -408,6 +637,7 @@ const useRecipeStore = Pinia.defineStore('recipes', {
     clearErrors() {
       this.error = null;
       this.scrapeError = null;
+      this.imageError = null;
     },
     
     /**
@@ -424,6 +654,11 @@ const useRecipeStore = Pinia.defineStore('recipes', {
       this.scrapeError = null;
       this.llmHealth = null;
       this.localRecipeIds.clear();
+      // Reset image capture state
+      this.imageUploading = false;
+      this.imageProcessing = false;
+      this.imageProcessingStatus = '';
+      this.imageError = null;
     }
   }
 });

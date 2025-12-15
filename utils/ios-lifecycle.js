@@ -356,9 +356,12 @@ class MobileLifecycleManager {
       if (computedBg === 'rgba(0, 0, 0, 0)' || computedBg === 'transparent' || computedBg === 'rgb(0, 0, 0)') {
         if (varBg) {
           body.style.backgroundColor = varBg;
+        } else if (typeof ThemeManager !== 'undefined' && ThemeManager.FALLBACK_COLORS) {
+          // Use ThemeManager's standardized fallback colors
+          body.style.backgroundColor = ThemeManager.FALLBACK_COLORS['--color-bg-primary'];
         } else {
-          // Ultimate fallback - apply a light background
-          body.style.backgroundColor = '#f5f5f5';
+          // Ultimate fallback - use Tailwind slate-50
+          body.style.backgroundColor = '#f8fafc';
         }
         this._log('Fixed black/transparent background');
       }

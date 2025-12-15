@@ -187,6 +187,43 @@ class ApiService {
       _queuedAt: Date.now()
     };
   }
+
+  // === Recipe Image Methods ===
+  // **Feature: recipe-image-capture**
+  // **Validates: Requirements 7.1, 7.4**
+  
+  /**
+   * Get presigned URL for recipe image upload
+   * **Validates: Requirements 7.1**
+   * @param {string} extension - File extension (jpg, png, heic, webp)
+   * @returns {Promise<Object>} Upload URL and S3 key
+   */
+  async getRecipeImageUploadUrl(extension) {
+    return this.post(`${CONFIG.API.ENDPOINTS.RECIPES}/image/upload-url`, {
+      fileExtension: extension
+    });
+  }
+  
+  /**
+   * Process uploaded recipe image
+   * **Validates: Requirements 7.4**
+   * @param {string} s3Key - S3 key of the uploaded image
+   * @returns {Promise<Object>} Extracted recipe data
+   */
+  async processRecipeImage(s3Key) {
+    return this.post(`${CONFIG.API.ENDPOINTS.RECIPES}/image/process`, {
+      s3Key
+    });
+  }
+  
+  /**
+   * Get presigned URL for viewing a recipe source image
+   * @param {string} s3Key - S3 key of the image
+   * @returns {Promise<Object>} View URL
+   */
+  async getRecipeImageViewUrl(s3Key) {
+    return this.get(`${CONFIG.API.ENDPOINTS.RECIPES}/image/${encodeURIComponent(s3Key)}`);
+  }
 }
 
 // Export singleton

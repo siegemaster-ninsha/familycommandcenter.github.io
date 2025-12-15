@@ -2655,6 +2655,9 @@ function checkAndRegisterComponents() {
   console.log('📦 Registering recipe-page');
   app.component('recipe-page', window.RecipePageComponent);
 
+  console.log('📦 Registering image-capture-modal');
+  app.component('image-capture-modal', window.ImageCaptureModal);
+
   console.log('📦 Registering nav-menu');
   app.component('nav-menu', window.NavMenuComponent);
 

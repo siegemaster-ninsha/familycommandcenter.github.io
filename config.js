@@ -67,7 +67,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.19 - Turbo Quail (Dec 14, 2025)',
+    VERSION: '1.0.20 - Heroic Walrus (Dec 14, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
@@ -604,27 +604,161 @@ const CONFIG = {
 // ===========================================
 
 const ThemeManager = {
-  // color manipulation helper functions
+  // ===========================================
+  // STANDARDIZED SHADE GENERATION SYSTEM
+  // ===========================================
+  // 
+  // This system generates consistent color shades following Tailwind's
+  // 50-900 scale using HSL color space for perceptually uniform results.
+  //
+  // Shade Scale Reference:
+  //   50  - Lightest (backgrounds, subtle highlights)
+  //   100 - Very light (hover backgrounds)
+  //   200 - Light (borders, dividers)
+  //   300 - Light-medium (disabled states)
+  //   400 - Medium-light (placeholder text)
+  //   500 - BASE COLOR (primary usage)
+  //   600 - Medium-dark (hover states on buttons)
+  //   700 - Dark (active states, emphasis)
+  //   800 - Very dark (text on light backgrounds)
+  //   900 - Darkest (headings, high contrast)
+  //
+  // Usage in CSS variables:
+  //   --color-primary-50 through --color-primary-900
+  //   --color-success-50 through --color-success-700
+  //   etc.
+  // ===========================================
+
+  // Shade multipliers for consistent generation (relative to 500 base)
+  // These values produce results similar to Tailwind's color palette
+  SHADE_CONFIG: {
+    50:  { lightness: 0.95 },  // Very light background
+    100: { lightness: 0.90 },  // Light background
+    200: { lightness: 0.80 },  // Lighter
+    300: { lightness: 0.65 },  // Light-medium
+    400: { lightness: 0.50 },  // Medium-light
+    500: { lightness: 0.00 },  // Base (no change)
+    600: { lightness: -0.10 }, // Slightly darker
+    700: { lightness: -0.25 }, // Darker
+    800: { lightness: -0.40 }, // Very dark
+    900: { lightness: -0.55 }, // Darkest
+  },
+
+  // Convert hex to HSL
+  hexToHsl(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return null;
+    
+    let r = parseInt(result[1], 16) / 255;
+    let g = parseInt(result[2], 16) / 255;
+    let b = parseInt(result[3], 16) / 255;
+    
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+    
+    if (max === min) {
+      h = s = 0;
+    } else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+        case g: h = ((b - r) / d + 2) / 6; break;
+        case b: h = ((r - g) / d + 4) / 6; break;
+      }
+    }
+    
+    return { h: h * 360, s: s * 100, l: l * 100 };
+  },
+
+  // Convert HSL to hex
+  hslToHex(h, s, l) {
+    h = h / 360;
+    s = s / 100;
+    l = l / 100;
+    
+    let r, g, b;
+    if (s === 0) {
+      r = g = b = l;
+    } else {
+      const hue2rgb = (p, q, t) => {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1/6) return p + (q - p) * 6 * t;
+        if (t < 1/2) return q;
+        if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+        return p;
+      };
+      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      const p = 2 * l - q;
+      r = hue2rgb(p, q, h + 1/3);
+      g = hue2rgb(p, q, h);
+      b = hue2rgb(p, q, h - 1/3);
+    }
+    
+    const toHex = x => {
+      const hex = Math.round(x * 255).toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+    };
+    
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  },
+
+  // Generate a specific shade from a base color
+  generateShade(baseColor, shade) {
+    const hsl = this.hexToHsl(baseColor);
+    if (!hsl) return baseColor;
+    
+    const config = this.SHADE_CONFIG[shade];
+    if (!config) return baseColor;
+    
+    // Adjust lightness based on shade config
+    let newLightness;
+    if (config.lightness >= 0) {
+      // Lighter shades: interpolate toward white
+      newLightness = hsl.l + (100 - hsl.l) * config.lightness;
+    } else {
+      // Darker shades: interpolate toward black
+      newLightness = hsl.l * (1 + config.lightness);
+    }
+    
+    // Clamp lightness to valid range
+    newLightness = Math.max(0, Math.min(100, newLightness));
+    
+    // Slightly reduce saturation for very light shades to avoid garish colors
+    let newSaturation = hsl.s;
+    if (shade <= 100) {
+      newSaturation = hsl.s * 0.8;
+    }
+    
+    return this.hslToHex(hsl.h, newSaturation, newLightness);
+  },
+
+  // Generate all shades for a color and return as object
+  generateAllShades(baseColor) {
+    const shades = {};
+    Object.keys(this.SHADE_CONFIG).forEach(shade => {
+      shades[shade] = this.generateShade(baseColor, parseInt(shade));
+    });
+    return shades;
+  },
+
+  // Legacy methods (kept for backward compatibility)
   darkenColor(color, percent) {
-    const num = parseInt(color.replace("#", ""), 16);
-    const amt = Math.round(2.55 * percent);
-    const R = (num >> 16) - amt;
-    const G = (num >> 8 & 0x00FF) - amt;
-    const B = (num & 0x0000FF) - amt;
-    return "#" + (0x1000000 + (R > 255 ? 255 : R < 0 ? 0 : R) * 0x10000 +
-      (G > 255 ? 255 : G < 0 ? 0 : G) * 0x100 +
-      (B > 255 ? 255 : B < 0 ? 0 : B)).toString(16).slice(1);
+    // Map old percentage to approximate shade
+    // 10% -> 600, 20% -> 700, 30% -> 800, 40% -> 900
+    const shadeMap = { 10: 600, 15: 600, 20: 700, 25: 700, 30: 800, 40: 900 };
+    const shade = shadeMap[percent] || 600;
+    return this.generateShade(color, shade);
   },
 
   lightenColor(color, percent) {
-    const num = parseInt(color.replace("#", ""), 16);
-    const amt = Math.round(2.55 * percent);
-    const R = (num >> 16) + amt;
-    const G = (num >> 8 & 0x00FF) + amt;
-    const B = (num & 0x0000FF) + amt;
-    return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
-      (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
-      (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+    // Map old percentage to approximate shade
+    // 10% -> 400, 20% -> 300, 30% -> 200, 40% -> 100, 45% -> 50
+    const shadeMap = { 10: 400, 20: 300, 30: 200, 40: 100, 42: 100, 45: 50, 48: 50, 50: 50 };
+    const shade = shadeMap[percent] || 100;
+    return this.generateShade(color, shade);
   },
 
   hexToRgb(hex) {
@@ -634,9 +768,14 @@ const ThemeManager = {
       null;
   },
 
-  // detect if theme is dark based on text color brightness
+  // Detect if theme is dark based on text color luminance
   isDarkTheme(theme) {
-    // Dark themes have light text colors
+    // Calculate luminance of text color - if it's light, theme is dark
+    const hsl = this.hexToHsl(theme.colors.textPrimary);
+    if (hsl && hsl.l > 50) {
+      return true;
+    }
+    // Fallback to known dark themes list
     const darkThemes = ['darknight', 'cyberpunk', 'obsidian', 'deepforest', 'darkcrimson', 'strikingElegance', 'nocturne', 'carbon', 'tiktokPartners', 'distinction', 'historyBlockchain', 'studioSimpatico', 'boldByNature'];
     return darkThemes.includes(theme.id);
   },
@@ -652,7 +791,6 @@ const ThemeManager = {
     const theme = CONFIG.THEMES[themeId];
     if (!theme) {
       console.warn(`Theme '${themeId}' not found, falling back to default`);
-      // Update localStorage with valid theme to prevent future errors
       try {
         localStorage.setItem('selectedTheme', 'default');
       } catch (e) {
@@ -665,115 +803,173 @@ const ThemeManager = {
     const isDark = this.isDarkTheme(theme);
     
     try {
-      // Primary colors
+      // ===========================================
+      // PRIMARY COLOR SCALE (50-900)
+      // ===========================================
+      const primaryShades = this.generateAllShades(theme.colors.primary);
+      root.style.setProperty('--color-primary-50', primaryShades[50]);
+      root.style.setProperty('--color-primary-100', primaryShades[100]);
+      root.style.setProperty('--color-primary-200', primaryShades[200]);
+      root.style.setProperty('--color-primary-300', primaryShades[300]);
+      root.style.setProperty('--color-primary-400', primaryShades[400]);
       root.style.setProperty('--color-primary-500', theme.colors.primary);
-      root.style.setProperty('--color-primary-600', this.darkenColor(theme.colors.primary, 10));
-      root.style.setProperty('--color-primary-100', this.lightenColor(theme.colors.primary, 40));
-      root.style.setProperty('--color-primary-50', this.lightenColor(theme.colors.primary, 45));
+      root.style.setProperty('--color-primary-600', primaryShades[600]);
+      root.style.setProperty('--color-primary-700', primaryShades[700]);
+      root.style.setProperty('--color-primary-800', primaryShades[800]);
+      root.style.setProperty('--color-primary-900', primaryShades[900]);
 
-      // Secondary colors
+      // ===========================================
+      // SECONDARY COLOR SCALE (50-900)
+      // ===========================================
+      const secondaryShades = this.generateAllShades(theme.colors.secondary);
+      root.style.setProperty('--color-secondary-50', secondaryShades[50]);
+      root.style.setProperty('--color-secondary-100', secondaryShades[100]);
+      root.style.setProperty('--color-secondary-200', secondaryShades[200]);
+      root.style.setProperty('--color-secondary-300', secondaryShades[300]);
+      root.style.setProperty('--color-secondary-400', secondaryShades[400]);
       root.style.setProperty('--color-secondary-500', theme.colors.secondary);
-      root.style.setProperty('--color-secondary-600', this.darkenColor(theme.colors.secondary, 10));
-      root.style.setProperty('--color-secondary-50', this.lightenColor(theme.colors.secondary, 45));
+      root.style.setProperty('--color-secondary-600', secondaryShades[600]);
+      root.style.setProperty('--color-secondary-700', secondaryShades[700]);
+      root.style.setProperty('--color-secondary-800', secondaryShades[800]);
+      root.style.setProperty('--color-secondary-900', secondaryShades[900]);
 
-      // Success colors
+      // ===========================================
+      // SUCCESS COLOR SCALE (50-700)
+      // ===========================================
+      const successShades = this.generateAllShades(theme.colors.success);
+      root.style.setProperty('--color-success-50', successShades[50]);
+      root.style.setProperty('--color-success-100', successShades[100]);
+      root.style.setProperty('--color-success-200', successShades[200]);
       root.style.setProperty('--color-success-500', theme.colors.success);
-      root.style.setProperty('--color-success-600', this.darkenColor(theme.colors.success, 10));
+      root.style.setProperty('--color-success-600', successShades[600]);
+      root.style.setProperty('--color-success-700', successShades[700]);
 
-      // Warning colors (prefer explicit theme warning; fallback to secondary)
+      // ===========================================
+      // WARNING COLOR SCALE (50-700)
+      // ===========================================
       const warnBase = theme.colors.warning || theme.colors.secondary;
+      const warningShades = this.generateAllShades(warnBase);
+      root.style.setProperty('--color-warning-50', warningShades[50]);
+      root.style.setProperty('--color-warning-100', warningShades[100]);
+      root.style.setProperty('--color-warning-200', warningShades[200]);
       root.style.setProperty('--color-warning-500', warnBase);
-      root.style.setProperty('--color-warning-600', this.darkenColor(warnBase, 10));
+      root.style.setProperty('--color-warning-600', warningShades[600]);
+      root.style.setProperty('--color-warning-700', warningShades[700]);
 
-      // Error colors (prefer explicit theme error; fallback to darkened primary)
-      const errorBase = theme.colors.error || this.darkenColor(theme.colors.primary, 15);
+      // ===========================================
+      // ERROR COLOR SCALE (50-700)
+      // ===========================================
+      const errorBase = theme.colors.error || this.generateShade(theme.colors.primary, 700);
+      const errorShades = this.generateAllShades(errorBase);
+      root.style.setProperty('--color-error-50', errorShades[50]);
+      root.style.setProperty('--color-error-100', errorShades[100]);
+      root.style.setProperty('--color-error-200', errorShades[200]);
       root.style.setProperty('--color-error-500', errorBase);
-      root.style.setProperty('--color-error-600', this.darkenColor(errorBase, 10));
+      root.style.setProperty('--color-error-600', errorShades[600]);
+      root.style.setProperty('--color-error-700', errorShades[700]);
 
-      // Text colors
+      // ===========================================
+      // TEXT COLORS
+      // ===========================================
       root.style.setProperty('--color-text-primary', theme.colors.textPrimary);
       root.style.setProperty('--color-text-secondary', theme.colors.textSecondary);
+      // Muted text: lighter version of secondary text
+      const textSecondaryHsl = this.hexToHsl(theme.colors.textSecondary);
+      if (textSecondaryHsl) {
+        const mutedLightness = isDark ? textSecondaryHsl.l - 15 : textSecondaryHsl.l + 10;
+        root.style.setProperty('--color-text-muted', this.hslToHex(textSecondaryHsl.h, textSecondaryHsl.s * 0.8, mutedLightness));
+      }
 
-      // Background colors - handle dark themes differently
+      // ===========================================
+      // BACKGROUND & SURFACE COLORS
+      // ===========================================
       let bgPrimary, bgSecondary, cardBg, borderColor;
       
       if (isDark) {
-        // For dark themes: use much darker colors for backgrounds to contrast with light text
-        bgPrimary = this.darkenColor(theme.colors.primary, 60);
-        bgSecondary = this.darkenColor(theme.colors.secondary, 60);
-        cardBg = this.darkenColor(theme.colors.primary, 50);
-        borderColor = this.darkenColor(theme.colors.primary, 40);
+        // Dark themes: derive backgrounds from primary, going darker
+        bgPrimary = primaryShades[900];
+        bgSecondary = secondaryShades[900];
+        cardBg = primaryShades[800];
+        borderColor = primaryShades[700];
       } else {
-        // For light themes: use lightened colors for backgrounds
-        bgPrimary = this.lightenColor(theme.colors.primary, 48);
-        bgSecondary = this.lightenColor(theme.colors.secondary, 48);
-        cardBg = this.lightenColor(theme.colors.primary, 50);
-        borderColor = this.lightenColor(theme.colors.primary, 42);
+        // Light themes: use lightest shades for backgrounds
+        bgPrimary = primaryShades[50];
+        bgSecondary = secondaryShades[50];
+        cardBg = '#ffffff'; // Cards are always white in light mode
+        borderColor = primaryShades[200];
       }
 
       root.style.setProperty('--color-bg-primary', bgPrimary);
       root.style.setProperty('--color-bg-secondary', bgSecondary);
       root.style.setProperty('--color-bg-card', cardBg);
+      root.style.setProperty('--color-bg-card-hover', isDark ? primaryShades[700] : primaryShades[100]);
       root.style.setProperty('--color-border-card', borderColor);
 
-      // Update neutral colors for dark themes
+      // ===========================================
+      // NEUTRAL COLOR SCALE
+      // ===========================================
       if (isDark) {
-        root.style.setProperty('--color-neutral-50', this.darkenColor(theme.colors.primary, 70));
-        root.style.setProperty('--color-neutral-100', this.darkenColor(theme.colors.primary, 65));
-        root.style.setProperty('--color-neutral-200', this.darkenColor(theme.colors.primary, 55));
-        root.style.setProperty('--color-neutral-300', this.darkenColor(theme.colors.primary, 45));
-        root.style.setProperty('--color-neutral-400', this.darkenColor(theme.colors.primary, 35));
-        root.style.setProperty('--color-neutral-500', this.darkenColor(theme.colors.primary, 25));
-        root.style.setProperty('--color-neutral-600', this.darkenColor(theme.colors.primary, 15));
-        root.style.setProperty('--color-neutral-700', this.darkenColor(theme.colors.primary, 5));
-        root.style.setProperty('--color-neutral-800', theme.colors.primary);
-        root.style.setProperty('--color-neutral-900', this.lightenColor(theme.colors.primary, 10));
+        // Dark themes: neutrals derived from primary
+        root.style.setProperty('--color-neutral-50', primaryShades[900]);
+        root.style.setProperty('--color-neutral-100', primaryShades[800]);
+        root.style.setProperty('--color-neutral-200', primaryShades[700]);
+        root.style.setProperty('--color-neutral-300', primaryShades[600]);
+        root.style.setProperty('--color-neutral-400', primaryShades[500]);
+        root.style.setProperty('--color-neutral-500', primaryShades[400]);
+        root.style.setProperty('--color-neutral-600', primaryShades[300]);
+        root.style.setProperty('--color-neutral-700', primaryShades[200]);
+        root.style.setProperty('--color-neutral-800', primaryShades[100]);
+        root.style.setProperty('--color-neutral-900', primaryShades[50]);
       } else {
-        // Reset to default neutral colors for light themes
+        // Light themes: standard Tailwind slate neutrals
         root.style.setProperty('--color-neutral-50', '#F8FAFC');
         root.style.setProperty('--color-neutral-100', '#f1f5f9');
         root.style.setProperty('--color-neutral-200', '#e2e8f0');
         root.style.setProperty('--color-neutral-300', '#cbd5e1');
         root.style.setProperty('--color-neutral-400', '#94a3b8');
-        root.style.setProperty('--color-neutral-500', '#718096');
+        root.style.setProperty('--color-neutral-500', '#64748b');
         root.style.setProperty('--color-neutral-600', '#475569');
         root.style.setProperty('--color-neutral-700', '#334155');
-        root.style.setProperty('--color-neutral-800', '#2D3748');
-        root.style.setProperty('--color-neutral-900', '#1a202c');
+        root.style.setProperty('--color-neutral-800', '#1e293b');
+        root.style.setProperty('--color-neutral-900', '#0f172a');
       }
 
-      // Update component colors to match theme
+      // ===========================================
+      // COMPONENT-SPECIFIC COLORS (semantic aliases)
+      // ===========================================
       root.style.setProperty('--color-quicklist-border', borderColor);
       root.style.setProperty('--color-quicklist-bg', cardBg);
+      root.style.setProperty('--color-quicklist-text', theme.colors.textPrimary);
       root.style.setProperty('--color-family-card-bg', cardBg);
       root.style.setProperty('--color-family-card-border', borderColor);
+      root.style.setProperty('--color-family-card-hover', theme.colors.primary);
       root.style.setProperty('--color-unassigned-bg', cardBg);
       root.style.setProperty('--color-unassigned-border', borderColor);
+      root.style.setProperty('--color-earnings-border', successShades[200]);
+      root.style.setProperty('--color-earnings-text', successShades[600]);
 
-      // Update gradients to use the new theme colors
-      root.style.setProperty('--gradient-primary', `linear-gradient(135deg, ${theme.colors.primary}, ${this.darkenColor(theme.colors.primary, 10)})`);
-      root.style.setProperty('--gradient-secondary', `linear-gradient(135deg, ${theme.colors.secondary}, ${this.darkenColor(theme.colors.secondary, 10)})`);
-      root.style.setProperty('--gradient-success', `linear-gradient(135deg, ${theme.colors.success}, ${this.darkenColor(theme.colors.success, 10)})`);
-      root.style.setProperty('--gradient-warning', `linear-gradient(135deg, ${warnBase}, ${this.darkenColor(warnBase, 10)})`);
-      root.style.setProperty('--gradient-error', `linear-gradient(135deg, ${errorBase}, ${this.darkenColor(errorBase, 10)})`);
+      // ===========================================
+      // GRADIENTS (using standardized shades)
+      // ===========================================
+      root.style.setProperty('--gradient-primary', `linear-gradient(135deg, ${theme.colors.primary}, ${primaryShades[600]})`);
+      root.style.setProperty('--gradient-secondary', `linear-gradient(135deg, ${theme.colors.secondary}, ${secondaryShades[600]})`);
+      root.style.setProperty('--gradient-success', `linear-gradient(135deg, ${theme.colors.success}, ${successShades[600]})`);
+      root.style.setProperty('--gradient-warning', `linear-gradient(135deg, ${warnBase}, ${warningShades[600]})`);
+      root.style.setProperty('--gradient-error', `linear-gradient(135deg, ${errorBase}, ${errorShades[600]})`);
+      root.style.setProperty('--gradient-sunset', `linear-gradient(135deg, ${warningShades[500]}, ${errorShades[500]})`);
+      root.style.setProperty('--gradient-ocean', `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary})`);
 
-      // RGB versions for Tailwind opacity support
-      root.style.setProperty('--color-primary-50', this.hexToRgb(this.lightenColor(theme.colors.primary, 45)));
-      root.style.setProperty('--color-primary-100', this.hexToRgb(this.lightenColor(theme.colors.primary, 40)));
-      root.style.setProperty('--color-primary-200', this.hexToRgb(this.lightenColor(theme.colors.primary, 30)));
-      root.style.setProperty('--color-primary-300', this.hexToRgb(this.lightenColor(theme.colors.primary, 20)));
-      root.style.setProperty('--color-primary-400', this.hexToRgb(this.lightenColor(theme.colors.primary, 10)));
-      root.style.setProperty('--color-primary-700', this.hexToRgb(this.darkenColor(theme.colors.primary, 20)));
-      root.style.setProperty('--color-primary-800', this.hexToRgb(this.darkenColor(theme.colors.primary, 30)));
-      root.style.setProperty('--color-primary-900', this.hexToRgb(this.darkenColor(theme.colors.primary, 40)));
+      // ===========================================
+      // FOCUS RING
+      // ===========================================
+      root.style.setProperty('--color-focus-ring', theme.colors.primary);
 
-      console.log('🎨 Theme applied:', themeId, theme);
+      console.log('🎨 Theme applied:', themeId, '(dark:', isDark, ')');
     
       // Cache critical CSS variables for iOS resume recovery
       this._cacheCSSVariables();
     } catch (e) {
       console.error('Failed to apply theme CSS variables:', e);
-      // Apply fallback colors on error
       this._applyFallbackColors();
     }
   },

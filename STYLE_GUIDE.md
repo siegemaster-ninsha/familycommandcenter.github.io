@@ -7,62 +7,113 @@ This style guide defines the unified design system for the Family Hub applicatio
 
 ## Color System Architecture
 
-### 1. Base Theme Variables (Default Theme)
-These are the core colors defined in CSS custom properties:
+### Standardized Shade Generation (HSL-Based)
 
-#### Primary Colors
-- **Primary 500** (`--color-primary-500`): `#4A90E2` - Main brand color
-- **Primary 600** (`--color-primary-600`): `#3a7bc8` - Hover states  
-- **Primary 100** (`--color-primary-100`): `#e0efff` - Light backgrounds
-- **Primary 50** (`--color-primary-50`): `#f0f7ff` - Lightest backgrounds
+All color shades are generated using a standardized HSL-based algorithm that produces perceptually uniform results similar to Tailwind CSS. Each theme only needs to define 7 base colors, and the system automatically generates the full 50-900 shade scale.
 
-#### Secondary Colors
-- **Secondary 500** (`--color-secondary-500`): `#7B68EE` - Accent color
-- **Secondary 600** (`--color-secondary-600`): `#6d5ce6` - Hover states
+#### Shade Scale Reference
+| Shade | Purpose | Example Usage |
+|-------|---------|---------------|
+| 50 | Lightest | Subtle backgrounds, highlights |
+| 100 | Very light | Hover backgrounds |
+| 200 | Light | Borders, dividers |
+| 300 | Light-medium | Disabled states |
+| 400 | Medium-light | Placeholder text |
+| **500** | **BASE COLOR** | Primary usage, buttons |
+| 600 | Medium-dark | Hover states on buttons |
+| 700 | Dark | Active states, emphasis |
+| 800 | Very dark | Text on light backgrounds |
+| 900 | Darkest | Headings, high contrast |
 
-#### Neutral Colors
-- **Neutral 50** (`--color-neutral-50`): `#F8FAFC` - Light background
-- **Neutral 200** (`--color-neutral-200`): `#e2e8f0` - Border color
-- **Neutral 600** (`--color-neutral-600`): `#475569` - Secondary text
-- **Neutral 800** (`--color-neutral-800`): `#2D3748` - Primary text
+### Theme Definition Structure
 
-#### Status Colors
-- **Success 500** (`--color-success-500`): `#50C878` - Green for positive actions
-- **Warning 500** (`--color-warning-500`): `#FF8C42` - Orange for caution
-- **Error 500** (`--color-error-500`): `#ef4444` - Red for destructive actions
+Each theme defines only 7 base colors:
+```javascript
+{
+  id: 'themeName',
+  name: 'Display Name',
+  description: 'Theme description',
+  colors: {
+    primary: '#4A90E2',      // Main brand color (500)
+    secondary: '#7B68EE',    // Accent color (500)
+    success: '#22C55E',      // Positive actions (500)
+    warning: '#F59E0B',      // Caution states (500)
+    error: '#EF4444',        // Destructive actions (500)
+    textPrimary: '#2D3748',  // Main text color
+    textSecondary: '#718096' // Secondary text color
+  }
+}
+```
 
-### 2. Semantic Color Mappings
-Components inherit from base theme variables:
+### Generated CSS Variables
+
+From each base color, the system generates a full shade scale:
+
+#### Primary Colors (Full Scale)
+```css
+--color-primary-50   /* Lightest */
+--color-primary-100
+--color-primary-200
+--color-primary-300
+--color-primary-400
+--color-primary-500  /* Base color */
+--color-primary-600
+--color-primary-700
+--color-primary-800
+--color-primary-900  /* Darkest */
+```
+
+#### Secondary Colors (Full Scale)
+```css
+--color-secondary-50 through --color-secondary-900
+```
+
+#### Status Colors (Partial Scale)
+```css
+--color-success-50, 100, 200, 500, 600, 700
+--color-warning-50, 100, 200, 500, 600, 700
+--color-error-50, 100, 200, 500, 600, 700
+```
+
+### Semantic Color Mappings
+
+Components use semantic aliases that automatically adapt to themes:
 
 ```css
 /* Text colors */
---color-text-primary: var(--color-neutral-800);
---color-text-secondary: var(--color-neutral-600);
+--color-text-primary    /* Main body text */
+--color-text-secondary  /* Supporting text */
+--color-text-muted      /* De-emphasized text */
 
 /* Background colors */
---color-bg-card: #ffffff;
---color-border-card: var(--color-neutral-200);
+--color-bg-primary      /* Page background */
+--color-bg-secondary    /* Section backgrounds */
+--color-bg-card         /* Card surfaces */
+--color-bg-card-hover   /* Card hover state */
+--color-border-card     /* Card borders */
 
-/* Component-specific colors */
---color-family-card-bg: var(--color-bg-card);
---color-quicklist-bg: var(--color-bg-card);
+/* Component-specific */
+--color-quicklist-bg, --color-quicklist-border
+--color-family-card-bg, --color-family-card-border
+--color-earnings-border, --color-earnings-text
 ```
 
-### 3. Theme Switching
-Themes are defined in `config.js` and applied via `ThemeManager`:
+### Theme Switching
 
 ```javascript
-// Available themes
-CONFIG.THEMES = {
-  default: { /* Ocean Blue */ },
-  forest: { /* Forest Green */ },
-  sunset: { /* Sunset Orange */ },
-  // ... more themes
-};
-
 // Apply a theme
 ThemeManager.applyTheme('forest');
+
+// Save theme (persists to localStorage)
+ThemeManager.saveTheme('sunset');
+
+// Get current theme
+const current = ThemeManager.getCurrentTheme();
 ```
+
+### Dark Theme Detection
+
+Dark themes are automatically detected by analyzing the `textPrimary` luminance. If the text color is light (luminance > 50%), the theme is treated as dark, which inverts the neutral scale and adjusts backgrounds accordingly.
 
 ## Button Components
 

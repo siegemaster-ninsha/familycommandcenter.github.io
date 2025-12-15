@@ -42,20 +42,61 @@ const RecipePage = Vue.defineComponent({
                 placeholder="Paste recipe URL here (e.g., https://example.com/recipe)"
                 class="flex-1 p-3 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 style="border-color: var(--color-border-card)"
-                :disabled="scraping"
+                :disabled="scraping || imageProcessing"
                 required
               >
               <button
                 type="submit"
                 class="btn-primary flex items-center justify-center gap-2 px-6 py-3 min-w-[140px]"
-                :disabled="scraping || !scrapeUrl"
+                :disabled="scraping || imageProcessing || !scrapeUrl"
               >
                 <div v-if="scraping" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 <div v-else v-html="Helpers.IconLibrary.getIcon('download', 'lucide', 18, 'text-white')"></div>
                 <span>{{ scraping ? 'Scraping...' : 'Scrape Recipe' }}</span>
               </button>
             </div>
+            
+            <!-- Divider with "or" -->
+            <div class="flex items-center gap-4">
+              <div class="flex-1 border-t" style="border-color: var(--color-border-card)"></div>
+              <span class="text-sm text-secondary-custom">or</span>
+              <div class="flex-1 border-t" style="border-color: var(--color-border-card)"></div>
+            </div>
+            
+            <!-- Capture Recipe Button -->
+            <!-- **Feature: recipe-image-capture** -->
+            <!-- **Validates: Requirements 1.1** -->
+            <button
+              type="button"
+              @click="openImageCapture"
+              class="w-full btn-secondary flex items-center justify-center gap-2 px-6 py-3"
+              :disabled="scraping || imageProcessing"
+            >
+              <div v-html="Helpers.IconLibrary.getIcon('camera', 'lucide', 18, '')"></div>
+              <span>Capture Recipe from Photo</span>
+            </button>
           </form>
+          
+          <!-- Image Processing Status -->
+          <!-- **Feature: recipe-image-capture** -->
+          <!-- **Validates: Requirements 5.2, 5.3, 5.4** -->
+          <div v-if="imageProcessing" class="mt-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
+            <div class="flex items-center gap-3">
+              <div class="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <span class="text-blue-700">{{ imageProcessingStatus || 'Processing image...' }}</span>
+            </div>
+          </div>
+          
+          <!-- Image Error -->
+          <div v-if="imageError" class="mt-4 p-4 rounded-lg bg-red-50 border border-red-200">
+            <div class="flex items-start gap-3">
+              <div v-html="Helpers.IconLibrary.getIcon('alertTriangle', 'lucide', 20, 'text-red-500')"></div>
+              <div>
+                <p class="font-medium text-red-700">Failed to process image</p>
+                <p class="text-sm text-red-600 mt-1">{{ imageError }}</p>
+              </div>
+            </div>
+          </div>
           
           <!-- Scrape Error -->
           <div v-if="scrapeError" class="mt-4 p-4 rounded-lg bg-red-50 border border-red-200">
@@ -159,16 +200,23 @@ const RecipePage = Vue.defineComponent({
                   </button>
                 </div>
                 <!-- Suggested Tags -->
-                <div v-if="suggestedTags.length > 0" class="mt-2">
-                  <span class="text-xs text-secondary-custom">Suggestions: </span>
-                  <button
-                    v-for="tag in suggestedTags"
-                    :key="tag"
-                    @click="addSuggestedTag(tag)"
-                    class="text-xs text-primary-500 hover:underline mr-2"
-                  >
-                    {{ tag }}
-                  </button>
+                <!-- **Feature: recipe-image-capture** -->
+                <!-- **Validates: Requirements 11.4, 11.5** -->
+                <div v-if="suggestedTags.length > 0" class="mt-3">
+                  <span class="text-xs text-secondary-custom block mb-1">
+                    {{ scrapedRecipe?.suggestedTags?.length > 0 ? 'AI Suggestions:' : 'Suggestions:' }}
+                  </span>
+                  <div class="flex flex-wrap gap-2">
+                    <button
+                      v-for="tag in suggestedTags"
+                      :key="tag"
+                      @click="addSuggestedTag(tag)"
+                      class="px-3 py-1 rounded-full text-xs border border-primary-300 text-primary-600 bg-primary-50 hover:bg-primary-100 hover:border-primary-400 transition-colors flex items-center gap-1"
+                    >
+                      <span>+</span>
+                      <span>{{ tag }}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
               
@@ -258,6 +306,8 @@ const RecipePage = Vue.defineComponent({
           </div>
           
           <!-- Recipe Grid -->
+          <!-- **Feature: recipe-image-capture** -->
+          <!-- **Validates: Requirements 8.2** -->
           <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div
               v-for="recipe in filteredRecipes"
@@ -266,7 +316,24 @@ const RecipePage = Vue.defineComponent({
               class="p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md"
               style="background-color: var(--color-bg-primary); border-color: var(--color-border-card);"
             >
-              <h3 class="font-semibold text-primary-custom mb-2 line-clamp-2">{{ recipe.title }}</h3>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <h3 class="font-semibold text-primary-custom line-clamp-2 flex-1">{{ recipe.title }}</h3>
+                <!-- Source indicator: image or URL -->
+                <div 
+                  v-if="recipe.sourceImageKey" 
+                  class="flex-shrink-0 text-blue-500" 
+                  title="From photo"
+                >
+                  <div v-html="Helpers.IconLibrary.getIcon('camera', 'lucide', 16, '')"></div>
+                </div>
+                <div 
+                  v-else-if="recipe.sourceUrl" 
+                  class="flex-shrink-0 text-gray-400" 
+                  title="From URL"
+                >
+                  <div v-html="Helpers.IconLibrary.getIcon('link', 'lucide', 16, '')"></div>
+                </div>
+              </div>
               <div class="flex flex-wrap gap-1 mb-2">
                 <span
                   v-for="tag in recipe.tags?.slice(0, 3)"
@@ -452,6 +519,19 @@ const RecipePage = Vue.defineComponent({
                 View original recipe
               </a>
             </div>
+            
+            <!-- Source Image -->
+            <!-- **Feature: recipe-image-capture** -->
+            <!-- **Validates: Requirements 8.2** -->
+            <div v-if="currentRecipe?.sourceImageKey" class="text-sm text-secondary-custom">
+              <button 
+                @click="viewSourceImage(currentRecipe)"
+                class="flex items-center gap-1 hover:text-primary-500 transition-colors"
+              >
+                <div v-html="Helpers.IconLibrary.getIcon('image', 'lucide', 14, '')"></div>
+                View original image
+              </button>
+            </div>
           </div>
           
           <!-- Modal Footer -->
@@ -597,6 +677,15 @@ const RecipePage = Vue.defineComponent({
         </div>
       </div>
       
+      <!-- Image Capture Modal -->
+      <!-- **Feature: recipe-image-capture** -->
+      <image-capture-modal
+        :visible="showImageCapture"
+        @close="closeImageCapture"
+        @image-captured="handleImageCaptured"
+        ref="imageCaptureModal"
+      ></image-capture-modal>
+      
     </div>
   `,
   
@@ -643,7 +732,12 @@ const RecipePage = Vue.defineComponent({
       // **Validates: Requirements 1.2, 1.4**
       selectedIngredients: new Set(),
       ingredientQtySettings: {}, // Per-ingredient qty toggle: { index: boolean }
-      sendingToShopping: false
+      sendingToShopping: false,
+      
+      // Image capture
+      // **Feature: recipe-image-capture**
+      // **Validates: Requirements 1.1, 5.2, 5.3, 5.4**
+      showImageCapture: false
     };
   },
   
@@ -669,11 +763,28 @@ const RecipePage = Vue.defineComponent({
     llmHealth() {
       return this.recipeStore.llmHealth;
     },
+    // Image capture computed properties
+    // **Feature: recipe-image-capture**
+    imageProcessing() {
+      return this.recipeStore.imageProcessing || this.recipeStore.imageUploading;
+    },
+    imageProcessingStatus() {
+      return this.recipeStore.imageProcessingStatus;
+    },
+    imageError() {
+      return this.recipeStore.imageError;
+    },
     availableTags() {
       return this.recipeStore.allTags;
     },
     suggestedTags() {
-      // Filter out already selected tags
+      // Use AI-suggested tags if available from scraped recipe
+      // **Feature: recipe-image-capture**
+      // **Validates: Requirements 11.4**
+      if (this.scrapedRecipe?.suggestedTags?.length > 0) {
+        return this.scrapedRecipe.suggestedTags.filter(t => !this.selectedTags.includes(t)).slice(0, 3);
+      }
+      // Fall back to common tags
       const common = ['quick', 'easy', 'vegetarian', 'vegan', 'gluten-free', 'kid-friendly', 'healthy', 'comfort-food'];
       return common.filter(t => !this.selectedTags.includes(t)).slice(0, 5);
     },
@@ -728,6 +839,207 @@ const RecipePage = Vue.defineComponent({
         this.scrapeUrl = '';
         // Reset save options
         this.selectedTags = [];
+      }
+    },
+    
+    // === Image Capture Methods ===
+    // **Feature: recipe-image-capture**
+    // **Validates: Requirements 1.1, 5.2, 5.3, 5.4, 8.2, 11.4**
+    
+    /**
+     * Open the image capture modal
+     * **Validates: Requirements 1.1**
+     */
+    openImageCapture() {
+      this.showImageCapture = true;
+      this.recipeStore.clearImageError();
+    },
+    
+    /**
+     * Close the image capture modal
+     */
+    closeImageCapture() {
+      this.showImageCapture = false;
+    },
+    
+    /**
+     * Handle captured image from modal
+     * **Validates: Requirements 5.1, 5.2, 5.3, 5.4, 6.1, 6.2**
+     * @param {Object} imageData - { file, extension, previewUrl }
+     */
+    async handleImageCaptured(imageData) {
+      const modal = this.$refs.imageCaptureModal;
+      
+      try {
+        // Step 1: Get presigned upload URL with retry
+        this.recipeStore.setImageUploading(true);
+        modal?.setUploadProgress(10);
+        
+        const urlResult = await this.retryWithBackoff(
+          () => this.recipeStore.getImageUploadUrl(imageData.extension),
+          2, // max retries
+          (result) => result.success
+        );
+        
+        if (!urlResult.success) {
+          throw new Error(urlResult.error || 'Failed to get upload URL');
+        }
+        
+        modal?.setUploadProgress(20);
+        
+        // Step 2: Upload image directly to S3 with retry
+        const uploadResult = await this.retryWithBackoff(
+          async () => {
+            const response = await fetch(urlResult.uploadUrl, {
+              method: 'PUT',
+              body: imageData.file,
+              headers: {
+                'Content-Type': imageData.file.type
+              }
+            });
+            return { ok: response.ok, status: response.status };
+          },
+          2, // max retries
+          (result) => result.ok
+        );
+        
+        if (!uploadResult.ok) {
+          throw new Error(`Failed to upload image (status: ${uploadResult.status})`);
+        }
+        
+        modal?.setUploadProgress(60);
+        this.recipeStore.setImageUploading(false);
+        
+        // Step 3: Close modal and process image
+        this.showImageCapture = false;
+        
+        // Step 4: Process the uploaded image (no retry - long operation)
+        const processResult = await this.recipeStore.processRecipeImage(urlResult.s3Key);
+        
+        if (!processResult.success) {
+          throw new Error(processResult.error || 'Failed to process image');
+        }
+        
+        // Reset save options for the new recipe
+        this.selectedTags = [];
+        
+        // Add suggested tags from the AI if available
+        if (processResult.recipe?.suggestedTags) {
+          this.selectedTags = [...processResult.recipe.suggestedTags];
+        }
+        
+        console.log('✅ Recipe extracted from image:', processResult.recipe?.title);
+        this.showToast('Recipe extracted successfully!', 'success');
+      } catch (error) {
+        console.error('Image capture error:', error);
+        this.recipeStore.setImageUploading(false);
+        
+        // Set error with retry option in modal
+        modal?.setError(error.message, {
+          title: 'Upload Failed',
+          canRetry: true,
+          action: 'confirm'
+        });
+        
+        this.showToast(this.getUserFriendlyError(error.message), 'error');
+      }
+    },
+    
+    /**
+     * Retry an async operation with exponential backoff
+     * **Validates: Requirements 6.1, 6.2**
+     * @param {Function} operation - Async function to retry
+     * @param {number} maxRetries - Maximum number of retries
+     * @param {Function} isSuccess - Function to check if result is successful
+     * @returns {Promise<any>} Result of the operation
+     */
+    async retryWithBackoff(operation, maxRetries, isSuccess) {
+      let lastResult;
+      let lastError;
+      
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          lastResult = await operation();
+          if (isSuccess(lastResult)) {
+            return lastResult;
+          }
+        } catch (error) {
+          lastError = error;
+          console.warn(`Attempt ${attempt + 1} failed:`, error.message);
+        }
+        
+        // Don't wait after the last attempt
+        if (attempt < maxRetries) {
+          // Exponential backoff: 500ms, 1000ms, 2000ms...
+          const delay = Math.min(500 * Math.pow(2, attempt), 5000);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+      
+      // Return last result or throw last error
+      if (lastError) {
+        throw lastError;
+      }
+      return lastResult;
+    },
+    
+    /**
+     * Convert technical errors to user-friendly messages
+     * **Validates: Requirements 6.1, 6.2**
+     * @param {string} error - Technical error message
+     * @returns {string} User-friendly error message
+     */
+    getUserFriendlyError(error) {
+      if (!error) return 'An unexpected error occurred';
+      
+      const errorLower = error.toLowerCase();
+      
+      // Network errors
+      if (errorLower.includes('network') || errorLower.includes('fetch') || errorLower.includes('failed to fetch')) {
+        return 'Network connection error. Please check your internet connection.';
+      }
+      
+      // Timeout errors
+      if (errorLower.includes('timeout') || errorLower.includes('timed out')) {
+        return 'The request took too long. Please try again.';
+      }
+      
+      // Service unavailable
+      if (errorLower.includes('unavailable') || errorLower.includes('503')) {
+        return 'Service temporarily unavailable. Please try again later.';
+      }
+      
+      // Vision/extraction errors
+      if (errorLower.includes('could not read recipe') || errorLower.includes('could not extract')) {
+        return 'Could not read recipe from image. Please ensure the text is clearly visible.';
+      }
+      
+      // File validation - already user-friendly
+      if (errorLower.includes('unsupported') || errorLower.includes('too large')) {
+        return error;
+      }
+      
+      return error;
+    },
+    
+    /**
+     * View the original source image for a recipe
+     * **Validates: Requirements 8.2**
+     * @param {Object} recipe - Recipe with sourceImageKey
+     */
+    async viewSourceImage(recipe) {
+      if (!recipe?.sourceImageKey) return;
+      
+      try {
+        const result = await this.recipeStore.getImageViewUrl(recipe.sourceImageKey);
+        if (result.success && result.viewUrl) {
+          window.open(result.viewUrl, '_blank');
+        } else {
+          this.showToast('Failed to load original image', 'error');
+        }
+      } catch (error) {
+        console.error('Failed to get image view URL:', error);
+        this.showToast('Failed to load original image', 'error');
       }
     },
     

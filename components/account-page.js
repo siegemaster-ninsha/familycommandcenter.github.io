@@ -755,12 +755,8 @@ const AccountPage = Vue.defineComponent({
 
         if (response.ok) {
           console.log('✅ Theme saved to backend');
-          // Optionally reload account settings in background
-          if (this.$parent && this.$parent.loadAccountSettings) {
-            this.$parent.loadAccountSettings().catch(err => {
-              console.warn('Failed to reload account settings:', err);
-            });
-          }
+          // Don't reload account settings - theme is already applied locally
+          // Reloading can cause race conditions where old theme overwrites new one
         } else {
           console.warn('Failed to save theme to backend (non-critical)');
         }
