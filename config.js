@@ -67,7 +67,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.28 - Outstanding Quokka (Dec 15, 2025)',
+    VERSION: '1.0.29 - Valiant Hedgehog (Dec 15, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {

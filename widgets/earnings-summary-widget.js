@@ -185,6 +185,18 @@ const EarningsSummaryWidget = {
       URL.revokeObjectURL(url);
       
       this.notify('Earnings data exported', 'success');
+    },
+    
+    openSpendModal(member) {
+      // Open spending modal for this member
+      const uiStore = window.useUIStore ? window.useUIStore() : null;
+      if (uiStore?.showSpendingModal) {
+        uiStore.showSpendingModal(member);
+      } else {
+        // Fallback: navigate to account page
+        this.$root.setCurrentPage('account');
+        this.notify(`Opening spending for ${member.name}`, 'info');
+      }
     }
   },
   
@@ -278,9 +290,16 @@ const EarningsSummaryWidget = {
             <div
               v-for="member in members"
               :key="member.id"
-              class="earnings-member flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded"
+              class="earnings-member flex items-center p-3 bg-gray-50 dark:bg-gray-800 rounded"
               :class="{ 'p-2': compactView }"
             >
+              <button
+                class="spend-btn mr-3"
+                @click="openSpendModal(member)"
+                title="Spend money"
+              >
+                <span style="font-weight: bold; font-size: 14px;">$</span>
+              </button>
               <div class="flex-1">
                 <div class="font-medium text-gray-900 dark:text-gray-100">
                   {{ member.name }}
