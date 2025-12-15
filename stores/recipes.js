@@ -720,7 +720,8 @@ const useRecipeStore = Pinia.defineStore('recipes', {
      */
     async getImageViewUrl(s3Key) {
       try {
-        const data = await apiService.get(`${CONFIG.API.ENDPOINTS.RECIPES}/image/${encodeURIComponent(s3Key)}`);
+        // Use the S3 key directly - API Gateway {key+} greedy parameter handles slashes
+        const data = await apiService.get(`${CONFIG.API.ENDPOINTS.RECIPES}/image/${s3Key}`);
         console.log('✅ Image view URL generated');
         return { success: true, viewUrl: data.viewUrl };
       } catch (error) {
