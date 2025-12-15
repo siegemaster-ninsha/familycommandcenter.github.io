@@ -776,6 +776,7 @@ const RecipePage = Vue.defineComponent({
         :visible="showImageCapture"
         @close="closeImageCapture"
         @image-captured="handleImageCaptured"
+        @images-captured="handleImagesCaptured"
         ref="imageCaptureModal"
       ></image-capture-modal>
       
@@ -999,7 +1000,7 @@ const RecipePage = Vue.defineComponent({
       try {
         // Step 1: Get presigned upload URL with retry
         this.recipeStore.setImageUploading(true);
-        modal?.setUploadProgress(10);
+        modal?.setImageUploadProgress(0, 10);
         
         const urlResult = await this.retryWithBackoff(
           () => this.recipeStore.getImageUploadUrl(imageData.extension),
@@ -1011,7 +1012,7 @@ const RecipePage = Vue.defineComponent({
           throw new Error(urlResult.error || 'Failed to get upload URL');
         }
         
-        modal?.setUploadProgress(20);
+        modal?.setImageUploadProgress(0, 20);
         
         // Step 2: Upload image directly to S3 with retry
         const uploadResult = await this.retryWithBackoff(
@@ -1033,7 +1034,7 @@ const RecipePage = Vue.defineComponent({
           throw new Error(`Failed to upload image (status: ${uploadResult.status})`);
         }
         
-        modal?.setUploadProgress(60);
+        modal?.setImageUploadProgress(0, 60);
         this.recipeStore.setImageUploading(false);
         
         // Step 3: Close modal and process image
@@ -1061,6 +1062,109 @@ const RecipePage = Vue.defineComponent({
         this.recipeStore.setImageUploading(false);
         
         // Set error with retry option in modal
+        modal?.setError(error.message, {
+          title: 'Upload Failed',
+          canRetry: true,
+          action: 'confirm'
+        });
+        
+        this.showToast(this.getUserFriendlyError(error.message), 'error');
+      }
+    },
+    
+    /**
+     * Handle multiple captured images from modal
+     * **Feature: multi-image-recipe-categories**
+     * **Validates: Requirements 1.6, 8.1, 8.2, 8.3, 8.4**
+     * @param {Object} data - { images: Array<{ file, extension, previewUrl }> }
+     */
+    async handleImagesCaptured(data) {
+      const modal = this.$refs.imageCaptureModal;
+      const { images } = data;
+      
+      if (!images || images.length === 0) {
+        modal?.setError('No images to upload');
+        return;
+      }
+      
+      try {
+        this.recipeStore.setImageUploading(true);
+        modal?.setUploading(true);
+        
+        const extensions = images.map(img => img.extension);
+        const s3Keys = [];
+        
+        // Step 1: Get presigned upload URLs for all images
+        const urlsResult = await this.retryWithBackoff(
+          () => this.recipeStore.getMultipleImageUploadUrls(extensions),
+          2,
+          (result) => result.success
+        );
+        
+        if (!urlsResult.success) {
+          throw new Error(urlsResult.error || 'Failed to get upload URLs');
+        }
+        
+        const uploads = urlsResult.uploads;
+        
+        // Step 2: Upload each image with progress tracking
+        for (let i = 0; i < images.length; i++) {
+          const img = images[i];
+          const upload = uploads[i];
+          
+          modal?.setImageUploadProgress(i, 10);
+          
+          const uploadResult = await this.retryWithBackoff(
+            async () => {
+              const response = await fetch(upload.uploadUrl, {
+                method: 'PUT',
+                body: img.file,
+                headers: {
+                  'Content-Type': img.file.type
+                }
+              });
+              return { ok: response.ok, status: response.status };
+            },
+            2,
+            (result) => result.ok
+          );
+          
+          if (!uploadResult.ok) {
+            modal?.setImageError(i, `Upload failed (status: ${uploadResult.status})`);
+            throw new Error(`Failed to upload image ${i + 1}`);
+          }
+          
+          modal?.setImageUploaded(i, upload.s3Key);
+          s3Keys.push(upload.s3Key);
+        }
+        
+        this.recipeStore.setImageUploading(false);
+        
+        // Step 3: Close modal and process images
+        this.showImageCapture = false;
+        
+        // Step 4: Process all uploaded images
+        const processResult = await this.recipeStore.processMultipleRecipeImages(s3Keys);
+        
+        if (!processResult.success) {
+          throw new Error(processResult.error || 'Failed to process images');
+        }
+        
+        // Reset save options for the new recipe
+        this.selectedTags = [];
+        
+        // Add suggested tags from the AI if available
+        if (processResult.recipe?.suggestedTags) {
+          this.selectedTags = [...processResult.recipe.suggestedTags];
+        }
+        
+        console.log('✅ Recipe extracted from', s3Keys.length, 'images:', processResult.recipe?.title);
+        this.showToast('Recipe extracted successfully!', 'success');
+      } catch (error) {
+        console.error('Multi-image capture error:', error);
+        this.recipeStore.setImageUploading(false);
+        modal?.setUploading(false);
+        
         modal?.setError(error.message, {
           title: 'Upload Failed',
           canRetry: true,

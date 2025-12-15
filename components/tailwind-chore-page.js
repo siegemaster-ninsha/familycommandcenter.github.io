@@ -579,11 +579,7 @@ const TailwindChorePage = Vue.defineComponent({
     },
 
     selectChore(chore, event) {
-      if (event && (event.type === 'touchend' || event.type === 'touchstart') && typeof event.preventDefault === 'function') {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-
+      // Touch scroll detection is now handled by ChoreCard component
       if (chore.isSelecting) return;
       chore.isSelecting = true;
 
@@ -613,18 +609,7 @@ const TailwindChorePage = Vue.defineComponent({
 
     onQuicklistClick(quickChore, event) {
       console.log('🎯 Quicklist chore clicked:', quickChore.name);
-
-      // Use mixin's scroll detection - if user scrolled, ignore the click
-      if (!this.isTapNotScroll()) {
-        console.log('⚠️ Scroll detected, ignoring click');
-        return;
-      }
-
-      if (event && (event.type === 'touchend' || event.type === 'touchstart') && typeof event.preventDefault === 'function') {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-
+      // Touch scroll detection is now handled by ChoreCard component
       if (quickChore.isSelecting) {
         console.log('⚠️ Chore is already being selected, skipping');
         return;
