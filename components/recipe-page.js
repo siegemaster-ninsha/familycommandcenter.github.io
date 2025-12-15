@@ -473,10 +473,10 @@ const RecipePage = Vue.defineComponent({
                   <!-- **Validates: Requirements 10.3, 10.4** -->
                   <div class="flex-shrink-0 w-6 h-6 flex items-center justify-center">
                     <div v-if="selectedIngredients.has(idx)" 
-                         v-html="Helpers.IconLibrary.getIcon('checkCircle', 'lucide', 20, 'text-green-600')">
+                         v-html="Helpers.IconLibrary.getIcon('squareCheck', 'lucide', 20, 'text-green-600')">
                     </div>
                     <div v-else 
-                         v-html="Helpers.IconLibrary.getIcon('circle', 'lucide', 20, 'text-gray-300')">
+                         v-html="Helpers.IconLibrary.getIcon('square', 'lucide', 20, 'text-gray-300')">
                     </div>
                   </div>
                   
