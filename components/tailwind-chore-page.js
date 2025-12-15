@@ -32,19 +32,15 @@ const ChoreCard = {
           </button>
 
           <div class="flex flex-col flex-1 min-w-0">
-            <p
-              :class="chore.completed && type !== 'quicklist' ? 'line-through text-white opacity-60' : 'text-white'"
-              class="text-sm font-medium leading-normal line-clamp-2"
-            >
-              {{ chore.name }}
-            </p>
-
-            <div class="flex items-center gap-2 mt-1">
-              <p v-if="chore.amount > 0" :class="chore.completed && type !== 'quicklist' ? 'text-white opacity-50' : 'text-white text-opacity-90'" class="text-xs font-normal leading-normal">
-                \${{ chore.amount.toFixed(2) }}
+            <div class="flex items-start justify-between gap-2">
+              <p
+                :class="chore.completed && type !== 'quicklist' ? 'line-through text-white opacity-60' : 'text-white'"
+                class="text-sm font-medium leading-normal line-clamp-2 flex-1"
+              >
+                {{ chore.name }}
               </p>
-              <p v-if="chore.details" :class="chore.completed && type !== 'quicklist' ? 'text-white opacity-50' : 'text-white text-opacity-80'" class="text-xs font-normal leading-normal">
-                {{ chore.details }}
+              <p v-if="chore.amount > 0" :class="chore.completed && type !== 'quicklist' ? 'text-white opacity-50' : 'text-white text-opacity-90'" class="text-xs font-medium leading-normal whitespace-nowrap">
+                \${{ chore.amount.toFixed(2) }}
               </p>
             </div>
           </div>
