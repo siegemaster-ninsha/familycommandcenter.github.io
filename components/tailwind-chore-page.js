@@ -5,7 +5,7 @@
 const ChoreCard = {
   template: `
     <div
-      class="relative flex items-center gap-4 p-4 rounded-xl transition-all duration-200 cursor-pointer border-2 hover:shadow-lg hover:-translate-y-0.5"
+      class="relative flex items-center gap-3 p-4 rounded-xl transition-all duration-200 cursor-pointer border-2 hover:shadow-lg hover:-translate-y-0.5"
       :aria-selected="isSelected"
       role="option"
       :class="[
@@ -15,59 +15,50 @@ const ChoreCard = {
       @touchmove.passive="handleTouchMove"
       @click.stop="handleClick"
     >
-      <!-- Chore content -->
-      <div class="flex flex-col justify-center min-w-0 flex-1">
-        <div class="flex items-start gap-3 mb-1">
-          <!-- Completion checkbox (not for quicklist) -->
-          <button
-            v-if="type !== 'quicklist'"
-            @click.stop="handleToggleComplete"
-            class="w-[50px] h-[50px] flex items-center justify-center flex-shrink-0 mt-0.5 rounded transition-colors"
-            :class="chore.completed ? 'text-green-400' : 'text-white text-opacity-50 hover:text-opacity-80'"
-            :aria-checked="chore.completed"
-            role="checkbox"
-          >
-            <div v-if="chore.completed" v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('squareCheck', 'lucide', 32, '') : ''"></div>
-            <div v-else v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('square', 'lucide', 32, '') : ''"></div>
-          </button>
+      <!-- Completion checkbox (not for quicklist) -->
+      <button
+        v-if="type !== 'quicklist'"
+        @click.stop="handleToggleComplete"
+        class="w-[44px] h-[44px] flex items-center justify-center flex-shrink-0 rounded transition-colors"
+        :class="chore.completed ? 'text-green-400' : 'text-white text-opacity-50 hover:text-opacity-80'"
+        :aria-checked="chore.completed"
+        role="checkbox"
+      >
+        <div v-if="chore.completed" v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('squareCheck', 'lucide', 32, '') : ''"></div>
+        <div v-else v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('square', 'lucide', 32, '') : ''"></div>
+      </button>
 
-          <div class="flex flex-col flex-1 min-w-0">
-            <div class="flex items-start justify-between gap-2">
-              <p
-                :class="chore.completed && type !== 'quicklist' ? 'line-through text-white opacity-60' : 'text-white'"
-                class="text-sm font-medium leading-normal line-clamp-2 flex-1"
-              >
-                {{ chore.name }}
-              </p>
-              <p v-if="chore.amount > 0" :class="chore.completed && type !== 'quicklist' ? 'text-white opacity-50' : 'text-white text-opacity-90'" class="text-xs font-medium leading-normal whitespace-nowrap">
-                \${{ chore.amount.toFixed(2) }}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- Chore name - grows to fill space -->
+      <p
+        :class="chore.completed && type !== 'quicklist' ? 'line-through text-white opacity-60' : 'text-white'"
+        class="text-sm font-medium leading-normal line-clamp-2 flex-1 min-w-0"
+      >
+        {{ chore.name }}
+      </p>
 
-      <!-- Action buttons -->
-      <div class="shrink-0 flex items-center gap-2">
-        <!-- Approval button (assigned type only) -->
-        <button
-          v-if="type === 'assigned' && showApprovalButton && chore.isPendingApproval"
-          @click.stop="handleApprove"
-          class="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors"
-        >
-          Approve
-        </button>
+      <!-- Pay amount -->
+      <p v-if="chore.amount > 0" :class="chore.completed && type !== 'quicklist' ? 'text-white opacity-50' : 'text-white text-opacity-90'" class="text-xs font-medium whitespace-nowrap flex-shrink-0">
+        \${{ chore.amount.toFixed(2) }}
+      </p>
 
-        <!-- Delete/Remove button -->
-        <button
-          @click.stop="handleDelete"
-          class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 rounded-md bg-white bg-opacity-10 border border-white border-opacity-20 hover:scale-105 active:scale-95"
-          :class="getButtonSize()"
-          :title="getButtonTitle()"
-        >
-          <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('trash', 'lucide', getTrashIconSize(), 'text-white drop-shadow-sm') : ''"></div>
-        </button>
-      </div>
+      <!-- Approval button (assigned type only) -->
+      <button
+        v-if="type === 'assigned' && showApprovalButton && chore.isPendingApproval"
+        @click.stop="handleApprove"
+        class="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors flex-shrink-0"
+      >
+        Approve
+      </button>
+
+      <!-- Delete/Remove button -->
+      <button
+        @click.stop="handleDelete"
+        class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 rounded-md bg-white bg-opacity-10 border border-white border-opacity-20 hover:scale-105 active:scale-95 flex-shrink-0"
+        :class="getButtonSize()"
+        :title="getButtonTitle()"
+      >
+        <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('trash', 'lucide', getTrashIconSize(), 'text-white drop-shadow-sm') : ''"></div>
+      </button>
     </div>
   `,
   props: {

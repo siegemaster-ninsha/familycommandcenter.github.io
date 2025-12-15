@@ -277,9 +277,9 @@ const AppModals = Vue.defineComponent({
                 placeholder="Enter your password"
                 @keyup.enter="handleLogin"
               >
-              <button type="button" @click="showLoginPassword = !showLoginPassword" class="absolute inset-y-0 right-2 text-gray-500 hover:text-gray-700">
-                <span v-if="showLoginPassword">🙈</span>
-                <span v-else>👁️</span>
+              <button type="button" @click="showLoginPassword = !showLoginPassword" class="absolute inset-y-0 right-2 text-gray-500 hover:text-gray-700 flex items-center">
+                <div v-if="showLoginPassword" v-html="Helpers.IconLibrary.getIcon('eyeOff', 'lucide', 20, 'text-gray-500')"></div>
+                <div v-else v-html="Helpers.IconLibrary.getIcon('eye', 'lucide', 20, 'text-gray-500')"></div>
               </button>
             </div>
           </div>
@@ -359,9 +359,9 @@ const AppModals = Vue.defineComponent({
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 pr-10"
                 placeholder="Minimum 8 characters"
               >
-              <button type="button" @click="showSignupPassword = !showSignupPassword" class="absolute inset-y-0 right-2 text-gray-500 hover:text-gray-700">
-                <span v-if="showSignupPassword">🙈</span>
-                <span v-else>👁️</span>
+              <button type="button" @click="showSignupPassword = !showSignupPassword" class="absolute inset-y-0 right-2 text-gray-500 hover:text-gray-700 flex items-center">
+                <div v-if="showSignupPassword" v-html="Helpers.IconLibrary.getIcon('eyeOff', 'lucide', 20, 'text-gray-500')"></div>
+                <div v-else v-html="Helpers.IconLibrary.getIcon('eye', 'lucide', 20, 'text-gray-500')"></div>
               </button>
             </div>
             <p class="text-xs text-gray-500 mt-1">Password must be at least 8 characters with uppercase, lowercase, and numbers.</p>
@@ -575,9 +575,9 @@ const AppModals = Vue.defineComponent({
             <label class="block text-sm font-medium text-primary-custom mb-1">Password</label>
             <div class="relative">
               <input :type="showChildPassword ? 'text' : 'password'" v-model="$parent.childForm.password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 pr-10" placeholder="Enter a password">
-              <button type="button" @click="showChildPassword = !showChildPassword" class="absolute inset-y-0 right-2 text-gray-500 hover:text-gray-700">
-                <span v-if="showChildPassword">🙈</span>
-                <span v-else>👁️</span>
+              <button type="button" @click="showChildPassword = !showChildPassword" class="absolute inset-y-0 right-2 text-gray-500 hover:text-gray-700 flex items-center">
+                <div v-if="showChildPassword" v-html="Helpers.IconLibrary.getIcon('eyeOff', 'lucide', 20, 'text-gray-500')"></div>
+                <div v-else v-html="Helpers.IconLibrary.getIcon('eye', 'lucide', 20, 'text-gray-500')"></div>
               </button>
             </div>
           </div>
