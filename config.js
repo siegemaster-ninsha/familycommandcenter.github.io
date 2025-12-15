@@ -67,7 +67,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.24 - Invincible Alpaca (Dec 15, 2025)',
+    VERSION: '1.0.25 - Brilliant Hedgehog (Dec 15, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {

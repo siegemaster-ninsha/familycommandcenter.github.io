@@ -11,8 +11,9 @@ const ChoreCard = {
       :class="[
         isSelected ? 'shadow-2xl shadow-blue-500/50 scale-105 z-10 border-4 border-blue-300 bg-blue-700 ring-8 ring-yellow-400 ring-opacity-80' : 'hover:border-blue-400 bg-blue-500 border-blue-600'
       ]"
+      @touchstart.passive="handleTouchStart"
+      @touchmove.passive="handleTouchMove"
       @click.stop="handleClick"
-      @touchend.stop="handleClick"
     >
       <!-- Chore content -->
       <div class="flex flex-col justify-center min-w-0 flex-1">
@@ -83,7 +84,32 @@ const ChoreCard = {
     onApprove: { type: Function },
     onDelete: { type: Function }
   },
+  data() {
+    return {
+      touchStartX: null,
+      touchStartY: null,
+      didScroll: false
+    };
+  },
   methods: {
+    handleTouchStart(event) {
+      if (event.touches && event.touches.length > 0) {
+        this.touchStartX = event.touches[0].clientX;
+        this.touchStartY = event.touches[0].clientY;
+        this.didScroll = false;
+      }
+    },
+    handleTouchMove(event) {
+      if (this.touchStartX === null || this.touchStartY === null) return;
+      if (event.touches && event.touches.length > 0) {
+        const deltaX = Math.abs(event.touches[0].clientX - this.touchStartX);
+        const deltaY = Math.abs(event.touches[0].clientY - this.touchStartY);
+        // 10px threshold to distinguish scroll from tap
+        if (deltaX > 10 || deltaY > 10) {
+          this.didScroll = true;
+        }
+      }
+    },
     getCategoryIcon(category) {
       try {
         return this.Helpers?.getCategoryIcon?.(category) || '';
@@ -104,7 +130,16 @@ const ChoreCard = {
     getButtonTitle() {
       return this.type === 'quicklist' ? 'Remove from quicklist' : 'Delete chore';
     },
-    handleClick() {
+    handleClick(event) {
+      // Ignore clicks that were actually scroll gestures on mobile
+      if (this.didScroll) {
+        this.didScroll = false;
+        this.touchStartX = null;
+        this.touchStartY = null;
+        return;
+      }
+      this.touchStartX = null;
+      this.touchStartY = null;
       this.onClick(this.chore, event);
     },
     handleToggleComplete(event) {
@@ -226,8 +261,9 @@ const EarningsCard = {
   template: `
     <div
       class="border-2 rounded-xl p-6 cursor-pointer hover:shadow-xl hover:scale-102 transition-all duration-200 shadow-lg bg-blue-500 border-blue-600"
-      @click="onClick"
-      @touchend="onClick"
+      @touchstart.passive="handleTouchStart"
+      @touchmove.passive="handleTouchMove"
+      @click="handleClick"
     >
       <div class="flex items-center justify-between">
         <div class="flex flex-col">
@@ -247,9 +283,46 @@ const EarningsCard = {
     person: { type: Object, required: true },
     onClick: { type: Function, required: true }
   },
+  data() {
+    return {
+      touchStartX: null,
+      touchStartY: null,
+      didScroll: false
+    };
+  },
   computed: {
     completedChoresCount() {
       return this.person.completedChores || 0;
+    }
+  },
+  methods: {
+    handleTouchStart(event) {
+      if (event.touches && event.touches.length > 0) {
+        this.touchStartX = event.touches[0].clientX;
+        this.touchStartY = event.touches[0].clientY;
+        this.didScroll = false;
+      }
+    },
+    handleTouchMove(event) {
+      if (this.touchStartX === null || this.touchStartY === null) return;
+      if (event.touches && event.touches.length > 0) {
+        const deltaX = Math.abs(event.touches[0].clientX - this.touchStartX);
+        const deltaY = Math.abs(event.touches[0].clientY - this.touchStartY);
+        if (deltaX > 10 || deltaY > 10) {
+          this.didScroll = true;
+        }
+      }
+    },
+    handleClick() {
+      if (this.didScroll) {
+        this.didScroll = false;
+        this.touchStartX = null;
+        this.touchStartY = null;
+        return;
+      }
+      this.touchStartX = null;
+      this.touchStartY = null;
+      this.onClick();
     }
   }
 };
