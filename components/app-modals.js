@@ -82,7 +82,7 @@ const AppModals = Vue.defineComponent({
             Add to Quicklist
           </button>
           <button 
-            @click="handleCancelAddToQuicklist"
+            @click="cancelAddToQuicklist"
             class="btn-secondary btn-compact px-3 py-1.5 text-sm"
           >
             Close
@@ -198,7 +198,7 @@ const AppModals = Vue.defineComponent({
             Add Chore
           </button>
           <button 
-            @click="handleCancelAddChore"
+            @click="cancelAddChore"
             class="btn-secondary btn-compact px-3 py-1.5 text-sm"
           >
             Close
@@ -525,7 +525,7 @@ const AppModals = Vue.defineComponent({
             Create Chore
           </button>
           <button 
-            @click="handleCancelChoreDetails"
+            @click="cancelChoreDetails"
             class="btn-secondary btn-compact px-3 py-1.5 text-sm"
           >
             Close
@@ -598,7 +598,7 @@ const AppModals = Vue.defineComponent({
             Spend Money
           </button>
           <button
-            @click="handleCloseSpendingModal"
+            @click="closeSpendingModal"
             class="btn-secondary btn-compact px-3 py-1.5 text-sm"
           >
             Close
@@ -736,7 +736,7 @@ const AppModals = Vue.defineComponent({
             {{ multiAssignLoading ? 'Assigning...' : 'Assign to ' + multiAssignSelectedMembers.length + ' Member' + (multiAssignSelectedMembers.length !== 1 ? 's' : '') }}
           </button>
           <button
-            @click="handleCancelMultiAssignment"
+            @click="cancelMultiAssignment"
             :disabled="multiAssignLoading"
             class="btn-secondary btn-compact px-3 py-1.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -789,33 +789,6 @@ const AppModals = Vue.defineComponent({
     'people'
   ],
   methods: {
-    // Local wrapper methods for injected functions to ensure proper mobile touch handling
-    handleCancelAddToQuicklist() {
-      if (typeof this.cancelAddToQuicklist === 'function') {
-        this.cancelAddToQuicklist();
-      }
-    },
-    handleCancelAddChore() {
-      if (typeof this.cancelAddChore === 'function') {
-        this.cancelAddChore();
-      }
-    },
-    handleCancelChoreDetails() {
-      if (typeof this.cancelChoreDetails === 'function') {
-        this.cancelChoreDetails();
-      }
-    },
-    handleCloseSpendingModal() {
-      if (typeof this.closeSpendingModal === 'function') {
-        this.closeSpendingModal();
-      }
-    },
-    handleCancelMultiAssignment() {
-      if (typeof this.cancelMultiAssignment === 'function') {
-        this.cancelMultiAssignment();
-      }
-    },
-    // Use injected methods directly - they're already bound to the parent context
     getCategoryLabel(category) {
       switch(category) {
         case 'school': return 'School';

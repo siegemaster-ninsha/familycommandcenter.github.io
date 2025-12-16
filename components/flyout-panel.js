@@ -54,29 +54,12 @@
 //    - .flyout-backdrop (overlay behind panel)
 //    - .flyout-backdrop.flyout-open (visible state)
 //
-// 4. INJECTED METHODS DON'T WORK ON MOBILE: If you use Vue's inject to pass methods
-//    from a parent component, calling them directly in @click handlers may fail on
-//    mobile devices. The touch events don't properly trigger injected functions.
+// 4. INJECTED METHODS ON MOBILE: Injected methods from Vue's provide/inject work
+//    correctly when called directly in @click handlers. No wrapper methods needed.
 //    
-//    FIX: Create local wrapper methods in your component that call the injected methods.
-//    
-//    // BAD - injected method may not fire on mobile
+//    // CORRECT - call injected method directly
 //    inject: ['cancelAddToQuicklist'],
 //    template: `<button @click="cancelAddToQuicklist">Close</button>`
-//    
-//    // GOOD - local wrapper method works reliably on all devices
-//    inject: ['cancelAddToQuicklist'],
-//    methods: {
-//      handleClose() {
-//        if (typeof this.cancelAddToQuicklist === 'function') {
-//          this.cancelAddToQuicklist();
-//        }
-//      }
-//    },
-//    template: `<button @click="handleClose">Close</button>`
-//    
-//    See app-modals.js for examples of this pattern with handleCancelAddToQuicklist,
-//    handleCancelAddChore, handleCancelChoreDetails, etc.
 //    - body.flyout-open (prevents scroll when open)
 
 const FlyoutPanel = Vue.defineComponent({

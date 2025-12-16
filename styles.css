@@ -826,6 +826,24 @@ input:focus, select:focus, textarea:focus {
   }
 }
 
+/* Flyout footer - account for iOS safe area and ensure touch events work */
+.flyout-panel > div:last-child {
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Ensure flyout footer buttons receive touch events on iOS Safari */
+.flyout-footer-buttons {
+  position: relative;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+.flyout-footer-buttons button {
+  position: relative;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
 /* Prevent body scroll when flyout is open */
 body.flyout-open {
   overflow: hidden;
