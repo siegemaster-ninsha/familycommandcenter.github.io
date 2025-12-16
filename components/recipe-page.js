@@ -558,9 +558,9 @@ const RecipePage = Vue.defineComponent({
         <template #footer>
           <div class="flyout-footer-buttons flex items-center gap-2">
             <!-- Delete button (left) -->
+            <!-- iOS PWA fix: use pointerup instead of click+touchend combo -->
             <button
-              @click="confirmDeleteRecipe"
-              @touchend.prevent="confirmDeleteRecipe"
+              @pointerup.prevent="confirmDeleteRecipe"
               class="btn-error btn-compact flex items-center gap-1.5 px-3 py-1.5 text-sm"
             >
               <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 16, 'text-white')"></div>
@@ -568,10 +568,10 @@ const RecipePage = Vue.defineComponent({
             </button>
             
             <!-- Source Image button (center, expands) OR spacer to push buttons right -->
+            <!-- iOS PWA fix: use pointerup instead of click+touchend combo -->
             <button 
               v-if="hasSourceImages"
-              @click="viewCurrentSourceImage"
-              @touchend.prevent="viewCurrentSourceImage"
+              @pointerup.prevent="viewCurrentSourceImage"
               :disabled="loadingSourceImage"
               class="btn-secondary btn-compact flex-1 flex items-center justify-center gap-2 px-3 py-1.5 text-sm"
             >
@@ -582,10 +582,10 @@ const RecipePage = Vue.defineComponent({
             <div v-else class="flex-1"></div>
             
             <!-- Save button (if changes) -->
+            <!-- iOS PWA fix: use pointerup instead of click+touchend combo -->
             <button
               v-if="hasUnsavedChanges"
-              @click="saveInlineChanges"
-              @touchend.prevent="saveInlineChanges"
+              @pointerup.prevent="saveInlineChanges"
               class="btn-success btn-compact flex items-center gap-1.5 px-3 py-1.5 text-sm"
               :disabled="updating"
             >
@@ -595,9 +595,9 @@ const RecipePage = Vue.defineComponent({
             </button>
             
             <!-- Close button (right) -->
+            <!-- iOS PWA fix: use pointerup instead of click+touchend combo -->
             <button
-              @click="handleFlyoutClose"
-              @touchend.prevent="handleFlyoutClose"
+              @pointerup.prevent="handleFlyoutClose"
               class="btn-secondary btn-compact px-3 py-1.5 text-sm"
             >
               {{ hasUnsavedChanges ? 'Discard' : 'Close' }}
@@ -1314,9 +1314,17 @@ const RecipePage = Vue.defineComponent({
     },
     
     closeRecipeModal() {
+      console.log('🍳 closeRecipeModal called, showRecipeModal was:', this.showRecipeModal);
       // Just hide the flyout - don't clear currentRecipe to avoid empty content flash
       // currentRecipe will be replaced when opening a new recipe
       this.showRecipeModal = false;
+      console.log('🍳 showRecipeModal now:', this.showRecipeModal);
+      
+      // Force Vue to process the change immediately (iOS PWA fix)
+      this.$nextTick(() => {
+        console.log('🍳 nextTick - showRecipeModal:', this.showRecipeModal);
+      });
+      
       this.scaleMultiplier = 1;
       this.currentImageIndex = 0;
       this.hasUnsavedChanges = false;

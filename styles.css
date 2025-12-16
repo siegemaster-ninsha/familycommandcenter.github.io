@@ -768,12 +768,15 @@ input:focus, select:focus, textarea:focus {
   background-color: var(--color-white);
   box-shadow: -4px 0 24px var(--color-overlay-light);
   transform: translateX(100%);
-  transition: transform 300ms ease-out;
+  transition: transform 300ms ease-out, visibility 0s 300ms;
   z-index: 51;
   backface-visibility: hidden;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* Fix iOS Safari/PWA: prevent closed flyout from intercepting touches */
+  visibility: hidden;
+  pointer-events: none;
   /* Fix iOS Safari touch event issues on buttons inside fixed/teleported elements */
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -799,6 +802,9 @@ input:focus, select:focus, textarea:focus {
 
 .flyout-panel.flyout-open {
   transform: translateX(0);
+  transition: transform 300ms ease-out, visibility 0s 0s;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .flyout-backdrop {
