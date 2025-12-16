@@ -829,19 +829,27 @@ input:focus, select:focus, textarea:focus {
 /* Flyout footer - account for iOS safe area and ensure touch events work */
 .flyout-panel > div:last-child {
   padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  /* iOS Safari fix: ensure footer is in its own compositing layer */
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Ensure flyout footer buttons receive touch events on iOS Safari */
 .flyout-footer-buttons {
   position: relative;
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
 }
 
 .flyout-footer-buttons button {
   position: relative;
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
+  /* Force buttons into their own layer for iOS touch handling */
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  /* Ensure buttons are clickable */
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 /* Prevent body scroll when flyout is open */

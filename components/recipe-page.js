@@ -560,6 +560,7 @@ const RecipePage = Vue.defineComponent({
             <!-- Delete button (left) -->
             <button
               @click="confirmDeleteRecipe"
+              @touchend.prevent="confirmDeleteRecipe"
               class="btn-error btn-compact flex items-center gap-1.5 px-3 py-1.5 text-sm"
             >
               <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 16, 'text-white')"></div>
@@ -570,6 +571,7 @@ const RecipePage = Vue.defineComponent({
             <button 
               v-if="hasSourceImages"
               @click="viewCurrentSourceImage"
+              @touchend.prevent="viewCurrentSourceImage"
               :disabled="loadingSourceImage"
               class="btn-secondary btn-compact flex-1 flex items-center justify-center gap-2 px-3 py-1.5 text-sm"
             >
@@ -583,6 +585,7 @@ const RecipePage = Vue.defineComponent({
             <button
               v-if="hasUnsavedChanges"
               @click="saveInlineChanges"
+              @touchend.prevent="saveInlineChanges"
               class="btn-success btn-compact flex items-center gap-1.5 px-3 py-1.5 text-sm"
               :disabled="updating"
             >
@@ -594,6 +597,7 @@ const RecipePage = Vue.defineComponent({
             <!-- Close button (right) -->
             <button
               @click="handleFlyoutClose"
+              @touchend.prevent="handleFlyoutClose"
               class="btn-secondary btn-compact px-3 py-1.5 text-sm"
             >
               {{ hasUnsavedChanges ? 'Discard' : 'Close' }}

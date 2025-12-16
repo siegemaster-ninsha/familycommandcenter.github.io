@@ -240,6 +240,7 @@ const ImageCaptureModal = Vue.defineComponent({
         <div class="flyout-footer-buttons flex items-center gap-2">
           <button
             @click="confirmImages"
+            @touchend.prevent="confirmImages"
             class="flex-1 btn-primary btn-compact flex items-center justify-center gap-2 px-3 py-1.5 text-sm"
           >
             <div v-html="Helpers.IconLibrary.getIcon('check', 'lucide', 16, 'text-white')"></div>
@@ -247,6 +248,7 @@ const ImageCaptureModal = Vue.defineComponent({
           </button>
           <button
             @click="handleClose"
+            @touchend.prevent="handleClose"
             class="btn-secondary btn-compact px-3 py-1.5 text-sm"
           >
             Close

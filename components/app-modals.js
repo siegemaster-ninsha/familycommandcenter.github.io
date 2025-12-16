@@ -77,12 +77,14 @@ const AppModals = Vue.defineComponent({
         <div class="flyout-footer-buttons flex items-center gap-2">
           <button 
             @click="addToQuicklist"
+            @touchend.prevent="addToQuicklist"
             class="flex-1 btn-primary btn-compact px-3 py-1.5 text-sm"
           >
             Add to Quicklist
           </button>
           <button 
             @click="cancelAddToQuicklist"
+            @touchend.prevent="cancelAddToQuicklist"
             class="btn-secondary btn-compact px-3 py-1.5 text-sm"
           >
             Close
@@ -193,12 +195,14 @@ const AppModals = Vue.defineComponent({
         <div class="flyout-footer-buttons flex items-center gap-2">
           <button 
             @click="addChore"
+            @touchend.prevent="addChore"
             class="flex-1 btn-primary btn-compact px-3 py-1.5 text-sm"
           >
             Add Chore
           </button>
           <button 
             @click="cancelAddChore"
+            @touchend.prevent="cancelAddChore"
             class="btn-secondary btn-compact px-3 py-1.5 text-sm"
           >
             Close
@@ -520,12 +524,14 @@ const AppModals = Vue.defineComponent({
         <div class="flyout-footer-buttons flex items-center gap-2">
           <button 
             @click="confirmChoreDetails"
+            @touchend.prevent="confirmChoreDetails"
             class="flex-1 btn-primary btn-compact px-3 py-1.5 text-sm"
           >
             Create Chore
           </button>
           <button 
             @click="cancelChoreDetails"
+            @touchend.prevent="cancelChoreDetails"
             class="btn-secondary btn-compact px-3 py-1.5 text-sm"
           >
             Close
@@ -592,6 +598,7 @@ const AppModals = Vue.defineComponent({
         <div class="flyout-footer-buttons flex items-center gap-2">
           <button
             @click="confirmSpending"
+            @touchend.prevent="confirmSpending"
             :disabled="spendAmount <= 0 || spendAmount > selectedPerson?.earnings"
             class="flex-1 btn-error btn-compact px-3 py-1.5 text-sm disabled:bg-[color:var(--color-neutral-300)] disabled:cursor-not-allowed"
           >
@@ -599,6 +606,7 @@ const AppModals = Vue.defineComponent({
           </button>
           <button
             @click="closeSpendingModal"
+            @touchend.prevent="closeSpendingModal"
             class="btn-secondary btn-compact px-3 py-1.5 text-sm"
           >
             Close
@@ -729,6 +737,7 @@ const AppModals = Vue.defineComponent({
         <div class="flyout-footer-buttons flex items-center gap-2">
           <button
             @click="confirmMultiAssignment"
+            @touchend.prevent="confirmMultiAssignment"
             :disabled="multiAssignSelectedMembers.length === 0 || multiAssignLoading"
             class="flex-1 btn-primary btn-compact px-3 py-1.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
@@ -737,6 +746,7 @@ const AppModals = Vue.defineComponent({
           </button>
           <button
             @click="cancelMultiAssignment"
+            @touchend.prevent="cancelMultiAssignment"
             :disabled="multiAssignLoading"
             class="btn-secondary btn-compact px-3 py-1.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
