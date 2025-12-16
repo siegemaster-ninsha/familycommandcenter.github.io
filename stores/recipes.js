@@ -105,7 +105,7 @@ const useRecipeStore = Pinia.defineStore('recipes', {
         
         const data = await apiService.get(endpoint);
         this.recipes = data.recipes || [];
-        console.log('✅ Recipes loaded:', this.recipes.length);
+        console.log('[OK] Recipes loaded:', this.recipes.length);
       } catch (error) {
         this.error = error.message;
         console.error('Failed to load recipes:', error);
@@ -129,7 +129,7 @@ const useRecipeStore = Pinia.defineStore('recipes', {
       try {
         const data = await apiService.post(`${CONFIG.API.ENDPOINTS.RECIPES}/scrape`, { url });
         this.scrapedRecipe = data.recipe;
-        console.log('✅ Recipe scraped:', this.scrapedRecipe?.title);
+        console.log('[OK] Recipe scraped:', this.scrapedRecipe?.title);
         return { success: true, recipe: this.scrapedRecipe };
       } catch (error) {
         // Map technical errors to user-friendly messages
@@ -192,6 +192,7 @@ const useRecipeStore = Pinia.defineStore('recipes', {
      * @returns {Object} Result with saved recipe
      */
     async saveRecipe(recipeData) {
+      console.log('[DEBUG] store.saveRecipe - recipeData.tags:', recipeData.tags);
       // Generate a temporary local ID for offline items
       const tempId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
       const localRecipe = {
@@ -200,11 +201,12 @@ const useRecipeStore = Pinia.defineStore('recipes', {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
+      console.log('[DEBUG] store.saveRecipe - localRecipe.tags:', localRecipe.tags);
       
       // Optimistically add to local state immediately
       this.recipes.push(localRecipe);
       this.localRecipeIds.add(tempId);
-      console.log('✅ Recipe added locally:', localRecipe.title);
+      console.log('[OK] Recipe added locally:', localRecipe.title);
       
       // Check if online
       const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
@@ -228,20 +230,23 @@ const useRecipeStore = Pinia.defineStore('recipes', {
       
       // Online - try to sync immediately
       try {
+        console.log('[DEBUG] store.saveRecipe - sending to API with tags:', recipeData.tags);
         const data = await apiService.post(CONFIG.API.ENDPOINTS.RECIPES, recipeData);
+        console.log('[DEBUG] store.saveRecipe - server response tags:', data.recipe?.tags);
         
         if (data.recipe) {
           // Replace temp recipe with server recipe
           const index = this.recipes.findIndex(r => r.id === tempId);
           if (index !== -1) {
             this.recipes[index] = data.recipe;
+            console.log('[DEBUG] store.saveRecipe - replaced local recipe, new tags:', this.recipes[index].tags);
           }
           this.localRecipeIds.delete(tempId);
           
           // Clear scraped recipe after successful save
           this.scrapedRecipe = null;
           
-          console.log('✅ Recipe synced:', data.recipe.title);
+          console.log('[OK] Recipe synced:', data.recipe.title);
           return { success: true, recipe: data.recipe };
         }
         
@@ -272,6 +277,7 @@ const useRecipeStore = Pinia.defineStore('recipes', {
      * @returns {Object} Result with updated recipe
      */
     async updateRecipe(recipeId, updates) {
+      console.log('[DEBUG] updateRecipe called with:', { recipeId, updates });
       const recipe = this.recipes.find(r => r.id === recipeId);
       if (!recipe) {
         console.warn('Recipe not found for update:', recipeId);
@@ -287,7 +293,7 @@ const useRecipeStore = Pinia.defineStore('recipes', {
           updatedAt: new Date().toISOString()
         };
       }
-      console.log('✅ Recipe updated locally:', recipeId);
+      console.log('[OK] Recipe updated locally:', recipeId, 'tags:', this.recipes[index]?.tags);
       
       // Check if online
       const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
@@ -311,14 +317,16 @@ const useRecipeStore = Pinia.defineStore('recipes', {
       
       // Online - try to sync immediately
       try {
+        console.log('[DEBUG] Sending PUT request with updates:', updates);
         const data = await apiService.put(`${CONFIG.API.ENDPOINTS.RECIPES}/${recipeId}`, updates);
+        console.log('[DEBUG] Server response:', data);
         
         if (data.recipe) {
           // Update with server response
           if (index !== -1) {
             this.recipes[index] = { ...this.recipes[index], ...data.recipe };
           }
-          console.log('✅ Recipe update synced:', recipeId);
+          console.log('[OK] Recipe update synced:', recipeId, 'tags:', data.recipe?.tags);
           return { success: true, recipe: data.recipe };
         }
         
@@ -351,7 +359,7 @@ const useRecipeStore = Pinia.defineStore('recipes', {
       // Optimistic update - always remove from local state immediately
       this.recipes = this.recipes.filter(recipe => recipe.id !== recipeId);
       this.localRecipeIds.delete(recipeId);
-      console.log('✅ Recipe deleted locally:', recipeId);
+      console.log('[OK] Recipe deleted locally:', recipeId);
       
       // Clear current recipe if it was the deleted one
       if (this.currentRecipe?.id === recipeId) {
@@ -386,7 +394,7 @@ const useRecipeStore = Pinia.defineStore('recipes', {
       // Online - try to sync
       try {
         await apiService.delete(`${CONFIG.API.ENDPOINTS.RECIPES}/${recipeId}`);
-        console.log('✅ Recipe delete synced:', recipeId);
+        console.log('[OK] Recipe delete synced:', recipeId);
         return { success: true };
       } catch (error) {
         console.warn('Failed to sync recipe delete, queuing:', error.message);
@@ -432,7 +440,7 @@ const useRecipeStore = Pinia.defineStore('recipes', {
       try {
         const data = await apiService.get(`${CONFIG.API.ENDPOINTS.RECIPES}/tags`);
         this.tags = data.tags || [];
-        console.log('✅ Tags loaded:', this.tags.length);
+        console.log('[OK] Tags loaded:', this.tags.length);
       } catch (error) {
         console.error('Failed to load tags:', error);
         this.tags = [];
@@ -449,7 +457,7 @@ const useRecipeStore = Pinia.defineStore('recipes', {
       try {
         const data = await apiService.get(`${CONFIG.API.ENDPOINTS.RECIPES}/health`);
         this.llmHealth = data.health;
-        console.log('✅ LLM health checked:', this.llmHealth?.status);
+        console.log('[OK] LLM health checked:', this.llmHealth?.status);
         return { success: true, health: this.llmHealth };
       } catch (error) {
         console.error('Failed to check LLM health:', error);
@@ -475,7 +483,7 @@ const useRecipeStore = Pinia.defineStore('recipes', {
         const data = await apiService.post(`${CONFIG.API.ENDPOINTS.RECIPES}/image/upload-url`, {
           fileExtension
         });
-        console.log('✅ Image upload URL generated');
+        console.log('[OK] Image upload URL generated');
         return { success: true, uploadUrl: data.uploadUrl, s3Key: data.s3Key, expiresAt: data.expiresAt };
       } catch (error) {
         // Map technical errors to user-friendly messages
@@ -498,7 +506,7 @@ const useRecipeStore = Pinia.defineStore('recipes', {
       
       try {
         const data = await apiService.getRecipeMultipleImageUploadUrls(fileExtensions);
-        console.log('✅ Multiple image upload URLs generated:', data.uploads?.length);
+        console.log('[OK] Multiple image upload URLs generated:', data.uploads?.length);
         return { success: true, uploads: data.uploads };
       } catch (error) {
         // Map technical errors to user-friendly messages
@@ -561,7 +569,7 @@ const useRecipeStore = Pinia.defineStore('recipes', {
         });
         
         const jobId = startData.jobId;
-        console.log('✅ Image processing job started:', jobId);
+        console.log('[OK] Image processing job started:', jobId);
         
         // Poll for completion
         this.imageProcessingStatus = 'Extracting recipe from image...';
@@ -569,7 +577,7 @@ const useRecipeStore = Pinia.defineStore('recipes', {
         
         if (result.status === 'completed') {
           this.scrapedRecipe = result.recipe;
-          console.log('✅ Recipe extracted from image:', this.scrapedRecipe?.title);
+          console.log('[OK] Recipe extracted from image:', this.scrapedRecipe?.title);
           return { success: true, recipe: this.scrapedRecipe };
         } else if (result.status === 'failed') {
           throw new Error(result.error || 'Image processing failed');
@@ -606,7 +614,7 @@ const useRecipeStore = Pinia.defineStore('recipes', {
         const startData = await apiService.processMultipleRecipeImages(s3Keys);
         
         const jobId = startData.jobId;
-        console.log('✅ Multi-image processing job started:', jobId);
+        console.log('[OK] Multi-image processing job started:', jobId);
         
         // Poll for completion
         this.imageProcessingStatus = `Extracting recipe from ${s3Keys.length} image${s3Keys.length > 1 ? 's' : ''}...`;
@@ -614,7 +622,7 @@ const useRecipeStore = Pinia.defineStore('recipes', {
         
         if (result.status === 'completed') {
           this.scrapedRecipe = result.recipe;
-          console.log('✅ Recipe extracted from multiple images:', this.scrapedRecipe?.title);
+          console.log('[OK] Recipe extracted from multiple images:', this.scrapedRecipe?.title);
           return { success: true, recipe: this.scrapedRecipe };
         } else if (result.status === 'failed') {
           throw new Error(result.error || 'Multi-image processing failed');
@@ -722,7 +730,7 @@ const useRecipeStore = Pinia.defineStore('recipes', {
       try {
         // Use the S3 key directly - API Gateway {key+} greedy parameter handles slashes
         const data = await apiService.get(`${CONFIG.API.ENDPOINTS.RECIPES}/image/${s3Key}`);
-        console.log('✅ Image view URL generated');
+        console.log('[OK] Image view URL generated');
         return { success: true, viewUrl: data.viewUrl };
       } catch (error) {
         console.error('Failed to get image view URL:', error);

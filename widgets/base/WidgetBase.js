@@ -260,11 +260,11 @@ const WidgetBase = {
       console.warn(`Widget ${this.widgetId} should implement onRefresh()`);
     },
     
-    onConfigure(settings) {
+    onConfigure() {
       // Override in widget if needed
     },
     
-    onResize(size) {
+    onResize() {
       // Override in widget if needed
     },
     

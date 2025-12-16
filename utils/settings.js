@@ -19,7 +19,7 @@
         accountId,
         bodyPreview: options.body ? (options.body.toString().slice(0, 256)) : undefined
       });
-    } catch {}
+    } catch { /* ignore debug logging errors */ }
 
     const res = await fetch(`${base()}${path}`, { ...options, headers });
 
@@ -31,15 +31,15 @@
         etag: res.headers?.get && res.headers.get('ETag'),
         ok: res.ok
       });
-    } catch {}
+    } catch { /* ignore debug logging errors */ }
     if (!res.ok) {
       let msg = `${res.status} ${res.statusText}`;
-      try { const j = await res.json(); if (j && j.error) msg = j.error; } catch {}
+      try { const j = await res.json(); if (j && j.error) msg = j.error; } catch { /* use default message */ }
       const err = new Error(`API error: ${msg}`);
       err.status = res.status; err.response = res;
       throw err;
     }
-    try { return await res.json(); } catch { return {}; }
+    try { return await res.json(); } catch { /* return empty object for non-JSON responses */ return {}; }
   }
 
   window.SettingsClient = {

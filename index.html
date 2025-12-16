@@ -37,7 +37,7 @@
 
     <!-- External dependencies -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
     
     <!-- Pinia with proper dependencies -->
     <script src="https://unpkg.com/vue-demi@0.14.6/lib/index.iife.js"></script>
@@ -45,8 +45,6 @@
 
     <!-- Shoelace Web Components -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.0/dist/themes/light.css" />
-    <!-- Fallback CSS for older version if needed -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0/dist/themes/light.css" />
 
     <!-- Load Shoelace via ESM from a CDN that handles dependencies -->
     <!-- Note: This works on GitHub Pages because ESM loading happens in the browser, not on the server -->
@@ -54,36 +52,36 @@
       try {
         // Try esm.sh which should handle dependencies better
         await import('https://esm.sh/@shoelace-style/shoelace@2.15.0');
-        console.log('✅ Shoelace loaded successfully via esm.sh');
+        console.log('[OK] Shoelace loaded successfully via esm.sh');
 
         // Dispatch a custom event when Shoelace is ready
         window.dispatchEvent(new CustomEvent('shoelace-ready', {
           detail: { version: '2.15.0', cdn: 'esm.sh' }
         }));
       } catch (error) {
-        console.error('❌ Failed to load Shoelace via esm.sh:', error);
+        console.error('[ERROR] Failed to load Shoelace via esm.sh:', error);
 
         // Try alternative approach with skypack
         try {
-          console.log('🔄 Trying skypack CDN...');
+          console.log('[RETRY] Trying skypack CDN...');
           await import('https://cdn.skypack.dev/@shoelace-style/shoelace@2.15.0');
-          console.log('✅ Shoelace loaded via skypack CDN');
+          console.log('[OK] Shoelace loaded via skypack CDN');
           window.dispatchEvent(new CustomEvent('shoelace-ready', {
             detail: { version: '2.15.0', cdn: 'skypack' }
           }));
         } catch (fallbackError) {
-          console.error('❌ Both CDN attempts failed:', fallbackError);
+          console.error('[ERROR] Both CDN attempts failed:', fallbackError);
 
           // Last resort: try older version that might not have dependency issues
           try {
-            console.log('🔄 Trying older Shoelace version...');
+            console.log('[RETRY] Trying older Shoelace version...');
             await import('https://esm.sh/@shoelace-style/shoelace@2.0.0');
-            console.log('✅ Shoelace v2.0.0 loaded via esm.sh');
+            console.log('[OK] Shoelace v2.0.0 loaded via esm.sh');
             window.dispatchEvent(new CustomEvent('shoelace-ready', {
               detail: { version: '2.0.0', cdn: 'esm.sh' }
             }));
           } catch (finalError) {
-            console.error('❌ All Shoelace loading attempts failed:', finalError);
+            console.error('[ERROR] All Shoelace loading attempts failed:', finalError);
           }
         }
       }
@@ -97,7 +95,11 @@
 
     <!-- Icon Libraries -->
     <!-- Lucide Icons (currently active) -->
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://unpkg.com/lucide@0.561.0/dist/umd/lucide.js"></script>
+    
+    <!-- Floating UI for dropdown/tooltip positioning -->
+    <script src="https://cdn.jsdelivr.net/npm/@floating-ui/core@1.6.8/dist/floating-ui.core.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@floating-ui/dom@1.6.12/dist/floating-ui.dom.umd.min.js"></script>
 
     <!-- Tailwind CSS Configuration -->
     <script>
@@ -137,19 +139,11 @@
     <script src="utils/settings.js"></script>
     <link rel="stylesheet" href="styles.css">
 
-    <!-- Early theme initialization to prevent flash of unstyled content -->
-    <script>
-      (function() {
-        // Apply cached theme immediately before page renders
-        if (typeof ThemeManager !== 'undefined' && ThemeManager.initializeTheme) {
-          ThemeManager.initializeTheme();
-        }
-      })();
-    </script>
     <script src="utils/helpers.js"></script>
     <script src="utils/touch-utils.js"></script>
     <script src="utils/ios-lifecycle.js"></script>
     <script src="utils/ingredientFormatter.js"></script>
+    <script src="utils/shopping-categories.js"></script>
 
     <!-- Phase 0: Infrastructure -->
     <script src="services/api.js"></script>
@@ -174,7 +168,7 @@
     <script>
       // Global function to check Shoelace availability
       window.debugShoelace = function() {
-        console.log('🔍 Shoelace Debug Info:');
+        console.log('[DEBUG] Shoelace Debug Info:');
         console.log('  - window.customElements exists:', !!window.customElements);
         console.log('  - sl-switch registered:', !!window.customElements?.get('sl-switch'));
 
@@ -199,16 +193,16 @@
 
       // Auto-run debug check after a delay
       setTimeout(() => {
-        console.log('🔍 Auto-checking Shoelace availability...');
-        console.log('🌐 Running on:', window.location.origin);
-        console.log('📡 Testing ESM loading capabilities...');
+        console.log('[DEBUG] Auto-checking Shoelace availability...');
+        console.log('[INFO] Running on:', window.location.origin);
+        console.log('[INFO] Testing ESM loading capabilities...');
         window.debugShoelace();
       }, 2000);
 
       // Listen for shoelace-ready event for debugging
       window.addEventListener('shoelace-ready', (event) => {
         const detail = event.detail || {};
-        console.log(`🎉 Shoelace ready event fired: v${detail.version || 'unknown'} via ${detail.cdn || 'unknown'} - components should be available now`);
+        console.log(`[SUCCESS] Shoelace ready event fired: v${detail.version || 'unknown'} via ${detail.cdn || 'unknown'} - components should be available now`);
         setTimeout(() => window.debugShoelace(), 100);
       });
     </script>
@@ -284,11 +278,13 @@
                   <p class="text-primary-custom tracking-light text-2xl sm:text-[32px] font-bold leading-tight min-w-0">
                     {{ currentPage === 'chores' ? 'Chores' : currentPage === 'dashboard' ? '' : currentPage === 'family' ? 'Family Members' : currentPage === 'shopping' ? '' : currentPage === 'recipes' ? 'Recipes' : 'Account Settings' }}
                   </p>
+                  <!-- New Day Button - _Requirements: 4.4_ -->
                   <div class="flex items-center gap-3" v-if="currentPage === 'chores'">
                     <button
-                      @click="showNewDayModal = true"
-                      class="btn-warning flex items-center gap-2 px-3 sm:px-4 py-3 sm:py-2 min-h-[48px] touch-target"
-                      title="Start a new day - clears all chores while preserving earnings"
+                      @click="offlineStore.isOnline ? showNewDayModal = true : null"
+                      :disabled="!offlineStore.isOnline"
+                      class="btn-warning flex items-center gap-2 px-3 sm:px-4 py-3 sm:py-2 min-h-[48px] touch-target disabled:opacity-50 disabled:cursor-not-allowed"
+                      :title="offlineStore.isOnline ? 'Start a new day - clears all chores while preserving earnings' : 'Starting a new day requires an internet connection'"
                     >
                       <div v-html="Helpers.IconLibrary.getIcon('checkCircle', 'lucide', 20, 'text-white')"></div>
                       <span class="font-medium hidden sm:inline">New Day</span>
@@ -354,6 +350,7 @@
 
     <!-- Load component templates -->
     <script src="components/ui-components.js"></script>
+    <script src="components/flyout-panel.js"></script>
     <script src="components/offline-indicator.js"></script>
     <script src="components/update-prompt.js"></script>
     <script src="components/quicklist-section.js"></script>
@@ -368,6 +365,7 @@
     <script src="components/tailwind-chore-page.js"></script>
     <script src="components/account-page.js"></script>
     <script src="components/recipe-page.js"></script>
+    <script src="utils/image-orientation.js"></script>
     <script src="components/image-capture-modal.js"></script>
 
     <!-- Phase 2: Widget System Components -->
@@ -397,7 +395,7 @@
           // Use full path for GitHub Pages repository structure
           navigator.serviceWorker.register('/familycommandcenter.github.io/sw.js')
             .then((registration) => {
-              console.log('🔧 Service Worker registered successfully:', registration);
+              console.log('[CONFIG] Service Worker registered successfully:', registration);
               
               // Check for updates periodically (every 60 seconds)
               setInterval(() => {
@@ -407,12 +405,12 @@
               // Handle service worker updates
               registration.addEventListener('updatefound', () => {
                 const newWorker = registration.installing;
-                console.log('🔄 New service worker found, installing...');
+                console.log('[SYNC] New service worker found, installing...');
                 
                 newWorker.addEventListener('statechange', () => {
                   if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                     // New service worker is installed and waiting
-                    console.log('🔔 New version available!');
+                    console.log('[NOTIFY] New version available!');
                     window.dispatchEvent(new CustomEvent('sw-update-available', {
                       detail: { registration }
                     }));
@@ -421,13 +419,24 @@
               });
             })
             .catch((error) => {
-              console.error('❌ Service Worker registration failed:', error);
+              console.error('[ERROR] Service Worker registration failed:', error);
             });
           
           // Listen for controller change (new SW took over)
           navigator.serviceWorker.addEventListener('controllerchange', () => {
-            console.log('🔄 New service worker activated, reloading...');
-            window.location.reload();
+            console.log('[SYNC] New service worker activated, performing hard refresh...');
+            // Hard refresh: clear caches and reload bypassing browser cache
+            if ('caches' in window) {
+              caches.keys().then(names => {
+                Promise.all(names.map(name => caches.delete(name))).then(() => {
+                  // Force reload from server, not cache
+                  window.location.href = window.location.href.split('?')[0] + '?v=' + Date.now();
+                });
+              });
+            } else {
+              // Fallback: add cache-busting query param
+              window.location.href = window.location.href.split('?')[0] + '?v=' + Date.now();
+            }
           });
           
           // Handle messages from service worker
@@ -435,7 +444,7 @@
             const { type, version } = event.data || {};
             
             if (type === 'SW_ACTIVATED') {
-              console.log('✅ Service Worker activated, version:', version);
+              console.log('[OK] Service Worker activated, version:', version);
             }
             
             if (type === 'PROCESS_SYNC_QUEUE') {

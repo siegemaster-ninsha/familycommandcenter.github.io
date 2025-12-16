@@ -12,14 +12,47 @@ class AuthService {
     this.refreshInterval = 15 * 60 * 1000; // 15 minutes
     this.refreshThreshold = 30 * 60 * 1000; // Refresh if token expires in 30 minutes
 
+    // Initialization guard to prevent duplicate auth calls
+    this._authInitialized = false;
+    this._authInitializing = null; // Promise for in-progress initialization
+
     // Don't auto-initialize in constructor to avoid race conditions
     // initializeAuth() will be called explicitly by the app
   }
 
   /**
    * initialize authentication on app start
+   * Uses guard flag to ensure this is only called once
    */
   async initializeAuth() {
+    // Guard: If already initialized, return cached result
+    if (this._authInitialized) {
+      console.log('🔧 Auth already initialized, skipping duplicate call');
+      return this.isAuthenticated();
+    }
+
+    // Guard: If initialization is in progress, wait for it
+    if (this._authInitializing) {
+      console.log('🔧 Auth initialization in progress, waiting...');
+      return this._authInitializing;
+    }
+
+    // Start initialization and store the promise
+    this._authInitializing = this._doInitializeAuth();
+    
+    try {
+      const result = await this._authInitializing;
+      this._authInitialized = true;
+      return result;
+    } finally {
+      this._authInitializing = null;
+    }
+  }
+
+  /**
+   * Internal method that performs the actual authentication initialization
+   */
+  async _doInitializeAuth() {
     try {
       console.log('🔧 Initializing authentication...');
       
@@ -30,6 +63,18 @@ class AuthService {
       if (storedTokens && storedTokens.accessToken) {
         console.log('🔧 Setting tokens from storage...');
         this.setTokens(storedTokens);
+        
+        // Check if token is expired before proceeding
+        if (this.isTokenExpired()) {
+          console.log('🔧 Token is expired, attempting refresh...');
+          const refreshed = await this.refreshAccessToken();
+          if (!refreshed) {
+            console.log('❌ Token refresh failed, clearing auth');
+            this.clearAuth();
+            return false;
+          }
+          console.log('✅ Token refreshed successfully');
+        }
         
         // validate token and get user info
         console.log('🔧 Getting current user info...');
@@ -341,6 +386,26 @@ class AuthService {
   }
 
   /**
+   * check if token is expired (past expiration time)
+   */
+  isTokenExpired() {
+    if (!this.accessToken) return true;
+
+    try {
+      const payload = this.decodeTokenPayload(this.accessToken);
+      if (!payload || !payload.exp) return true;
+
+      const expirationTime = payload.exp * 1000; // Convert to milliseconds
+      const currentTime = Date.now();
+
+      return currentTime >= expirationTime;
+    } catch (error) {
+      console.error('Error checking token expiration:', error);
+      return true; // Assume expired on error
+    }
+  }
+
+  /**
    * check if tokens need refreshing
    */
   shouldRefreshTokens() {
@@ -450,6 +515,10 @@ class AuthService {
     this.accessToken = null;
     this.refreshToken = null;
     this.idToken = null;
+
+    // Reset initialization guard so re-login can re-initialize
+    this._authInitialized = false;
+    this._authInitializing = null;
 
     try {
       // Clear from both storage types to ensure clean logout

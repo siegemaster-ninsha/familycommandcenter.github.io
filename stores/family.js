@@ -55,6 +55,14 @@ const useFamilyStore = Pinia.defineStore('family', {
       return (name) => state.members.find(member => member.displayName === name);
     },
     
+    // get daily chores for a member by ID
+    memberDailyChores: (state) => {
+      return (memberId) => {
+        const member = state.members.find(m => m.id === memberId);
+        return member?.dailyChores || [];
+      };
+    },
+    
     // get total family earnings
     totalEarnings: (state) => {
       return state.members.reduce((sum, member) => sum + (member.earnings || 0), 0);
@@ -97,6 +105,12 @@ const useFamilyStore = Pinia.defineStore('family', {
           // API returns { familyMembers: [...] } - use familyMembers key only
           const familyMembers = data.familyMembers || [];
           
+          // Normalize member data to ensure dailyChores is always an array
+          const normalizeMembers = (members) => members.map(member => ({
+            ...member,
+            dailyChores: Array.isArray(member.dailyChores) ? member.dailyChores : []
+          }));
+          
           if (preserveOptimisticUpdates) {
             // preserve earnings from optimistic updates (keyed by displayName)
             const earningsMap = {};
@@ -107,15 +121,15 @@ const useFamilyStore = Pinia.defineStore('family', {
               };
             });
             
-            this.members = familyMembers.map(member => ({
+            this.members = normalizeMembers(familyMembers).map(member => ({
               ...member,
               ...(earningsMap[member.displayName] || {})
             }));
           } else {
-            this.members = familyMembers;
+            this.members = normalizeMembers(familyMembers);
           }
           
-          console.log('✅ Family members loaded from API:', this.members.length);
+          console.log('[OK] Family members loaded from API:', this.members.length);
           
           // Cache the data for offline use
           if (offlineStorage) {
@@ -155,11 +169,15 @@ const useFamilyStore = Pinia.defineStore('family', {
       try {
         const cachedMembers = await offlineStorage.getCachedFamilyMembers();
         if (cachedMembers && cachedMembers.length > 0) {
-          this.members = cachedMembers;
+          // Normalize member data to ensure dailyChores is always an array
+          this.members = cachedMembers.map(member => ({
+            ...member,
+            dailyChores: Array.isArray(member.dailyChores) ? member.dailyChores : []
+          }));
           this.isUsingCachedData = true;
-          console.log('📦 Family members loaded from cache:', this.members.length);
+          console.log('[CACHE] Family members loaded from cache:', this.members.length);
         } else {
-          console.log('📦 No cached family members available');
+          console.log('[CACHE] No cached family members available');
           this.members = [];
         }
       } catch (cacheError) {
@@ -174,7 +192,7 @@ const useFamilyStore = Pinia.defineStore('family', {
       const offlineStore = window.useOfflineStore ? window.useOfflineStore() : null;
       if (offlineStore && !offlineStore.isFeatureAvailable('createChild')) {
         const message = offlineStore.getDisabledFeatureMessage('createChild');
-        console.warn('⚠️ Cannot create child while offline');
+        console.warn('[WARN] Cannot create child while offline');
         if (window.useUIStore) {
           const uiStore = window.useUIStore();
           uiStore.showError(message);
@@ -192,7 +210,7 @@ const useFamilyStore = Pinia.defineStore('family', {
         if (data.success) {
           // reload members to include new child
           await this.loadMembers();
-          console.log('✅ Child created:', childData.displayName);
+          console.log('[OK] Child created:', childData.displayName);
           return { success: true };
         }
         
@@ -213,13 +231,175 @@ const useFamilyStore = Pinia.defineStore('family', {
           if (index !== -1) {
             this.members[index] = { ...this.members[index], ...data.member };
           }
-          console.log('✅ Member updated:', memberId);
+          console.log('[OK] Member updated:', memberId);
           return { success: true, member: data.member };
         }
         
         return { success: false, error: 'Failed to update member' };
       } catch (error) {
         console.error('Failed to update member:', error);
+        return { success: false, error: error.message };
+      }
+    },
+    
+    // =============================================
+    // DAILY CHORES MANAGEMENT
+    // =============================================
+    
+    // Update member's entire daily chores list (PUT)
+    // Requirements: 1.2, 1.3
+    async updateMemberDailyChores(memberId, dailyChores) {
+      // Check if feature is available offline
+      const offlineStore = window.useOfflineStore ? window.useOfflineStore() : null;
+      if (offlineStore && !offlineStore.isFeatureAvailable('dailyChores')) {
+        const message = offlineStore.getDisabledFeatureMessage('dailyChores') || 'Daily chores management requires network connectivity';
+        console.warn('[WARN] Cannot update daily chores while offline');
+        if (window.useUIStore) {
+          const uiStore = window.useUIStore();
+          uiStore.showError(message);
+        }
+        return { success: false, error: message, offlineBlocked: true };
+      }
+      
+      // Optimistic update
+      const member = this.members.find(m => m.id === memberId);
+      const originalDailyChores = member ? [...(member.dailyChores || [])] : [];
+      
+      if (member) {
+        member.dailyChores = Array.isArray(dailyChores) ? dailyChores : [];
+      }
+      
+      try {
+        const data = await apiService.put(
+          `${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${memberId}/daily-chores`,
+          { dailyChores }
+        );
+        
+        if (data.member) {
+          const index = this.members.findIndex(m => m.id === memberId);
+          if (index !== -1) {
+            this.members[index] = {
+              ...this.members[index],
+              ...data.member,
+              dailyChores: Array.isArray(data.member.dailyChores) ? data.member.dailyChores : []
+            };
+          }
+          console.log('[OK] Member daily chores updated:', memberId);
+          return { success: true, member: data.member };
+        }
+        
+        return { success: false, error: 'Failed to update daily chores' };
+      } catch (error) {
+        // Rollback on error
+        if (member) {
+          member.dailyChores = originalDailyChores;
+        }
+        console.error('Failed to update member daily chores:', error);
+        return { success: false, error: error.message };
+      }
+    },
+    
+    // Add a single daily chore to member (POST)
+    // Requirements: 1.2
+    async addMemberDailyChore(memberId, quicklistChoreId) {
+      // Check if feature is available offline
+      const offlineStore = window.useOfflineStore ? window.useOfflineStore() : null;
+      if (offlineStore && !offlineStore.isFeatureAvailable('dailyChores')) {
+        const message = offlineStore.getDisabledFeatureMessage('dailyChores') || 'Daily chores management requires network connectivity';
+        console.warn('[WARN] Cannot add daily chore while offline');
+        if (window.useUIStore) {
+          const uiStore = window.useUIStore();
+          uiStore.showError(message);
+        }
+        return { success: false, error: message, offlineBlocked: true };
+      }
+      
+      // Optimistic update
+      const member = this.members.find(m => m.id === memberId);
+      const originalDailyChores = member ? [...(member.dailyChores || [])] : [];
+      
+      if (member && !member.dailyChores.includes(quicklistChoreId)) {
+        member.dailyChores = [...(member.dailyChores || []), quicklistChoreId];
+      }
+      
+      try {
+        const data = await apiService.post(
+          `${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${memberId}/daily-chores`,
+          { quicklistChoreId }
+        );
+        
+        if (data.member) {
+          const index = this.members.findIndex(m => m.id === memberId);
+          if (index !== -1) {
+            this.members[index] = {
+              ...this.members[index],
+              ...data.member,
+              dailyChores: Array.isArray(data.member.dailyChores) ? data.member.dailyChores : []
+            };
+          }
+          console.log('[OK] Daily chore added to member:', memberId);
+          return { success: true, member: data.member };
+        }
+        
+        return { success: false, error: 'Failed to add daily chore' };
+      } catch (error) {
+        // Rollback on error
+        if (member) {
+          member.dailyChores = originalDailyChores;
+        }
+        console.error('Failed to add daily chore:', error);
+        return { success: false, error: error.message };
+      }
+    },
+    
+    // Remove a daily chore from member (DELETE)
+    // Requirements: 1.3
+    async removeMemberDailyChore(memberId, quicklistChoreId) {
+      // Check if feature is available offline
+      const offlineStore = window.useOfflineStore ? window.useOfflineStore() : null;
+      if (offlineStore && !offlineStore.isFeatureAvailable('dailyChores')) {
+        const message = offlineStore.getDisabledFeatureMessage('dailyChores') || 'Daily chores management requires network connectivity';
+        console.warn('[WARN] Cannot remove daily chore while offline');
+        if (window.useUIStore) {
+          const uiStore = window.useUIStore();
+          uiStore.showError(message);
+        }
+        return { success: false, error: message, offlineBlocked: true };
+      }
+      
+      // Optimistic update
+      const member = this.members.find(m => m.id === memberId);
+      const originalDailyChores = member ? [...(member.dailyChores || [])] : [];
+      
+      if (member) {
+        member.dailyChores = (member.dailyChores || []).filter(id => id !== quicklistChoreId);
+      }
+      
+      try {
+        const data = await apiService.delete(
+          `${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${memberId}/daily-chores/${quicklistChoreId}`
+        );
+        
+        if (data.member) {
+          const index = this.members.findIndex(m => m.id === memberId);
+          if (index !== -1) {
+            this.members[index] = {
+              ...this.members[index],
+              ...data.member,
+              dailyChores: Array.isArray(data.member.dailyChores) ? data.member.dailyChores : []
+            };
+          }
+          console.log('[OK] Daily chore removed from member:', memberId);
+          return { success: true, member: data.member };
+        }
+        
+        return { success: false, error: 'Failed to remove daily chore' };
+      } catch (error) {
+        // Rollback on error
+        if (member) {
+          member.dailyChores = originalDailyChores;
+        }
+        console.error('Failed to remove daily chore:', error);
         return { success: false, error: error.message };
       }
     },
@@ -245,7 +425,7 @@ const useFamilyStore = Pinia.defineStore('family', {
             { showOnChoreBoard: member.showOnChoreBoard }
           );
           
-          console.log('✅ Member chore board visibility updated:', member.name);
+          console.log('[OK] Member chore board visibility updated:', member.name);
           return { success: true };
         } catch (error) {
           // rollback on error
@@ -266,7 +446,7 @@ const useFamilyStore = Pinia.defineStore('family', {
       
       try {
         await apiService.delete(`${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${memberId}`);
-        console.log('✅ Member removed:', memberId);
+        console.log('[OK] Member removed:', memberId);
         return { success: true };
       } catch (error) {
         console.error('Failed to remove member:', error);
@@ -281,7 +461,7 @@ const useFamilyStore = Pinia.defineStore('family', {
       try {
         const data = await apiService.get(CONFIG.API.ENDPOINTS.SPENDING_REQUESTS);
         this.spendingRequests = data.requests || [];
-        console.log('✅ Spending requests loaded:', this.spendingRequests.length);
+        console.log('[OK] Spending requests loaded:', this.spendingRequests.length);
       } catch (error) {
         console.error('Failed to load spending requests:', error);
         this.spendingRequests = [];
@@ -294,7 +474,7 @@ const useFamilyStore = Pinia.defineStore('family', {
       const offlineStore = window.useOfflineStore ? window.useOfflineStore() : null;
       if (offlineStore && !offlineStore.isFeatureAvailable('spendingRequest')) {
         const message = offlineStore.getDisabledFeatureMessage('spendingRequest');
-        console.warn('⚠️ Cannot create spending request while offline');
+        console.warn('[WARN] Cannot create spending request while offline');
         if (window.useUIStore) {
           const uiStore = window.useUIStore();
           uiStore.showError(message);
@@ -310,7 +490,7 @@ const useFamilyStore = Pinia.defineStore('family', {
         
         if (data.request) {
           this.spendingRequests.push(data.request);
-          console.log('✅ Spending request created:', amount);
+          console.log('[OK] Spending request created:', amount);
           return { success: true, request: data.request };
         }
         
@@ -327,7 +507,7 @@ const useFamilyStore = Pinia.defineStore('family', {
       const offlineStore = window.useOfflineStore ? window.useOfflineStore() : null;
       if (offlineStore && !offlineStore.isFeatureAvailable('spendingRequest')) {
         const message = offlineStore.getDisabledFeatureMessage('spendingRequest');
-        console.warn('⚠️ Cannot approve spending request while offline');
+        console.warn('[WARN] Cannot approve spending request while offline');
         if (window.useUIStore) {
           const uiStore = window.useUIStore();
           uiStore.showError(message);
@@ -347,7 +527,7 @@ const useFamilyStore = Pinia.defineStore('family', {
         // reload members to update earnings
         await this.loadMembers();
         
-        console.log('✅ Spending request approved:', requestId);
+        console.log('[OK] Spending request approved:', requestId);
         return { success: true };
       } catch (error) {
         console.error('Failed to approve spending request:', error);
@@ -361,7 +541,7 @@ const useFamilyStore = Pinia.defineStore('family', {
       const offlineStore = window.useOfflineStore ? window.useOfflineStore() : null;
       if (offlineStore && !offlineStore.isFeatureAvailable('spendingRequest')) {
         const message = offlineStore.getDisabledFeatureMessage('spendingRequest');
-        console.warn('⚠️ Cannot deny spending request while offline');
+        console.warn('[WARN] Cannot deny spending request while offline');
         if (window.useUIStore) {
           const uiStore = window.useUIStore();
           uiStore.showError(message);
@@ -378,7 +558,7 @@ const useFamilyStore = Pinia.defineStore('family', {
           request.status = 'denied';
         }
         
-        console.log('✅ Spending request denied:', requestId);
+        console.log('[OK] Spending request denied:', requestId);
         return { success: true };
       } catch (error) {
         console.error('Failed to deny spending request:', error);
@@ -392,7 +572,7 @@ const useFamilyStore = Pinia.defineStore('family', {
       const offlineStore = window.useOfflineStore ? window.useOfflineStore() : null;
       if (offlineStore && !offlineStore.isFeatureAvailable('parentInvite')) {
         const message = offlineStore.getDisabledFeatureMessage('parentInvite');
-        console.warn('⚠️ Cannot create parent invite while offline');
+        console.warn('[WARN] Cannot create parent invite while offline');
         if (window.useUIStore) {
           const uiStore = window.useUIStore();
           uiStore.showError(message);
@@ -408,7 +588,7 @@ const useFamilyStore = Pinia.defineStore('family', {
             token: data.token,
             expiresAt: data.expiresAt
           };
-          console.log('✅ Parent invite created');
+          console.log('[OK] Parent invite created');
           return { success: true, token: data.token, expiresAt: data.expiresAt };
         }
         

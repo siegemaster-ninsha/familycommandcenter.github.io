@@ -5,6 +5,7 @@
 // **Validates: Requirements 1.4, 4.2, 5.3, 7.1, 7.2, 7.3, 8.1, 8.2, 9.1, 9.2, 9.3, 9.4, 10.1, 10.2**
 
 const RecipePage = Vue.defineComponent({
+  name: 'RecipePage',
   template: `
     <div class="space-y-6 pb-24 sm:pb-0">
       <!-- URL Scraper Section -->
@@ -12,7 +13,7 @@ const RecipePage = Vue.defineComponent({
         <div class="w-full block rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
           <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2 mb-4">
             <div v-html="Helpers.IconLibrary.getIcon('link', 'lucide', 20, 'text-primary-custom')"></div>
-            Scrape Recipe from URL
+            Import Recipe from URL
           </h2>
           
           <!-- LLM Health Status -->
@@ -52,7 +53,7 @@ const RecipePage = Vue.defineComponent({
               >
                 <div v-if="scraping" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 <div v-else v-html="Helpers.IconLibrary.getIcon('download', 'lucide', 18, 'text-white')"></div>
-                <span>{{ scraping ? 'Scraping...' : 'Scrape Recipe' }}</span>
+                <span>{{ scraping ? 'Importing...' : 'Import Recipe' }}</span>
               </button>
             </div>
             
@@ -98,12 +99,12 @@ const RecipePage = Vue.defineComponent({
             </div>
           </div>
           
-          <!-- Scrape Error -->
+          <!-- Import Error -->
           <div v-if="scrapeError" class="mt-4 p-4 rounded-lg bg-red-50 border border-red-200">
             <div class="flex items-start gap-3">
               <div v-html="Helpers.IconLibrary.getIcon('alertTriangle', 'lucide', 20, 'text-red-500')"></div>
               <div>
-                <p class="font-medium text-red-700">Failed to scrape recipe</p>
+                <p class="font-medium text-red-700">Failed to import recipe</p>
                 <p class="text-sm text-red-600 mt-1">{{ scrapeError }}</p>
               </div>
             </div>
@@ -111,13 +112,13 @@ const RecipePage = Vue.defineComponent({
         </div>
       </div>
       
-      <!-- Scraped Recipe Preview -->
+      <!-- Recipe Preview -->
       <div v-if="scrapedRecipe" class="w-full">
         <div class="w-full block rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
               <div v-html="Helpers.IconLibrary.getIcon('sparkles', 'lucide', 20, 'text-primary-custom')"></div>
-              Scraped Recipe Preview
+              Recipe Preview
             </h2>
             <button
               @click="clearScrapedRecipe"
@@ -174,11 +175,11 @@ const RecipePage = Vue.defineComponent({
                   <span
                     v-for="tag in selectedTags"
                     :key="tag"
-                    class="px-3 py-1 rounded-full text-sm bg-secondary-500 text-white flex items-center gap-1"
+                    class="tag tag-secondary tag-removable"
                   >
                     {{ tag }}
                     <button @click="removeTag(tag)" class="hover:text-red-200">
-                      <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 12, '')"></div>
+                      <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 10, '')"></div>
                     </button>
                   </span>
                 </div>
@@ -348,7 +349,7 @@ const RecipePage = Vue.defineComponent({
                 <span
                   v-for="tag in recipe.tags?.slice(0, 3)"
                   :key="tag"
-                  class="px-2 py-0.5 rounded-full text-xs bg-primary-100 text-primary-700"
+                  class="tag tag-outline"
                 >
                   {{ tag }}
                 </span>
@@ -365,57 +366,69 @@ const RecipePage = Vue.defineComponent({
         </div>
       </div>
       
-      <!-- Recipe Detail Modal -->
-      <div v-if="showRecipeModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-          <!-- Modal Header -->
-          <div class="sticky top-0 bg-white border-b p-4 flex items-center justify-between" style="border-color: var(--color-border-card);">
-            <h2 class="text-xl font-bold text-primary-custom">{{ currentRecipe?.title }}</h2>
-            <button
-              @click="closeRecipeModal"
-              class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+      <!-- Recipe Detail Flyout -->
+      <flyout-panel
+        :open="showRecipeModal"
+        @close="handleFlyoutClose"
+        @closed="onFlyoutClosed"
+        :show-footer="true"
+        :show-header-close="false"
+      >
+        <template #title>
+          <div class="flex-1 min-w-0">
+            <input
+              v-model="editForm.title"
+              type="text"
+              class="w-full text-lg font-bold text-primary-custom bg-transparent border-b border-transparent hover:border-gray-300 focus:border-primary-500 focus:outline-none transition-colors"
+              placeholder="Recipe title"
+              @input="markAsEdited"
             >
-              <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 20, '')"></div>
-            </button>
-          </div>
-          
-          <!-- Modal Content -->
-          <div class="p-6 space-y-6">
-            <!-- Recipe Scale Selector -->
-            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-3 p-4 rounded-lg bg-gray-50">
-              <label class="font-medium">Scale:</label>
-              <div class="flex items-center gap-3 flex-shrink-0">
-                <button
-                  @click="decreaseScale"
-                  class="rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  style="width: 40px; height: 40px; min-width: 40px; min-height: 40px;"
-                  :disabled="scaleMultiplier <= 1"
-                >
-                  <div v-html="Helpers.IconLibrary.getIcon('minus', 'lucide', 20, '')"></div>
-                </button>
-                <span class="w-12 text-center font-bold text-xl flex-shrink-0">{{ scaleMultiplier }}x</span>
-                <button
-                  @click="increaseScale"
-                  class="rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors"
-                  style="width: 40px; height: 40px; min-width: 40px; min-height: 40px;"
-                >
-                  <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 20, '')"></div>
-                </button>
-              </div>
-              <span class="text-sm text-secondary-custom whitespace-nowrap">
-                ({{ scaledServings }} servings)
-              </span>
-            </div>
-            
-            <!-- Tags -->
-            <div v-if="currentRecipe?.tags?.length" class="flex flex-wrap gap-2">
+            <!-- Tags (inline with title) -->
+            <div class="flex flex-wrap items-center gap-1 mt-1">
               <span
-                v-for="tag in currentRecipe?.tags"
+                v-for="tag in editForm.tags"
                 :key="'tag-' + tag"
-                class="px-3 py-1 rounded-full text-sm bg-primary-500 text-white"
+                class="tag tag-primary tag-removable"
               >
                 {{ tag }}
+                <button @click="removeTagInline(tag)" class="tag-remove-btn hover:text-red-200">
+                  <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 8, '')"></div>
+                </button>
               </span>
+              <input
+                v-model="inlineTagInput"
+                type="text"
+                placeholder="+ add"
+                class="w-12 px-1 py-0 text-xs text-gray-400 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-primary-500 focus:text-gray-700 focus:w-20 transition-all outline-none"
+                @keyup.enter="addTagInline"
+                @blur="addTagInline"
+              >
+            </div>
+          </div>
+        </template>
+        
+        <template #default>
+          <div class="space-y-4">
+            <!-- Compact Scale Selector -->
+            <div class="scale-selector flex items-center gap-2 sm:gap-3 px-3 py-2 rounded-lg bg-gray-50 flex-wrap">
+              <span class="text-sm text-secondary-custom whitespace-nowrap">Scale:</span>
+              <div class="flex items-center gap-2">
+                <button
+                  @click="decreaseScale"
+                  class="scale-btn w-8 h-8 min-w-[32px] min-h-[32px] rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors disabled:opacity-50"
+                  :disabled="scaleMultiplier <= 0.5"
+                >
+                  <div v-html="Helpers.IconLibrary.getIcon('minus', 'lucide', 16, '')"></div>
+                </button>
+                <span class="w-8 text-center font-bold text-sm">{{ scaleMultiplier }}x</span>
+                <button
+                  @click="increaseScale"
+                  class="scale-btn w-8 h-8 min-w-[32px] min-h-[32px] rounded-full bg-primary-500 text-white flex items-center justify-center hover:bg-primary-600 transition-colors"
+                >
+                  <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16, '')"></div>
+                </button>
+              </div>
+              <span class="text-sm text-secondary-custom">({{ scaledServings }} servings)</span>
             </div>
             
             <!-- Ingredients -->
@@ -428,27 +441,27 @@ const RecipePage = Vue.defineComponent({
               </div>
               
               <!-- Quick select buttons + Add to Cart -->
-              <div class="flex gap-2 mb-3 text-xs items-center">
+              <div class="flex flex-wrap gap-2 mb-3 items-center">
                 <button
                   @click="selectAllIngredients"
-                  class="btn-secondary px-2 py-1 text-xs"
+                  class="btn-secondary btn-compact px-3 py-1.5 text-sm"
                 >
                   Select All
                 </button>
                 <button
                   @click="deselectAllIngredients"
-                  class="btn-secondary px-2 py-1 text-xs"
+                  class="btn-secondary btn-compact px-3 py-1.5 text-sm"
                 >
                   Deselect All
                 </button>
                 <button
                   @click="sendSelectedToShoppingList"
-                  class="btn-success flex items-center gap-1.5 px-2 py-1 text-xs ml-auto"
+                  class="btn-success btn-compact flex items-center gap-1.5 px-3 py-1.5 text-sm ml-auto"
                   title="Send selected ingredients to shopping list"
                   :disabled="sendingToShopping || selectedIngredients.size === 0"
                 >
-                  <div v-if="sendingToShopping" class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <div v-else v-html="Helpers.IconLibrary.getIcon('shoppingCart', 'lucide', 14, 'text-white')"></div>
+                  <div v-if="sendingToShopping" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <div v-else v-html="Helpers.IconLibrary.getIcon('shoppingCart', 'lucide', 16, 'text-white')"></div>
                   <span>Add ({{ selectedIngredients.size }}) to Cart</span>
                 </button>
               </div>
@@ -461,10 +474,10 @@ const RecipePage = Vue.defineComponent({
                   v-for="(ing, idx) in scaledIngredients"
                   :key="idx"
                   @click="toggleIngredient(idx)"
-                  class="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all"
+                  class="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border"
                   :class="selectedIngredients.has(idx) 
-                    ? 'bg-green-50 border-green-200 border' 
-                    : 'hover:bg-gray-50 border border-transparent'"
+                    ? 'bg-green-50 border-green-300' 
+                    : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'"
                 >
                   <!-- Selection indicator icon -->
                   <!-- **Validates: Requirements 10.3, 10.4** -->
@@ -486,6 +499,7 @@ const RecipePage = Vue.defineComponent({
                   <span 
                     v-if="ing.category"
                     @click.stop="openCategoryDropdown(idx, $event)"
+                    data-category-badge
                     class="px-2 py-0.5 rounded-full text-xs font-medium cursor-pointer hover:opacity-80 transition-opacity"
                     :style="getCategoryBadgeStyle(ing.category)"
                   >
@@ -495,35 +509,14 @@ const RecipePage = Vue.defineComponent({
                   <!-- Shopping cart icon for quick add -->
                   <button
                     @click.stop="addSingleIngredientToShopping(idx)"
-                    class="flex-shrink-0 p-1.5 rounded text-gray-400 hover:text-green-600 hover:bg-green-50 transition-colors"
+                    class="btn-secondary btn-icon-only flex-shrink-0 p-1.5 rounded-lg"
                     title="Add to shopping list"
                   >
-                    <div v-html="Helpers.IconLibrary.getIcon('shoppingCart', 'lucide', 18, '')"></div>
+                    <div v-html="Helpers.IconLibrary.getIcon('shoppingCart', 'lucide', 16, '')"></div>
                   </button>
                 </li>
               </ul>
               
-              <!-- Category dropdown (positioned absolutely) -->
-              <div 
-                v-if="categoryDropdownVisible"
-                class="fixed z-50 bg-white rounded-lg shadow-lg border py-1 min-w-[140px]"
-                :style="categoryDropdownStyle"
-                @click.stop
-              >
-                <button
-                  v-for="cat in shoppingCategories"
-                  :key="cat"
-                  @click="selectCategory(cat)"
-                  class="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 transition-colors flex items-center gap-2"
-                  :class="{ 'bg-gray-50': currentRecipe?.ingredients?.[categoryDropdownIndex]?.category === cat }"
-                >
-                  <span 
-                    class="w-3 h-3 rounded-full"
-                    :style="{ backgroundColor: getCategoryColors(cat).background }"
-                  ></span>
-                  {{ cat }}
-                </button>
-              </div>
             </div>
             
             <!-- Instructions -->
@@ -559,185 +552,60 @@ const RecipePage = Vue.defineComponent({
               </a>
             </div>
             
-            <!-- Source Image(s) -->
-            <!-- **Feature: multi-image-recipe-categories** -->
-            <!-- **Validates: Requirements 9.2, 9.3** -->
-            <div v-if="hasSourceImages" class="border-t pt-4" style="border-color: var(--color-border-card);">
-              <h4 class="font-semibold text-primary-custom mb-3 flex items-center gap-2">
-                <div v-html="Helpers.IconLibrary.getIcon('image', 'lucide', 18, '')"></div>
-                Source Images
-                <span v-if="sourceImageCount > 1" class="text-sm font-normal text-secondary-custom">
-                  ({{ currentImageIndex + 1 }} of {{ sourceImageCount }})
-                </span>
-              </h4>
-              
-              <!-- Multi-image navigation -->
-              <div v-if="sourceImageCount > 1" class="flex items-center justify-center gap-4 mb-3">
-                <button
-                  @click="prevSourceImage"
-                  :disabled="currentImageIndex === 0"
-                  class="p-2 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Previous image"
-                >
-                  <div v-html="Helpers.IconLibrary.getIcon('chevronLeft', 'lucide', 20, '')"></div>
-                </button>
-                
-                <!-- Image indicator dots -->
-                <div class="flex gap-2">
-                  <button
-                    v-for="(_, idx) in sourceImageCount"
-                    :key="idx"
-                    @click="goToSourceImage(idx)"
-                    class="w-2.5 h-2.5 rounded-full transition-colors"
-                    :class="idx === currentImageIndex ? 'bg-primary-500' : 'bg-gray-300 hover:bg-gray-400'"
-                    :title="'Image ' + (idx + 1)"
-                  ></button>
-                </div>
-                
-                <button
-                  @click="nextSourceImage"
-                  :disabled="currentImageIndex >= sourceImageCount - 1"
-                  class="p-2 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Next image"
-                >
-                  <div v-html="Helpers.IconLibrary.getIcon('chevronRight', 'lucide', 20, '')"></div>
-                </button>
-              </div>
-              
-              <!-- View image button -->
-              <button 
-                @click="viewCurrentSourceImage"
-                :disabled="loadingSourceImage"
-                class="flex items-center gap-2 px-4 py-2 rounded-lg border hover:bg-gray-50 transition-colors"
-                style="border-color: var(--color-border-card)"
-              >
-                <div v-if="loadingSourceImage" class="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
-                <div v-else v-html="Helpers.IconLibrary.getIcon('externalLink', 'lucide', 16, '')"></div>
-                <span>{{ loadingSourceImage ? 'Loading...' : 'View original image' }}</span>
-              </button>
-            </div>
           </div>
-          
-          <!-- Modal Footer -->
-          <div class="sticky bottom-0 bg-white border-t px-4 py-2 flex justify-between items-center" style="border-color: var(--color-border-card);">
+        </template>
+        
+        <template #footer>
+          <div class="flyout-footer-buttons flex items-center gap-2">
+            <!-- Delete button (left) -->
             <button
               @click="confirmDeleteRecipe"
-              class="btn-warning flex items-center gap-1.5 px-3 py-1.5 text-sm"
+              class="btn-error btn-compact flex items-center gap-1.5 px-3 py-1.5 text-sm"
             >
-              <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14, 'text-white')"></div>
+              <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 16, 'text-white')"></div>
               Delete
             </button>
-            <div class="flex gap-2">
-              <button
-                @click="openEditModal"
-                class="btn-secondary flex items-center gap-1.5 px-3 py-1.5 text-sm"
-              >
-                <div v-html="Helpers.IconLibrary.getIcon('edit', 'lucide', 14, '')"></div>
-                Edit
-              </button>
-              <button
-                @click="closeRecipeModal"
-                class="btn-primary px-4 py-1.5 text-sm"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Edit Recipe Modal -->
-      <div v-if="showEditModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
-          <div class="p-6">
-            <h2 class="text-xl font-bold text-primary-custom mb-4">Edit Recipe</h2>
             
-            <form @submit.prevent="saveEditedRecipe" class="space-y-4">
-              <!-- Title -->
-              <div>
-                <label class="block text-sm font-medium mb-1">Title</label>
-                <input
-                  v-model="editForm.title"
-                  type="text"
-                  class="w-full p-2 border rounded-lg"
-                  style="border-color: var(--color-border-card)"
-                  required
-                >
-              </div>
-              
-              <!-- Servings -->
-              <div>
-                <label class="block text-sm font-medium mb-1">Servings</label>
-                <input
-                  v-model.number="editForm.servings"
-                  type="number"
-                  min="1"
-                  class="w-full p-2 border rounded-lg"
-                  style="border-color: var(--color-border-card)"
-                >
-              </div>
-              
-              <!-- Tags -->
-              <div>
-                <label class="block text-sm font-medium mb-1">Tags</label>
-                <div class="flex flex-wrap gap-2 mb-2">
-                  <span
-                    v-for="tag in editForm.tags"
-                    :key="tag"
-                    class="px-3 py-1 rounded-full text-sm bg-secondary-500 text-white flex items-center gap-1"
-                  >
-                    {{ tag }}
-                    <button type="button" @click="removeEditTag(tag)" class="hover:text-red-200">
-                      <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 12, '')"></div>
-                    </button>
-                  </span>
-                </div>
-                <div class="flex gap-2">
-                  <input
-                    v-model="editTagInput"
-                    type="text"
-                    placeholder="Add tag"
-                    class="flex-1 px-3 py-2 border rounded-lg text-sm"
-                    style="border-color: var(--color-border-card)"
-                    @keyup.enter.prevent="addEditTag"
-                  >
-                  <button
-                    type="button"
-                    @click="addEditTag"
-                    class="btn-secondary px-3 py-2 text-sm"
-                    :disabled="!editTagInput.trim()"
-                  >
-                    Add
-                  </button>
-                </div>
-              </div>
-              
-              <!-- Buttons -->
-              <div class="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  @click="closeEditModal"
-                  class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
-                  style="border-color: var(--color-border-card)"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  class="flex-1 btn-success"
-                  :disabled="updating"
-                >
-                  {{ updating ? 'Saving...' : 'Save Changes' }}
-                </button>
-              </div>
-            </form>
+            <!-- Source Image button (center, expands) OR spacer to push buttons right -->
+            <button 
+              v-if="hasSourceImages"
+              @click="viewCurrentSourceImage"
+              :disabled="loadingSourceImage"
+              class="btn-secondary btn-compact flex-1 flex items-center justify-center gap-2 px-3 py-1.5 text-sm"
+            >
+              <div v-if="loadingSourceImage" class="w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full animate-spin"></div>
+              <div v-else v-html="Helpers.IconLibrary.getIcon('image', 'lucide', 16, '')"></div>
+              <span>{{ loadingSourceImage ? 'Loading...' : (sourceImageCount > 1 ? 'View Images (' + sourceImageCount + ')' : 'View Image') }}</span>
+            </button>
+            <div v-else class="flex-1"></div>
+            
+            <!-- Save button (if changes) -->
+            <button
+              v-if="hasUnsavedChanges"
+              @click="saveInlineChanges"
+              class="btn-success btn-compact flex items-center gap-1.5 px-3 py-1.5 text-sm"
+              :disabled="updating"
+            >
+              <div v-if="updating" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <div v-else v-html="Helpers.IconLibrary.getIcon('save', 'lucide', 16, 'text-white')"></div>
+              {{ updating ? 'Saving...' : 'Save' }}
+            </button>
+            
+            <!-- Close button (right) -->
+            <button
+              @click="handleFlyoutClose"
+              class="btn-secondary btn-compact px-3 py-1.5 text-sm"
+            >
+              {{ hasUnsavedChanges ? 'Discard' : 'Close' }}
+            </button>
           </div>
-        </div>
-      </div>
-      
+        </template>
+      </flyout-panel>
+
       <!-- Delete Confirmation Modal -->
-      <div v-if="showDeleteConfirm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-lg w-full max-w-sm p-6">
+      <div v-if="showDeleteConfirm" class="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto modal-overlay" @click.self="showDeleteConfirm = false">
+        <div class="min-h-full flex items-start sm:items-center justify-center p-2 sm:p-4 py-4">
+          <div class="bg-white rounded-lg w-full max-w-sm p-6 modal-panel">
           <h2 class="text-xl font-bold text-primary-custom mb-4">Delete Recipe?</h2>
           <p class="text-secondary-custom mb-6">
             Are you sure you want to delete "{{ currentRecipe?.title }}"? This action cannot be undone.
@@ -758,6 +626,7 @@ const RecipePage = Vue.defineComponent({
               {{ deleting ? 'Deleting...' : 'Delete' }}
             </button>
           </div>
+          </div>
         </div>
       </div>
       
@@ -770,6 +639,28 @@ const RecipePage = Vue.defineComponent({
         @images-captured="handleImagesCaptured"
         ref="imageCaptureModal"
       ></image-capture-modal>
+      
+      <!-- Category dropdown (positioned by Floating UI) -->
+      <div 
+        v-if="categoryDropdownVisible"
+        class="category-dropdown fixed z-[100] bg-white rounded-lg shadow-lg border py-1 min-w-[140px] max-h-[300px] overflow-y-auto"
+        style="top: 0; left: 0;"
+        @click.stop
+      >
+        <button
+          v-for="cat in shoppingCategories"
+          :key="cat"
+          @click="selectCategory(cat)"
+          class="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 transition-colors flex items-center gap-2"
+          :class="{ 'bg-gray-50': currentRecipe?.ingredients?.[categoryDropdownIndex]?.category === cat }"
+        >
+          <span 
+            class="w-3 h-3 rounded-full"
+            :style="{ backgroundColor: getCategoryColors(cat).background }"
+          ></span>
+          {{ cat }}
+        </button>
+      </div>
       
     </div>
   `,
@@ -798,15 +689,20 @@ const RecipePage = Vue.defineComponent({
       currentRecipe: null,
       scaleMultiplier: 1,
       
-      // Edit modal
-      showEditModal: false,
+      // Inline editing (replaces separate edit modal)
       editForm: {
         title: '',
         servings: 1,
         tags: []
       },
-      editTagInput: '',
+      inlineTagInput: '',
+      hasUnsavedChanges: false,
+      originalEditState: null, // snapshot to detect changes
       updating: false,
+      
+      // Legacy - keeping for backwards compatibility during transition
+      showEditModal: false,
+      editTagInput: '',
       
       // Delete confirmation
       showDeleteConfirm: false,
@@ -823,8 +719,7 @@ const RecipePage = Vue.defineComponent({
       // **Validates: Requirements 6.3**
       categoryDropdownVisible: false,
       categoryDropdownIndex: -1,
-      categoryDropdownStyle: {},
-      shoppingCategories: ['General', 'Dairy', 'Bakery', 'Produce', 'Meat', 'Frozen', 'Pantry', 'Household', 'Personal Care'],
+      categoryDropdownTrigger: null,
       
       // Image capture
       // **Feature: recipe-image-capture**
@@ -840,6 +735,10 @@ const RecipePage = Vue.defineComponent({
   },
   
   computed: {
+    // Get categories from centralized utility (shopping page is source of truth)
+    shoppingCategories() {
+      return window.ShoppingCategories.getCategories();
+    },
     recipes() {
       return this.recipeStore.recipes;
     },
@@ -1369,12 +1268,15 @@ const RecipePage = Vue.defineComponent({
       
       this.saving = true;
       try {
+        console.log('[DEBUG] saveScrapedRecipe - selectedTags:', this.selectedTags);
         const recipeData = {
           ...this.scrapedRecipe,
           tags: this.selectedTags
         };
+        console.log('[DEBUG] saveScrapedRecipe - recipeData.tags:', recipeData.tags);
         
         const result = await this.recipeStore.saveRecipe(recipeData);
+        console.log('[DEBUG] saveScrapedRecipe - result:', result);
         if (result.success) {
           this.clearScrapedRecipe();
           // Reload to get fresh data
@@ -1392,76 +1294,94 @@ const RecipePage = Vue.defineComponent({
     openRecipeModal(recipe) {
       this.currentRecipe = recipe;
       this.scaleMultiplier = 1;
-      this.currentImageIndex = 0; // Reset image index for multi-image viewer
+      this.currentImageIndex = 0;
+      
+      // Initialize edit form with current recipe data
+      this.editForm = {
+        title: recipe.title || '',
+        servings: recipe.servings || 1,
+        tags: [...(recipe.tags || [])]
+      };
+      this.originalEditState = JSON.stringify(this.editForm);
+      this.hasUnsavedChanges = false;
+      this.inlineTagInput = '';
+      
       this.showRecipeModal = true;
     },
     
     closeRecipeModal() {
+      // Just hide the flyout - don't clear currentRecipe to avoid empty content flash
+      // currentRecipe will be replaced when opening a new recipe
       this.showRecipeModal = false;
-      this.currentRecipe = null;
       this.scaleMultiplier = 1;
-      this.currentImageIndex = 0; // Reset image index
+      this.currentImageIndex = 0;
+      this.hasUnsavedChanges = false;
+      this.originalEditState = null;
+      this.selectedIngredients = new Set();
     },
     
-    increaseScale() {
-      this.scaleMultiplier++;
+    onFlyoutClosed() {
+      // Optional cleanup after animation - currentRecipe intentionally NOT cleared
     },
     
-    decreaseScale() {
-      if (this.scaleMultiplier > 1) {
-        this.scaleMultiplier--;
-      }
+    handleFlyoutClose() {
+      this.closeRecipeModal();
     },
     
-    openEditModal() {
-      if (!this.currentRecipe) return;
-      
-      this.editForm = {
-        title: this.currentRecipe.title,
-        servings: this.currentRecipe.servings || 1,
-        tags: [...(this.currentRecipe.tags || [])]
-      };
-      this.editTagInput = '';
-      this.showEditModal = true;
+    markAsEdited() {
+      // Compare current state to original to detect changes
+      const currentState = JSON.stringify(this.editForm);
+      this.hasUnsavedChanges = currentState !== this.originalEditState;
     },
     
-    closeEditModal() {
-      this.showEditModal = false;
-      this.editForm = { title: '', servings: 1, tags: [] };
-      this.editTagInput = '';
+    removeTagInline(tag) {
+      this.editForm.tags = this.editForm.tags.filter(t => t !== tag);
+      this.markAsEdited();
     },
     
-    addEditTag() {
-      const tag = this.editTagInput.trim().toLowerCase();
+    addTagInline() {
+      const tag = this.inlineTagInput.trim().toLowerCase();
       if (tag && !this.editForm.tags.includes(tag)) {
         this.editForm.tags.push(tag);
+        this.markAsEdited();
       }
-      this.editTagInput = '';
+      this.inlineTagInput = '';
     },
     
-    removeEditTag(tag) {
-      this.editForm.tags = this.editForm.tags.filter(t => t !== tag);
-    },
-    
-    async saveEditedRecipe() {
-      if (!this.currentRecipe) return;
+    async saveInlineChanges() {
+      if (!this.currentRecipe || !this.hasUnsavedChanges) return;
       
       this.updating = true;
       try {
-        const result = await this.recipeStore.updateRecipe(this.currentRecipe.id, {
+        await this.recipeStore.updateRecipe(this.currentRecipe.id, {
           title: this.editForm.title,
           servings: this.editForm.servings,
           tags: this.editForm.tags
         });
         
-        if (result.success) {
-          // Update current recipe with new values
-          this.currentRecipe = { ...this.currentRecipe, ...this.editForm };
-          this.closeEditModal();
-          await this.recipeStore.loadTags(); // Refresh tags
-        }
+        // Update local state
+        this.currentRecipe.title = this.editForm.title;
+        this.currentRecipe.servings = this.editForm.servings;
+        this.currentRecipe.tags = [...this.editForm.tags];
+        
+        // Reset change tracking
+        this.originalEditState = JSON.stringify(this.editForm);
+        this.hasUnsavedChanges = false;
+      } catch (error) {
+        console.error('Failed to save recipe:', error);
+        alert('Failed to save changes. Please try again.');
       } finally {
         this.updating = false;
+      }
+    },
+    
+    increaseScale() {
+      this.scaleMultiplier += 0.5;
+    },
+    
+    decreaseScale() {
+      if (this.scaleMultiplier > 0.5) {
+        this.scaleMultiplier -= 0.5;
       }
     },
     
@@ -1511,23 +1431,51 @@ const RecipePage = Vue.defineComponent({
      * @param {number} index - The index of the ingredient
      * @param {Event} event - The click event
      */
-    openCategoryDropdown(index, event) {
-      const rect = event.target.getBoundingClientRect();
+    async openCategoryDropdown(index, event) {
+      const badge = event.target;
       this.categoryDropdownIndex = index;
-      this.categoryDropdownStyle = {
-        top: `${rect.bottom + 4}px`,
-        left: `${Math.min(rect.left, window.innerWidth - 160)}px`
-      };
+      this.categoryDropdownTrigger = badge;
       this.categoryDropdownVisible = true;
+      
+      // Wait for Vue to render the dropdown, then position it with Floating UI
+      await this.$nextTick();
+      this.updateCategoryDropdownPosition();
       
       // Close dropdown when clicking outside
       const closeHandler = (e) => {
-        if (!e.target.closest('.category-dropdown')) {
+        if (!e.target.closest('.category-dropdown') && !e.target.closest('[data-category-badge]')) {
           this.closeCategoryDropdown();
           document.removeEventListener('click', closeHandler);
         }
       };
       setTimeout(() => document.addEventListener('click', closeHandler), 0);
+    },
+    
+    /**
+     * Updates the category dropdown position using Floating UI
+     * **Feature: multi-image-recipe-categories**
+     */
+    async updateCategoryDropdownPosition() {
+      const trigger = this.categoryDropdownTrigger;
+      const dropdown = this.$el.querySelector('.category-dropdown');
+      
+      if (!trigger || !dropdown || !window.FloatingUIDOM) return;
+      
+      const { computePosition, flip, shift, offset } = window.FloatingUIDOM;
+      
+      const { x, y } = await computePosition(trigger, dropdown, {
+        placement: 'bottom-end',
+        middleware: [
+          offset(4),
+          flip({ fallbackPlacements: ['top-end', 'bottom-start', 'top-start'] }),
+          shift({ padding: 8 })
+        ]
+      });
+      
+      Object.assign(dropdown.style, {
+        left: `${x}px`,
+        top: `${y}px`
+      });
     },
     
     /**
@@ -1537,6 +1485,7 @@ const RecipePage = Vue.defineComponent({
     closeCategoryDropdown() {
       this.categoryDropdownVisible = false;
       this.categoryDropdownIndex = -1;
+      this.categoryDropdownTrigger = null;
     },
     
     /**
@@ -1570,62 +1519,15 @@ const RecipePage = Vue.defineComponent({
     },
     
     /**
-     * Gets the color scheme for a category (matches shopping page)
+     * Gets the color scheme for a category (delegates to centralized utility)
      * **Feature: multi-image-recipe-categories**
      * **Validates: Requirements 6.2**
      * @param {string} category - The category name
      * @returns {Object} Color scheme with background, border, accent
      */
     getCategoryColors(category) {
-      const colorSchemes = {
-        'Produce': {
-          background: '#22c55e', // green-500
-          border: '#16a34a',     // green-600
-          accent: '#15803d'      // green-700
-        },
-        'Dairy': {
-          background: '#3b82f6', // blue-500
-          border: '#2563eb',    // blue-600
-          accent: '#1d4ed8'     // blue-700
-        },
-        'Meat': {
-          background: '#ef4444', // red-500
-          border: '#dc2626',    // red-600
-          accent: '#b91c1c'     // red-700
-        },
-        'Bakery': {
-          background: '#f59e0b', // amber-500
-          border: '#d97706',    // amber-600
-          accent: '#b45309'     // amber-700
-        },
-        'Frozen': {
-          background: '#8b5cf6', // violet-500
-          border: '#7c3aed',    // violet-600
-          accent: '#6d28d9'     // violet-700
-        },
-        'Pantry': {
-          background: '#cd853f', // peru-600 (medium brown/tan)
-          border: '#b8860b',    // darkgoldenrod (darker brown)
-          accent: '#8b4513'     // saddlebrown (dark brown)
-        },
-        'Household': {
-          background: '#9ca3af', // gray-400 (lighter gray)
-          border: '#6b7280',    // gray-500 (medium gray)
-          accent: '#4b5563'     // gray-600 (darker gray)
-        },
-        'Personal Care': {
-          background: '#ec4899', // pink-500
-          border: '#db2777',    // pink-600
-          accent: '#be185d'     // pink-700
-        },
-        'General': {
-          background: 'var(--color-primary-500)',
-          border: 'var(--color-primary-600)',
-          accent: 'var(--color-primary-700, #1f2937)'
-        }
-      };
-
-      return colorSchemes[category] || colorSchemes['General'];
+      // Delegate to centralized shopping categories utility
+      return window.ShoppingCategories.getCategoryColors(category);
     },
     
     /**

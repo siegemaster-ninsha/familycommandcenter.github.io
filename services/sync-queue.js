@@ -25,7 +25,7 @@ class SyncQueue {
 
       request.onsuccess = (event) => {
         this.db = event.target.result;
-        console.log('✅ SyncQueue initialized');
+        console.log('[OK] SyncQueue initialized');
         resolve(this.db);
       };
 
@@ -84,7 +84,7 @@ class SyncQueue {
       const request = store.add(entry);
 
       request.onsuccess = () => {
-        console.log(`📝 Queued ${change.type} for ${change.entity}:${change.entityId}`);
+        console.log(`[QUEUE] Queued ${change.type} for ${change.entity}:${change.entityId}`);
         resolve(request.result); // Returns the auto-generated ID
       };
 
@@ -139,7 +139,7 @@ class SyncQueue {
       const store = transaction.objectStore(this.storeName);
 
       transaction.oncomplete = () => {
-        console.log(`✅ Dequeued ${ids.length} synced changes`);
+        console.log(`[OK] Dequeued ${ids.length} synced changes`);
         resolve();
       };
 
@@ -225,7 +225,7 @@ class SyncQueue {
     
     // Check if we're online
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
-      console.log('⚠️ Cannot process queue while offline');
+      console.log('[WARN] Cannot process queue while offline');
       return { success: 0, failed: 0, conflicts: [] };
     }
 
@@ -233,11 +233,11 @@ class SyncQueue {
     const pending = await this.getPending();
     
     if (pending.length === 0) {
-      console.log('✅ No pending changes to sync');
+      console.log('[OK] No pending changes to sync');
       return { success: 0, failed: 0, conflicts: [] };
     }
 
-    console.log(`🔄 Processing ${pending.length} pending changes...`);
+    console.log(`[SYNC] Processing ${pending.length} pending changes...`);
 
     const results = { success: 0, failed: 0, conflicts: [] };
     const successIds = [];
@@ -254,7 +254,7 @@ class SyncQueue {
         
         // Skip if max retries exceeded
         if (change.retryCount >= this.maxRetries) {
-          console.log(`⚠️ Skipping change ${change.id} - max retries exceeded`);
+          console.log(`[WARN] Skipping change ${change.id} - max retries exceeded`);
           results.failed++;
           continue;
         }
@@ -272,7 +272,7 @@ class SyncQueue {
               serverData: result.serverData,
               resolution: result.resolution
             });
-            console.log(`⚠️ Conflict detected for ${change.entity}:${change.entityId}`);
+            console.log(`[WARN] Conflict detected for ${change.entity}:${change.entityId}`);
           }
 
           successIds.push(change.id);
@@ -288,7 +288,7 @@ class SyncQueue {
             });
           }
         } catch (error) {
-          console.error(`❌ Failed to sync change ${change.id}:`, error.message);
+          console.error(`[ERROR] Failed to sync change ${change.id}:`, error.message);
           
           // Update status to failed with error
           await this.updateStatus(change.id, 'failed', error.message);
@@ -320,22 +320,22 @@ class SyncQueue {
       if (typeof window !== 'undefined' && window.useOfflineStore) {
         const offlineStore = window.useOfflineStore();
         const newCount = await this.getPendingCount();
-        console.log(`📊 Sync queue: dequeued ${successIds.length}, new pending count: ${newCount}`);
+        console.log(`[INFO] Sync queue: dequeued ${successIds.length}, new pending count: ${newCount}`);
         offlineStore.setPendingSyncCount(newCount);
         offlineStore.updateLastSyncTime();
         offlineStore.setSyncInProgress(false);
       }
 
-      console.log(`✅ Sync complete: ${results.success} success, ${results.failed} failed`);
+      console.log(`[OK] Sync complete: ${results.success} success, ${results.failed} failed`);
       return results;
     } catch (error) {
-      console.error('❌ Queue processing error:', error);
+      console.error('[ERROR] Queue processing error:', error);
       
       if (typeof window !== 'undefined' && window.useOfflineStore) {
         const offlineStore = window.useOfflineStore();
         // Still update pending count even on error
         const newCount = await this.getPendingCount();
-        console.log(`📊 Sync queue error: pending count is ${newCount}`);
+        console.log(`[INFO] Sync queue error: pending count is ${newCount}`);
         offlineStore.setPendingSyncCount(newCount);
         offlineStore.setSyncInProgress(false);
         offlineStore.setSyncError(error.message);
@@ -406,7 +406,7 @@ class SyncQueue {
         }
       } catch (error) {
         // If we can't fetch, proceed with the update
-        console.log(`⚠️ Could not check for conflicts: ${error.message}`);
+        console.log(`[WARN] Could not check for conflicts: ${error.message}`);
       }
     }
 
@@ -499,7 +499,7 @@ class SyncQueue {
       const request = store.clear();
 
       request.onsuccess = () => {
-        console.log('✅ Sync queue cleared');
+        console.log('[OK] Sync queue cleared');
         resolve();
       };
 
@@ -542,7 +542,7 @@ window.initializeSyncQueue = async function() {
       offlineStore.setPendingSyncCount(count);
     }
     
-    console.log('✅ Sync Queue Service initialized');
+    console.log('[OK] Sync Queue Service initialized');
     return true;
   } catch (error) {
     console.error('Failed to initialize Sync Queue:', error);

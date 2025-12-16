@@ -91,8 +91,20 @@ const UpdatePrompt = Vue.defineComponent({
       }
     },
     
-    updateNow() {
-      console.log('🔄 User requested update');
+    async updateNow() {
+      console.log('🔄 User requested update - clearing caches and activating new SW');
+      this.showPrompt = false;
+      
+      // Clear all caches first to ensure fresh content
+      if ('caches' in window) {
+        try {
+          const cacheNames = await caches.keys();
+          await Promise.all(cacheNames.map(name => caches.delete(name)));
+          console.log('🗑️ All caches cleared');
+        } catch (e) {
+          console.warn('Failed to clear caches:', e);
+        }
+      }
       
       // Tell the waiting service worker to skip waiting
       if (this.registration?.waiting) {
@@ -103,7 +115,11 @@ const UpdatePrompt = Vue.defineComponent({
       
       // The page will reload automatically when the new SW takes control
       // (handled by controllerchange event in index.html)
-      this.showPrompt = false;
+      // But if it doesn't happen within 2 seconds, force a hard refresh
+      setTimeout(() => {
+        console.log('⏱️ Timeout reached, forcing hard refresh');
+        window.location.href = window.location.href.split('?')[0] + '?v=' + Date.now();
+      }, 2000);
     },
     
     dismiss() {

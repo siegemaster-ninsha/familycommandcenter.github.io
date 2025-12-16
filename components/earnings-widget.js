@@ -1,10 +1,12 @@
 // Earnings Widget Component
 const EarningsWidget = Vue.defineComponent({
+  name: 'EarningsWidget',
   template: `
     <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
       <div v-if="!individualsOnly" class="flex items-center justify-between mb-4">
         <h3 class="text-primary-custom text-lg font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
-          📊 Earnings
+          <div v-html="Helpers.IconLibrary.getIcon('bar-chart-2', 'lucide', 20, 'text-primary-custom')"></div>
+          Earnings
         </h3>
         <div v-if="compact" class="text-2xl font-bold earnings-text">
           \${{ totalEarnings.toFixed(2) }}
@@ -13,7 +15,8 @@ const EarningsWidget = Vue.defineComponent({
       
       <div v-else class="mb-4">
         <h3 class="text-primary-custom text-lg font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
-          💰 Individual Earnings
+          <div v-html="Helpers.IconLibrary.getIcon('dollar-sign', 'lucide', 20, 'text-primary-custom')"></div>
+          Individual Earnings
         </h3>
       </div>
       

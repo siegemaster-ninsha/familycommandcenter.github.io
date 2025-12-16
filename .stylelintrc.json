@@ -1,0 +1,22 @@
+{
+  "extends": ["stylelint-config-standard"],
+  "plugins": ["./lint-rules/stylelint-design-tokens.js"],
+  "rules": {
+    "design-tokens/no-hardcoded-colors": [true, {
+      "allowedKeywords": ["white", "black", "transparent", "inherit", "currentColor", "none", "initial", "unset"],
+      "allowedPatterns": ["var\\(\\s*--color-", "var\\(\\s*--gradient-"]
+    }],
+    "design-tokens/no-arbitrary-spacing": [true, {
+      "properties": ["margin", "margin-top", "margin-right", "margin-bottom", "margin-left", "padding", "padding-top", "padding-right", "padding-bottom", "padding-left", "gap", "row-gap", "column-gap"],
+      "allowedPatterns": ["var\\(\\s*--space-"],
+      "allowedValues": ["0", "auto", "inherit", "initial", "unset"]
+    }],
+    "design-tokens/no-arbitrary-radius": [true, {
+      "allowedPatterns": ["var\\(\\s*--radius-"],
+      "allowedValues": ["0", "50%", "inherit", "initial", "unset"]
+    }],
+    "declaration-no-important": true,
+    "property-no-vendor-prefix": true,
+    "value-no-vendor-prefix": true
+  }
+}

@@ -1,5 +1,6 @@
 // Trash Section Component
 const TrashSection = Vue.defineComponent({
+  name: 'TrashSection',
   template: `
     <!-- Delete Button -->
     <div 

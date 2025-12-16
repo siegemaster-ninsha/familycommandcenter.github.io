@@ -1,5 +1,6 @@
 // Unassigned Section Component
 const UnassignedSection = Vue.defineComponent({
+  name: 'UnassignedSection',
   template: `
     <div class="mb-6 sm:mb-8">
       <h2 class="text-primary-custom text-lg sm:text-[22px] font-bold leading-tight tracking-[-0.015em] px-2 sm:px-4 pb-3 pt-5">Unassigned Chores</h2>

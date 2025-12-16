@@ -17,7 +17,7 @@ function cleanIngredientName(name) {
   let cleaned = name.trim();
   
   // Remove leading bullet points, dashes, asterisks
-  cleaned = cleaned.replace(/^[\s•\-\*\u2022\u2023\u25E6\u2043\u2219]+/, '');
+  cleaned = cleaned.replace(/^[\s•\-*\u2022\u2023\u25E6\u2043\u2219]+/, '');
   
   // Remove common parenthetical annotations that aren't useful for shopping
   // e.g., "(divided)", "(optional)", "(room temperature)", "(softened)"

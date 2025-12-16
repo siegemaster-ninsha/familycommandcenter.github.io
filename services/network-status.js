@@ -20,7 +20,7 @@ class NetworkStatus {
       window.addEventListener('online', this._boundOnline);
       window.addEventListener('offline', this._boundOffline);
       this._initialized = true;
-      console.log('✅ NetworkStatus service initialized, online:', this.isOnline);
+      console.log('[OK] NetworkStatus service initialized, online:', this.isOnline);
     }
   }
 
@@ -60,7 +60,7 @@ class NetworkStatus {
     this.isOnline = status;
     
     if (previousStatus !== status) {
-      console.log(`🌐 Network status changed: ${status ? 'online' : 'offline'}`);
+      console.log(`[NETWORK] Network status changed: ${status ? 'online' : 'offline'}`);
       this._notifyListeners(status);
     }
   }

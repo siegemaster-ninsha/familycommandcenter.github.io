@@ -1,5 +1,25 @@
 // Simple contrast audit for key token pairings
 (function() {
+  const toRgb = (h) => {
+    const m = h.replace('#','');
+    const r = parseInt(m.substring(0,2), 16) / 255;
+    const g = parseInt(m.substring(2,4), 16) / 255;
+    const b = parseInt(m.substring(4,6), 16) / 255;
+    return [r,g,b];
+  };
+
+  const luminance = ([r,g,b]) => {
+    const a = [r,g,b].map(v => v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4));
+    return 0.2126*a[0] + 0.7152*a[1] + 0.0722*a[2];
+  };
+
+  const ratio = (fg, bg) => {
+    const L1 = luminance(toRgb(fg));
+    const L2 = luminance(toRgb(bg));
+    const [hi, lo] = L1 > L2 ? [L1, L2] : [L2, L1];
+    return (hi + 0.05) / (lo + 0.05);
+  };
+
   try {
     const root = getComputedStyle(document.documentElement);
     const get = (v) => (root.getPropertyValue(v) || '').trim();
@@ -13,26 +33,6 @@
       }
       return str;
     };
-
-    function toRgb(h) {
-      const m = h.replace('#','');
-      const r = parseInt(m.substring(0,2), 16) / 255;
-      const g = parseInt(m.substring(2,4), 16) / 255;
-      const b = parseInt(m.substring(4,6), 16) / 255;
-      return [r,g,b];
-    }
-
-    function luminance([r,g,b]) {
-      const a = [r,g,b].map(v => v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4));
-      return 0.2126*a[0] + 0.7152*a[1] + 0.0722*a[2];
-    }
-
-    function ratio(fg, bg) {
-      const L1 = luminance(toRgb(fg));
-      const L2 = luminance(toRgb(bg));
-      const [hi, lo] = L1 > L2 ? [L1, L2] : [L2, L1];
-      return (hi + 0.05) / (lo + 0.05);
-    }
 
     const pairs = [
       { name: 'Body text', fg: get('--color-text-primary'), bg: get('--color-bg-primary'), min: 4.5 },

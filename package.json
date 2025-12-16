@@ -1,0 +1,23 @@
+{
+  "name": "family-command-center-frontend",
+  "version": "1.0.0",
+  "description": "Frontend linting for Family Command Center",
+  "private": true,
+  "scripts": {
+    "dev": "http-server . -p 3000 -c-1 --cors -o",
+    "serve": "http-server . -p 3000 -c-1 --cors",
+    "lint:style": "stylelint \"**/*.css\" --config .stylelintrc.json",
+    "lint:style:fix": "stylelint \"**/*.css\" --config .stylelintrc.json --fix",
+    "lint:js": "eslint . --config eslint.config.js",
+    "lint:js:fix": "eslint . --config eslint.config.js --fix",
+    "lint": "npm run lint:style && npm run lint:js",
+    "lint:fix": "npm run lint:style:fix && npm run lint:js:fix"
+  },
+  "devDependencies": {
+    "stylelint": "^16.0.0",
+    "stylelint-config-standard": "^36.0.0",
+    "eslint": "^8.57.0",
+    "@eslint/js": "^8.57.0",
+    "http-server": "^14.1.1"
+  }
+}

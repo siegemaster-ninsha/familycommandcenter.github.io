@@ -176,7 +176,7 @@ class ApiService {
       offlineStore.incrementPendingSync();
     }
 
-    console.log(`📝 Queued offline ${type} for ${entity}:${entityId || tempId}`);
+    console.log(`[QUEUE] Queued offline ${type} for ${entity}:${entityId || tempId}`);
 
     // Return a response that indicates the change is pending
     return {
@@ -271,7 +271,7 @@ window.initializeApiService = function() {
   }
   
   window.apiService = new ApiService(CONFIG, authService);
-  console.log('✅ API Service initialized');
+  console.log('[OK] API Service initialized');
   return true;
 };
 

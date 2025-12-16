@@ -208,7 +208,7 @@ const WeatherWidget = {
         throw new Error('Geolocation not supported by browser');
       }
       
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         navigator.geolocation.getCurrentPosition(
           (position) => {
             this.coordinates = {
@@ -530,11 +530,11 @@ const WeatherWidget = {
           <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon(metadata.icon, 'lucide', 20, 'mr-2') : ''"></div>
           {{ metadata.name }}
           <span v-if="locationName" class="text-xs text-gray-600 ml-2">{{ locationName }}</span>
-          <span v-if="useMockData" class="text-xs" style="color: #f59e0b; margin-left: 0.5rem;">
+          <span v-if="useMockData" class="text-xs" style="color: var(--color-warning-500); margin-left: 0.5rem;">
             (Demo Data)
           </span>
-          <span v-else class="text-xs" style="color: #10b981; margin-left: 0.5rem;">
-            🔴 Live
+          <span v-else class="text-xs" style="color: var(--color-success-500); margin-left: 0.5rem; display: inline-flex; align-items: center; gap: 0.25rem;">
+            <span v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('circle', 'lucide', 8, '', { hidden: true }) : ''" style="color: var(--color-error-500); fill: var(--color-error-500);"></span> Live
           </span>
         </h3>
         <div class="widget-actions">
@@ -568,7 +568,7 @@ const WeatherWidget = {
         
         <!-- Error State -->
         <div v-else-if="error && !useMockData" class="text-center py-8">
-          <div class="text-4xl mb-2">⚠️</div>
+          <div class="text-4xl mb-2" v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('alert-triangle', 'lucide', 48, 'text-amber-500', { label: 'Error' }) : ''"></div>
           <p class="text-sm text-red-600">{{ error }}</p>
           <button @click="refresh" class="btn btn-sm btn-secondary mt-2">
             Try Again
@@ -578,8 +578,9 @@ const WeatherWidget = {
         <!-- Weather Content -->
         <div v-else-if="hasWeatherData" class="weather-content">
           <!-- Location Notice -->
-          <div v-if="locationError" class="text-xs text-blue-600 mb-2 p-2 bg-blue-50 rounded mx-4 mt-4">
-            ℹ️ {{ locationError }}
+          <div v-if="locationError" class="text-xs text-blue-600 mb-2 p-2 bg-blue-50 rounded mx-4 mt-4" style="display: flex; align-items: center; gap: 0.5rem;">
+            <span v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('info', 'lucide', 14, '', { label: 'Information' }) : ''"></span>
+            {{ locationError }}
           </div>
           
           <!-- Current Weather -->
@@ -602,11 +603,11 @@ const WeatherWidget = {
             <!-- Weather Details -->
             <div v-if="showDetails" class="weather-details">
               <div class="detail-item">
-                <span class="detail-icon">💧</span>
+                <span class="detail-icon" v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('droplets', 'lucide', 16, 'text-blue-500', { label: 'Humidity' }) : ''"></span>
                 <span class="detail-value">{{ currentWeatherData.humidity }}%</span>
               </div>
               <div class="detail-item">
-                <span class="detail-icon">💨</span>
+                <span class="detail-icon" v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('wind', 'lucide', 16, 'text-gray-500', { label: 'Wind speed' }) : ''"></span>
                 <span class="detail-value">{{ formatWindSpeed(currentWeatherData.windSpeed) }} {{ currentWeatherData.windDirection }}</span>
               </div>
             </div>

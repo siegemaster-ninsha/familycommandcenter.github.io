@@ -59,7 +59,7 @@ const useOfflineStore = Pinia.defineStore('offline', {
       const wasOffline = !this.isOnline;
       this.isOnline = status;
       
-      console.log(`📡 Online status: ${status ? 'online' : 'offline'}`);
+      console.log(`[NETWORK] Online status: ${status ? 'online' : 'offline'}`);
       
       // If coming back online, handle transition
       if (wasOffline && status) {
@@ -69,11 +69,11 @@ const useOfflineStore = Pinia.defineStore('offline', {
     
     // Handle transition from offline to online
     async _handleOnlineTransition() {
-      console.log('🔄 Back online, handling transition...');
+      console.log('[SYNC] Back online, handling transition...');
       
       // First, process any pending sync queue
       if (this.pendingSyncCount > 0) {
-        console.log(`🔄 Processing ${this.pendingSyncCount} pending changes...`);
+        console.log(`[SYNC] Processing ${this.pendingSyncCount} pending changes...`);
         window.dispatchEvent(new CustomEvent('process-sync-queue'));
       }
       
@@ -83,7 +83,7 @@ const useOfflineStore = Pinia.defineStore('offline', {
     
     // Refresh all data from server after coming online
     async _refreshDataFromServer() {
-      console.log('🔄 Refreshing data from server...');
+      console.log('[SYNC] Refreshing data from server...');
       
       try {
         // Refresh chores
@@ -106,7 +106,7 @@ const useOfflineStore = Pinia.defineStore('offline', {
           await shoppingStore.loadQuickItems();
         }
         
-        console.log('✅ Data refreshed from server');
+        console.log('[OK] Data refreshed from server');
       } catch (error) {
         console.error('Failed to refresh data from server:', error);
       }
@@ -115,7 +115,7 @@ const useOfflineStore = Pinia.defineStore('offline', {
     // Increment pending sync count
     incrementPendingSync() {
       this.pendingSyncCount++;
-      console.log(`📝 Pending sync count: ${this.pendingSyncCount}`);
+      console.log(`[QUEUE] Pending sync count: ${this.pendingSyncCount}`);
     },
     
     // Decrement pending sync count
@@ -123,7 +123,7 @@ const useOfflineStore = Pinia.defineStore('offline', {
       if (this.pendingSyncCount > 0) {
         this.pendingSyncCount--;
       }
-      console.log(`📝 Pending sync count: ${this.pendingSyncCount}`);
+      console.log(`[QUEUE] Pending sync count: ${this.pendingSyncCount}`);
     },
     
     // Set pending sync count directly
@@ -145,7 +145,7 @@ const useOfflineStore = Pinia.defineStore('offline', {
     setSyncError(error) {
       this.lastSyncError = error;
       if (error) {
-        console.error('❌ Sync error:', error);
+        console.error('[ERROR] Sync error:', error);
       }
     },
     
@@ -157,12 +157,12 @@ const useOfflineStore = Pinia.defineStore('offline', {
     // Trigger sync (dispatches event for sync queue to handle)
     triggerSync() {
       if (!this.isOnline) {
-        console.log('⚠️ Cannot sync while offline');
+        console.log('[WARN] Cannot sync while offline');
         return false;
       }
       
       if (this.syncInProgress) {
-        console.log('⚠️ Sync already in progress');
+        console.log('[WARN] Sync already in progress');
         return false;
       }
       

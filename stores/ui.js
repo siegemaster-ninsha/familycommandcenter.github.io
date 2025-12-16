@@ -70,7 +70,7 @@ const useUIStore = Pinia.defineStore('ui', {
     setCurrentPage(page) {
       this.currentPage = page;
       this.mobileNavOpen = false;
-      console.log('📄 Page changed to:', page);
+      console.log('[NAV] Page changed to:', page);
     },
     
     toggleMobileNav() {
@@ -83,7 +83,7 @@ const useUIStore = Pinia.defineStore('ui', {
     
     // modal management
     openModal(modalName, data = null) {
-      if (this.modals.hasOwnProperty(modalName)) {
+      if (Object.prototype.hasOwnProperty.call(this.modals, modalName)) {
         this.modals[modalName] = true;
         
         // store modal-specific data if provided
@@ -91,16 +91,16 @@ const useUIStore = Pinia.defineStore('ui', {
           this.modalData = { ...this.modalData, ...data };
         }
         
-        console.log('🪟 Modal opened:', modalName);
+        console.log('[UI] Modal opened:', modalName);
       } else {
         console.warn(`Modal "${modalName}" not found in registry`);
       }
     },
     
     closeModal(modalName) {
-      if (this.modals.hasOwnProperty(modalName)) {
+      if (Object.prototype.hasOwnProperty.call(this.modals, modalName)) {
         this.modals[modalName] = false;
-        console.log('🪟 Modal closed:', modalName);
+        console.log('[UI] Modal closed:', modalName);
       }
     },
     
@@ -114,7 +114,7 @@ const useUIStore = Pinia.defineStore('ui', {
         selectedQuicklistChore: null,
         inviteData: { token: '', expiresAt: null }
       };
-      console.log('🪟 All modals closed');
+      console.log('[UI] All modals closed');
     },
     
     // specific modal helpers (for backwards compatibility)
@@ -155,7 +155,7 @@ const useUIStore = Pinia.defineStore('ui', {
     // error handling
     setError(error) {
       this.error = error;
-      console.error('❌ Error:', error);
+      console.error('[ERROR] Error:', error);
     },
     
     clearError() {
@@ -174,7 +174,7 @@ const useUIStore = Pinia.defineStore('ui', {
         }, duration);
       }
       
-      console.log('✅ Success:', message);
+      console.log('[OK] Success:', message);
     },
     
     hideSuccess() {
@@ -205,7 +205,7 @@ const useUIStore = Pinia.defineStore('ui', {
         this.hideConfetti();
       }, 4000);
       
-      console.log('🎉 Confetti triggered');
+      console.log('[SUCCESS] Confetti triggered');
     },
     
     hideConfetti() {

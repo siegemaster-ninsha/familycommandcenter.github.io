@@ -60,11 +60,11 @@ const useAuthStore = Pinia.defineStore('auth', {
         if (initialized && authService.currentUser) {
           this.isAuthenticated = true;
           this.currentUser = authService.currentUser;
-          console.log('✅ Auth store initialized, user:', this.userDisplayName);
+          console.log('[OK] Auth store initialized, user:', this.userDisplayName);
         } else {
           this.isAuthenticated = false;
           this.currentUser = null;
-          console.log('ℹ️ No active session found');
+          console.log('[INFO] No active session found');
         }
       } catch (error) {
         console.error('Auth store initialization error:', error);
@@ -87,7 +87,7 @@ const useAuthStore = Pinia.defineStore('auth', {
         // authService.signIn returns { success: true, user } or throws error
         this.isAuthenticated = true;
         this.currentUser = result.user || authService.currentUser;
-        console.log('✅ Login successful:', this.userDisplayName);
+        console.log('[OK] Login successful:', this.userDisplayName);
         return { success: true };
       } catch (error) {
         this.error = error.message || 'Login failed';
@@ -109,7 +109,7 @@ const useAuthStore = Pinia.defineStore('auth', {
         // authService.signUp returns { success, userSub, confirmationRequired, username } or throws
         const result = await authService.signUp(email, password, name);
         
-        console.log('✅ Signup successful, confirmation required:', result.confirmationRequired);
+        console.log('[OK] Signup successful, confirmation required:', result.confirmationRequired);
         return { 
           success: true, 
           requiresConfirmation: result.confirmationRequired,
@@ -132,7 +132,7 @@ const useAuthStore = Pinia.defineStore('auth', {
       try {
         // authService.confirmSignUp throws on error, returns nothing on success
         await authService.confirmSignUp(username, code);
-        console.log('✅ Signup confirmed');
+        console.log('[OK] Signup confirmed');
         return { success: true };
       } catch (error) {
         this.error = error.message || 'Confirmation failed';
@@ -154,7 +154,7 @@ const useAuthStore = Pinia.defineStore('auth', {
         this.isAuthenticated = false;
         this.currentUser = null;
         this.resetForm();
-        console.log('✅ Logout successful');
+        console.log('[OK] Logout successful');
         return { success: true };
       } catch (error) {
         // logout shouldn't really fail, but handle it anyway

@@ -7,13 +7,18 @@
 
 // IMPORTANT: This version MUST be updated with each deployment to bust the cache
 // The deploy script should update this automatically
-const CACHE_VERSION = 'v1.0.38-1765811087';
+const CACHE_VERSION = 'v1.0.39-1765862177';
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const DATA_CACHE = `data-${CACHE_VERSION}`;
 
 // Use the actual API endpoint for token refresh
 const TOKEN_REFRESH_URL = 'https://cq5lvrvppd.execute-api.us-east-1.amazonaws.com/dev/auth/token-refresh';
 const API_BASE_URL = 'https://cq5lvrvppd.execute-api.us-east-1.amazonaws.com';
+
+// External CDN resources to cache for offline use
+const CDN_ASSETS = [
+  'https://unpkg.com/lucide@latest/dist/umd/lucide.js'
+];
 
 // Assets to precache on install
 const PRECACHE_ASSETS = [
@@ -78,27 +83,46 @@ const PRECACHE_ASSETS = [
 // =============================================================================
 
 self.addEventListener('install', (event) => {
-  console.log('🔧 Service Worker installing...', CACHE_VERSION);
+  console.log('[CONFIG] Service Worker installing...', CACHE_VERSION);
   
   event.waitUntil(
     caches.open(STATIC_CACHE)
-      .then((cache) => {
-        console.log('🔧 Precaching static assets...');
+      .then(async (cache) => {
+        console.log('[CONFIG] Precaching static assets...');
         // Use addAll for atomic caching - if one fails, all fail
-        return cache.addAll(PRECACHE_ASSETS).catch((error) => {
-          console.warn('⚠️ Some assets failed to precache:', error);
+        try {
+          await cache.addAll(PRECACHE_ASSETS);
+        } catch (error) {
+          console.warn('[WARN] Some local assets failed to precache:', error);
           // Fall back to adding assets individually
-          return Promise.all(
+          await Promise.all(
             PRECACHE_ASSETS.map((url) => 
               cache.add(url).catch((err) => {
-                console.warn(`⚠️ Failed to cache: ${url}`, err);
+                console.warn(`[WARN] Failed to cache: ${url}`, err);
               })
             )
           );
-        });
+        }
+        
+        // Cache CDN assets (Lucide icons, etc.) - these may fail due to CORS
+        console.log('[CONFIG] Caching CDN assets (Lucide icons)...');
+        await Promise.all(
+          CDN_ASSETS.map((url) => 
+            fetch(url, { mode: 'cors' })
+              .then((response) => {
+                if (response.ok) {
+                  return cache.put(url, response);
+                }
+                console.warn(`[WARN] CDN asset returned non-OK status: ${url}`);
+              })
+              .catch((err) => {
+                console.warn(`[WARN] Failed to cache CDN asset: ${url}`, err);
+              })
+          )
+        );
       })
       .then(() => {
-        console.log('✅ Static assets precached successfully');
+        console.log('[OK] Static assets precached successfully');
       })
   );
 });
@@ -109,7 +133,7 @@ self.addEventListener('install', (event) => {
 // =============================================================================
 
 self.addEventListener('activate', (event) => {
-  console.log('🔧 Service Worker activating...', CACHE_VERSION);
+  console.log('[CONFIG] Service Worker activating...', CACHE_VERSION);
   
   event.waitUntil(
     caches.keys()
@@ -118,19 +142,19 @@ self.addEventListener('activate', (event) => {
           cacheNames.map((cacheName) => {
             // Delete caches that don't match current version
             if (cacheName !== STATIC_CACHE && cacheName !== DATA_CACHE) {
-              console.log('🗑️ Deleting old cache:', cacheName);
+              console.log('[CLEANUP] Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
           })
         );
       })
       .then(() => {
-        console.log('✅ Old caches cleaned up');
+        console.log('[OK] Old caches cleaned up');
         // Claim all clients immediately
         return self.clients.claim();
       })
       .then(() => {
-        console.log('✅ Service Worker now controlling all clients');
+        console.log('[OK] Service Worker now controlling all clients');
       })
   );
 });
@@ -174,6 +198,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
+  // Handle CDN assets (Lucide icons) with cache-first strategy
+  if (isCdnAsset(url)) {
+    event.respondWith(handleStaticAsset(request));
+    return;
+  }
+  
   // Default: network-first for everything else
   event.respondWith(handleNetworkFirst(request));
 });
@@ -205,7 +235,7 @@ async function handleStaticAsset(request) {
     
     return networkResponse;
   } catch (error) {
-    console.error('❌ Failed to fetch static asset:', request.url, error);
+    console.error('[ERROR] Failed to fetch static asset:', request.url, error);
     // Return a fallback response if available
     return new Response('Asset not available offline', { 
       status: 503, 
@@ -228,7 +258,7 @@ async function handleHtmlRequest(request) {
     
     return networkResponse;
   } catch (error) {
-    console.log('📴 Network unavailable, serving cached HTML');
+    console.log('[OFFLINE] Network unavailable, serving cached HTML');
     const cachedResponse = await caches.match(request);
     
     if (cachedResponse) {
@@ -268,7 +298,7 @@ async function handleApiRequest(request) {
     
     return networkResponse;
   } catch (error) {
-    console.log('📴 Network unavailable, checking cache for API data');
+    console.log('[OFFLINE] Network unavailable, checking cache for API data');
     const cachedResponse = await caches.match(request);
     
     if (cachedResponse) {
@@ -303,7 +333,7 @@ async function handleAuthenticatedApiRequest(request) {
     
     // If we get a 401, try to refresh the token
     if (response.status === 401) {
-      console.log('🔄 Token expired, attempting refresh...');
+      console.log('[RETRY] Token expired, attempting refresh...');
       
       try {
         const refreshToken = await getStoredRefreshToken();
@@ -335,7 +365,7 @@ async function handleAuthenticatedApiRequest(request) {
           }
         }
       } catch (refreshError) {
-        console.error('❌ Token refresh failed:', refreshError);
+        console.error('[ERROR] Token refresh failed:', refreshError);
       }
     }
     
@@ -347,7 +377,7 @@ async function handleAuthenticatedApiRequest(request) {
     
     return response;
   } catch (error) {
-    console.error('❌ Authenticated API request failed:', error);
+    console.error('[ERROR] Authenticated API request failed:', error);
     
     // Try cache fallback
     const cachedResponse = await caches.match(request);
@@ -395,6 +425,13 @@ function isStaticAsset(url) {
   const pathname = url.pathname.toLowerCase();
   
   return staticExtensions.some(ext => pathname.endsWith(ext));
+}
+
+/**
+ * Check if URL is a CDN asset (Lucide icons, etc.)
+ */
+function isCdnAsset(url) {
+  return CDN_ASSETS.some(cdnUrl => url.href === cdnUrl || url.href.startsWith(cdnUrl.replace('@latest', '')));
 }
 
 /**
@@ -461,11 +498,11 @@ async function storeTokens(tokenData) {
 // =============================================================================
 
 self.addEventListener('message', (event) => {
-  const { type, data } = event.data || {};
+  const { type } = event.data || {};
   
   switch (type) {
     case 'SKIP_WAITING':
-      console.log('🔄 Skip waiting requested, activating new service worker');
+      console.log('[SYNC] Skip waiting requested, activating new service worker');
       self.skipWaiting();
       break;
       
@@ -493,7 +530,7 @@ self.addEventListener('message', (event) => {
 async function clearAllCaches() {
   const cacheNames = await caches.keys();
   await Promise.all(cacheNames.map((name) => caches.delete(name)));
-  console.log('🗑️ All caches cleared');
+  console.log('[CLEANUP] All caches cleared');
 }
 
 /**
@@ -549,7 +586,7 @@ self.addEventListener('sync', (event) => {
 });
 
 async function refreshTokensInBackground() {
-  console.log('🔄 Background token refresh...');
+  console.log('[SYNC] Background token refresh...');
   try {
     const refreshToken = await getStoredRefreshToken();
     if (refreshToken) {
@@ -562,16 +599,16 @@ async function refreshTokensInBackground() {
       if (response.ok) {
         const tokenData = await response.json();
         await storeTokens(tokenData);
-        console.log('✅ Background token refresh successful');
+        console.log('[OK] Background token refresh successful');
       }
     }
   } catch (error) {
-    console.error('❌ Background token refresh failed:', error);
+    console.error('[ERROR] Background token refresh failed:', error);
   }
 }
 
 async function processSyncQueue() {
-  console.log('🔄 Processing sync queue...');
+  console.log('[SYNC] Processing sync queue...');
   // This will be implemented by the SyncQueue service
   // The service worker just triggers the sync
   const clients = await self.clients.matchAll();
@@ -591,6 +628,8 @@ if (typeof module !== 'undefined' && module.exports) {
     STATIC_CACHE,
     DATA_CACHE,
     PRECACHE_ASSETS,
-    isStaticAsset
+    CDN_ASSETS,
+    isStaticAsset,
+    isCdnAsset
   };
 }

@@ -1,10 +1,12 @@
 // Image Capture Modal Component
 // Allows users to capture or select multiple images for recipe extraction
+// Includes EXIF orientation detection and manual rotation controls
 //
 // **Feature: recipe-image-capture, multi-image-recipe-categories**
 // **Validates: Requirements 1.1, 1.2, 1.3, 1.5, 2.1, 2.2, 2.3, 5.1, 6.1, 6.2, 6.3, 6.4, 8.1, 8.2, 8.3, 8.4, 10.1, 10.2, 10.3**
 
 const ImageCaptureModal = Vue.defineComponent({
+  name: 'ImageCaptureModal',
   props: {
     visible: {
       type: Boolean,
@@ -15,25 +17,23 @@ const ImageCaptureModal = Vue.defineComponent({
   emits: ['close', 'image-captured', 'images-captured'],
   
   template: `
-    <div v-if="visible" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div class="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <!-- Modal Header -->
-        <div class="sticky top-0 bg-white border-b p-4 flex items-center justify-between" style="border-color: var(--color-border-card);">
-          <h2 class="text-xl font-bold text-primary-custom flex items-center gap-2">
-            <div v-html="Helpers.IconLibrary.getIcon('camera', 'lucide', 20, 'text-primary-custom')"></div>
-            Capture Recipe
-          </h2>
-          <button
-            @click="handleClose"
-            class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            :disabled="uploading"
-          >
-            <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 20, '')"></div>
-          </button>
+    <flyout-panel
+      :open="visible"
+      @close="handleClose"
+      :show-footer="imageSet.length > 0 && !uploading"
+      :show-header-close="!uploading"
+      :close-on-backdrop="!uploading"
+      :close-on-escape="!uploading"
+    >
+      <template #title>
+        <div class="flex items-center gap-2">
+          <div v-html="Helpers.IconLibrary.getIcon('camera', 'lucide', 20, 'text-primary-custom')"></div>
+          <span class="text-lg font-bold text-primary-custom">Capture Recipe</span>
         </div>
-        
-        <!-- Modal Content -->
-        <div class="p-6">
+      </template>
+      
+      <template #default>
+        <div class="space-y-4">
           <!-- Error Display with Retry -->
           <div v-if="error" class="mb-4 p-4 rounded-lg bg-red-50 border border-red-200">
             <div class="flex items-start gap-3">
@@ -153,13 +153,36 @@ const ImageCaptureModal = Vue.defineComponent({
               </div>
             </div>
 
-            <!-- Main Preview Image -->
+            <!-- Main Preview Image with Rotation Controls -->
             <div class="relative rounded-lg overflow-hidden bg-gray-100">
               <img
                 :src="activePreviewUrl"
                 alt="Recipe preview"
-                class="w-full max-h-[300px] object-contain"
+                class="w-full max-h-[300px] object-contain transition-transform duration-200"
+                :style="{ transform: 'rotate(' + (activeImage?.pendingRotation || 0) + 'deg)' }"
               >
+              
+              <!-- Rotation Controls Overlay -->
+              <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex items-center gap-2 bg-black bg-opacity-60 rounded-full px-3 py-1.5">
+                <button
+                  @click="rotateActiveImage(-90)"
+                  :disabled="rotating || uploading"
+                  class="p-1.5 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors disabled:opacity-50"
+                  title="Rotate left"
+                >
+                  <div v-html="Helpers.IconLibrary.getIcon('rotateCcw', 'lucide', 18, 'text-white')"></div>
+                </button>
+                <span class="text-white text-xs px-2">Rotate</span>
+                <button
+                  @click="rotateActiveImage(90)"
+                  :disabled="rotating || uploading"
+                  class="p-1.5 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors disabled:opacity-50"
+                  title="Rotate right"
+                >
+                  <div v-html="Helpers.IconLibrary.getIcon('rotateCw', 'lucide', 18, 'text-white')"></div>
+                </button>
+              </div>
+              
             </div>
 
             <!-- Active Image Info -->
@@ -209,28 +232,28 @@ const ImageCaptureModal = Vue.defineComponent({
               </div>
             </div>
             
-            <!-- Action Buttons -->
-            <div v-if="!uploading" class="flex gap-3">
-              <button
-                @click="clearAllImages"
-                class="flex-1 px-4 py-3 border rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
-                style="border-color: var(--color-border-card)"
-              >
-                <div v-html="Helpers.IconLibrary.getIcon('refreshCw', 'lucide', 18, '')"></div>
-                <span>Start Over</span>
-              </button>
-              <button
-                @click="confirmImages"
-                class="flex-1 btn-success flex items-center justify-center gap-2 px-4 py-3"
-              >
-                <div v-html="Helpers.IconLibrary.getIcon('check', 'lucide', 18, 'text-white')"></div>
-                <span>{{ imageSet.length > 1 ? 'Use These Images' : 'Use This Image' }}</span>
-              </button>
-            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </template>
+      
+      <template #footer>
+        <div class="flyout-footer-buttons flex items-center gap-2">
+          <button
+            @click="confirmImages"
+            class="flex-1 btn-primary btn-compact flex items-center justify-center gap-2 px-3 py-1.5 text-sm"
+          >
+            <div v-html="Helpers.IconLibrary.getIcon('check', 'lucide', 16, 'text-white')"></div>
+            <span>{{ imageSet.length > 1 ? 'Use Images' : 'Use Image' }}</span>
+          </button>
+          <button
+            @click="handleClose"
+            class="btn-secondary btn-compact px-3 py-1.5 text-sm"
+          >
+            Close
+          </button>
+        </div>
+      </template>
+    </flyout-panel>
   `,
 
   data() {
@@ -238,7 +261,7 @@ const ImageCaptureModal = Vue.defineComponent({
       // Multi-image support
       // **Feature: multi-image-recipe-categories**
       // **Validates: Requirements 1.1, 1.3, 2.1**
-      imageSet: [],           // Array of { file, previewUrl, uploadProgress, uploaded, error, s3Key }
+      imageSet: [],           // Array of { file, previewUrl, uploadProgress, uploaded, error, s3Key, wasAutoRotated, pendingRotation, currentRotation }
       maxImages: 5,
       activeImageIndex: 0,    // Currently previewed image
       
@@ -249,6 +272,9 @@ const ImageCaptureModal = Vue.defineComponent({
       // Upload state
       uploading: false,
       uploadProgress: 0,
+      
+      // Rotation state
+      rotating: false,        // Whether rotation is in progress
       
       // Error state
       error: null,
@@ -425,28 +451,75 @@ const ImageCaptureModal = Vue.defineComponent({
     },
     
     /**
-     * Add an image to the imageSet
+     * Add an image to the imageSet with EXIF orientation auto-correction
      * **Feature: multi-image-recipe-categories**
      * **Validates: Requirements 1.1, 2.1, 2.2**
      * @param {File} file - The image file to add
      */
-    addImage(file) {
+    async addImage(file) {
       if (this.imageSet.length >= this.maxImages) {
         this.error = 'Maximum 5 images per recipe';
         return;
       }
       
+      // Add placeholder while processing
+      const placeholderIndex = this.imageSet.length;
       this.imageSet.push({
-        file,
-        previewUrl: URL.createObjectURL(file),
+        file: null,
+        previewUrl: null,
         uploadProgress: 0,
         uploaded: false,
         error: null,
-        s3Key: null
+        s3Key: null,
+        wasAutoRotated: false,
+        pendingRotation: 0,
+        currentRotation: 0,
+        loading: true
       });
+      this.activeImageIndex = placeholderIndex;
       
-      // Set active to the newly added image
-      this.activeImageIndex = this.imageSet.length - 1;
+      try {
+        // Auto-correct orientation using EXIF data
+        let correctedFile = file;
+        let previewUrl = URL.createObjectURL(file);
+        let wasAutoRotated = false;
+        
+        if (window.ImageOrientation) {
+          const result = await window.ImageOrientation.autoCorrectOrientation(file);
+          correctedFile = result.file;
+          previewUrl = result.previewUrl;
+          wasAutoRotated = result.wasRotated;
+        }
+        
+        // Update the placeholder with actual data
+        this.imageSet[placeholderIndex] = {
+          file: correctedFile,
+          previewUrl: previewUrl,
+          uploadProgress: 0,
+          uploaded: false,
+          error: null,
+          s3Key: null,
+          wasAutoRotated: wasAutoRotated,
+          pendingRotation: 0,
+          currentRotation: 0,
+          loading: false
+        };
+      } catch (err) {
+        console.error('Error processing image:', err);
+        // Fall back to original file
+        this.imageSet[placeholderIndex] = {
+          file: file,
+          previewUrl: URL.createObjectURL(file),
+          uploadProgress: 0,
+          uploaded: false,
+          error: null,
+          s3Key: null,
+          wasAutoRotated: false,
+          pendingRotation: 0,
+          currentRotation: 0,
+          loading: false
+        };
+      }
     },
     
     /**
@@ -482,6 +555,52 @@ const ImageCaptureModal = Vue.defineComponent({
     selectImage(index) {
       if (index >= 0 && index < this.imageSet.length) {
         this.activeImageIndex = index;
+      }
+    },
+    
+    /**
+     * Rotate the active image by specified degrees
+     * @param {number} degrees - Degrees to rotate (90 or -90)
+     */
+    async rotateActiveImage(degrees) {
+      const img = this.activeImage;
+      if (!img || !img.previewUrl || this.rotating || this.uploading) return;
+      
+      this.rotating = true;
+      this.error = null;
+      
+      try {
+        if (!window.ImageOrientation) {
+          throw new Error('Image rotation not available');
+        }
+        
+        const result = await window.ImageOrientation.applyManualRotation(img.previewUrl, degrees);
+        
+        // Clean up old preview URL if it's a blob URL
+        if (img.previewUrl && img.previewUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(img.previewUrl);
+        }
+        
+        // Create new file from rotated blob
+        const newFile = new File([result.blob], img.file.name, {
+          type: 'image/jpeg',
+          lastModified: Date.now()
+        });
+        
+        // Update the image in the set
+        const newRotation = ((img.currentRotation || 0) + degrees + 360) % 360;
+        this.imageSet[this.activeImageIndex] = {
+          ...img,
+          file: newFile,
+          previewUrl: result.dataUrl,
+          currentRotation: newRotation,
+          pendingRotation: 0 // Reset pending since we applied it
+        };
+      } catch (err) {
+        console.error('Error rotating image:', err);
+        this.error = 'Failed to rotate image. Please try again.';
+      } finally {
+        this.rotating = false;
       }
     },
     

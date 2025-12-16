@@ -450,7 +450,7 @@ const TriviaWidget = {
       this.lastApiCall = Date.now();
       try {
         await fetch(`https://opentdb.com/api_token.php?command=reset&token=${this.sessionToken}`);
-      } catch {}
+      } catch { /* ignore token reset errors */ }
     },
 
     formatCategory(category) {

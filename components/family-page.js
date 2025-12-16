@@ -1,8 +1,13 @@
 // Family Page Component
 const FamilyPage = Vue.defineComponent({
+  name: 'FamilyPage',
   data() {
     return {
-      expandedCards: {}
+      expandedCards: {},
+      // Daily chores UI state
+      addingDailyChore: {}, // { [memberId]: boolean } - tracks which member's dropdown is open
+      removingDailyChore: {}, // { [memberId_choreId]: boolean } - tracks removal confirmation
+      dailyChoreLoading: {} // { [memberId]: boolean } - tracks loading state per member
     };
   },
   inject: ['allPeople', 'confirmDeletePerson'],
@@ -127,6 +132,129 @@ const FamilyPage = Vue.defineComponent({
                       </div>
                     </div>
 
+                    <!-- Daily Chores Section (Requirements 1.1, 1.4) -->
+                    <div v-if="$parent.currentUser?.role === 'parent'" class="bg-white bg-opacity-10 rounded-lg p-4">
+                      <h4 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+                        <div v-html="Helpers.IconLibrary.getIcon('calendar', 'lucide', 16, 'text-white')"></div>
+                        Daily Chores
+                        <span class="text-xs text-white text-opacity-70 font-normal ml-1">(auto-assigned each day)</span>
+                      </h4>
+
+                      <!-- Configured Daily Chores List -->
+                      <div v-if="getDailyChoresForMember(person).length > 0" class="space-y-2 mb-4">
+                        <div
+                          v-for="dailyChore in getDailyChoresForMember(person)"
+                          :key="dailyChore.id"
+                          class="flex items-center justify-between bg-white bg-opacity-20 rounded-lg px-3 py-2"
+                        >
+                          <div class="flex items-center gap-3 min-w-0 flex-1">
+                            <div
+                              class="flex items-center justify-center rounded-lg shrink-0 w-8 h-8"
+                              :style="{ background: 'rgba(255,255,255,0.3)' }"
+                              v-html="getCategoryIconForDailyChore(dailyChore.category)"
+                            ></div>
+                            <div class="min-w-0 flex-1">
+                              <p class="text-white text-sm font-medium truncate">{{ dailyChore.name }}</p>
+                              <div class="flex items-center gap-2 text-xs text-white text-opacity-80">
+                                <span v-if="dailyChore.amount > 0">\${{ dailyChore.amount.toFixed(2) }}</span>
+                                <span class="px-1.5 py-0.5 rounded bg-white bg-opacity-20">{{ getCategoryLabel(dailyChore.category) }}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <!-- Remove button with confirmation -->
+                          <button
+                            v-if="!removingDailyChore[person.id + '_' + dailyChore.id]"
+                            @click="confirmRemoveDailyChore(person.id, dailyChore.id)"
+                            :disabled="dailyChoreLoading[person.id]"
+                            class="flex items-center justify-center w-8 h-8 rounded-lg bg-white bg-opacity-20 hover:bg-error-500 hover:bg-opacity-80 text-white transition-all duration-200 touch-target flex-shrink-0"
+                            title="Remove from daily chores"
+                          >
+                            <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 16, 'text-white')"></div>
+                          </button>
+                          <!-- Confirmation buttons -->
+                          <div v-else class="flex items-center gap-1 flex-shrink-0">
+                            <button
+                              @click="removeDailyChore(person.id, dailyChore.id)"
+                              :disabled="dailyChoreLoading[person.id]"
+                              class="flex items-center justify-center w-8 h-8 rounded-lg bg-error-500 hover:bg-error-600 text-white transition-all duration-200 touch-target"
+                              title="Confirm remove"
+                            >
+                              <div v-html="Helpers.IconLibrary.getIcon('check', 'lucide', 14, 'text-white')"></div>
+                            </button>
+                            <button
+                              @click="cancelRemoveDailyChore(person.id, dailyChore.id)"
+                              class="flex items-center justify-center w-8 h-8 rounded-lg bg-white bg-opacity-30 hover:bg-opacity-50 text-white transition-all duration-200 touch-target"
+                              title="Cancel"
+                            >
+                              <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 14, 'text-white')"></div>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Empty state -->
+                      <div v-else class="text-center py-4 text-white text-opacity-70 text-sm mb-4">
+                        <p>No daily chores configured</p>
+                        <p class="text-xs mt-1">Add chores from your quicklist below</p>
+                      </div>
+
+                      <!-- Add Daily Chore Dropdown (Requirements 1.2) -->
+                      <div class="relative">
+                        <button
+                          @click="toggleAddDailyChore(person.id)"
+                          :disabled="dailyChoreLoading[person.id] || getAvailableQuicklistChores(person).length === 0"
+                          class="w-full flex items-center justify-center gap-2 bg-white bg-opacity-20 hover:bg-opacity-30 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-all duration-200 touch-target min-h-[44px]"
+                        >
+                          <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16, 'text-white')"></div>
+                          <span class="font-medium text-sm">
+                            {{ getAvailableQuicklistChores(person).length === 0 ? 'No quicklist chores available' : 'Add Daily Chore' }}
+                          </span>
+                          <div 
+                            v-if="getAvailableQuicklistChores(person).length > 0"
+                            v-html="Helpers.IconLibrary.getIcon('chevronDown', 'lucide', 16, 'text-white')" 
+                            :class="[addingDailyChore[person.id] ? 'rotate-180' : 'rotate-0', 'transition-transform duration-200 ml-auto']"
+                          ></div>
+                        </button>
+
+                        <!-- Dropdown menu -->
+                        <transition
+                          enter-active-class="transition-all duration-200 ease-out"
+                          enter-from-class="opacity-0 -translate-y-2"
+                          enter-to-class="opacity-100 translate-y-0"
+                          leave-active-class="transition-all duration-150 ease-in"
+                          leave-from-class="opacity-100 translate-y-0"
+                          leave-to-class="opacity-0 -translate-y-2"
+                        >
+                          <div 
+                            v-if="addingDailyChore[person.id]"
+                            class="absolute z-10 mt-2 w-full bg-white rounded-lg shadow-xl border overflow-hidden max-h-60 overflow-y-auto"
+                            style="border-color: var(--color-border-card);"
+                          >
+                            <div
+                              v-for="quickChore in getAvailableQuicklistChores(person)"
+                              :key="quickChore.id"
+                              @click="addDailyChore(person.id, quickChore.id)"
+                              class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors duration-150 border-b last:border-b-0"
+                              style="border-color: var(--color-border-card);"
+                            >
+                              <div
+                                class="flex items-center justify-center rounded-lg shrink-0 w-8 h-8"
+                                :style="{ background: 'var(--color-primary-50)', color: 'var(--color-primary-600)' }"
+                                v-html="getCategoryIconForDailyChore(quickChore.category)"
+                              ></div>
+                              <div class="min-w-0 flex-1">
+                                <p class="text-primary-custom text-sm font-medium truncate">{{ quickChore.name }}</p>
+                                <div class="flex items-center gap-2 text-xs text-secondary-custom">
+                                  <span v-if="quickChore.amount > 0">\${{ quickChore.amount.toFixed(2) }}</span>
+                                  <span class="px-1.5 py-0.5 rounded" :style="{ background: 'var(--color-primary-50)', color: 'var(--color-primary-700)' }">{{ getCategoryLabel(quickChore.category) }}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </transition>
+                      </div>
+                    </div>
+
                     <!-- Actions Section -->
                     <div class="bg-white bg-opacity-10 rounded-lg p-4">
                       <h4 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
@@ -231,6 +359,163 @@ const FamilyPage = Vue.defineComponent({
     handleChoreToggle(person, event) {
       person.enabledForChores = event.target.checked;
       this.$parent.updateMemberChoresEnabled(person);
+    },
+
+    // =============================================
+    // DAILY CHORES METHODS (Requirements 1.1-1.4)
+    // =============================================
+
+    /**
+     * Get the daily chores for a member with full quicklist details
+     * Requirements: 1.1, 1.4
+     */
+    getDailyChoresForMember(person) {
+      const dailyChoreIds = person.dailyChores || [];
+      const quicklistChores = this.$parent.quicklistChores || [];
+      
+      // Map IDs to full quicklist chore objects, filtering out missing ones
+      return dailyChoreIds
+        .map(id => quicklistChores.find(qc => qc.id === id))
+        .filter(chore => chore != null);
+    },
+
+    /**
+     * Get quicklist chores that are NOT already in the member's daily chores
+     * Requirements: 1.2
+     */
+    getAvailableQuicklistChores(person) {
+      const dailyChoreIds = person.dailyChores || [];
+      const quicklistChores = this.$parent.quicklistChores || [];
+      
+      return quicklistChores.filter(qc => !dailyChoreIds.includes(qc.id));
+    },
+
+    /**
+     * Toggle the add daily chore dropdown
+     */
+    toggleAddDailyChore(memberId) {
+      const current = !!this.addingDailyChore[memberId];
+      // Close all other dropdowns first
+      this.addingDailyChore = { [memberId]: !current };
+    },
+
+    /**
+     * Add a quicklist chore to member's daily chores
+     * Requirements: 1.2
+     */
+    async addDailyChore(memberId, quicklistChoreId) {
+      // Close dropdown
+      this.addingDailyChore = {};
+      
+      // Set loading state
+      this.dailyChoreLoading = { ...this.dailyChoreLoading, [memberId]: true };
+      
+      try {
+        const familyStore = window.useFamilyStore ? window.useFamilyStore() : null;
+        if (familyStore) {
+          const result = await familyStore.addMemberDailyChore(memberId, quicklistChoreId);
+          if (result.success) {
+            // Show success message
+            if (window.useUIStore) {
+              const uiStore = window.useUIStore();
+              uiStore.showSuccess('Daily chore added');
+            }
+          } else {
+            // Show error
+            if (window.useUIStore) {
+              const uiStore = window.useUIStore();
+              uiStore.showError(result.error || 'Failed to add daily chore');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to add daily chore:', error);
+        if (window.useUIStore) {
+          const uiStore = window.useUIStore();
+          uiStore.showError('Failed to add daily chore');
+        }
+      } finally {
+        this.dailyChoreLoading = { ...this.dailyChoreLoading, [memberId]: false };
+      }
+    },
+
+    /**
+     * Show confirmation for removing a daily chore
+     * Requirements: 1.3
+     */
+    confirmRemoveDailyChore(memberId, choreId) {
+      this.removingDailyChore = { ...this.removingDailyChore, [memberId + '_' + choreId]: true };
+    },
+
+    /**
+     * Cancel removal confirmation
+     */
+    cancelRemoveDailyChore(memberId, choreId) {
+      this.removingDailyChore = { ...this.removingDailyChore, [memberId + '_' + choreId]: false };
+    },
+
+    /**
+     * Remove a quicklist chore from member's daily chores
+     * Requirements: 1.3
+     */
+    async removeDailyChore(memberId, quicklistChoreId) {
+      // Clear confirmation state
+      this.removingDailyChore = { ...this.removingDailyChore, [memberId + '_' + quicklistChoreId]: false };
+      
+      // Set loading state
+      this.dailyChoreLoading = { ...this.dailyChoreLoading, [memberId]: true };
+      
+      try {
+        const familyStore = window.useFamilyStore ? window.useFamilyStore() : null;
+        if (familyStore) {
+          const result = await familyStore.removeMemberDailyChore(memberId, quicklistChoreId);
+          if (result.success) {
+            // Show success message
+            if (window.useUIStore) {
+              const uiStore = window.useUIStore();
+              uiStore.showSuccess('Daily chore removed');
+            }
+          } else {
+            // Show error
+            if (window.useUIStore) {
+              const uiStore = window.useUIStore();
+              uiStore.showError(result.error || 'Failed to remove daily chore');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to remove daily chore:', error);
+        if (window.useUIStore) {
+          const uiStore = window.useUIStore();
+          uiStore.showError('Failed to remove daily chore');
+        }
+      } finally {
+        this.dailyChoreLoading = { ...this.dailyChoreLoading, [memberId]: false };
+      }
+    },
+
+    /**
+     * Get category icon for daily chore display
+     */
+    getCategoryIconForDailyChore(category) {
+      if (typeof Helpers === 'undefined' || !Helpers.getCategoryIcon) {
+        return '';
+      }
+      return Helpers.getCategoryIcon(category);
+    },
+
+    /**
+     * Get category label for daily chore display
+     */
+    getCategoryLabel(category) {
+      if (typeof Helpers === 'undefined' || !Helpers.getCategoryLabel) {
+        switch(category) {
+          case 'school': return 'School';
+          case 'game': return 'Game';
+          default: return 'Regular';
+        }
+      }
+      return Helpers.getCategoryLabel(category);
     },
 
     getElectronicsStatusClass(status) {

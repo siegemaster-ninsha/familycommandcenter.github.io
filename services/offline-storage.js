@@ -38,7 +38,7 @@ class OfflineStorage {
 
       request.onsuccess = (event) => {
         this.db = event.target.result;
-        console.log('✅ IndexedDB initialized');
+        console.log('[OK] IndexedDB initialized');
         resolve(this.db);
       };
 
@@ -59,14 +59,14 @@ class OfflineStorage {
     try {
       // Check if Storage API is available
       if (!navigator.storage || !navigator.storage.persist) {
-        console.log('⚠️ Persistent storage API not available');
+        console.log('[WARN] Persistent storage API not available');
         return { granted: false, persisted: false, reason: 'API not available' };
       }
 
       // Check if already persisted
       const alreadyPersisted = await navigator.storage.persisted();
       if (alreadyPersisted) {
-        console.log('✅ Storage already persisted');
+        console.log('[OK] Storage already persisted');
         this.persistentStorageGranted = true;
         return { granted: true, persisted: true };
       }
@@ -76,10 +76,10 @@ class OfflineStorage {
       this.persistentStorageGranted = granted;
       
       if (granted) {
-        console.log('✅ Persistent storage granted');
+        console.log('[OK] Persistent storage granted');
         return { granted: true, persisted: true };
       } else {
-        console.log('⚠️ Persistent storage denied (browser may auto-grant based on engagement)');
+        console.log('[WARN] Persistent storage denied (browser may auto-grant based on engagement)');
         return { granted: false, persisted: false, reason: 'Permission denied' };
       }
     } catch (error) {
@@ -152,7 +152,7 @@ class OfflineStorage {
       const canWrite = availableSpace > estimatedSize;
 
       if (!canWrite) {
-        console.warn(`⚠️ Storage quota low: ${quota.usageFormatted} / ${quota.quotaFormatted} used`);
+        console.warn(`[WARN] Storage quota low: ${quota.usageFormatted} / ${quota.quotaFormatted} used`);
       }
 
       return { canWrite, quota, availableSpace };
@@ -165,12 +165,12 @@ class OfflineStorage {
   // Evict oldest cached data when storage is low
   // Returns number of items evicted
   async evictOldestData(targetBytesToFree = 1024 * 1024) {
-    console.log(`🗑️ Evicting oldest data to free ${this._formatBytes(targetBytesToFree)}...`);
+    console.log(`[CLEANUP] Evicting oldest data to free ${this._formatBytes(targetBytesToFree)}...`);
     
     let evictedCount = 0;
     
     try {
-      const db = await this._ensureDb();
+      await this._ensureDb();
       
       // Get timestamps for each data type
       const timestamps = await Promise.all([
@@ -200,13 +200,13 @@ class OfflineStorage {
         });
         
         evictedCount++;
-        console.log(`🗑️ Evicted ${type} cache`);
+        console.log(`[CLEANUP] Evicted ${type} cache`);
         
         const quotaAfter = await this.getStorageQuota();
         const freedBytes = quotaBefore.usage - quotaAfter.usage;
         
         if (freedBytes >= targetBytesToFree) {
-          console.log(`✅ Freed ${this._formatBytes(freedBytes)}`);
+          console.log(`[OK] Freed ${this._formatBytes(freedBytes)}`);
           break;
         }
       }
@@ -219,14 +219,14 @@ class OfflineStorage {
 
   // Handle QuotaExceededError gracefully
   async handleQuotaExceeded(operation, retryFn) {
-    console.warn('⚠️ Storage quota exceeded, attempting to free space...');
+    console.warn('[WARN] Storage quota exceeded, attempting to free space...');
     
     try {
       // Try to evict old data
       const evicted = await this.evictOldestData();
       
       if (evicted > 0 && retryFn) {
-        console.log('🔄 Retrying operation after eviction...');
+        console.log('[RETRY] Retrying operation after eviction...');
         return await retryFn();
       }
       
@@ -274,7 +274,7 @@ class OfflineStorage {
       db.createObjectStore('metadata', { keyPath: 'key' });
     }
 
-    console.log('✅ IndexedDB object stores created');
+    console.log('[OK] IndexedDB object stores created');
   }
 
   // Ensure database is initialized before operations
@@ -339,7 +339,7 @@ class OfflineStorage {
         const error = event.target.error;
         // Handle QuotaExceededError
         if (error && (error.name === 'QuotaExceededError' || error.code === 22)) {
-          console.warn('⚠️ QuotaExceededError while caching chores');
+          console.warn('[WARN] QuotaExceededError while caching chores');
           this.handleQuotaExceeded('cacheChores', () => this.cacheChores(chores))
             .then(resolve)
             .catch(reject);
@@ -350,7 +350,7 @@ class OfflineStorage {
       };
 
       transaction.oncomplete = () => {
-        console.log(`✅ Cached ${chores.length} chores`);
+        console.log(`[OK] Cached ${chores.length} chores`);
         resolve();
       };
 
@@ -401,7 +401,7 @@ class OfflineStorage {
       transaction.onerror = (event) => {
         const error = event.target.error;
         if (error && (error.name === 'QuotaExceededError' || error.code === 22)) {
-          console.warn('⚠️ QuotaExceededError while caching family members');
+          console.warn('[WARN] QuotaExceededError while caching family members');
           this.handleQuotaExceeded('cacheFamilyMembers', () => this.cacheFamilyMembers(members))
             .then(resolve)
             .catch(reject);
@@ -412,7 +412,7 @@ class OfflineStorage {
       };
 
       transaction.oncomplete = () => {
-        console.log(`✅ Cached ${members.length} family members`);
+        console.log(`[OK] Cached ${members.length} family members`);
         resolve();
       };
 
@@ -464,7 +464,7 @@ class OfflineStorage {
       transaction.onerror = (event) => {
         const error = event.target.error;
         if (error && (error.name === 'QuotaExceededError' || error.code === 22)) {
-          console.warn('⚠️ QuotaExceededError while caching quicklist');
+          console.warn('[WARN] QuotaExceededError while caching quicklist');
           this.handleQuotaExceeded('cacheQuicklist', () => this.cacheQuicklist(items))
             .then(resolve)
             .catch(reject);
@@ -475,7 +475,7 @@ class OfflineStorage {
       };
 
       transaction.oncomplete = () => {
-        console.log(`✅ Cached ${items.length} quicklist items`);
+        console.log(`[OK] Cached ${items.length} quicklist items`);
         resolve();
       };
 
@@ -557,7 +557,7 @@ class OfflineStorage {
       };
 
       transaction.oncomplete = () => {
-        console.log('✅ All IndexedDB data cleared');
+        console.log('[OK] All IndexedDB data cleared');
         resolve();
       };
 
@@ -571,12 +571,12 @@ class OfflineStorage {
   async clearCacheAPI() {
     try {
       if (!('caches' in window)) {
-        console.log('⚠️ Cache API not available');
+        console.log('[WARN] Cache API not available');
         return { cleared: false, reason: 'Cache API not available' };
       }
 
       const cacheNames = await caches.keys();
-      console.log(`🗑️ Clearing ${cacheNames.length} cache(s)...`);
+      console.log(`[CLEANUP] Clearing ${cacheNames.length} cache(s)...`);
       
       await Promise.all(
         cacheNames.map(cacheName => {
@@ -585,7 +585,7 @@ class OfflineStorage {
         })
       );
 
-      console.log('✅ All Cache API caches cleared');
+      console.log('[OK] All Cache API caches cleared');
       return { cleared: true, count: cacheNames.length };
     } catch (error) {
       console.error('Error clearing Cache API:', error);
@@ -596,7 +596,7 @@ class OfflineStorage {
   // Clear ALL cached data (IndexedDB + Cache API)
   // This is the comprehensive method for the "Clear Offline Data" feature
   async clearAllCachedData() {
-    console.log('🗑️ Clearing all offline cached data...');
+    console.log('[CLEANUP] Clearing all offline cached data...');
     
     const results = {
       indexedDB: { cleared: false },
@@ -626,9 +626,9 @@ class OfflineStorage {
     results.success = results.indexedDB.cleared;
     
     if (results.success) {
-      console.log('✅ All offline data cleared successfully');
+      console.log('[OK] All offline data cleared successfully');
     } else {
-      console.warn('⚠️ Some offline data could not be cleared');
+      console.warn('[WARN] Some offline data could not be cleared');
     }
 
     return results;
@@ -684,19 +684,19 @@ window.offlineStorage = new OfflineStorage();
 window.initializeOfflineStorage = async function() {
   try {
     await window.offlineStorage.init();
-    console.log('✅ Offline Storage Service initialized');
+    console.log('[OK] Offline Storage Service initialized');
     
     // Request persistent storage permission
     const persistResult = await window.offlineStorage.requestPersistentStorage();
     if (persistResult.granted) {
-      console.log('✅ Persistent storage enabled');
+      console.log('[OK] Persistent storage enabled');
     } else {
-      console.log('ℹ️ Persistent storage not granted:', persistResult.reason || 'Browser decision');
+      console.log('[INFO] Persistent storage not granted:', persistResult.reason || 'Browser decision');
     }
     
     // Log storage quota info
     const quota = await window.offlineStorage.getStorageQuota();
-    console.log(`📊 Storage: ${quota.usageFormatted} / ${quota.quotaFormatted} (${quota.percentUsed.toFixed(1)}%)`);
+    console.log(`[INFO] Storage: ${quota.usageFormatted} / ${quota.quotaFormatted} (${quota.percentUsed.toFixed(1)}%)`);
     
     return true;
   } catch (error) {

@@ -67,7 +67,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.38 - Optimistic Walrus (Dec 15, 2025)',
+    VERSION: '1.0.39 - Wondrous Otter (Dec 16, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
@@ -1100,11 +1100,26 @@ const ThemeManager = {
     }
   },
 
-  // initialize theme on page load
+  // Track if theme has been initialized (guard flag for single initialization)
+  _themeInitialized: false,
+
+  // initialize theme on page load (with guard to prevent duplicate initialization)
   initializeTheme() {
+    // Guard: prevent duplicate initialization
+    if (this._themeInitialized) {
+      console.log('🎨 ThemeManager.initializeTheme() - already initialized, skipping');
+      return;
+    }
+    
     const savedTheme = localStorage.getItem('selectedTheme') || 'default';
     console.log('🎨 ThemeManager.initializeTheme() - applying theme:', savedTheme);
     this.applyTheme(savedTheme);
+    this._themeInitialized = true;
+  },
+
+  // Reset initialization flag (for testing or re-initialization after logout)
+  resetInitialization() {
+    this._themeInitialized = false;
   },
 
   // get current theme (with localStorage error handling)
@@ -1182,7 +1197,7 @@ const ThemeManager = {
   // Handle system color scheme change
   // DISABLED: Dark mode auto-sync is disabled to prevent theme conflicts on iOS PWA resume
   // The user's explicitly selected theme should always be preserved
-  handleColorSchemeChange(event) {
+  handleColorSchemeChange() {
     // NO-OP: Dark mode sync disabled for iOS PWA stability
     console.log('🌓 Dark mode sync disabled - ignoring system color scheme change');
     return;
@@ -1227,15 +1242,12 @@ const ThemeManager = {
 };
 
 // ===========================================
-// INITIALIZE THEME ON LOAD
+// THEME INITIALIZATION NOTE
 // ===========================================
-if (typeof document !== 'undefined') {
-  // Initialize theme immediately to prevent flash of unstyled content
-  ThemeManager.initializeTheme();
-  
-  // Initialize dark mode sync for iOS/system preference
-  ThemeManager.initDarkModeSync();
-}
+// Theme initialization is handled by app.js mounted() to ensure single initialization.
+// Do NOT call ThemeManager.initializeTheme() here - it would cause duplicate initialization.
+// The app.js mounted() method calls loadUserTheme() for authenticated users or
+// ThemeManager.initializeTheme() for unauthenticated users.
 
 // Helper function to get full API URL
 CONFIG.getApiUrl = function(endpoint) {

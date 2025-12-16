@@ -3,6 +3,7 @@
 
 // Loading State Component
 const AppLoadingState = Vue.defineComponent({
+  name: 'AppLoadingState',
   template: `
     <div v-if="loading" class="flex items-center justify-center py-20">
       <div class="text-center">
@@ -16,6 +17,7 @@ const AppLoadingState = Vue.defineComponent({
 
 // Error State Component
 const AppErrorState = Vue.defineComponent({
+  name: 'AppErrorState',
   template: `
       <div v-if="error" class="mx-4 mb-8 rounded-lg p-4" style="background: var(--color-error-50); border: 1px solid var(--color-error-600);">
       <div class="flex items-center gap-2">
@@ -36,6 +38,7 @@ const AppErrorState = Vue.defineComponent({
 
 // Selection Info Component (disabled per UX request)
 const AppSelectionInfo = Vue.defineComponent({
+  name: 'AppSelectionInfo',
   template: `<div></div>`,
   inject: ['loading', 'error', 'selectedChore'],
   methods: {
@@ -48,6 +51,7 @@ const AppSelectionInfo = Vue.defineComponent({
 
 // Success Message Component
 const AppSuccessMessage = Vue.defineComponent({
+  name: 'AppSuccessMessage',
   template: `
       <div v-if="showSuccessMessage && completedChoreMessage" class="fixed inset-0 flex items-center justify-center z-[100] pointer-events-none">
       <div class="success-message btn-success px-8 py-4 rounded-lg shadow-lg text-center">
@@ -63,6 +67,7 @@ const AppSuccessMessage = Vue.defineComponent({
 
 // Confetti Component
 const AppConfetti = Vue.defineComponent({
+  name: 'AppConfetti',
   template: `
     <div v-if="showConfetti" class="confetti-container">
       <div 

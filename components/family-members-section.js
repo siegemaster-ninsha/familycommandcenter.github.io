@@ -1,5 +1,6 @@
 // Family Members Section Component  
 const FamilyMembersSection = Vue.defineComponent({
+  name: 'FamilyMembersSection',
   template: `
     <div class="mb-6">
       <div class="flex items-center justify-between px-2 sm:px-4 pb-3 pt-5">
@@ -84,7 +85,7 @@ const FamilyMembersSection = Vue.defineComponent({
     'choresByPerson', 'people', 'assignSelectedChore', 'handleChoreClick', 'selectionStore', 'Helpers'
   ],
   methods: {
-    getDropZoneClasses(person) {
+    getDropZoneClasses() {
       const baseClasses = "bg-white rounded-lg shadow-sm border transition-all duration-200";
       const highlightClasses = this.$parent.selectedChore ? "ring-2 ring-success-600 ring-opacity-50 bg-success-50" : "";
       

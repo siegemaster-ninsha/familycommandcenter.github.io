@@ -9,8 +9,9 @@ const ChoreCard = {
       :aria-selected="isSelected"
       role="option"
       :class="[
-        isSelected ? 'shadow-2xl shadow-blue-500/50 scale-105 z-10 border-4 border-blue-300 bg-blue-700 ring-8 ring-yellow-400 ring-opacity-80' : 'hover:border-blue-400 bg-blue-500 border-blue-600'
+        isSelected ? 'shadow-2xl scale-105 z-10 border-4 ring-8 ring-yellow-400 ring-opacity-80' : ''
       ]"
+      :style="getCardStyle()"
       @touchstart.passive="handleTouchStart"
       @touchmove.passive="handleTouchMove"
       @click.stop="handleClick"
@@ -81,6 +82,20 @@ const ChoreCard = {
     };
   },
   methods: {
+    getCardStyle() {
+      // Use theme colors via CSS custom properties
+      if (this.isSelected) {
+        return {
+          backgroundColor: 'var(--color-primary-700)',
+          borderColor: 'var(--color-primary-300)',
+          boxShadow: '0 25px 50px -12px var(--color-primary-500)'
+        };
+      }
+      return {
+        backgroundColor: 'var(--color-primary-500)',
+        borderColor: 'var(--color-primary-600)'
+      };
+    },
     handleTouchStart(event) {
       if (event.touches && event.touches.length > 0) {
         this.touchStartX = event.touches[0].clientX;
@@ -157,7 +172,7 @@ const PersonCard = {
     <div
       class="border-2 rounded-xl p-6 transition-all duration-200 shadow-lg hover:shadow-xl"
       :class="[canAssign ? 'cursor-pointer hover:scale-102 bg-gray-50' : 'bg-white']"
-      style="border-color: rgb(229 231 235);"
+      style="border-color: var(--color-neutral-200);"
       @click="canAssign ? onAssign() : null"
     >
       <!-- Person header -->
@@ -319,6 +334,7 @@ const EarningsCard = {
 
 // Main Component
 const TailwindChorePage = Vue.defineComponent({
+  name: 'TailwindChorePage',
   template: `
     <div class="space-y-6 pb-24 sm:pb-0">
       <!-- Page Header -->
@@ -568,7 +584,7 @@ const TailwindChorePage = Vue.defineComponent({
       return this.Helpers?.isChoreSelected?.(this.selectedChoreId, this.selectedQuicklistChore, quickChore) || false;
     },
 
-    selectChore(chore, event) {
+    selectChore(chore) {
       // Touch scroll detection is now handled by ChoreCard component
       if (chore.isSelecting) return;
       chore.isSelecting = true;
@@ -597,7 +613,7 @@ const TailwindChorePage = Vue.defineComponent({
       }
     },
 
-    onQuicklistClick(quickChore, event) {
+    onQuicklistClick(quickChore) {
       console.log('🎯 Quicklist chore clicked:', quickChore.name);
       // Touch scroll detection is now handled by ChoreCard component
       if (quickChore.isSelecting) {

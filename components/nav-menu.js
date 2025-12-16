@@ -1,5 +1,6 @@
 // Navigation Menu Component (Hamburger)
 const NavMenu = Vue.defineComponent({
+  name: 'NavMenu',
   props: {
     items: {
       type: Array,
@@ -27,7 +28,7 @@ const NavMenu = Vue.defineComponent({
   methods: {
     toggle() { this.open = !this.open; },
     go(page) {
-      try { this.$parent.setCurrentPage(page); } catch {}
+      try { this.$parent.setCurrentPage(page); } catch { /* ignore navigation errors */ }
       this.open = false;
     },
     onOutsideClick(e) {

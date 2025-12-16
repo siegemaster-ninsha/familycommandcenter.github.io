@@ -1,5 +1,6 @@
 // Account Page Component
 const AccountPage = Vue.defineComponent({
+  name: 'AccountPage',
   template: `
     <div class="space-y-6">
       <!-- Account Overview -->
@@ -72,7 +73,8 @@ const AccountPage = Vue.defineComponent({
         <!-- App Preferences -->
         <div class="mt-8 pt-6 border-t" style="border-color: var(--color-border-card);">
           <h3 class="text-primary-custom text-lg font-bold mb-6 flex items-center gap-2">
-            📱 App Preferences
+            <div v-html="Helpers.IconLibrary.getIcon('smartphone', 'lucide', 20, 'text-primary-custom')"></div>
+            App Preferences
           </h3>
           
           <div class="space-y-6">
@@ -193,22 +195,23 @@ const AccountPage = Vue.defineComponent({
           </div>
         </div>
 
-        <!-- Save Button at bottom -->
-        <div class="mt-8 flex justify-center">
-          <button
-            @click="saveAllSettings"
-            :disabled="profileLoading"
-            class="bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white py-3 px-8 rounded-lg transition-colors duration-200 disabled:opacity-50 shadow-md hover:shadow-lg touch-target min-h-[48px] font-medium"
-          >
-            {{ profileLoading ? 'Saving...' : 'Save All Settings' }}
-          </button>
+        <!-- Auto-save indicator -->
+        <div class="mt-6 text-center text-sm text-secondary-custom">
+          <span v-if="autoSaving" class="flex items-center justify-center gap-2">
+            <div class="animate-spin h-4 w-4" v-html="Helpers.IconLibrary.getIcon('loader', 'lucide', 16, 'text-secondary-custom')"></div>
+            Saving...
+          </span>
+          <span v-else-if="lastSaved" class="text-green-600">
+            Settings saved automatically
+          </span>
         </div>
       </div>
 
       <!-- Theme Selection -->
       <div class="rounded-lg border-2 p-6 shadow-lg" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <h3 class="text-primary-custom text-lg font-bold mb-4 flex items-center gap-2">
-          🎨 Theme Selection
+          <div v-html="Helpers.IconLibrary.getIcon('palette', 'lucide', 20, 'text-primary-custom')"></div>
+          Theme Selection
         </h3>
         <p class="text-secondary-custom text-sm mb-6">Choose your preferred color theme for the application.</p>
         
@@ -283,7 +286,8 @@ const AccountPage = Vue.defineComponent({
       <!-- Data Management -->
       <div class="rounded-lg border-2 p-6 shadow-lg" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
         <h3 class="text-primary-custom text-lg font-bold mb-4 flex items-center gap-2">
-          💾 Data Management
+          <div v-html="Helpers.IconLibrary.getIcon('database', 'lucide', 20, 'text-primary-custom')"></div>
+          Data Management
         </h3>
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -406,7 +410,12 @@ const AccountPage = Vue.defineComponent({
       </div>
     </div>
   `,
-  inject: ['currentUser'],
+  inject: [
+    // Preloaded data from parent
+    'accountSettings',
+    'accountId',
+    'currentUser'
+  ],
   data() {
     return {
       
@@ -442,15 +451,34 @@ const AccountPage = Vue.defineComponent({
       clearCacheLoading: false,
       storageStats: null,
       
-      availableThemes: Object.values(CONFIG.THEMES)
+      availableThemes: Object.values(CONFIG.THEMES),
+      
+      // Auto-save state
+      autoSaving: false,
+      lastSaved: false,
+      _autoSaveTimer: null,
+      _initialLoad: true
     };
   },
-  inject: [
-    // Preloaded data from parent
-    'accountSettings',
-    'accountId',
-    'currentUser'
-  ],
+  watch: {
+    // Auto-save preferences when they change (debounced)
+    preferences: {
+      handler(newVal) {
+        if (this._initialLoad) return; // Skip initial load
+        this._debouncedSavePreferences();
+      },
+      deep: true
+    },
+    // Auto-save profile when it changes (debounced)
+    'profileForm.name'(newVal) {
+      if (this._initialLoad) return;
+      this._debouncedSaveProfile();
+    },
+    'profileForm.familyName'(newVal) {
+      if (this._initialLoad) return;
+      this._debouncedSaveProfile();
+    }
+  },
   async mounted() {
     // Data is now preloaded by parent component
     console.log('⚙️ Account page mounted with preloaded data');
@@ -463,6 +491,17 @@ const AccountPage = Vue.defineComponent({
     if (this.accountSettings) {
       this.syncAccountSettings();
     }
+    
+    // Allow watchers to trigger auto-save after initial load
+    this.$nextTick(() => {
+      this._initialLoad = false;
+    });
+  },
+  beforeUnmount() {
+    // Clear any pending auto-save timers
+    if (this._autoSaveTimer) {
+      clearTimeout(this._autoSaveTimer);
+    }
   },
   computed: {
     isChild() {
@@ -470,6 +509,88 @@ const AccountPage = Vue.defineComponent({
     }
   },
   methods: {
+    // Debounced auto-save for preferences (500ms delay)
+    _debouncedSavePreferences() {
+      if (this._autoSaveTimer) {
+        clearTimeout(this._autoSaveTimer);
+      }
+      this._autoSaveTimer = setTimeout(() => {
+        this._autoSavePreferences();
+      }, 500);
+    },
+    
+    // Debounced auto-save for profile (500ms delay)
+    _debouncedSaveProfile() {
+      if (this._autoSaveTimer) {
+        clearTimeout(this._autoSaveTimer);
+      }
+      this._autoSaveTimer = setTimeout(() => {
+        this._autoSaveProfile();
+      }, 500);
+    },
+    
+    // Auto-save preferences (non-blocking)
+    async _autoSavePreferences() {
+      this.autoSaving = true;
+      this.lastSaved = false;
+      try {
+        // Save to localStorage immediately
+        localStorage.setItem('appPreferences', JSON.stringify(this.preferences));
+        
+        // Save to backend if available
+        if (this.accountId) {
+          try {
+            await window.SettingsClient.updatePreferences(this.accountId, this.preferences, { ifMatch: this.$parent.accountSettings?.updatedAt });
+            console.log('✅ Preferences auto-saved to backend');
+          } catch (e) {
+            console.warn('Failed to auto-save preferences to backend:', e);
+          }
+        }
+        this.lastSaved = true;
+        // Clear the "saved" indicator after 2 seconds
+        setTimeout(() => { this.lastSaved = false; }, 2000);
+      } catch (error) {
+        console.error('Auto-save preferences failed:', error);
+      } finally {
+        this.autoSaving = false;
+      }
+    },
+    
+    // Auto-save profile (non-blocking)
+    async _autoSaveProfile() {
+      this.autoSaving = true;
+      this.lastSaved = false;
+      try {
+        // Save to localStorage immediately
+        localStorage.setItem('familyName', this.profileForm.familyName);
+        localStorage.setItem('userProfile', JSON.stringify({
+          name: this.profileForm.name,
+          email: this.profileForm.email,
+          familyName: this.profileForm.familyName
+        }));
+        
+        // Save to backend if available
+        if (this.accountId) {
+          try {
+            await window.SettingsClient.updateProfile(this.accountId, {
+              displayName: this.profileForm.name,
+              familyName: this.profileForm.familyName
+            }, { ifMatch: this.$parent.accountSettings?.updatedAt });
+            console.log('✅ Profile auto-saved to backend');
+          } catch (e) {
+            console.warn('Failed to auto-save profile to backend:', e);
+          }
+        }
+        this.lastSaved = true;
+        // Clear the "saved" indicator after 2 seconds
+        setTimeout(() => { this.lastSaved = false; }, 2000);
+      } catch (error) {
+        console.error('Auto-save profile failed:', error);
+      } finally {
+        this.autoSaving = false;
+      }
+    },
+    
     syncAccountSettings() {
       // Sync preloaded account settings to local state
       if (this.accountSettings.theme) {

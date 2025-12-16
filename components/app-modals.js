@@ -1,15 +1,16 @@
 // App Modals Component
 const AppModals = Vue.defineComponent({
+  name: 'AppModals',
   template: `
-    <!-- Add to Quicklist Modal -->
-    <div v-if="showAddToQuicklistModal" class="fixed inset-0 flex items-center justify-center z-50 modal-overlay" :style="{ backgroundColor: 'rgba(0,0,0,0.5)' }">
-      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="p-2 rounded-full" style="background: var(--color-primary-50);">
-            <div v-html="Helpers.IconLibrary.getIcon('monitor', 'lucide', 24, '')" style="color: var(--color-primary-600);"></div>
-          </div>
-          <h3 class="text-lg font-bold text-primary-custom">Add to Quicklist</h3>
-        </div>
+    <!-- Add to Quicklist Flyout -->
+    <flyout-panel
+      :open="showAddToQuicklistModal"
+      @close="cancelAddToQuicklist"
+      title="Add to Quicklist"
+      :show-footer="true"
+      :show-header-close="false"
+    >
+      <template #default>
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-primary-custom mb-1">Chore Name</label>
@@ -40,9 +41,9 @@ const AppModals = Vue.defineComponent({
               class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               style="border-color: var(--color-border-card)"
             >
-              <option value="regular">🏠 Regular Chore</option>
-              <option value="school">📚 School Chore</option>
-              <option value="game">🎮 Electronics Requirement</option>
+              <option value="regular">Regular Chore</option>
+              <option value="school">School Chore</option>
+              <option value="game">Electronics Requirement</option>
             </select>
           </div>
           <div>
@@ -57,23 +58,38 @@ const AppModals = Vue.defineComponent({
             </label>
             <p class="text-xs text-secondary-custom mt-1">If checked, a details prompt will appear when this chore is assigned</p>
           </div>
+          
+          <!-- Optional Default Details Section -->
+          <div v-if="newQuicklistChore.isDetailed" class="pt-2">
+            <label class="block text-sm font-medium text-primary-custom mb-1">Default Details (Optional)</label>
+            <textarea 
+              v-model="newQuicklistChore.defaultDetails"
+              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-vertical"
+              style="border-color: var(--color-border-card)"
+              rows="3"
+              placeholder="Add default instructions or notes that will pre-fill when assigning..."
+            ></textarea>
+            <p class="text-xs text-secondary-custom mt-1">These details will be pre-filled when assigning, but can be edited</p>
+          </div>
         </div>
-        <div class="flex gap-3 mt-6">
+      </template>
+      <template #footer>
+        <div class="flyout-footer-buttons flex items-center gap-2">
           <button 
             @click="addToQuicklist"
-            class="flex-1 btn-secondary"
+            class="flex-1 btn-primary btn-compact px-3 py-1.5 text-sm"
           >
             Add to Quicklist
           </button>
           <button 
-            @click="cancelAddToQuicklist"
-            class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
+            @click="handleCancelAddToQuicklist"
+            class="btn-secondary btn-compact px-3 py-1.5 text-sm"
           >
-            Cancel
+            Close
           </button>
         </div>
-      </div>
-    </div>
+      </template>
+    </flyout-panel>
 
     
 
@@ -107,10 +123,15 @@ const AppModals = Vue.defineComponent({
       </div>
     </div>
 
-    <!-- Add Chore Modal -->
-    <div v-if="showAddChoreModal" class="fixed inset-0 flex items-center justify-center z-50 modal-overlay" :style="{ backgroundColor: 'rgba(0,0,0,0.5)' }">
-      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
-        <h3 class="text-lg font-bold text-primary-custom mb-4">Add New Chore</h3>
+    <!-- Add Chore Flyout -->
+    <flyout-panel
+      :open="showAddChoreModal"
+      @close="cancelAddChore"
+      title="Add New Chore"
+      :show-footer="true"
+      :show-header-close="false"
+    >
+      <template #default>
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-primary-custom mb-1">Chore Name</label>
@@ -139,9 +160,9 @@ const AppModals = Vue.defineComponent({
               v-model="newChore.category"
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
-              <option value="regular">🏠 Regular Chore</option>
-              <option value="school">📚 School Chore</option>
-              <option value="game">🎮 Electronics Requirement</option>
+              <option value="regular">Regular Chore</option>
+              <option value="school">School Chore</option>
+              <option value="game">Electronics Requirement</option>
             </select>
           </div>
           <div>
@@ -167,39 +188,64 @@ const AppModals = Vue.defineComponent({
             <p class="text-xs text-secondary-custom mt-1">Also add this chore to the quicklist for future use</p>
           </div>
         </div>
-        <div class="flex gap-3 mt-6">
+      </template>
+      <template #footer>
+        <div class="flyout-footer-buttons flex items-center gap-2">
           <button 
             @click="addChore"
-            class="flex-1 bg-primary-500 text-white py-2 px-4 rounded-lg hover:bg-primary-600 transition-colors"
+            class="flex-1 btn-primary btn-compact px-3 py-1.5 text-sm"
           >
             Add Chore
           </button>
           <button 
-            @click="cancelAddChore"
-            class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
+            @click="handleCancelAddChore"
+            class="btn-secondary btn-compact px-3 py-1.5 text-sm"
           >
-            Cancel
+            Close
           </button>
         </div>
-      </div>
-    </div>
+      </template>
+    </flyout-panel>
 
     <!-- New Day Confirmation Modal -->
+    <!-- _Requirements: 4.1, 4.2_ -->
     <div v-if="showNewDayModal" class="fixed inset-0 flex items-center justify-center z-50 modal-overlay" :style="{ backgroundColor: 'rgba(0,0,0,0.5)' }">
       <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
         <div class="flex items-center gap-3 mb-4">
           <div class="p-2 rounded-full" style="background: var(--color-warning-50);">
-            <div v-html="Helpers.IconLibrary.getIcon('checkCircle', 'lucide', 24, '')" style="color: var(--color-warning-700);"></div>
+            <div v-html="Helpers.IconLibrary.getIcon('sunrise', 'lucide', 24, '')" style="color: var(--color-warning-700);"></div>
           </div>
           <h3 class="text-lg font-bold text-primary-custom">Start New Day</h3>
         </div>
         <div class="space-y-4 mb-6">
-          <div class="rounded-lg p-4" style="background: var(--color-warning-50); border: 1px solid color-mix(in srgb, var(--color-warning-600) 20%, white);">
-            <h4 class="font-medium mb-2" style="color: var(--color-warning-700);">🌅 What happens when you start a new day:</h4>
-            <ul class="text-sm space-y-1" style="color: var(--color-warning-700);">
-              <li>• All current chores will be deleted</li>
-              <li>• Family members' earnings will be <strong>preserved</strong></li>
-              <li>• The board will be cleared for fresh daily chores</li>
+          <!-- What will be cleared -->
+          <div class="rounded-lg p-4" style="background: var(--color-error-50); border: 1px solid color-mix(in srgb, var(--color-error-600) 20%, white);">
+            <h4 class="font-medium mb-2 flex items-center gap-2" style="color: var(--color-error-700);">
+              <span v-html="Helpers.IconLibrary.getIcon('trash2', 'lucide', 18, '')"></span> What will be cleared:
+            </h4>
+            <ul class="text-sm space-y-1" style="color: var(--color-error-700);">
+              <li>• All <strong>completed</strong> chores will be removed</li>
+              <li>• All <strong>daily chores</strong> (configured per member) will be removed</li>
+            </ul>
+          </div>
+          <!-- What will be created -->
+          <div class="rounded-lg p-4" style="background: var(--color-success-50); border: 1px solid color-mix(in srgb, var(--color-success-600) 20%, white);">
+            <h4 class="font-medium mb-2 flex items-center gap-2" style="color: var(--color-success-700);">
+              <span v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 18, '')"></span> What will be created:
+            </h4>
+            <ul class="text-sm space-y-1" style="color: var(--color-success-700);">
+              <li>• Fresh daily chores from each member's configured list</li>
+              <li>• Duplicates will be automatically skipped</li>
+            </ul>
+          </div>
+          <!-- What will be preserved -->
+          <div class="rounded-lg p-4" style="background: var(--color-primary-50); border: 1px solid color-mix(in srgb, var(--color-primary-600) 20%, white);">
+            <h4 class="font-medium mb-2 flex items-center gap-2" style="color: var(--color-primary-700);">
+              <span v-html="Helpers.IconLibrary.getIcon('shield', 'lucide', 18, '')"></span> What will be preserved:
+            </h4>
+            <ul class="text-sm space-y-1" style="color: var(--color-primary-700);">
+              <li>• All family members' <strong>earnings</strong></li>
+              <li>• Non-daily incomplete chores remain on the board</li>
             </ul>
           </div>
           <p class="text-secondary-custom text-sm">
@@ -439,15 +485,15 @@ const AppModals = Vue.defineComponent({
       </div>
     </div>
 
-    <!-- Chore Details Modal -->
-    <div v-if="showChoreDetailsModal" class="fixed inset-0 flex items-center justify-center z-50 modal-overlay" :style="{ backgroundColor: 'rgba(0,0,0,0.5)' }">
-      <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4 modal-panel">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="p-2 rounded-full" style="background: var(--color-primary-50);">
-            <div v-html="Helpers.IconLibrary.getIcon('fileText', 'lucide', 24, '')" style="color: var(--color-primary-600);"></div>
-          </div>
-          <h3 class="text-lg font-bold text-primary-custom">Add Chore Details</h3>
-        </div>
+    <!-- Chore Details Flyout -->
+    <flyout-panel
+      :open="showChoreDetailsModal"
+      @close="cancelChoreDetails"
+      title="Add Chore Details"
+      :show-footer="true"
+      :show-header-close="false"
+    >
+      <template #default>
         <div class="mb-4">
           <div class="rounded-lg p-3" style="background: var(--color-primary-50); border: 1px solid var(--color-primary-200);">
             <p class="font-medium" style="color: var(--color-primary-700);">{{ choreDetailsForm.name }}</p>
@@ -469,36 +515,40 @@ const AppModals = Vue.defineComponent({
             <p class="text-xs text-secondary-custom mt-1">Optional: Add specific details about how to complete this chore</p>
           </div>
         </div>
-        <div class="flex gap-3 mt-6">
+      </template>
+      <template #footer>
+        <div class="flyout-footer-buttons flex items-center gap-2">
           <button 
             @click="confirmChoreDetails"
-            class="flex-1 bg-primary-500 text-white py-2 px-4 rounded-lg hover:bg-primary-600 transition-colors"
+            class="flex-1 btn-primary btn-compact px-3 py-1.5 text-sm"
           >
             Create Chore
           </button>
           <button 
-            @click="cancelChoreDetails"
-            class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
+            @click="handleCancelChoreDetails"
+            class="btn-secondary btn-compact px-3 py-1.5 text-sm"
           >
-            Cancel
+            Close
           </button>
         </div>
-      </div>
-    </div>
+      </template>
+    </flyout-panel>
 
-    <!-- Spending Modal -->
-    <div v-if="showSpendingModal" class="fixed inset-0 flex items-center justify-center z-50 modal-overlay" :style="{ backgroundColor: 'rgba(0,0,0,0.5)' }">
-      <div class="bg-white rounded-lg p-6 w-full max-w-sm mx-4 modal-panel">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="p-2 rounded-full" style="background: var(--color-error-50);">
-            <div v-html="Helpers.IconLibrary.getIcon('alertTriangle', 'lucide', 24, '')" style="color: var(--color-error-700);"></div>
-          </div>
-          <div>
-            <h3 class="text-lg font-bold text-primary-custom">Spend Money</h3>
-            <p class="text-sm text-secondary-custom">{{ selectedPerson?.displayName || selectedPerson?.name || '' }} - \${{ selectedPerson?.earnings.toFixed(2) }} available</p>
-          </div>
+    <!-- Spending Flyout -->
+    <flyout-panel
+      :open="showSpendingModal"
+      @close="closeSpendingModal"
+      :show-footer="true"
+      :show-header-close="false"
+      width="380px"
+    >
+      <template #title>
+        <div>
+          <h2 class="text-lg font-bold text-primary-custom">Spend Money</h2>
+          <p class="text-sm text-secondary-custom">{{ selectedPerson?.displayName || selectedPerson?.name || '' }} - \${{ selectedPerson?.earnings?.toFixed(2) || '0.00' }} available</p>
         </div>
-        
+      </template>
+      <template #default>
         <!-- Amount Display -->
         <div class="mb-4">
           <div class="text-center bg-gray-50 rounded-lg p-4 mb-4">
@@ -508,7 +558,7 @@ const AppModals = Vue.defineComponent({
         </div>
         
         <!-- Number Pad -->
-        <div class="grid grid-cols-3 gap-2 mb-4">
+        <div class="grid grid-cols-3 gap-2">
           <button
             v-for="number in [1,2,3,4,5,6,7,8,9]"
             :key="number"
@@ -537,25 +587,25 @@ const AppModals = Vue.defineComponent({
             Clear
           </button>
         </div>
-        
-        <!-- Action Buttons -->
-        <div class="flex gap-3">
-          <button
-            @click="closeSpendingModal"
-            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
+      </template>
+      <template #footer>
+        <div class="flyout-footer-buttons flex items-center gap-2">
           <button
             @click="confirmSpending"
             :disabled="spendAmount <= 0 || spendAmount > selectedPerson?.earnings"
-            class="flex-1 px-4 py-2 btn-error disabled:bg-[color:var(--color-neutral-300)] disabled:cursor-not-allowed"
+            class="flex-1 btn-error btn-compact px-3 py-1.5 text-sm disabled:bg-[color:var(--color-neutral-300)] disabled:cursor-not-allowed"
           >
             Spend Money
           </button>
+          <button
+            @click="handleCloseSpendingModal"
+            class="btn-secondary btn-compact px-3 py-1.5 text-sm"
+          >
+            Close
+          </button>
         </div>
-      </div>
-    </div>
+      </template>
+    </flyout-panel>
 
     <!-- Create Child Modal -->
     <div v-if="showCreateChildModal" class="fixed inset-0 flex items-center justify-center z-50 modal-overlay" :style="{ backgroundColor: 'rgba(0,0,0,0.5)' }">
@@ -613,23 +663,24 @@ const AppModals = Vue.defineComponent({
       </div>
     </div>
 
-    <!-- Multi-Assignment Modal for Quicklist Chores -->
-    <div v-if="showMultiAssignModal" class="fixed inset-0 flex items-center justify-center z-50 modal-overlay" :style="{ backgroundColor: 'rgba(0,0,0,0.5)' }">
-      <!-- Debug log -->
-      <div class="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 modal-panel">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="p-2 rounded-full" style="background: var(--color-primary-50);">
-            <div v-html="Helpers.IconLibrary.getIcon('users', 'lucide', 24, '')" style="color: var(--color-primary-600);"></div>
-          </div>
-          <h3 class="text-lg font-bold text-primary-custom">Assign "{{ selectedQuicklistChore?.name }}"</h3>
-        </div>
-
+    <!-- Multi-Assignment Flyout for Quicklist Chores -->
+    <flyout-panel
+      :open="showMultiAssignModal"
+      @close="cancelMultiAssignment"
+      :show-footer="true"
+      :show-header-close="false"
+      width="500px"
+    >
+      <template #title>
+        <h2 class="text-lg font-bold text-primary-custom">Assign "{{ selectedQuicklistChore?.name }}"</h2>
+      </template>
+      <template #default>
         <p class="text-secondary-custom mb-6">
           Select which family members should be assigned this chore. Each selected member will get their own copy of the chore.
         </p>
 
         <!-- Family Member Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 max-h-96 overflow-y-auto">
+        <div class="space-y-3 mb-4">
           <div
             v-for="person in people"
             :key="person.id"
@@ -668,32 +719,32 @@ const AppModals = Vue.defineComponent({
         </div>
 
         <!-- Selected Count -->
-        <div v-if="multiAssignSelectedMembers.length > 0" class="mb-4 p-3 bg-primary-50 rounded-lg">
+        <div v-if="multiAssignSelectedMembers.length > 0" class="p-3 bg-primary-50 rounded-lg">
           <p class="text-sm text-primary-700">
             <span class="font-medium">{{ multiAssignSelectedMembers.length }}</span> member{{ multiAssignSelectedMembers.length !== 1 ? 's' : '' }} selected
           </p>
         </div>
-
-        <!-- Action Buttons -->
-        <div class="flex gap-3">
+      </template>
+      <template #footer>
+        <div class="flyout-footer-buttons flex items-center gap-2">
           <button
             @click="confirmMultiAssignment"
             :disabled="multiAssignSelectedMembers.length === 0 || multiAssignLoading"
-            class="flex-1 bg-primary-500 text-white py-2 px-4 rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            class="flex-1 btn-primary btn-compact px-3 py-1.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             <div v-if="multiAssignLoading" class="animate-spin h-4 w-4" v-html="Helpers.IconLibrary.getIcon('loader', 'lucide', 16, 'text-white')"></div>
             {{ multiAssignLoading ? 'Assigning...' : 'Assign to ' + multiAssignSelectedMembers.length + ' Member' + (multiAssignSelectedMembers.length !== 1 ? 's' : '') }}
           </button>
           <button
-            @click="cancelMultiAssignment"
+            @click="handleCancelMultiAssignment"
             :disabled="multiAssignLoading"
-            class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="btn-secondary btn-compact px-3 py-1.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Cancel
+            Close
           </button>
         </div>
-      </div>
-    </div>
+      </template>
+    </flyout-panel>
   `,
   data() {
     return {
@@ -738,6 +789,32 @@ const AppModals = Vue.defineComponent({
     'people'
   ],
   methods: {
+    // Local wrapper methods for injected functions to ensure proper mobile touch handling
+    handleCancelAddToQuicklist() {
+      if (typeof this.cancelAddToQuicklist === 'function') {
+        this.cancelAddToQuicklist();
+      }
+    },
+    handleCancelAddChore() {
+      if (typeof this.cancelAddChore === 'function') {
+        this.cancelAddChore();
+      }
+    },
+    handleCancelChoreDetails() {
+      if (typeof this.cancelChoreDetails === 'function') {
+        this.cancelChoreDetails();
+      }
+    },
+    handleCloseSpendingModal() {
+      if (typeof this.closeSpendingModal === 'function') {
+        this.closeSpendingModal();
+      }
+    },
+    handleCancelMultiAssignment() {
+      if (typeof this.cancelMultiAssignment === 'function') {
+        this.cancelMultiAssignment();
+      }
+    },
     // Use injected methods directly - they're already bound to the parent context
     getCategoryLabel(category) {
       switch(category) {
@@ -799,7 +876,7 @@ const AppModals = Vue.defineComponent({
         try {
           await navigator.clipboard.writeText(text);
           alert('Invite text copied. Paste it into your message.');
-        } catch {}
+        } catch { /* clipboard fallback failed */ }
       }
     },
     toggleMemberSelection(personId) {

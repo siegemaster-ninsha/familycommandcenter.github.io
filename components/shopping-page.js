@@ -1,5 +1,6 @@
 // Shopping Page Component
 const ShoppingPage = Vue.defineComponent({
+  name: 'ShoppingPage',
   template: `
     <div class="space-y-6 pb-24 sm:pb-0">
       <!-- Shopping List -->
@@ -82,7 +83,7 @@ const ShoppingPage = Vue.defineComponent({
               <div
                 v-for="item in category.items"
                 :key="item.id"
-                class="flex items-center gap-4 p-4 sm:p-4 rounded-lg transition-colors cursor-pointer"
+                class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors cursor-pointer"
                 :class="[
                   item.isToggling ? 'opacity-75 pointer-events-none' : '',
                   item.completed ? 'opacity-75' : ''
@@ -93,61 +94,59 @@ const ShoppingPage = Vue.defineComponent({
                 }"
                 @click="handleToggleItem(item.id)"
               >
-                <div class="relative">
-                  <input
-                    type="checkbox"
-                    :checked="item.completed"
-                    @change="handleToggleItem(item.id)"
-                    @click.stop
-                    :disabled="item.isToggling"
-                    class="w-10 h-10 rounded focus:ring-success-600 focus:ring-2 focus:ring-offset-2 touch-target text-success-600 transition-all duration-200 transform"
-                    :class="item.completed ? 'scale-110' : 'scale-100'"
-                  >
+                <div class="relative flex-shrink-0">
                   <div
                     v-if="item.isToggling"
-                    class="absolute inset-0 flex items-center justify-center"
+                    class="w-6 h-6 flex items-center justify-center"
                   >
-                    <div class="w-5 h-5 border-2 border-success-600 border-t-transparent rounded-full animate-spin"></div>
+                    <div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   </div>
+                  <div
+                    v-else
+                    v-html="Helpers.IconLibrary.getIcon(item.completed ? 'squareCheck' : 'square', 'lucide', 22, 'text-white transition-transform duration-200 ' + (item.completed ? 'scale-110' : 'scale-100'))"
+                    class="cursor-pointer"
+                  ></div>
                 </div>
-                <div class="flex-1">
-                  <span
-                    :class="[
-                      'font-medium text-lg sm:text-base block',
-                      item.completed ? 'line-through text-white opacity-60' : 'text-white'
-                    ]"
-                  >
-                    {{ item.name }}
-                  </span>
-                  <div v-if="item.quantity" class="text-sm sm:text-base text-white text-opacity-90 mt-1">
-                    <span class="font-medium">Qty: {{ item.quantity }}</span>
-                  </div>
-                  <div class="text-sm sm:text-base text-white text-opacity-90 flex items-center gap-2 mt-1">
-                    <span v-if="item.notes">• {{ item.notes }}</span>
-                    <span v-if="item.store" class="inline-flex items-center gap-1 text-xs bg-white bg-opacity-20 px-2 py-1 rounded">
-                      <div v-html="Helpers.IconLibrary.getIcon('home', 'lucide', 12, '')"></div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span
+                      :class="[
+                        'font-medium text-base sm:text-sm',
+                        item.completed ? 'line-through text-white opacity-60' : 'text-white'
+                      ]"
+                    >
+                      {{ item.name }}
+                    </span>
+                    <span v-if="item.quantity" class="text-xs text-white text-opacity-80">
+                      ({{ item.quantity }})
+                    </span>
+                    <span v-if="item.store" class="inline-flex items-center gap-1 text-xs bg-white bg-opacity-20 px-1.5 py-0.5 rounded">
+                      <div v-html="Helpers.IconLibrary.getIcon('home', 'lucide', 10, '')"></div>
                       {{ item.store }}
                     </span>
                   </div>
+                  <div v-if="item.notes" class="text-xs text-white text-opacity-75 truncate">
+                    {{ item.notes }}
+                  </div>
                 </div>
-                <div class="flex items-center gap-1">
+                <div class="flex items-center gap-1 flex-shrink-0">
                   <button
                     @click.stop="startEditItem(item)"
-                    class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
-                    style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 40px; height: 40px;"
+                    class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 rounded"
+                    style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 32px; height: 32px;"
                     :class="'hover:scale-105 active:scale-95'"
                     title="Edit item"
                   >
-                    <div v-html="Helpers.IconLibrary.getIcon('edit', 'lucide', 20, '')"></div>
+                    <div v-html="Helpers.IconLibrary.getIcon('edit', 'lucide', 16, 'text-white drop-shadow-sm')"></div>
                   </button>
                   <button
                     @click.stop="removeItem(item.id)"
-                    class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
-                    style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 40px; height: 40px;"
+                    class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 rounded"
+                    style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 32px; height: 32px;"
                     :class="'hover:scale-105 active:scale-95'"
                     title="Remove item"
                   >
-                    <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 18, 'text-white drop-shadow-sm')"></div>
+                    <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14, 'text-white drop-shadow-sm')"></div>
                   </button>
                 </div>
               </div>
@@ -245,62 +244,62 @@ const ShoppingPage = Vue.defineComponent({
           </div>
           
           <!-- Quick items list - now uses filteredQuickItems -->
-          <div v-else class="space-y-2">
+          <div v-else class="space-y-1">
             <div
               v-for="quickItem in filteredQuickItems"
               :key="quickItem.id"
-              class="flex items-center gap-4 p-4 sm:p-4 rounded-lg transition-colors cursor-pointer"
+              class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors cursor-pointer"
               :style="{
                 backgroundColor: getCategoryColors(quickItem.category).background,
                 borderColor: getCategoryColors(quickItem.category).border
               }"
               @click="addQuickItemToList(quickItem.id)"
             >
-              <!-- Quick item doesn't need checkbox since it's not toggleable -->
-              <div class="w-6 h-6 sm:w-5 sm:h-5 flex items-center justify-center">
-                <!-- Quick add icon instead of checkbox -->
-                <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16, 'text-white opacity-60')"></div>
+              <!-- Quick add icon -->
+              <div class="w-5 h-5 flex items-center justify-center flex-shrink-0">
+                <div v-html="Helpers.IconLibrary.getIcon('plusCircle', 'lucide', 18, 'text-white opacity-70')"></div>
               </div>
 
-              <div class="flex-1">
-                <span class="font-medium text-lg sm:text-base text-white block">
-                  {{ quickItem.name }}
-                </span>
-                <div v-if="quickItem.defaultQuantity" class="text-base sm:text-sm text-white text-opacity-90 mt-1">
-                  <span class="font-medium">Qty: {{ quickItem.defaultQuantity }}</span>
-                </div>
-                <div class="text-base sm:text-sm text-white text-opacity-90 flex items-center gap-2 mt-1">
-                  <span class="inline-flex items-center gap-1">
-                    <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 16, 'opacity-90')"></div>
-                    <span>{{ quickItem.category }}</span>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="font-medium text-base sm:text-sm text-white">
+                    {{ quickItem.name }}
                   </span>
-                  <span v-if="quickItem.defaultNotes">• {{ quickItem.defaultNotes }}</span>
-                  <span v-if="quickItem.defaultStore" class="inline-flex items-center gap-1 text-xs bg-white bg-opacity-20 px-2 py-1 rounded">
-                    <div v-html="Helpers.IconLibrary.getIcon('home', 'lucide', 12, '')"></div>
+                  <span v-if="quickItem.defaultQuantity" class="text-xs text-white text-opacity-80">
+                    ({{ quickItem.defaultQuantity }})
+                  </span>
+                  <span class="text-xs text-white text-opacity-70">
+                    {{ quickItem.category }}
+                  </span>
+                  <span v-if="quickItem.defaultStore" class="inline-flex items-center gap-1 text-xs bg-white bg-opacity-20 px-1.5 py-0.5 rounded">
+                    <div v-html="Helpers.IconLibrary.getIcon('home', 'lucide', 10, '')"></div>
                     {{ quickItem.defaultStore }}
                   </span>
                 </div>
+                <div v-if="quickItem.defaultNotes" class="text-xs text-white text-opacity-75 truncate">
+                  {{ quickItem.defaultNotes }}
+                </div>
               </div>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1 flex-shrink-0">
                 <button
                   @click.stop="startEditQuickItem(quickItem)"
-                  class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
-                  style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 40px; height: 40px;"
+                  class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 rounded"
+                  style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 32px; height: 32px;"
                   :class="'hover:scale-105 active:scale-95'"
                   title="Edit quick item"
                   :disabled="quickActionLoading"
                 >
-                  <div v-html="Helpers.IconLibrary.getIcon('edit', 'lucide', 20, '')"></div>
+                  <div v-html="Helpers.IconLibrary.getIcon('edit', 'lucide', 16, 'text-white drop-shadow-sm')"></div>
                 </button>
                 <button
                   @click.stop="removeQuickItem(quickItem.id)"
-                  class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
-                  style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 40px; height: 40px;"
+                  class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 rounded"
+                  style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); width: 32px; height: 32px;"
                   :class="'hover:scale-105 active:scale-95'"
                   title="Remove quick item"
                   :disabled="quickActionLoading"
                 >
-                  <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 18, 'text-white drop-shadow-sm')"></div>
+                  <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14, 'text-white drop-shadow-sm')"></div>
                 </button>
               </div>
             </div>
@@ -356,75 +355,6 @@ const ShoppingPage = Vue.defineComponent({
             <div v-html="Helpers.IconLibrary.getIcon('minus', 'lucide', 16, 'text-white')"></div>
             Clear All
           </button>
-        </div>
-      </div>
-
-      <!-- Store Management -->
-      <div class="rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
-        <div class="flex items-center justify-between mb-4 sm:mb-6">
-          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2">
-            <div v-html="Helpers.IconLibrary.getIcon('home', 'lucide', 20, 'text-primary-custom')"></div>
-            Store Management
-          </h2>
-          <div class="flex items-center gap-2">
-            <button 
-              class="btn-secondary touch-target sm:hidden"
-              @click="storeExpandedMobile = !storeExpandedMobile"
-              :aria-expanded="storeExpandedMobile"
-              title="Toggle store management"
-            >
-              <div v-html="Helpers.IconLibrary.getIcon('chevronDown', 'lucide', 16, '')" :class="[storeExpandedMobile ? 'rotate-180' : 'rotate-0', 'transition-transform duration-200']"></div>
-            </button>
-            <button
-              @click="showAddStoreModal = true"
-              class="flex items-center gap-2 btn-primary touch-target"
-              :disabled="storeLoading"
-            >
-              <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16, 'text-white')"></div>
-              Add Store
-            </button>
-          </div>
-        </div>
-        
-        <div :class="(storeExpandedMobile ? 'block' : 'hidden') + ' sm:block'">
-        <!-- Store loading state -->
-        <div v-if="storeLoading" class="text-center py-4">
-          <div class="spinner-border animate-spin inline-block w-6 h-6 border-4 rounded-full border-primary-500 border-t-transparent"></div>
-          <p class="text-secondary-custom mt-2 text-sm">Loading stores...</p>
-        </div>
-        
-        <!-- Stores list -->
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          <div
-            v-for="store in stores"
-            :key="store.id"
-            class="flex items-center justify-between p-3 rounded-lg transition-colors"
-            style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
-          >
-            <div class="flex items-center gap-2">
-              <div 
-                class="flex items-center justify-center w-6 h-6 rounded-full text-sm font-bold text-white bg-white bg-opacity-20"
-              >
-                {{ getStoreInitial(store.name) }}
-              </div>
-              <span class="font-medium text-white">{{ store.name }}</span>
-            </div>
-            <button
-              @click="removeStore(store.id)"
-              class="flex items-center justify-center p-2 opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
-              style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);"
-              :class="'hover:scale-105 active:scale-95'"
-              title="Remove store"
-            >
-              <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 12, 'text-white drop-shadow-sm')"></div>
-            </button>
-          </div>
-          
-          <div v-if="stores.length === 0" class="col-span-full text-center py-4 text-secondary-custom">
-            <p>No stores added yet.</p>
-            <p class="text-sm mt-1">Click "Add Store" to get started!</p>
-          </div>
-        </div>
         </div>
       </div>
 
@@ -628,45 +558,7 @@ const ShoppingPage = Vue.defineComponent({
         </div>
       </div>
 
-      <!-- Add Store Modal -->
-      <div v-if="showAddStoreModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-          
-          <form @submit.prevent="addStore">
-            <div class="space-y-4">
-              <div>
-                <label class="block text-sm font-medium mb-1">Store Name *</label>
-                <input
-                  v-model="newStore.name"
-                  type="text"
-                  class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  style="border-color: var(--color-border-card)"
-                  placeholder="Enter store name"
-                  required
-                >
-              </div>
-            </div>
-            
-            <div class="flex gap-3 mt-6">
-              <button
-                type="button"
-                @click="showAddStoreModal = false"
-                class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
-                style="border-color: var(--color-border-card)"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                class="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
-                :disabled="!newStore.name || storeLoading"
-              >
-                Add Store
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
+
 
       <!-- Success Message -->
       <div v-if="showSuccess" class="fixed top-4 right-4 text-white px-6 py-3 rounded-lg shadow-lg z-[100]" style="background: var(--color-success-600);">
@@ -1262,55 +1154,8 @@ const ShoppingPage = Vue.defineComponent({
     },
 
     getCategoryColors(category) {
-      const colorSchemes = {
-        'Produce': {
-          background: '#22c55e', // green-500
-          border: '#16a34a',     // green-600
-          accent: '#15803d'      // green-700
-        },
-        'Dairy': {
-          background: '#3b82f6', // blue-500
-          border: '#2563eb',    // blue-600
-          accent: '#1d4ed8'     // blue-700
-        },
-        'Meat': {
-          background: '#ef4444', // red-500
-          border: '#dc2626',    // red-600
-          accent: '#b91c1c'     // red-700
-        },
-        'Bakery': {
-          background: '#f59e0b', // amber-500
-          border: '#d97706',    // amber-600
-          accent: '#b45309'     // amber-700
-        },
-        'Frozen': {
-          background: '#8b5cf6', // violet-500
-          border: '#7c3aed',    // violet-600
-          accent: '#6d28d9'     // violet-700
-        },
-        'Pantry': {
-          background: '#cd853f', // peru-600 (medium brown/tan)
-          border: '#b8860b',    // darkgoldenrod (darker brown)
-          accent: '#8b4513'     // saddlebrown (dark brown)
-        },
-        'Household': {
-          background: '#9ca3af', // gray-400 (lighter gray)
-          border: '#6b7280',    // gray-500 (medium gray)
-          accent: '#4b5563'     // gray-600 (darker gray)
-        },
-        'Personal Care': {
-          background: '#ec4899', // pink-500
-          border: '#db2777',    // pink-600
-          accent: '#be185d'     // pink-700
-        },
-        'General': {
-          background: 'var(--color-primary-500)',
-          border: 'var(--color-primary-600)',
-          accent: 'var(--color-primary-700, #1f2937)'
-        }
-      };
-
-      return colorSchemes[category] || colorSchemes['General'];
+      // Delegate to centralized shopping categories utility
+      return window.ShoppingCategories.getCategoryColors(category);
     }
   }
 });

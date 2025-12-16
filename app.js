@@ -5,7 +5,7 @@ const { createApp } = Vue;
 
 // Initialize Pinia (state management)
 const pinia = Pinia.createPinia();
-console.log('✅ Pinia initialized');
+if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Pinia initialized');
 
 // Initialize API Service
 if (window.initializeApiService) {
@@ -48,7 +48,8 @@ const app = createApp({
         name: '',
         amount: 0,
         category: 'regular',
-        isDetailed: false
+        isDetailed: false,
+        defaultDetails: ''
       },
       // New modal for chore details
       showChoreDetailsModal: false,
@@ -102,7 +103,7 @@ const app = createApp({
     // Existing data
       chores: [],
       selectedChoreId: null, // Changed from selectedChore to selectedChoreId
-      selectedQuicklistChore: null, // For quicklist selections
+      // selectedQuicklistChore defined above in multi-assignment modal section
       showConfetti: false,
       confettiPieces: [],
       showSuccessMessageFlag: false,
@@ -138,9 +139,6 @@ const app = createApp({
   },
   computed: {
     choresByPerson() {
-      console.log('choresByPerson computed property recalculating...');
-      console.log('Current selectedChoreId:', this.selectedChoreId);
-      
       const grouped = {
         unassigned: []
       };
@@ -193,10 +191,6 @@ const app = createApp({
     
     // Get the selected chore object from the ID
     selectedChore() {
-      console.log('selectedChore computed property recalculating...');
-      console.log('selectedChoreId:', this.selectedChoreId);
-      console.log('selectedQuicklistChore:', this.selectedQuicklistChore);
-      
       if (this.selectedQuicklistChore) {
         return this.selectedQuicklistChore;
       }
@@ -207,9 +201,7 @@ const app = createApp({
           return null;
         }
         
-        const found = this.chores.find(chore => chore && chore.id === this.selectedChoreId) || null;
-        console.log('Found chore for selection:', found?.name || 'null');
-        return found;
+        return this.chores.find(chore => chore && chore.id === this.selectedChoreId) || null;
       }
       
       return null;
@@ -230,13 +222,22 @@ const app = createApp({
         this.showInviteModal ||
         this.showCreateChildModal
       );
+    },
+    // Offline store for checking network status
+    // _Requirements: 4.4_
+    offlineStore() {
+      if (typeof window !== 'undefined' && window.useOfflineStore) {
+        return window.useOfflineStore();
+      }
+      // Return a default object if store is not available
+      return { isOnline: true };
     }
   },
   methods: {
     initWebsocket() {
       try {
         if (this.socket) {
-          try { this.socket.close(); } catch {}
+          try { this.socket.close(); } catch { /* ignore close errors */ }
           this.socket = null;
         }
         const token = authService.idToken || authService.accessToken;
@@ -248,9 +249,9 @@ const app = createApp({
         this.socket = s;
         s.onopen = () => { this.socketConnected = true; this.socketRetryMs = 1000; };
         s.onclose = () => { this.socketConnected = false; const d = Math.min(this.socketRetryMs, 30000); setTimeout(() => this.initWebsocket(), d); this.socketRetryMs *= 2; };
-        s.onerror = () => { try { s.close(); } catch {} };
+        s.onerror = () => { try { s.close(); } catch { /* ignore */ } };
         s.onmessage = (e) => {
-          try { const msg = JSON.parse(e.data); this.handleRealtimeMessage(msg); } catch {}
+          try { const msg = JSON.parse(e.data); this.handleRealtimeMessage(msg); } catch { /* ignore parse errors */ }
         };
       } catch (e) { console.warn('ws init failed', e); }
     },
@@ -286,7 +287,7 @@ const app = createApp({
     async apiCall(endpoint, options = {}) {
       try {
         const url = CONFIG.getApiUrl(endpoint);
-        console.log(`🌐 Making API call to: ${url}`);
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log(`🌐 Making API call to: ${url}`);
         
         // add authentication header if user is logged in
         const authHeader = authService.getAuthHeader();
@@ -303,7 +304,7 @@ const app = createApp({
           ...options
         });
         
-        console.log(`📡 Response status: ${response.status} for ${endpoint}`);
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log(`📡 Response status: ${response.status} for ${endpoint}`);
         
         // handle authentication errors
         if (response.status === 401) {
@@ -329,7 +330,7 @@ const app = createApp({
         }
         
         const data = await response.json();
-        console.log(`✅ API call successful for ${endpoint}:`, data);
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log(`✅ API call successful for ${endpoint}:`, data);
         return data;
       } catch (error) {
         console.error(`❌ API Error for ${endpoint}:`, error);
@@ -363,6 +364,9 @@ const app = createApp({
       this.showInviteModal = false;
     },
 
+    // Cache for /auth/me response to avoid duplicate API calls
+    _authMeCache: null,
+    
     async refreshCurrentUser() {
       try {
         const me = await authService.getCurrentUser();
@@ -372,7 +376,14 @@ const app = createApp({
         // enrich with server-side account and role when missing
         if (!this.currentUser?.role || !this.currentUser?.accountId) {
           try {
-            const res = await this.apiCall(CONFIG.API.ENDPOINTS.AUTH_ME);
+            // Use cached response if available (prevents duplicate /auth/me calls)
+            let res = this._authMeCache;
+            if (!res) {
+              res = await this.apiCall(CONFIG.API.ENDPOINTS.AUTH_ME);
+              this._authMeCache = res; // Cache for subsequent calls
+            } else if (CONFIG.ENV.IS_DEVELOPMENT) {
+              console.log('👤 Using cached /auth/me response');
+            }
             if (res && (res.accountId || res.role)) {
               this.currentUser = { ...this.currentUser, role: res.role || this.currentUser?.role, memberships: res.memberships };
               this.accountId = res.accountId || this.accountId;
@@ -393,22 +404,20 @@ const app = createApp({
     try {
       this.loading = true;
       this.error = null;
-      console.log('🔄 Starting to load all application data...');
-      console.log('🌐 API Base URL:', CONFIG.API.BASE_URL);
+      if (CONFIG.ENV.IS_DEVELOPMENT) {
+        console.log('🔄 Starting to load all application data...');
+        console.log('🌐 API Base URL:', CONFIG.API.BASE_URL);
+      }
       
       // check authentication first
       if (!this.isAuthenticated) {
-        console.log('🔒 User not authenticated, skipping data load');
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🔒 User not authenticated, skipping data load');
         this.loading = false;
         return;
       }
       
-      // ensure we have latest accountId/role from server before loading settings
-      try {
-        await this.refreshCurrentUser();
-      } catch (e) {
-        console.warn('refreshCurrentUser failed; continuing', e);
-      }
+      // Note: refreshCurrentUser() is already called in mounted() before loadAllData()
+      // No need to call it again here - the accountId/role is already primed
 
       // load account settings first so X-Account-Id header is available for all subsequent calls (children/coparents see the same list)
       try {
@@ -431,13 +440,13 @@ const app = createApp({
           this.loadShoppingQuickItems(),
           this.loadStores()
         ]);
-        console.log('✅ All application data loaded successfully');
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ All application data loaded successfully');
       } catch (error) {
         console.error('❌ Failed to load data:', error);
         this.error = `Failed to load data: ${error.message}. Please check your connection and API configuration.`;
       } finally {
         this.loading = false;
-        console.log('🏁 Loading complete. Loading state:', this.loading);
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🏁 Loading complete. Loading state:', this.loading);
       }
     },
     
@@ -453,11 +462,15 @@ const app = createApp({
     
     async loadFamilyMembers(preserveOptimisticUpdates = false) {
       try {
-        console.log('👥 Loading family members, preserveOptimisticUpdates:', preserveOptimisticUpdates);
-        console.log('[debug] BEFORE loadFamilyMembers() people:', (this.people || []).map(p => ({ name: p.name, userId: p.userId, role: p.role, enabledForChores: p.enabledForChores })));
+        if (CONFIG.ENV.IS_DEVELOPMENT) {
+          console.log('👥 Loading family members, preserveOptimisticUpdates:', preserveOptimisticUpdates);
+          console.log('[debug] BEFORE loadFamilyMembers() people:', (this.people || []).map(p => ({ name: p.name, userId: p.userId, role: p.role, enabledForChores: p.enabledForChores })));
+        }
         const response = await this.apiCall(CONFIG.API.ENDPOINTS.FAMILY_MEMBERS);
-        console.log('👥 Family members API response count:', (response?.familyMembers || []).length);
-        console.log('[debug] server familyMembers snapshot:', (response.familyMembers || []).map(m => ({ name: m.name, userId: m.userId, role: m.role, completedChores: m.completedChores })));
+        if (CONFIG.ENV.IS_DEVELOPMENT) {
+          console.log('👥 Family members API response count:', (response?.familyMembers || []).length);
+          console.log('[debug] server familyMembers snapshot:', (response.familyMembers || []).map(m => ({ name: m.name, userId: m.userId, role: m.role, completedChores: m.completedChores })));
+        }
         
         if (response.familyMembers && response.familyMembers.length > 0) {
           // optionally filter for chores view based on account settings preferences
@@ -466,24 +479,24 @@ const app = createApp({
             // Prefer stable userId when available; fallback to name
             if (member && member.userId && Object.prototype.hasOwnProperty.call(membersChoresEnabled, member.userId)) {
               const val = membersChoresEnabled[member.userId] !== false;
-              console.debug('[Visibility] resolve', { member: member.name, userId: member.userId, via: 'userId', value: val });
+              if (CONFIG.ENV.IS_DEVELOPMENT) console.debug('[Visibility] resolve', { member: member.name, userId: member.userId, via: 'userId', value: val });
               return val;
             }
             if (member && member.name && Object.prototype.hasOwnProperty.call(membersChoresEnabled, member.name)) {
               const val = membersChoresEnabled[member.name] !== false;
-              console.debug('[Visibility] resolve', { member: member.name, via: 'name', value: val });
+              if (CONFIG.ENV.IS_DEVELOPMENT) console.debug('[Visibility] resolve', { member: member.name, via: 'name', value: val });
               return val;
             }
-            console.debug('[Visibility] resolve', { member: member?.name, via: 'default', value: true });
+            if (CONFIG.ENV.IS_DEVELOPMENT) console.debug('[Visibility] resolve', { member: member?.name, via: 'default', value: true });
             return true;
           };
           if (preserveOptimisticUpdates) {
-            console.log('👥 Merging with optimistic updates...');
+            if (CONFIG.ENV.IS_DEVELOPMENT) console.log('👥 Merging with optimistic updates...');
             // Merge server data with existing optimistic updates
             response.familyMembers.forEach(serverMember => {
               const existingPerson = this.people.find(p => p.name === serverMember.name);
               if (existingPerson) {
-                console.log(`👥 Merging ${serverMember.name}: existing completedChores=${existingPerson.completedChores}, server completedChores=${serverMember.completedChores}`);
+                if (CONFIG.ENV.IS_DEVELOPMENT) console.log(`👥 Merging ${serverMember.name}: existing completedChores=${existingPerson.completedChores}, server completedChores=${serverMember.completedChores}`);
                 // Preserve optimistic completedChores count, but update other fields
                 existingPerson.earnings = serverMember.earnings || 0;
                 // Keep the existing completedChores if it's higher (optimistic update)
@@ -491,9 +504,9 @@ const app = createApp({
                 if (serverMember.id) existingPerson.id = serverMember.id;
                 // Always refresh board visibility from account preferences
                 existingPerson.enabledForChores = resolveEnabled(serverMember);
-                console.log(`👥 Result for ${serverMember.name}: completedChores=${existingPerson.completedChores}`);
+                if (CONFIG.ENV.IS_DEVELOPMENT) console.log(`👥 Result for ${serverMember.name}: completedChores=${existingPerson.completedChores}`);
               } else {
-                console.log(`👥 Adding new person from server: ${serverMember.name}`);
+                if (CONFIG.ENV.IS_DEVELOPMENT) console.log(`👥 Adding new person from server: ${serverMember.name}`);
                 // New person from server
                 this.people.push({
                   id: serverMember.id || serverMember.name.toLowerCase(),
@@ -509,8 +522,10 @@ const app = createApp({
               }
             });
           } else {
-            console.log('👥 Full refresh - replacing all family member data');
-            console.log('👥 Server data:', response.familyMembers.map(m => `${m.displayName || m.name}: completedChores=${m.completedChores}`));
+            if (CONFIG.ENV.IS_DEVELOPMENT) {
+              console.log('👥 Full refresh - replacing all family member data');
+              console.log('👥 Server data:', response.familyMembers.map(m => `${m.displayName || m.name}: completedChores=${m.completedChores}`));
+            }
             // Normal full refresh - replace all data
             this.people = response.familyMembers.map(member => ({
               id: member.id || (member.displayName || member.name || '').toLowerCase(),
@@ -523,13 +538,13 @@ const app = createApp({
               electronicsStatus: { status: 'allowed', message: 'Electronics allowed' },
               enabledForChores: resolveEnabled(member)
             }));
-            console.log('👥 Final people data:', this.people.map(p => `${p.name}: completedChores=${p.completedChores}`));
+            if (CONFIG.ENV.IS_DEVELOPMENT) console.log('👥 Final people data:', this.people.map(p => `${p.name}: completedChores=${p.completedChores}`));
           }
         } else {
           // backend returned no family members; show empty state without synthesizing placeholders
           this.people = [];
         }
-        console.log('[debug] AFTER loadFamilyMembers() people:', (this.people || []).map(p => ({ name: p.name, userId: p.userId, role: p.role, enabledForChores: p.enabledForChores, completedChores: p.completedChores })));
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('[debug] AFTER loadFamilyMembers() people:', (this.people || []).map(p => ({ name: p.name, userId: p.userId, role: p.role, enabledForChores: p.enabledForChores, completedChores: p.completedChores })));
       } catch (error) {
         console.error('Failed to load family members:', error);
         // Don't clear people array on error, keep existing
@@ -598,7 +613,13 @@ const app = createApp({
 
     async loadUserTheme() {
       try {
-        console.log('🎨 Loading user theme from account settings...');
+        // PWA optimization: localStorage is source of truth for current device
+        // Apply localStorage theme immediately (no flash, works offline)
+        const localTheme = localStorage.getItem('selectedTheme') || 'default';
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎨 Applying localStorage theme:', localTheme);
+        ThemeManager.applyTheme(localTheme);
+        
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎨 Loading account settings (for caching, not theme override)...');
         const headerAccountId = this.accountId || this.accountSettings?.accountId || null;
         let response;
         try {
@@ -608,27 +629,26 @@ const app = createApp({
           response = await this.apiCall(CONFIG.API.ENDPOINTS.ACCOUNT_SETTINGS);
         }
         
-        console.log('🎨 Account settings response:', response);
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎨 Account settings response:', response);
         
-        if (response && response.theme) {
-          console.log('🎨 Found user theme:', response.theme);
-          // Apply the user's saved theme
-          ThemeManager.applyTheme(response.theme);
-          // Also save to localStorage for offline access
-          localStorage.setItem('selectedTheme', response.theme);
-        } else {
-          console.log('🎨 No theme found in account settings, using current theme');
-          // If no theme in backend, keep the current localStorage theme
-          const localTheme = localStorage.getItem('selectedTheme') || 'default';
-          console.log('🎨 Using existing localStorage theme:', localTheme);
-          ThemeManager.applyTheme(localTheme);
+        // Cache the account settings to avoid duplicate API calls in loadAllData()
+        if (response) {
+          this.accountSettings = response;
+          this.accountId = response.accountId || this.accountId;
+        }
+        
+        // NOTE: We do NOT overwrite localStorage theme with backend theme
+        // localStorage is the source of truth for the current device
+        // Backend theme is only used for initial setup on new devices (when localStorage is empty)
+        const backendTheme = response?.theme || response?.userTheme;
+        if (backendTheme && backendTheme !== localTheme) {
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎨 Backend theme differs from local:', backendTheme, 'vs', localTheme, '- keeping local');
         }
       } catch (error) {
         console.error('Failed to load user theme:', error);
-        // Fallback to localStorage theme if backend fails
-        const localTheme = localStorage.getItem('selectedTheme') || 'default';
-        console.log('🎨 Using fallback theme from localStorage:', localTheme);
-        ThemeManager.applyTheme(localTheme);
+        // Fallback: ensure theme is applied even on error
+        const fallbackTheme = localStorage.getItem('selectedTheme') || 'default';
+        ThemeManager.applyTheme(fallbackTheme);
       }
     },
 
@@ -654,28 +674,26 @@ const app = createApp({
     // Account page data loading methods
     async loadAccountSettings() {
       try {
+        // Skip if account settings are already loaded (e.g., by loadUserTheme())
+        // This prevents duplicate API calls during initialization
+        if (this.accountSettings && this.accountId) {
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('⚙️ Account settings already loaded, skipping API call');
+          return;
+        }
+        
         const headerAccountId = this.accountId || this.accountSettings?.accountId || null;
-        console.log('⚙️ Loading account settings...', { headerAccountId });
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('⚙️ Loading account settings...', { headerAccountId });
         const response = await this.apiCall(CONFIG.API.ENDPOINTS.ACCOUNT_SETTINGS);
         this.accountSettings = response;
         this.accountId = response?.accountId || null;
-        console.log('⚙️ Account settings loaded meta', {
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('⚙️ Account settings loaded meta', {
           apiAccountId: this.accountSettings?.accountId,
           updatedAt: this.accountSettings?.updatedAt,
           prefKeys: Object.keys(this.accountSettings?.preferences || {}),
           membersChoresEnabled: this.accountSettings?.preferences?.membersChoresEnabled || {}
         });
-        // Sync backend theme to localStorage (backend -> localStorage)
-        // Only update if backend has a theme and it differs from localStorage
-        const userTheme = response?.userTheme;
-        if (userTheme) {
-          const currentLocalTheme = ThemeManager.getCurrentTheme();
-          if (userTheme !== currentLocalTheme) {
-            console.log('🎨 Syncing backend theme to localStorage:', userTheme, '(was:', currentLocalTheme, ')');
-            ThemeManager.saveTheme(userTheme);
-          }
-        }
-        console.log('✅ Account settings loaded:', this.accountSettings);
+        // Theme sync is now handled exclusively in loadUserTheme() to avoid duplicate applies
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Account settings loaded:', this.accountSettings);
       } catch (error) {
         console.error('Failed to load account settings:', error);
         this.accountSettings = null;
@@ -687,30 +705,30 @@ const app = createApp({
     
     // Chore selection methods
     handleChoreClick(chore) {
-      console.log('Chore clicked:', chore.name);
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('Chore clicked:', chore.name);
       
       // If the same chore is clicked again, deselect it
       if (this.selectedChoreId === chore.id) {
         this.selectedChoreId = null;
-        console.log('Deselected chore');
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('Deselected chore');
       } else {
         this.selectedChoreId = chore.id;
         this.selectedQuicklistChore = null; // Clear quicklist selection
-        console.log('Selected chore:', chore.name);
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('Selected chore:', chore.name);
       }
     },
     
     handleQuicklistChoreClick(chore) {
-      console.log('Quicklist chore clicked:', chore.name);
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('Quicklist chore clicked:', chore.name);
       
       // If the same quicklist chore is clicked again, deselect it
       if (this.selectedQuicklistChore && this.selectedQuicklistChore.id === chore.id) {
         this.selectedQuicklistChore = null;
-        console.log('Deselected quicklist chore');
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('Deselected quicklist chore');
       } else {
         this.selectedQuicklistChore = { ...chore, isNewFromQuicklist: true };
         this.selectedChoreId = null; // Clear regular chore selection
-        console.log('Selected quicklist chore:', chore.name);
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('Selected quicklist chore:', chore.name);
       }
     },
     
@@ -744,7 +762,7 @@ const app = createApp({
       try {
         // Ensure we know the account first
         if (!this.accountId && !this.accountSettings?.accountId) {
-          try { await this.loadAccountSettings(); } catch {}
+          try { await this.loadAccountSettings(); } catch { /* ignore - will use defaults */ }
         }
 
         // Optimistically update local state
@@ -767,7 +785,7 @@ const app = createApp({
 
         // Prefer granular endpoint with optional OCC
         const memberKey = person.userId || person.name;
-        console.debug('[Visibility] persist start', { accountId, memberKey, enabled, before: { ...(this.accountSettings?.preferences?.membersChoresEnabled || {}) } });
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.debug('[Visibility] persist start', { accountId, memberKey, enabled, before: { ...(this.accountSettings?.preferences?.membersChoresEnabled || {}) } });
         let res;
         try {
           res = await window.SettingsClient.updateMemberVisibility(accountId, memberKey, enabled, { ifMatch: this.accountSettings?.updatedAt });
@@ -780,7 +798,7 @@ const app = createApp({
         if (res && res.preferences) {
           this.accountSettings.preferences = res.preferences;
           this.accountSettings.updatedAt = res.updatedAt || this.accountSettings.updatedAt;
-          console.debug('[Visibility] persist done', { updatedAt: this.accountSettings.updatedAt, after: res.preferences?.membersChoresEnabled || {} });
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.debug('[Visibility] persist done', { updatedAt: this.accountSettings.updatedAt, after: res.preferences?.membersChoresEnabled || {} });
         }
       } catch (e) {
         console.warn('failed to persist member chores enabled', e);
@@ -897,7 +915,7 @@ const app = createApp({
         try {
           const name = this.personToDelete.name;
           const userId = this.personToDelete.userId;
-          console.log(`🗑️ Removing person via modal: name=${name}, userId=${userId || 'none'}`);
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log(`🗑️ Removing person via modal: name=${name}, userId=${userId || 'none'}`);
 
           // if we know the Cognito userId, remove the account membership first to prevent auto re-creation
           if (userId) {
@@ -907,7 +925,7 @@ const app = createApp({
             await this.apiCall(`/family-members/by-name/${encodeURIComponent(name)}`, { method: 'DELETE' });
           }
 
-          console.log(`✅ Removal complete for: ${name}`);
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log(`✅ Removal complete for: ${name}`);
 
           // Remove person from local array
           this.people = this.people.filter(p => p.id !== this.personToDelete.id);
@@ -926,7 +944,7 @@ const app = createApp({
     
     async executeDeletePerson() {
       // This method is deprecated - use performDeletePerson() instead
-      console.warn('executeDeletePerson is deprecated, redirecting to performDeletePerson');
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.warn('executeDeletePerson is deprecated, redirecting to performDeletePerson');
       await this.performDeletePerson();
     },
     
@@ -943,7 +961,7 @@ const app = createApp({
     // Chore management methods
     async addChore() {
       if (this.newChore.name.trim() && this.newChore.amount >= 0) {
-        console.log('🚀 Adding new chore:', this.newChore.name);
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🚀 Adding new chore:', this.newChore.name);
         
         // Check if this is a detailed chore
         if (this.newChore.isDetailed) {
@@ -996,7 +1014,7 @@ const app = createApp({
           // Close modal immediately for instant feedback
           this.cancelAddChore();
           
-          console.log('✨ Optimistic UI updated - chore added');
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✨ Optimistic UI updated - chore added');
           
           // Make API call in background
           const response = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
@@ -1036,7 +1054,7 @@ const app = createApp({
             }
           }
           
-          console.log('✅ Server confirmed chore creation');
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Server confirmed chore creation');
           
           // Refresh electronics status in background if this was an electronics chore
           if (choreData.category === 'game') {
@@ -1068,7 +1086,7 @@ const app = createApp({
     
     async addToQuicklist() {
       if (this.newQuicklistChore.name.trim() && this.newQuicklistChore.amount >= 0) {
-        console.log('🚀 Optimistically adding to quicklist:', this.newQuicklistChore.name);
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🚀 Optimistically adding to quicklist:', this.newQuicklistChore.name);
         
         // Store original state for potential rollback
         const originalQuicklistChores = [...this.quicklistChores];
@@ -1076,7 +1094,8 @@ const app = createApp({
           name: this.newQuicklistChore.name.trim(),
           amount: this.newQuicklistChore.amount,
           category: this.newQuicklistChore.category,
-          isDetailed: this.newQuicklistChore.isDetailed || false
+          isDetailed: this.newQuicklistChore.isDetailed || false,
+          defaultDetails: this.newQuicklistChore.defaultDetails || ''
         };
         
         try {
@@ -1091,7 +1110,7 @@ const app = createApp({
           // Close modal immediately for instant feedback
           this.cancelAddToQuicklist();
           
-          console.log('✨ Optimistic UI updated - quicklist item added');
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✨ Optimistic UI updated - quicklist item added');
           
           // Make API call in background
           const response = await this.apiCall(CONFIG.API.ENDPOINTS.QUICKLIST, {
@@ -1108,7 +1127,7 @@ const app = createApp({
             };
           }
           
-          console.log('✅ Server confirmed quicklist creation');
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Server confirmed quicklist creation');
           
         } catch (error) {
           console.error('❌ Quicklist creation failed, rolling back optimistic update:', error);
@@ -1127,23 +1146,25 @@ const app = createApp({
     
     cancelAddToQuicklist() {
       this.showAddToQuicklistModal = false;
-      this.newQuicklistChore = { name: '', amount: 0, category: 'regular', isDetailed: false };
+      this.newQuicklistChore = { name: '', amount: 0, category: 'regular', isDetailed: false, defaultDetails: '' };
     },
 
     // Multi-assignment modal methods for quicklist chores
     openMultiAssignModal(quicklistChore) {
-      console.log('🎯 Parent showMultiAssignModal called with:', quicklistChore?.name);
-      console.log('📊 Current modal state before:', {
-        showMultiAssignModal: this.showMultiAssignModal,
-        selectedQuicklistChore: this.selectedQuicklistChore?.name || 'none'
-      });
+      if (CONFIG.ENV.IS_DEVELOPMENT) {
+        console.log('🎯 Parent showMultiAssignModal called with:', quicklistChore?.name);
+        console.log('📊 Current modal state before:', {
+          showMultiAssignModal: this.showMultiAssignModal,
+          selectedQuicklistChore: this.selectedQuicklistChore?.name || 'none'
+        });
+      }
 
       this.selectedQuicklistChore = quicklistChore;
       this.showMultiAssignModal = true;
       // Reset selected members when opening modal
       this.multiAssignSelectedMembers = [];
 
-      console.log('📊 Modal state after:', {
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('📊 Modal state after:', {
         showMultiAssignModal: this.showMultiAssignModal,
         selectedQuicklistChore: this.selectedQuicklistChore?.name || 'none',
         multiAssignSelectedMembers: this.multiAssignSelectedMembers
@@ -1257,7 +1278,7 @@ const app = createApp({
 
       // Add optimistic chore to UI immediately
       this.chores.push(newChore);
-      console.log('✨ Optimistic UI updated - quicklist chore added for', memberName);
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✨ Optimistic UI updated - quicklist chore added for', memberName);
 
       // Update electronics status optimistically if needed
       if (newChore.category === 'game') {
@@ -1287,7 +1308,7 @@ const app = createApp({
             isOptimistic: false
           };
         }
-        console.log('✅ Server confirmed quicklist chore creation for', memberName);
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Server confirmed quicklist chore creation for', memberName);
       } catch (error) {
         // Rollback optimistic update on error
         const choreIndex = this.chores.findIndex(c => c.id === tempId);
@@ -1384,7 +1405,7 @@ const app = createApp({
         }
         
         this.cancelChoreDetails();
-        console.log('✅ Chore with details created successfully');
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Chore with details created successfully');
         
       } catch (error) {
         console.error('❌ Failed to create chore with details:', error);
@@ -1406,14 +1427,17 @@ const app = createApp({
     },
 
     // New Day functionality
+    // _Requirements: 4.1, 4.2, 6.3_
     async startNewDay() {
       try {
         this.newDayLoading = true;
-        console.log('🌅 Starting new day...');
-        console.log('📊 Current state before new day:');
-        console.log('  - Chores count:', this.chores.length);
-        console.log('  - Chores:', this.chores.map(c => `${c.name} (${c.assignedTo})`));
-        console.log('  - People completed chores:', this.people.map(p => `${p.name}: ${p.completedChores}`));
+        if (CONFIG.ENV.IS_DEVELOPMENT) {
+          console.log('🌅 Starting new day...');
+          console.log('📊 Current state before new day:');
+          console.log('  - Chores count:', this.chores.length);
+          console.log('  - Chores:', this.chores.map(c => `${c.name} (${c.assignedTo})`));
+          console.log('  - People completed chores:', this.people.map(p => `${p.name}: ${p.completedChores}`));
+        }
         
         const response = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES_NEW_DAY, {
           method: 'POST',
@@ -1422,21 +1446,50 @@ const app = createApp({
           })
         });
         
-        console.log('✅ New day API response:', response);
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ New day API response:', response);
         
         // Reload all data to reflect changes
-        console.log('🔄 Reloading all data after new day...');
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🔄 Reloading all data after new day...');
         await this.loadAllData();
         
-        console.log('📊 State after reload:');
-        console.log('  - Chores count:', this.chores.length);
-        console.log('  - Chores:', this.chores.map(c => `${c.name} (${c.assignedTo})`));
-        console.log('  - People completed chores:', this.people.map(p => `${p.name}: ${p.completedChores}`));
+        if (CONFIG.ENV.IS_DEVELOPMENT) {
+          console.log('📊 State after reload:');
+          console.log('  - Chores count:', this.chores.length);
+          console.log('  - Chores:', this.chores.map(c => `${c.name} (${c.assignedTo})`));
+          console.log('  - People completed chores:', this.people.map(p => `${p.name}: ${p.completedChores}`));
+        }
         
-        // Show success message with more detail
-        const deletedCount = response.deletedChores || 0;
-        const createdCount = response.createdChores || 0;
-        this.showSuccessMessage(`🌅 New day started! ${deletedCount} old chores cleared, ${createdCount} new chores created, earnings preserved.`);
+        // Parse summary from enhanced response format
+        const summary = response?.summary || {};
+        const {
+          choresRemoved = 0,
+          completedChoresCleared = 0,
+          dailyChoresCleared = 0,
+          dailyChoresCreated = 0,
+          duplicatesSkipped = 0,
+          membersProcessed = 0
+        } = summary;
+        
+        // Build detailed success message with counts
+        const messageParts = [];
+        if (choresRemoved > 0) {
+          const details = [];
+          if (completedChoresCleared > 0) details.push(`${completedChoresCleared} completed`);
+          if (dailyChoresCleared > 0) details.push(`${dailyChoresCleared} daily`);
+          messageParts.push(`${choresRemoved} chore${choresRemoved !== 1 ? 's' : ''} cleared${details.length > 0 ? ` (${details.join(', ')})` : ''}`);
+        }
+        if (dailyChoresCreated > 0) {
+          messageParts.push(`${dailyChoresCreated} daily chore${dailyChoresCreated !== 1 ? 's' : ''} created`);
+        }
+        if (duplicatesSkipped > 0) {
+          messageParts.push(`${duplicatesSkipped} duplicate${duplicatesSkipped !== 1 ? 's' : ''} skipped`);
+        }
+        
+        const detailMessage = messageParts.length > 0 
+          ? messageParts.join(', ')
+          : 'Board ready for new day';
+        
+        this.showSuccessMessage(`🌅 New day started! ${detailMessage}. Earnings preserved.`);
         
         this.showNewDayModal = false;
       } catch (error) {
@@ -1454,13 +1507,13 @@ const app = createApp({
     // Page navigation
     setCurrentPage(page) {
       this.currentPage = page;
-      console.log('📄 Switched to page:', page);
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('📄 Switched to page:', page);
     },
 
 
     // Authentication and user management
     async handleAuthenticationRequired() {
-      console.log('🔒 Authentication required - clearing auth state');
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🔒 Authentication required - clearing auth state');
       this.isAuthenticated = false;
       this.currentUser = null;
       
@@ -1503,7 +1556,7 @@ const app = createApp({
           this.closeAuthModals();
           this.clearAuthForm();
           
-          console.log('✅ Login successful, loading user data...');
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Login successful, loading user data...');
           
           // Refresh current user (to include role & accountId)
           await this.refreshCurrentUser();
@@ -1568,7 +1621,7 @@ const app = createApp({
             const url = new URL(window.location.href);
             const inviteToken = url.searchParams.get('invite');
             if (inviteToken) this.pendingInviteToken = inviteToken;
-          } catch {}
+          } catch { /* ignore URL parse errors */ }
         } else {
           this.authError = 'Signup failed. Please try again.';
         }
@@ -1600,7 +1653,7 @@ const app = createApp({
             this.closeAuthModals();
             this.clearAuthForm();
             
-            console.log('✅ Account confirmed and logged in, loading user data...');
+            if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Account confirmed and logged in, loading user data...');
             
             // Refresh current user (to include role & accountId)
             await this.refreshCurrentUser();
@@ -1644,13 +1697,18 @@ const app = createApp({
 
     async handleLogout() {
       try {
-        console.log('🚪 Logging out user...');
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🚪 Logging out user...');
         
         await authService.signOut();
         
         // Clear authentication state
         this.isAuthenticated = false;
         this.currentUser = null;
+        
+        // Clear cached API responses to prevent stale data on re-login
+        this._authMeCache = null;
+        this.accountSettings = null;
+        this.accountId = null;
         
         // Clear all data since user is no longer authenticated
         this.chores = [];
@@ -1662,14 +1720,14 @@ const app = createApp({
         this.selectedQuicklistChore = null;
         
         // Reset to default theme on logout
-        console.log('🎨 Resetting to default theme on logout');
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎨 Resetting to default theme on logout');
         ThemeManager.applyTheme('default');
         localStorage.setItem('selectedTheme', 'default');
         
         // Reset to chores page
         this.currentPage = 'chores';
         
-        console.log('✅ Logout successful');
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Logout successful');
       } catch (error) {
         console.error('Logout error:', error);
         // Still clear local state even if server logout fails
@@ -1683,21 +1741,21 @@ const app = createApp({
     },
 
     showLoginForm() {
-      console.log('🔐 showLoginForm() called');
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🔐 showLoginForm() called');
       this.showSignupModal = false;
       this.showConfirmModal = false;
       this.showLoginModal = true;
       this.clearAuthForm();
-      console.log('🔐 Login modal should now be visible:', this.showLoginModal);
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🔐 Login modal should now be visible:', this.showLoginModal);
     },
 
     showSignupForm() {
-      console.log('📝 showSignupForm() called');
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('📝 showSignupForm() called');
       this.showLoginModal = false;
       this.showConfirmModal = false;
       this.showSignupModal = true;
       this.clearAuthForm();
-      console.log('📝 Signup modal should now be visible:', this.showSignupModal);
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('📝 Signup modal should now be visible:', this.showSignupModal);
     },
 
     closeAuthModals() {
@@ -1734,11 +1792,11 @@ const app = createApp({
     // Instant delete with optimistic updates
     async deleteChore(chore) {
       if (!chore || !chore.id) {
-        console.warn('Invalid chore for deletion');
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.warn('Invalid chore for deletion');
         return;
       }
       
-      console.log('🚀 Optimistically deleting chore:', chore.name);
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🚀 Optimistically deleting chore:', chore.name);
       
       // Store original state for potential rollback
       const originalChores = [...this.chores];
@@ -1771,14 +1829,14 @@ const app = createApp({
           this.updateElectronicsStatusOptimistically(chore.assignedTo);
         }
         
-        console.log('✨ Optimistic UI updated - chore deleted');
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✨ Optimistic UI updated - chore deleted');
         
         // Make API call in background
         await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}`, {
           method: 'DELETE'
         });
         
-        console.log('✅ Server confirmed chore deletion');
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Server confirmed chore deletion');
         
         // Refresh data in background (non-blocking) to ensure consistency
         Promise.all([
@@ -1810,7 +1868,7 @@ const app = createApp({
     },
     
     async handleChoreCompletion(chore) {
-      console.log('🚀 Optimistically handling chore completion for:', chore.name, 'Current state:', chore.completed);
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🚀 Optimistically handling chore completion for:', chore.name, 'Current state:', chore.completed);
       
       const requireApproval = !!this.accountSettings?.preferences?.requireApproval;
       
@@ -1953,7 +2011,7 @@ const app = createApp({
       // Listen for messages from service worker
       navigator.serviceWorker?.addEventListener('message', (event) => {
         if (event.data?.type === 'STORE_TOKENS' && event.data?.tokens) {
-          console.log('🔄 Storing tokens from service worker...');
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🔄 Storing tokens from service worker...');
           authService.setTokens(event.data.tokens);
           authService.storeTokens(event.data.tokens);
         }
@@ -1961,7 +2019,7 @@ const app = createApp({
 
       const handleVisibilityChange = () => {
         if (document.visibilityState === 'visible' && this.isAuthenticated && authService.isAuthenticated()) {
-          console.log('📱 App became visible, checking token refresh...');
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('📱 App became visible, checking token refresh...');
           // Force a token refresh check when app becomes visible
           authService.refreshAccessToken().catch(error => {
             console.warn('Token refresh on visibility change failed:', error);
@@ -1974,7 +2032,7 @@ const app = createApp({
       // Also handle page focus for additional reliability
       window.addEventListener('focus', () => {
         if (this.isAuthenticated && authService.isAuthenticated()) {
-          console.log('🔍 App gained focus, checking token refresh...');
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🔍 App gained focus, checking token refresh...');
           authService.refreshAccessToken().catch(error => {
             console.warn('Token refresh on focus failed:', error);
           });
@@ -1984,7 +2042,7 @@ const app = createApp({
       // Handle page blur for mobile optimization
       window.addEventListener('blur', () => {
         if (this.isAuthenticated && authService.isAuthenticated()) {
-          console.log('📱 App going to background, refreshing tokens proactively...');
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('📱 App going to background, refreshing tokens proactively...');
           // Proactively refresh tokens before app goes to background
           authService.refreshAccessToken().catch(error => {
             console.warn('Token refresh on blur failed:', error);
@@ -1996,16 +2054,16 @@ const app = createApp({
     // Add method for click-to-assign functionality with optimistic updates
     async assignSelectedChore(assignTo) {
       if (!this.selectedChore) {
-        console.warn('No chore selected for assignment');
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.warn('No chore selected for assignment');
         return;
       }
       
       if (!assignTo) {
-        console.warn('No assignee specified');
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.warn('No assignee specified');
         return;
       }
       
-      console.log('🚀 Optimistically assigning chore:', this.selectedChore.name, 'to:', assignTo);
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🚀 Optimistically assigning chore:', this.selectedChore.name, 'to:', assignTo);
       
       // Store original state for potential rollback
       const originalChores = [...this.chores];
@@ -2046,7 +2104,7 @@ const app = createApp({
             this.updateElectronicsStatusOptimistically(assignTo);
           }
           
-          console.log('✨ Optimistic UI updated - new chore added');
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✨ Optimistic UI updated - new chore added');
           
           // Now make API call in background
           const choreData = {
@@ -2071,7 +2129,7 @@ const app = createApp({
             };
           }
           
-          console.log('✅ Server confirmed new chore creation');
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Server confirmed new chore creation');
           
         } else {
           // OPTIMISTIC UPDATE: Move existing chore immediately
@@ -2100,7 +2158,7 @@ const app = createApp({
           this.selectedChoreId = null;
           this.selectedQuicklistChore = null;
           
-          console.log('✨ Optimistic UI updated - chore moved');
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✨ Optimistic UI updated - chore moved');
           
           // Now make API call in background
           const response = await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${selectedChore.id}/assign`, {
@@ -2116,7 +2174,7 @@ const app = createApp({
             };
           }
           
-          console.log('✅ Server confirmed chore assignment');
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Server confirmed chore assignment');
         }
         
         // Reload earnings and electronics status in background (non-blocking)
@@ -2154,8 +2212,10 @@ const app = createApp({
     },
 
     showSuccessMessage(message) {
-      console.log('🎉 showSuccessMessage called with:', message);
-      console.trace('showSuccessMessage call stack:');
+      if (CONFIG.ENV.IS_DEVELOPMENT) {
+        console.log('🎉 showSuccessMessage called with:', message);
+        console.trace('showSuccessMessage call stack:');
+      }
       // suppress generic auth-required notices when signup modal is already being shown for invite flow
       if (this.showSignupModal && typeof message === 'string' && /authentication required/i.test(message)) {
         return;
@@ -2169,7 +2229,7 @@ const app = createApp({
     },
     
     clearSuccessMessage() {
-      console.log('🧹 Manually clearing success message');
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🧹 Manually clearing success message');
       this.showSuccessMessageFlag = false;
       this.completedChoreMessage = '';
     },
@@ -2264,20 +2324,11 @@ const app = createApp({
       }
     },
     selectedChoreId(newVal, oldVal) {
-      if (oldVal && !newVal) {
-        console.log('Selection cleared! Previous chore:', oldVal);
-        console.trace('Selection cleared from:');
-      } else if (newVal) {
-        console.log('Chore selected:', newVal);
-      }
+      // Verbose selection tracking removed - use browser DevTools if needed
     },
     
     showSuccessMessageFlag(newVal, oldVal) {
-      console.log('🎉 showSuccessMessageFlag changed:', oldVal, '->', newVal);
-      if (newVal) {
-        console.log('📝 Success message content:', this.completedChoreMessage);
-        console.trace('showSuccessMessageFlag set to true from:');
-      }
+      // Verbose flag tracking removed - use browser DevTools if needed
     }
   },
   
@@ -2287,22 +2338,22 @@ const app = createApp({
       document.addEventListener('click', (e) => {
         try {
           if (!e.target.closest('.mobile-nav')) this.mobileNavOpen = false;
-        } catch {}
+        } catch { /* ignore DOM errors */ }
       });
       // Debug initial success message state
-      console.log('🔍 Initial success message state:', {
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🔍 Initial success message state:', {
         showSuccessMessageFlag: this.showSuccessMessageFlag,
         completedChoreMessage: this.completedChoreMessage
       });
       
       // Clear any stray success messages on app start
       if (this.showSuccessMessageFlag && !this.completedChoreMessage) {
-        console.log('🧹 Clearing stray success message on app start');
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🧹 Clearing stray success message on app start');
         this.clearSuccessMessage();
       }
       
       // check authentication first
-      console.log('🚀 App starting - checking authentication...');
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🚀 App starting - checking authentication...');
       
       // check if authService exists
       if (typeof authService === 'undefined') {
@@ -2315,19 +2366,36 @@ const app = createApp({
       // wait a moment for authService to initialize
       await new Promise(resolve => setTimeout(resolve, 100));
       
+      // ============================================
+      // INITIALIZATION SEQUENCE: auth → theme → data
+      // Each phase must complete before the next begins
+      // (Property 5: Initialization Order - Requirements 4.4)
+      // ============================================
+      
+      // PHASE 1: Authentication
       const isAuthenticated = await authService.initializeAuth();
       
       if (isAuthenticated) {
         this.isAuthenticated = true;
         this.currentUser = authService.currentUser;
-        console.log('✅ User is authenticated:', this.currentUser);
-        // Fetch current user/memberships to prime X-Account-Id before settings/theme
-        try { await this.refreshCurrentUser(); } catch (e) { console.warn('initial refreshCurrentUser failed', e); }
-        // Load user theme first (now able to honor account when applicable)
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ [Phase 1] User is authenticated:', this.currentUser);
+        
+        // Complete auth phase: fetch user/memberships to prime X-Account-Id
+        try { 
+          await this.refreshCurrentUser(); 
+        } catch (e) { 
+          console.warn('initial refreshCurrentUser failed', e); 
+        }
+        
+        // PHASE 2: Theme (after auth completes)
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎨 [Phase 2] Loading user theme...');
         await this.loadUserTheme();
         
-        // Then load all other data
+        // PHASE 3: Data loading (after theme completes)
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('📦 [Phase 3] Loading application data...');
         await this.loadAllData();
+        
+        // PHASE 4: Real-time connections (after data loads)
         this.initWebsocket();
 
         // Add visibility change listener for mobile optimization
@@ -2356,9 +2424,14 @@ const app = createApp({
         }
       }
       } else {
-        console.log('❌ User not authenticated - ready for login');
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('❌ [Phase 1] User not authenticated - ready for login');
         this.isAuthenticated = false;
         this.loading = false;
+
+        // PHASE 2: Theme for unauthenticated users (login page)
+        // This is the single initialization point for non-authenticated state
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎨 [Phase 2] Initializing default theme for login page...');
+        ThemeManager.initializeTheme();
 
         // if an invite is present and user is unauthenticated, guide them to create an account
         try {
@@ -2419,7 +2492,7 @@ const app = createApp({
         selectQuicklist: (quickChore) => this.handleQuicklistChoreClick(quickChore),
         clear: () => { this.selectedChoreId = null; this.selectedQuicklistChore = null; }
       },
-      showSuccessMessage: Vue.computed(() => this.showSuccessMessageFlag),
+      showSuccessMessageFlag: Vue.computed(() => this.showSuccessMessageFlag),
       completedChoreMessage: Vue.computed(() => this.completedChoreMessage),
       showConfetti: Vue.computed(() => this.showConfetti),
       confettiPieces: Vue.computed(() => this.confettiPieces),
@@ -2526,9 +2599,7 @@ const app = createApp({
       loadStores: this.loadStores,
       loadAccountSettings: this.loadAccountSettings,
       
-      // Spending modal methods
-      openSpendingModal: this.openSpendingModal,
-      // allow children like EarningsWidget to open the global spending modal without $parent
+      // Spending modal methods (also used by children like EarningsWidget)
       openSpendingModal: this.openSpendingModal,
       closeSpendingModal: this.closeSpendingModal,
       addDigit: this.addDigit,
@@ -2658,6 +2729,11 @@ function checkAndRegisterComponents() {
   console.log('📦 Registering image-capture-modal');
   app.component('image-capture-modal', window.ImageCaptureModal);
 
+  console.log('📦 Registering flyout-panel');
+  if (window.FlyoutPanel) {
+    app.component('flyout-panel', window.FlyoutPanel);
+  }
+
   console.log('📦 Registering nav-menu');
   app.component('nav-menu', window.NavMenuComponent);
 
@@ -2705,12 +2781,9 @@ function checkAndRegisterComponents() {
       console.log('✅ Network status service initialized');
     }
     
-    // Initialize auth from existing session
-    authStore.initAuth().then(() => {
-      console.log('✅ Auth store initialized');
-    }).catch(error => {
-      console.error('Auth initialization error:', error);
-    });
+    // Auth initialization is handled in mounted() via authService.initializeAuth()
+    // The auth store state is synced after successful authentication
+    console.log('✅ Auth store ready (initialization deferred to mounted)');
     
     // Make stores available globally for debugging
     if (typeof window !== 'undefined') {

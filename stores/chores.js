@@ -143,7 +143,7 @@ const useChoresStore = Pinia.defineStore('chores', {
           // Online: fetch from API and cache
           const data = await apiService.get(CONFIG.API.ENDPOINTS.CHORES);
           this.chores = data.chores || [];
-          console.log('✅ Chores loaded from API:', this.chores.length);
+          console.log('[OK] Chores loaded from API:', this.chores.length);
           
           // Cache the data for offline use
           if (offlineStorage) {
@@ -185,9 +185,9 @@ const useChoresStore = Pinia.defineStore('chores', {
         if (cachedChores && cachedChores.length > 0) {
           this.chores = cachedChores;
           this.isUsingCachedData = true;
-          console.log('📦 Chores loaded from cache:', this.chores.length);
+          console.log('[CACHE] Chores loaded from cache:', this.chores.length);
         } else {
-          console.log('📦 No cached chores available');
+          console.log('[CACHE] No cached chores available');
           this.chores = [];
         }
       } catch (cacheError) {
@@ -206,7 +206,7 @@ const useChoresStore = Pinia.defineStore('chores', {
           // Online: fetch from API and cache
           const data = await apiService.get(CONFIG.API.ENDPOINTS.QUICKLIST);
           this.quicklistChores = data.quicklistChores || [];
-          console.log('✅ Quicklist chores loaded from API:', this.quicklistChores.length);
+          console.log('[OK] Quicklist chores loaded from API:', this.quicklistChores.length);
           
           // Cache the data for offline use
           if (offlineStorage) {
@@ -244,9 +244,9 @@ const useChoresStore = Pinia.defineStore('chores', {
         const cachedQuicklist = await offlineStorage.getCachedQuicklist();
         if (cachedQuicklist && cachedQuicklist.length > 0) {
           this.quicklistChores = cachedQuicklist;
-          console.log('📦 Quicklist loaded from cache:', this.quicklistChores.length);
+          console.log('[CACHE] Quicklist loaded from cache:', this.quicklistChores.length);
         } else {
-          console.log('📦 No cached quicklist available');
+          console.log('[CACHE] No cached quicklist available');
           this.quicklistChores = [];
         }
       } catch (cacheError) {
@@ -257,7 +257,6 @@ const useChoresStore = Pinia.defineStore('chores', {
     
     // create new chore with offline support
     async createChore(choreData) {
-      const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
       
       try {
         const data = await apiService.post(CONFIG.API.ENDPOINTS.CHORES, choreData);
@@ -272,7 +271,7 @@ const useChoresStore = Pinia.defineStore('chores', {
             _queuedAt: data._queuedAt
           };
           this.chores.push(pendingChore);
-          console.log('📝 Chore queued for sync:', pendingChore.name);
+          console.log('[QUEUE] Chore queued for sync:', pendingChore.name);
           
           // Update local cache with pending chore
           await this._updateLocalCache();
@@ -282,7 +281,7 @@ const useChoresStore = Pinia.defineStore('chores', {
         
         if (data.chore) {
           this.chores.push(data.chore);
-          console.log('✅ Chore created:', data.chore.name);
+          console.log('[OK] Chore created:', data.chore.name);
           
           // Update cache after successful creation
           await this._updateLocalCache();
@@ -326,7 +325,7 @@ const useChoresStore = Pinia.defineStore('chores', {
               _queuedAt: data._queuedAt
             };
           }
-          console.log('📝 Chore update queued for sync:', choreId);
+          console.log('[QUEUE] Chore update queued for sync:', choreId);
           
           // Update local cache
           await this._updateLocalCache();
@@ -346,7 +345,7 @@ const useChoresStore = Pinia.defineStore('chores', {
               _queuedAt: undefined
             };
           }
-          console.log('✅ Chore updated:', choreId);
+          console.log('[OK] Chore updated:', choreId);
           
           // Update cache after successful update
           await this._updateLocalCache();
@@ -372,7 +371,7 @@ const useChoresStore = Pinia.defineStore('chores', {
         return { success: false };
       }
       
-      console.log('🚀 Deleting chore:', chore.name);
+      console.log('[DELETE] Deleting chore:', chore.name);
       
       // optimistic update
       const originalChores = [...this.chores];
@@ -383,7 +382,7 @@ const useChoresStore = Pinia.defineStore('chores', {
         
         // Check if this was queued for offline sync
         if (result && result._pending) {
-          console.log('📝 Chore deletion queued for sync:', chore.name);
+          console.log('[QUEUE] Chore deletion queued for sync:', chore.name);
           
           // Update local cache
           await this._updateLocalCache();
@@ -391,7 +390,7 @@ const useChoresStore = Pinia.defineStore('chores', {
           return { success: true, pending: true };
         }
         
-        console.log('✅ Chore deleted:', chore.name);
+        console.log('[OK] Chore deleted:', chore.name);
         
         // Update cache after successful deletion
         await this._updateLocalCache();
@@ -437,7 +436,7 @@ const useChoresStore = Pinia.defineStore('chores', {
       
       try {
         await this.updateChore(choreId, { assignedTo: personName });
-        console.log('✅ Chore assigned to:', personName);
+        console.log('[OK] Chore assigned to:', personName);
         return { success: true };
       } catch (error) {
         // rollback on error
@@ -490,7 +489,7 @@ const useChoresStore = Pinia.defineStore('chores', {
           }
         }
         
-        console.log('✅ Chore completion toggled:', chore.name);
+        console.log('[OK] Chore completion toggled:', chore.name);
         return { success: true };
       } catch (error) {
         // rollback on error
@@ -509,7 +508,7 @@ const useChoresStore = Pinia.defineStore('chores', {
       const offlineStore = window.useOfflineStore ? window.useOfflineStore() : null;
       if (offlineStore && !offlineStore.isFeatureAvailable('approveChore')) {
         const message = offlineStore.getDisabledFeatureMessage('approveChore');
-        console.warn('⚠️ Cannot approve chore while offline');
+        console.warn('[WARN] Cannot approve chore while offline');
         if (window.useUIStore) {
           const uiStore = window.useUIStore();
           uiStore.showError(message);
@@ -536,7 +535,7 @@ const useChoresStore = Pinia.defineStore('chores', {
           uiStore.showSuccess(`Approved: ${chore.name}`);
         }
         
-        console.log('✅ Chore approved:', chore.name);
+        console.log('[OK] Chore approved:', chore.name);
         return { success: true };
       } catch (error) {
         console.error('Failed to approve chore:', error);
@@ -545,12 +544,14 @@ const useChoresStore = Pinia.defineStore('chores', {
     },
     
     // start new day (requires network)
+    // Returns enhanced response with summary: { choresRemoved, completedChoresCleared, dailyChoresCleared, dailyChoresCreated, duplicatesSkipped, membersProcessed }
+    // _Requirements: 4.2, 6.3_
     async startNewDay() {
       // Check if feature is available offline
       const offlineStore = window.useOfflineStore ? window.useOfflineStore() : null;
       if (offlineStore && !offlineStore.isFeatureAvailable('newDay')) {
         const message = offlineStore.getDisabledFeatureMessage('newDay');
-        console.warn('⚠️ Cannot start new day while offline');
+        console.warn('[WARN] Cannot start new day while offline');
         if (window.useUIStore) {
           const uiStore = window.useUIStore();
           uiStore.showError(message);
@@ -559,9 +560,9 @@ const useChoresStore = Pinia.defineStore('chores', {
       }
       
       try {
-        console.log('🌅 Starting new day...');
+        console.log('[INFO] Starting new day...');
         
-        await apiService.post(CONFIG.API.ENDPOINTS.NEW_DAY);
+        const response = await apiService.post(CONFIG.API.ENDPOINTS.NEW_DAY);
         
         // reload chores and family members
         await this.loadChores();
@@ -571,13 +572,50 @@ const useChoresStore = Pinia.defineStore('chores', {
           await familyStore.loadMembers();
         }
         
-        if (window.useUIStore) {
-          const uiStore = window.useUIStore();
-          uiStore.showSuccess('New day started! All chores cleared.');
+        // Parse summary from response for detailed success message
+        const summary = response?.summary || {};
+        const {
+          choresRemoved = 0,
+          completedChoresCleared = 0,
+          dailyChoresCleared = 0,
+          dailyChoresCreated = 0,
+          duplicatesSkipped = 0,
+          membersProcessed = 0
+        } = summary;
+        
+        // Build detailed success message with counts
+        const messageParts = [];
+        if (choresRemoved > 0) {
+          messageParts.push(`${choresRemoved} chore${choresRemoved !== 1 ? 's' : ''} cleared`);
+        }
+        if (dailyChoresCreated > 0) {
+          messageParts.push(`${dailyChoresCreated} daily chore${dailyChoresCreated !== 1 ? 's' : ''} created`);
+        }
+        if (duplicatesSkipped > 0) {
+          messageParts.push(`${duplicatesSkipped} duplicate${duplicatesSkipped !== 1 ? 's' : ''} skipped`);
         }
         
-        console.log('✅ New day started successfully');
-        return { success: true };
+        const detailMessage = messageParts.length > 0 
+          ? messageParts.join(', ')
+          : 'Board ready for new day';
+        
+        if (window.useUIStore) {
+          const uiStore = window.useUIStore();
+          uiStore.showSuccess(`🌅 New day started! ${detailMessage}. Earnings preserved.`);
+        }
+        
+        console.log('[OK] New day started successfully', summary);
+        return { 
+          success: true, 
+          summary: {
+            choresRemoved,
+            completedChoresCleared,
+            dailyChoresCleared,
+            dailyChoresCreated,
+            duplicatesSkipped,
+            membersProcessed
+          }
+        };
       } catch (error) {
         console.error('Failed to start new day:', error);
         return { success: false, error: error.message };

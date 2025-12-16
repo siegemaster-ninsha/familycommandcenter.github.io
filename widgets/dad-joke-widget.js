@@ -155,13 +155,6 @@ const DadJokeWidget = {
     </div>
   `,
 
-  data() {
-    return {
-      currentJoke: null,
-      jokeHistory: []
-    };
-  },
-
   computed: {
     searchTerm() {
       return this.settings.searchTerm || '';
@@ -324,31 +317,30 @@ const DadJokeWidget = {
 };
 
 // Register widget
-if (typeof window !== 'undefined') {
-  // Wait for all dependencies to be available
-  function registerWidget() {
-    if (window.WidgetRegistry && window.WidgetTypes && window.WidgetBase) {
-      try {
-        const success = window.WidgetRegistry.register(DadJokeWidgetMetadata, DadJokeWidget);
-        if (success) {
-          console.log('✅ Dad Joke Widget registered successfully');
-        } else {
-          console.error('❌ Failed to register Dad Joke Widget');
-        }
-      } catch (error) {
-        console.error('❌ Error registering Dad Joke Widget:', error);
+const registerDadJokeWidget = () => {
+  if (window.WidgetRegistry && window.WidgetTypes && window.WidgetBase) {
+    try {
+      const success = window.WidgetRegistry.register(DadJokeWidgetMetadata, DadJokeWidget);
+      if (success) {
+        console.log('✅ Dad Joke Widget registered successfully');
+      } else {
+        console.error('❌ Failed to register Dad Joke Widget');
       }
-    } else {
-      // Try again in next tick
-      setTimeout(registerWidget, 50);
+    } catch (error) {
+      console.error('❌ Error registering Dad Joke Widget:', error);
     }
+  } else {
+    // Try again in next tick
+    setTimeout(registerDadJokeWidget, 50);
   }
+};
 
+if (typeof window !== 'undefined') {
   // Start registration process
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', registerWidget);
+    document.addEventListener('DOMContentLoaded', registerDadJokeWidget);
   } else {
-    registerWidget();
+    registerDadJokeWidget();
   }
 }
 

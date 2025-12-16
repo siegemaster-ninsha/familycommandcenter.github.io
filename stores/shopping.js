@@ -76,7 +76,7 @@ const useShoppingStore = Pinia.defineStore('shopping', {
       try {
         const data = await apiService.get(CONFIG.API.ENDPOINTS.SHOPPING_ITEMS);
         this.items = data.items || [];
-        console.log('✅ Shopping items loaded:', this.items.length);
+        console.log('[OK] Shopping items loaded:', this.items.length);
       } catch (error) {
         this.error = error.message;
         console.error('Failed to load shopping items:', error);
@@ -92,7 +92,7 @@ const useShoppingStore = Pinia.defineStore('shopping', {
         const data = await apiService.get(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS);
         // Backend returns { items: [...] }, not { quickItems: [...] }
         this.quickItems = data.items || data.quickItems || [];
-        console.log('✅ Quick items loaded:', this.quickItems.length);
+        console.log('[OK] Quick items loaded:', this.quickItems.length);
       } catch (error) {
         console.error('Failed to load quick items:', error);
         this.quickItems = [];
@@ -104,7 +104,7 @@ const useShoppingStore = Pinia.defineStore('shopping', {
       try {
         const data = await apiService.get(CONFIG.API.ENDPOINTS.STORES);
         this.stores = data.stores || [];
-        console.log('✅ Stores loaded:', this.stores.length);
+        console.log('[OK] Stores loaded:', this.stores.length);
       } catch (error) {
         console.error('Failed to load stores:', error);
         this.stores = [];
@@ -125,7 +125,7 @@ const useShoppingStore = Pinia.defineStore('shopping', {
       // Optimistically add to local state immediately
       this.items.push(localItem);
       this.localItemIds.add(tempId);
-      console.log('✅ Shopping item added locally:', localItem.name);
+      console.log('[OK] Shopping item added locally:', localItem.name);
       
       // Check if online
       const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
@@ -159,7 +159,7 @@ const useShoppingStore = Pinia.defineStore('shopping', {
             this.items[index] = data.item;
           }
           this.localItemIds.delete(tempId);
-          console.log('✅ Shopping item synced:', data.item.name);
+          console.log('[OK] Shopping item synced:', data.item.name);
           return { success: true, item: data.item };
         }
         
@@ -191,15 +191,14 @@ const useShoppingStore = Pinia.defineStore('shopping', {
         return { success: false, error: 'Item not found' };
       }
       
-      // Store original state for potential rollback
-      const originalItem = { ...item };
+
       
       // Optimistic update - apply changes immediately
       const index = this.items.findIndex(i => i.id === itemId);
       if (index !== -1) {
         this.items[index] = { ...this.items[index], ...updates };
       }
-      console.log('✅ Shopping item updated locally:', itemId);
+      console.log('[OK] Shopping item updated locally:', itemId);
       
       // Check if online
       const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
@@ -230,7 +229,7 @@ const useShoppingStore = Pinia.defineStore('shopping', {
           if (index !== -1) {
             this.items[index] = { ...this.items[index], ...data.item };
           }
-          console.log('✅ Shopping item update synced:', itemId);
+          console.log('[OK] Shopping item update synced:', itemId);
           return { success: true, item: data.item };
         }
         
@@ -257,10 +256,9 @@ const useShoppingStore = Pinia.defineStore('shopping', {
     // delete shopping item (offline-first)
     async deleteItem(itemId) {
       // Optimistic update - always remove from local state immediately
-      const deletedItem = this.items.find(item => item.id === itemId);
       this.items = this.items.filter(item => item.id !== itemId);
       this.localItemIds.delete(itemId);
-      console.log('✅ Shopping item deleted locally:', itemId);
+      console.log('[OK] Shopping item deleted locally:', itemId);
       
       // If it's a local-only item that was never synced, no need to sync delete
       if (itemId.startsWith('local_')) {
@@ -290,7 +288,7 @@ const useShoppingStore = Pinia.defineStore('shopping', {
       // Online - try to sync
       try {
         await apiService.delete(`${CONFIG.API.ENDPOINTS.SHOPPING_ITEMS}/${itemId}`);
-        console.log('✅ Shopping item delete synced:', itemId);
+        console.log('[OK] Shopping item delete synced:', itemId);
         return { success: true };
       } catch (error) {
         console.warn('Failed to sync item delete, queuing:', error.message);
@@ -320,9 +318,8 @@ const useShoppingStore = Pinia.defineStore('shopping', {
       }
       
       // Optimistic update - always update local state immediately
-      const originalCompleted = item.completed;
       item.completed = !item.completed;
-      console.log('✅ Item completion toggled locally:', item.name, '→', item.completed);
+      console.log('[OK] Item completion toggled locally:', item.name, '->', item.completed);
       
       // Check if online
       const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
@@ -347,7 +344,7 @@ const useShoppingStore = Pinia.defineStore('shopping', {
       // Online - try to sync
       try {
         await apiService.put(`${CONFIG.API.ENDPOINTS.SHOPPING_ITEMS}/${itemId}`, { completed: item.completed });
-        console.log('✅ Item completion synced:', item.name);
+        console.log('[OK] Item completion synced:', item.name);
         return { success: true };
       } catch (error) {
         console.warn('Failed to sync item toggle, keeping local state:', error.message);
@@ -389,7 +386,7 @@ const useShoppingStore = Pinia.defineStore('shopping', {
           uncompleted.map(item => this.updateItem(item.id, { completed: true }))
         );
         
-        console.log('✅ All items marked complete');
+        console.log('[OK] All items marked complete');
         return { success: true };
       } catch (error) {
         console.error('Failed to mark all complete:', error);
@@ -414,7 +411,7 @@ const useShoppingStore = Pinia.defineStore('shopping', {
           completed.map(item => this.deleteItem(item.id))
         );
         
-        console.log('✅ Completed items cleared');
+        console.log('[OK] Completed items cleared');
         return { success: true };
       } catch (error) {
         console.error('Failed to clear completed items:', error);
@@ -437,7 +434,7 @@ const useShoppingStore = Pinia.defineStore('shopping', {
           itemsCopy.map(item => this.deleteItem(item.id))
         );
         
-        console.log('✅ All items cleared');
+        console.log('[OK] All items cleared');
         return { success: true };
       } catch (error) {
         console.error('Failed to clear all items:', error);
@@ -452,7 +449,7 @@ const useShoppingStore = Pinia.defineStore('shopping', {
         
         if (data.quickItem) {
           this.quickItems.push(data.quickItem);
-          console.log('✅ Quick item added:', data.quickItem.name);
+          console.log('[OK] Quick item added:', data.quickItem.name);
           return { success: true, quickItem: data.quickItem };
         }
         
@@ -470,7 +467,7 @@ const useShoppingStore = Pinia.defineStore('shopping', {
       
       try {
         await apiService.delete(`${CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS}/${quickItemId}`);
-        console.log('✅ Quick item deleted:', quickItemId);
+        console.log('[OK] Quick item deleted:', quickItemId);
         return { success: true };
       } catch (error) {
         console.error('Failed to delete quick item:', error);
@@ -487,7 +484,7 @@ const useShoppingStore = Pinia.defineStore('shopping', {
         
         if (data.store) {
           this.stores.push(data.store);
-          console.log('✅ Store added:', data.store.name);
+          console.log('[OK] Store added:', data.store.name);
           return { success: true, store: data.store };
         }
         
@@ -507,7 +504,7 @@ const useShoppingStore = Pinia.defineStore('shopping', {
           if (index !== -1) {
             this.stores[index] = { ...this.stores[index], ...data.store };
           }
-          console.log('✅ Store updated:', storeId);
+          console.log('[OK] Store updated:', storeId);
           return { success: true, store: data.store };
         }
         
@@ -525,7 +522,7 @@ const useShoppingStore = Pinia.defineStore('shopping', {
       
       try {
         await apiService.delete(`${CONFIG.API.ENDPOINTS.STORES}/${storeId}`);
-        console.log('✅ Store deleted:', storeId);
+        console.log('[OK] Store deleted:', storeId);
         return { success: true };
       } catch (error) {
         console.error('Failed to delete store:', error);

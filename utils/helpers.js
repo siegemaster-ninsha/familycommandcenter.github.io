@@ -3,138 +3,240 @@
   // Set window.Helpers immediately to avoid timing issues
   window.Helpers = window.Helpers || {};
 
+  // Critical fallback icons (inline SVGs for offline/CDN failure)
+  const fallbackIcons = {
+    home: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3,9,9-7,9,7v11a2,2 0 0,1-2,2H5a2,2 0 0,1-2-2z"></path><polyline points="9,22,9,12,15,12,15,22"></polyline></svg>',
+    menu: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>',
+    check: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"></polyline></svg>',
+    x: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
+    'alert-triangle': '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
+    loader: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21,12a9,9 0 1,1-6.219-8.56"></path></svg>'
+  };
+
   // Icon system for CDN-loaded icon libraries
   const IconLibrary = {
-    // Lucide Icons - use the loaded CDN library instead of hardcoded SVGs
-    lucide: {
-      // Widget and dashboard icons
-      'layout-dashboard': () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>`,
-      cloud: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>`,
-      'lightbulb': () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21h6"></path><path d="M9 18h6"></path><path d="M12 3a6 6 0 0 0-6 6c0 1.32.47 2.53 1.26 3.47L8 14h8l.74-1.53A5.99 5.99 0 0 0 12 3z"></path></svg>`,
-      'help-circle': () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`,
+    // Store fallback icons
+    fallbackIcons: fallbackIcons,
 
-      // Action icons
-      trash: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,6 5,6 21,6"></polyline><path d="m19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`,
-      plus: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`,
-      settings: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`,
-
-      // Status icons
-      check: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"></polyline></svg>`,
-      'refresh-cw': () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path></svg>`,
-      shuffle: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/><path d="m18 14 4 4-4 4"/></svg>`,
-      download: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7,10 12,15 17,10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`,
-      x: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`,
-
-      // Status icons
-      alertTriangle: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`,
-      xCircle: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`,
-
-      // Section header icons
-      zap: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2"></polygon></svg>`,
-      clipboardList: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16,4h2a2,2 0 0,1,2,2v14a2,2 0 0,1-2,2H6a2,2 0 0,1-2-2V6a2,2 0 0,1,2-2h2"></path><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="11" x2="9" y2="17"></line><line x1="15" y1="11" x2="15" y2="17"></line></svg>`,
-      users: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17,21v-2a4,4 0 0,0-4-4H5a4,4 0 0,0-4,4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23,21v-2a4,4 0 0,0-3-3.87"></path><path d="M16,3.13a4,4 0 0,1,0,7.75"></path></svg>`,
-      'dollar-sign': () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17,5H9.5a3.5,3.5 0 0,0,0,7h5a3.5,3.5 0 0,1,0,7H6"></path></svg>`,
-
-      // User and navigation icons
-      user: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20,21v-2a4,4 0 0,0-4-4H8a4,4 0 0,0-4,4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`,
-      home: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3,9,9-7,9,7v11a2,2 0 0,1-2,2H5a2,2 0 0,1-2-2z"></path><polyline points="9,22,9,12,15,12,15,22"></polyline></svg>`,
-
-      // Loading and state icons
-      loader: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21,12a9,9 0 1,1-6.219-8.56"></path></svg>`,
-
-      // Shopping and commerce icons
-      shoppingCart: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>`,
-      lock: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><circle cx="12" cy="16" r="1"></circle><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`,
-
-      // UI interaction icons
-      edit: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
-      pencil: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>`,
-      minus: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>`,
-      checkCircle: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22,4 12,14.01 9,11.01"></polyline></svg>`,
-      chevronDown: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,9 12,15 18,9"></polyline></svg>`,
-      chevronRight: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,18 15,12 9,6"></polyline></svg>`,
-
-      // Navigation icons
-      menu: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>`,
-
-      // Communication icons
-      mail: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>`,
-      user: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`,
-      userPlus: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="16" y1="11" x2="22" y2="11"></line></svg>`,
-      users: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`,
-
-      // Device and file icons
-      monitor: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>`,
-      smartphone: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>`,
-      fileText: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14,2 14,8 20,8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10,9 9,9 8,9"></polyline></svg>`,
-
-      // Commerce and payment icons
-      creditCard: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>`,
-
-      // Action and utility icons
-      refreshCw: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path></svg>`,
-      shield: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`,
-      clock: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12,6 12,12 16,14"></polyline></svg>`,
-      ban: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line></svg>`,
-      logIn: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10,17 15,12 10,7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>`,
-      sun: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="4.22" x2="19.78" y2="5.64"></line></svg>`,
-
-      // Gaming icons
-      gamepad2: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg>`,
-
-      // Form and input icons
-      eye: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`,
-      eyeOff: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`,
-
-      // Ingredient selection icons (multi-image-recipe-categories feature)
-      scale: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></svg>`,
-      circle: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle></svg>`,
-      
-      // Multi-image viewer icons (multi-image-recipe-categories feature)
-      image: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg>`,
-      images: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 22H4a2 2 0 0 1-2-2V6"></path><rect width="16" height="16" x="6" y="2" rx="2"></rect><circle cx="12" cy="8" r="2"></circle><path d="m22 13-1.296-1.296a2.41 2.41 0 0 0-3.408 0L9 20"></path></svg>`,
-      chevronLeft: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,18 9,12 15,6"></polyline></svg>`,
-      
-      // Checkbox icons
-      square: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/></svg>`,
-      squareCheck: () => `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m9 12 2 2 4-4"/></svg>`
+    /**
+     * Check if Lucide library is available
+     * @returns {boolean}
+     */
+    isLucideAvailable() {
+      return typeof window.lucide !== 'undefined' && typeof window.lucide.icons !== 'undefined';
     },
 
-    // Helper function to get icon by name and library
-    getIcon(iconName, library = 'lucide', size = 16, className = '') {
+    /**
+     * Convert kebab-case to PascalCase (Lucide icon name format)
+     * @param {string} name - kebab-case icon name
+     * @returns {string} PascalCase name
+     */
+    toPascalCase(name) {
+      return name
+        .split('-')
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+        .join('');
+    },
+
+    /**
+     * Convert camelCase to kebab-case
+     * @param {string} name - camelCase icon name
+     * @returns {string} kebab-case name
+     */
+    toKebabCase(name) {
+      return name.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+    },
+
+    /**
+     * Check if an icon exists in the library
+     * @param {string} iconName - Icon name (kebab-case or camelCase)
+     * @returns {boolean}
+     */
+    hasIcon(iconName) {
+      if (!iconName || typeof iconName !== 'string') {
+        return false;
+      }
+
+      // Check fallback icons first
+      const kebabName = this.toKebabCase(iconName);
+      if (fallbackIcons[kebabName]) {
+        return true;
+      }
+
+      // Check Lucide library
+      if (this.isLucideAvailable()) {
+        const pascalName = this.toPascalCase(kebabName);
+        return !!window.lucide.icons[pascalName];
+      }
+
+      return false;
+    },
+
+    /**
+     * Get list of all available icon names
+     * @returns {string[]} Array of icon names in kebab-case
+     */
+    getAvailableIcons() {
+      const icons = new Set(Object.keys(fallbackIcons));
+
+      if (this.isLucideAvailable()) {
+        Object.keys(window.lucide.icons).forEach(pascalName => {
+          // Convert PascalCase to kebab-case
+          const kebabName = pascalName
+            .replace(/([a-z])([A-Z])/g, '$1-$2')
+            .toLowerCase();
+          icons.add(kebabName);
+        });
+      }
+
+      return Array.from(icons).sort();
+    },
+
+    /**
+     * Get an icon by name from the Lucide library
+     * @param {string} iconName - Lucide icon name (kebab-case or camelCase)
+     * @param {string} library - Icon library (only 'lucide' supported, kept for API compatibility)
+     * @param {number} size - Icon size in pixels (default: 16)
+     * @param {string} className - CSS classes to apply
+     * @param {object} aria - Accessibility options
+     * @param {string} aria.label - aria-label for meaningful icons
+     * @param {boolean} aria.hidden - true for decorative icons
+     * @returns {string} SVG markup or empty string
+     */
+    getIcon(iconName, library, size = 16, className = '', aria = {}) {
+      // Validate library parameter (only Lucide is supported)
+      if (library && library !== 'lucide') {
+        console.warn(`[WARN] Unsupported icon library: ${library}. Only 'lucide' is supported.`);
+      }
       // Handle case where getIcon is called before Helpers is fully initialized
       if (!window.Helpers || !window.Helpers.IconLibrary) {
-        console.warn('IconLibrary.getIcon called before Helpers is initialized');
+        console.warn('[WARN] IconLibrary.getIcon called before Helpers is initialized');
         return '';
       }
 
-      const libraryIcons = this[library];
-      if (!libraryIcons) {
-        console.warn(`Library "${library}" not found`);
+      if (!iconName || typeof iconName !== 'string') {
+        console.warn('[WARN] Invalid icon name provided');
         return '';
       }
 
-      // Try exact match first, then try camelCase conversion for kebab-case inputs
-      let iconKey = iconName;
-      if (!libraryIcons[iconName] && iconName.includes('-')) {
-        iconKey = iconName.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
+      // Normalize icon name to kebab-case
+      const kebabName = this.toKebabCase(iconName);
+      const pascalName = this.toPascalCase(kebabName);
+
+      let svg = '';
+
+      // Try to get icon from Lucide library
+      if (this.isLucideAvailable()) {
+        const iconData = window.lucide.icons[pascalName];
+        if (iconData) {
+          // Lucide icons structure: array of [tagName, attrs] tuples
+          // e.g., [["path", {d: "..."}], ["path", {d: "..."}]]
+          // Build SVG from Lucide icon data
+          svg = this.buildSvgFromLucide(null, iconData, size, className, aria);
+        }
       }
 
-      if (!libraryIcons[iconKey]) {
-        console.warn(`Icon "${iconName}" (tried "${iconKey}") not found in library "${library}"`);
+      // Fall back to inline SVGs if Lucide not available or icon not found
+      if (!svg && fallbackIcons[kebabName]) {
+        svg = fallbackIcons[kebabName];
+        svg = this.applySizeAndClass(svg, size, className, aria);
+      }
+
+      // Log warning if icon not found
+      if (!svg) {
+        console.warn(`[WARN] Icon "${iconName}" not found in Lucide library`);
         return '';
       }
 
-      const svg = libraryIcons[iconKey]();
-      // Replace width and height in the SVG
-      return svg.replace(/width="[^"]*"/, `width="${size}"`).replace(/height="[^"]*"/, `height="${size}"`).replace(/class="[^"]*"/, `class="${className}"`);
+      return svg;
+    },
+
+    /**
+     * Build SVG string from Lucide icon data
+     * @param {Array} attrs - SVG attributes from Lucide
+     * @param {Array} children - SVG child elements from Lucide
+     * @param {number} size - Icon size
+     * @param {string} className - CSS classes
+     * @param {object} aria - Accessibility options
+     * @returns {string} SVG markup
+     */
+    buildSvgFromLucide(attrs, children, size, className, aria) {
+      // Build attributes string
+      let attrStr = `xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`;
+      
+      if (className) {
+        attrStr += ` class="${className}"`;
+      }
+
+      // Add aria attributes
+      if (aria && aria.label) {
+        attrStr += ` aria-label="${aria.label}" role="img"`;
+      }
+      if (aria && aria.hidden === true) {
+        attrStr += ` aria-hidden="true"`;
+      }
+
+      // Build children string
+      let childrenStr = '';
+      if (Array.isArray(children)) {
+        children.forEach(child => {
+          if (Array.isArray(child) && child.length >= 2) {
+            const [tagName, tagAttrs] = child;
+            let tagAttrStr = Object.entries(tagAttrs || {})
+              .map(([key, value]) => `${key}="${value}"`)
+              .join(' ');
+            childrenStr += `<${tagName} ${tagAttrStr}></${tagName}>`;
+          }
+        });
+      }
+
+      return `<svg ${attrStr}>${childrenStr}</svg>`;
+    },
+
+    /**
+     * Apply size, class, and aria attributes to an existing SVG string
+     * @param {string} svg - Original SVG string
+     * @param {number} size - Icon size
+     * @param {string} className - CSS classes
+     * @param {object} aria - Accessibility options
+     * @returns {string} Modified SVG string
+     */
+    applySizeAndClass(svg, size, className, aria) {
+      // Replace width and height
+      svg = svg.replace(/width="[^"]*"/, `width="${size}"`);
+      svg = svg.replace(/height="[^"]*"/, `height="${size}"`);
+      
+      // Handle class attribute
+      if (className) {
+        if (svg.includes('class="')) {
+          svg = svg.replace(/class="[^"]*"/, `class="${className}"`);
+        } else {
+          svg = svg.replace('<svg ', `<svg class="${className}" `);
+        }
+      }
+
+      // Add aria attributes
+      if (aria && aria.label) {
+        if (!svg.includes('aria-label')) {
+          svg = svg.replace('<svg ', `<svg aria-label="${aria.label}" role="img" `);
+        }
+      }
+      if (aria && aria.hidden === true) {
+        if (!svg.includes('aria-hidden')) {
+          svg = svg.replace('<svg ', `<svg aria-hidden="true" `);
+        }
+      }
+
+      return svg;
     },
 
     // Initialize icon libraries when DOM is ready
     initializeLibraries() {
       // Lucide icons initialization (if loaded)
-      if (typeof lucide !== 'undefined') {
+      if (typeof lucide !== 'undefined' && lucide.createIcons) {
         lucide.createIcons();
+      } else {
+        console.warn('[WARN] Lucide library not loaded, using fallback icons');
       }
     },
 
@@ -174,5 +276,3 @@
   // Attach IconLibrary to window.Helpers immediately
   window.Helpers.IconLibrary = IconLibrary;
 })();
-
-

@@ -207,7 +207,7 @@ const EarningsSummaryWidget = {
         <h3 class="widget-title">
           <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon(metadata.icon, 'lucide', 20, 'mr-2') : ''"></div>
           {{ metadata.name }}
-          <span v-if="useMockData" class="text-xs" style="color: #f59e0b; margin-left: 0.5rem;">
+          <span v-if="useMockData" class="text-xs" style="color: var(--color-warning-500); margin-left: 0.5rem;">
             (Demo Data - <a href="#" @click.prevent="$root.setCurrentPage('account')" style="text-decoration: underline;">Login to see real data</a>)
           </span>
         </h3>

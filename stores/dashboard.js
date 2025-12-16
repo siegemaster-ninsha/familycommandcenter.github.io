@@ -84,9 +84,9 @@ const useDashboardStore = Pinia.defineStore('dashboard', {
           this.layouts = data.layouts || this.layouts;
           this.widgets = data.widgets || [];
           this.settings = { ...this.settings, ...(data.settings || {}) };
-          console.log('✅ Dashboard loaded from API:', this.widgets.length, 'widgets');
+          console.log('[OK] Dashboard loaded from API:', this.widgets.length, 'widgets');
         } else {
-          console.log('ℹ️ No dashboard configuration found, using defaults');
+          console.log('[INFO] No dashboard configuration found, using defaults');
         }
       } catch (error) {
         console.error('Failed to load dashboard from API:', error);
@@ -99,7 +99,7 @@ const useDashboardStore = Pinia.defineStore('dashboard', {
             this.layouts = data.layouts || this.layouts;
             this.widgets = data.widgets || [];
             this.settings = { ...this.settings, ...(data.settings || {}) };
-            console.log('✅ Dashboard loaded from localStorage fallback:', this.widgets.length, 'widgets');
+            console.log('[OK] Dashboard loaded from localStorage fallback:', this.widgets.length, 'widgets');
           }
         } catch (localError) {
           console.error('Failed to load from localStorage:', localError);
@@ -121,12 +121,12 @@ const useDashboardStore = Pinia.defineStore('dashboard', {
         };
         
         // save to API
-        const response = await window.apiService.put('/dashboard', dashboardData);
+        await window.apiService.put('/dashboard', dashboardData);
         
         // also save to localStorage as backup
         localStorage.setItem('dashboard-config', JSON.stringify(dashboardData));
         
-        console.log('✅ Dashboard saved to API and localStorage');
+        console.log('[OK] Dashboard saved to API and localStorage');
         return { success: true };
       } catch (error) {
         console.error('Failed to save dashboard:', error);
@@ -139,7 +139,7 @@ const useDashboardStore = Pinia.defineStore('dashboard', {
             settings: this.settings
           };
           localStorage.setItem('dashboard-config', JSON.stringify(dashboardData));
-          console.log('⚠️ Dashboard saved to localStorage only (API failed)');
+          console.log('[WARN] Dashboard saved to localStorage only (API failed)');
         } catch (localError) {
           console.error('Failed to save to localStorage:', localError);
         }
@@ -169,7 +169,7 @@ const useDashboardStore = Pinia.defineStore('dashboard', {
         enabled: widgetConfig.enabled !== false
       });
       
-      console.log('✅ Widget added:', widgetConfig.widgetId);
+      console.log('[OK] Widget added:', widgetConfig.widgetId);
       
       // auto-save
       this.saveDashboard();
@@ -187,7 +187,7 @@ const useDashboardStore = Pinia.defineStore('dashboard', {
       }
       
       this.widgets.splice(index, 1);
-      console.log('✅ Widget removed:', instanceId);
+      console.log('[OK] Widget removed:', instanceId);
       
       // auto-save
       this.saveDashboard();
@@ -205,7 +205,7 @@ const useDashboardStore = Pinia.defineStore('dashboard', {
       }
       
       Object.assign(widget, updates);
-      console.log('✅ Widget updated:', instanceId);
+      console.log('[OK] Widget updated:', instanceId);
       
       // auto-save
       this.saveDashboard();
@@ -234,7 +234,7 @@ const useDashboardStore = Pinia.defineStore('dashboard', {
       
       if (widget) {
         widget.enabled = !widget.enabled;
-        console.log('✅ Widget toggled:', instanceId, widget.enabled);
+        console.log('[OK] Widget toggled:', instanceId, widget.enabled);
         this.saveDashboard();
         return { success: true };
       }
@@ -246,7 +246,7 @@ const useDashboardStore = Pinia.defineStore('dashboard', {
     setLayout(layoutName) {
       if (this.layouts[layoutName]) {
         this.currentLayout = layoutName;
-        console.log('✅ Layout changed to:', layoutName);
+        console.log('[OK] Layout changed to:', layoutName);
       } else {
         console.warn('Layout not found:', layoutName);
       }
@@ -260,13 +260,13 @@ const useDashboardStore = Pinia.defineStore('dashboard', {
     // edit mode
     enterEditMode() {
       this.settings.editMode = true;
-      console.log('✏️ Edit mode enabled');
+      console.log('[CONFIG] Edit mode enabled');
     },
     
     exitEditMode() {
       this.settings.editMode = false;
       this.saveDashboard();
-      console.log('✏️ Edit mode disabled');
+      console.log('[CONFIG] Edit mode disabled');
     },
     
     toggleEditMode() {
@@ -298,7 +298,7 @@ const useDashboardStore = Pinia.defineStore('dashboard', {
       };
       
       await this.saveDashboard();
-      console.log('✅ Dashboard reset to default');
+      console.log('[OK] Dashboard reset to default');
     },
     
     // widget arrangement helpers
@@ -348,7 +348,7 @@ const useDashboardStore = Pinia.defineStore('dashboard', {
         this.settings = { ...this.settings, ...(dashboardData.settings || {}) };
         
         this.saveDashboard();
-        console.log('✅ Dashboard imported');
+        console.log('[OK] Dashboard imported');
         return { success: true };
       } catch (error) {
         console.error('Failed to import dashboard:', error);
