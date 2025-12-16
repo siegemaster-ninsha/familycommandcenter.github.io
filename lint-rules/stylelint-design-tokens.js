@@ -63,11 +63,6 @@ const noHardcodedColorsRule = stylelint.createPlugin(
       root.walkDecls((decl) => {
         const value = decl.value;
 
-        // Skip :root declarations - these are token DEFINITIONS, not usages
-        if (decl.parent && decl.parent.selector === ':root') {
-          return;
-        }
-
         // Skip if using allowed patterns (CSS variables)
         if (allowedPatterns.some(pattern => pattern.test(value))) {
           return;
