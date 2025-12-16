@@ -1322,11 +1322,6 @@ const RecipePage = Vue.defineComponent({
       this.hasUnsavedChanges = false;
       this.originalEditState = null;
       this.selectedIngredients = new Set();
-      
-      // iOS Safari/PWA fix: force Vue to re-render immediately
-      // Safari sometimes doesn't trigger reactivity properly in teleported components
-      this.$forceUpdate();
-      console.log('🍳 $forceUpdate called');
     },
     
     onFlyoutClosed() {

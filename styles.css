@@ -767,9 +767,13 @@ input:focus, select:focus, textarea:focus {
   max-width: 450px;
   background-color: var(--color-white);
   box-shadow: -4px 0 24px var(--color-overlay-light);
+  /* Safari compatibility: explicit webkit prefixes */
+  -webkit-transform: translateX(100%);
   transform: translateX(100%);
+  -webkit-transition: -webkit-transform 300ms ease-out, visibility 0s 300ms;
   transition: transform 300ms ease-out, visibility 0s 300ms;
   z-index: 51;
+  -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   display: flex;
   flex-direction: column;
@@ -780,6 +784,9 @@ input:focus, select:focus, textarea:focus {
   /* Fix iOS Safari touch event issues on buttons inside fixed/teleported elements */
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  /* Force GPU acceleration for smoother animations on iOS */
+  -webkit-perspective: 1000;
+  will-change: transform;
 }
 
 /* Ensure all interactive elements in flyouts work on iOS */
@@ -801,7 +808,9 @@ input:focus, select:focus, textarea:focus {
 }
 
 .flyout-panel.flyout-open {
+  -webkit-transform: translateX(0);
   transform: translateX(0);
+  -webkit-transition: -webkit-transform 300ms ease-out, visibility 0s 0s;
   transition: transform 300ms ease-out, visibility 0s 0s;
   visibility: visible;
   pointer-events: auto;
