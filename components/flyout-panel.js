@@ -113,6 +113,7 @@ const FlyoutPanel = Vue.defineComponent({
         :class="{ 'flyout-open': open }"
         :style="backdropStyle"
         @click="handleBackdropClick"
+        @touchend.prevent="handleBackdropClick"
       ></div>
       
       <!-- Panel -->
@@ -136,6 +137,7 @@ const FlyoutPanel = Vue.defineComponent({
           <button
             v-if="showHeaderClose"
             @click="close"
+            @touchend.prevent="close"
             class="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
             aria-label="Close panel"
           >
