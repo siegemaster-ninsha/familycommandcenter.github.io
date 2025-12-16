@@ -558,9 +558,8 @@ const RecipePage = Vue.defineComponent({
         <template #footer>
           <div class="flyout-footer-buttons flex items-center gap-2">
             <!-- Delete button (left) -->
-            <!-- iOS PWA fix: use pointerup instead of click+touchend combo -->
             <button
-              @pointerup.prevent="confirmDeleteRecipe"
+              @click="confirmDeleteRecipe"
               class="btn-error btn-compact flex items-center gap-1.5 px-3 py-1.5 text-sm"
             >
               <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 16, 'text-white')"></div>
@@ -568,10 +567,9 @@ const RecipePage = Vue.defineComponent({
             </button>
             
             <!-- Source Image button (center, expands) OR spacer to push buttons right -->
-            <!-- iOS PWA fix: use pointerup instead of click+touchend combo -->
             <button 
               v-if="hasSourceImages"
-              @pointerup.prevent="viewCurrentSourceImage"
+              @click="viewCurrentSourceImage"
               :disabled="loadingSourceImage"
               class="btn-secondary btn-compact flex-1 flex items-center justify-center gap-2 px-3 py-1.5 text-sm"
             >
@@ -582,10 +580,9 @@ const RecipePage = Vue.defineComponent({
             <div v-else class="flex-1"></div>
             
             <!-- Save button (if changes) -->
-            <!-- iOS PWA fix: use pointerup instead of click+touchend combo -->
             <button
               v-if="hasUnsavedChanges"
-              @pointerup.prevent="saveInlineChanges"
+              @click="saveInlineChanges"
               class="btn-success btn-compact flex items-center gap-1.5 px-3 py-1.5 text-sm"
               :disabled="updating"
             >
@@ -595,9 +592,8 @@ const RecipePage = Vue.defineComponent({
             </button>
             
             <!-- Close button (right) -->
-            <!-- iOS PWA fix: use pointerup instead of click+touchend combo -->
             <button
-              @pointerup.prevent="handleFlyoutClose"
+              @click="handleFlyoutClose"
               class="btn-secondary btn-compact px-3 py-1.5 text-sm"
             >
               {{ hasUnsavedChanges ? 'Discard' : 'Close' }}

@@ -108,11 +108,10 @@ const FlyoutPanel = Vue.defineComponent({
   template: `
     <Teleport to="body">
       <!-- Backdrop -->
-      <!-- iOS PWA fix: use pointerup instead of click+touchend combo -->
       <div 
         class="flyout-backdrop"
         :class="{ 'flyout-open': open }"
-        @pointerup="handleBackdropClick"
+        @click="handleBackdropClick"
       ></div>
       
       <!-- Panel -->
@@ -132,10 +131,9 @@ const FlyoutPanel = Vue.defineComponent({
               <h2 class="text-lg font-bold text-primary-custom truncate pr-2">{{ title }}</h2>
             </slot>
           </div>
-          <!-- iOS PWA fix: use pointerup instead of click+touchend combo -->
           <button
             v-if="showHeaderClose"
-            @pointerup.prevent="close"
+            @click="close"
             class="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
             aria-label="Close panel"
           >

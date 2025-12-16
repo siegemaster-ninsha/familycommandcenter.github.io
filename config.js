@@ -67,7 +67,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.45 - Optimistic Urchin (Dec 16, 2025)',
+    VERSION: '1.0.46 - Majestic Panda (Dec 16, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
