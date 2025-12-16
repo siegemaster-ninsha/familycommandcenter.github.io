@@ -270,8 +270,10 @@ const useFamilyStore = Pinia.defineStore('family', {
       }
       
       try {
+        // URL-encode memberId to handle special characters like # in MEMBER#uuid
+        const encodedMemberId = encodeURIComponent(memberId);
         const data = await apiService.put(
-          `${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${memberId}/daily-chores`,
+          `${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${encodedMemberId}/daily-chores`,
           { dailyChores }
         );
         
@@ -323,8 +325,10 @@ const useFamilyStore = Pinia.defineStore('family', {
       }
       
       try {
+        // URL-encode memberId to handle special characters like # in MEMBER#uuid
+        const encodedMemberId = encodeURIComponent(memberId);
         const data = await apiService.post(
-          `${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${memberId}/daily-chores`,
+          `${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${encodedMemberId}/daily-chores`,
           { quicklistChoreId }
         );
         
@@ -376,8 +380,11 @@ const useFamilyStore = Pinia.defineStore('family', {
       }
       
       try {
+        // URL-encode memberId and quicklistChoreId to handle special characters
+        const encodedMemberId = encodeURIComponent(memberId);
+        const encodedQuicklistId = encodeURIComponent(quicklistChoreId);
         const data = await apiService.delete(
-          `${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${memberId}/daily-chores/${quicklistChoreId}`
+          `${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${encodedMemberId}/daily-chores/${encodedQuicklistId}`
         );
         
         if (data.member) {

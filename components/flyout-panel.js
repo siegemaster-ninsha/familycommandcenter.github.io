@@ -171,9 +171,11 @@ const FlyoutPanel = Vue.defineComponent({
     open: {
       immediate: true,
       handler(isOpen) {
+        console.log('🚪 FlyoutPanel open changed:', isOpen, 'wasOpen:', this.wasOpen);
         if (isOpen) {
           this.onOpen();
         } else if (this.wasOpen) {
+          console.log('🚪 FlyoutPanel closing...');
           this.onClose();
         }
         this.wasOpen = isOpen;
