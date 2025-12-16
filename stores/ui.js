@@ -162,6 +162,19 @@ const useUIStore = Pinia.defineStore('ui', {
       this.error = null;
     },
     
+    // Show error message (toast-style, auto-dismisses)
+    showError(message, duration = 5000) {
+      this.error = message;
+      console.error('[ERROR]', message);
+      
+      // auto-clear after duration
+      if (duration > 0) {
+        setTimeout(() => {
+          this.clearError();
+        }, duration);
+      }
+    },
+    
     // success messages
     showSuccess(message, duration = 3000) {
       this.successMessage = message;

@@ -67,7 +67,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.41 - Dazzling Shark (Dec 16, 2025)',
+    VERSION: '1.0.42 - Unstoppable Raven (Dec 16, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
