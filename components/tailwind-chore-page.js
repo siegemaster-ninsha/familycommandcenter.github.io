@@ -178,7 +178,7 @@ const PersonCard = {
       <!-- Person header -->
       <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xl font-bold">
+          <div class="w-12 h-12 rounded-full flex items-center justify-center text-white text-xl font-bold" style="background: linear-gradient(to bottom right, var(--color-primary-500), var(--color-primary-600));">
             {{ personDisplayName.charAt(0) }}
           </div>
           <div>
@@ -265,7 +265,8 @@ const PersonCard = {
 const EarningsCard = {
   template: `
     <div
-      class="border-2 rounded-xl p-6 cursor-pointer hover:shadow-xl hover:scale-102 transition-all duration-200 shadow-lg bg-blue-500 border-blue-600"
+      class="border-2 rounded-xl p-6 cursor-pointer hover:shadow-xl hover:scale-102 transition-all duration-200 shadow-lg"
+      style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
       @touchstart.passive="handleTouchStart"
       @touchmove.passive="handleTouchMove"
       @click="handleClick"
@@ -340,7 +341,7 @@ const TailwindChorePage = Vue.defineComponent({
       <!-- Page Header -->
       <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('clipboardList', 'lucide', 24, 'text-blue-500') : ''"></div>
+          <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('clipboardList', 'lucide', 24, 'text-primary-500') : ''" style="color: var(--color-primary-500);"></div>
           Chores
         </h1>
       </div>
@@ -349,14 +350,14 @@ const TailwindChorePage = Vue.defineComponent({
       <div class="w-full">
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
           <h2 class="text-gray-900 text-2xl font-bold leading-tight mb-6 flex items-center gap-2">
-            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('zap', 'lucide', 20, 'text-blue-500') : ''"></div>
+            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('zap', 'lucide', 20, 'text-primary-500') : ''" style="color: var(--color-primary-500);"></div>
             Quicklist
           </h2>
           <p class="text-gray-600 text-sm mb-6 text-center">Tap these common chores to assign them quickly</p>
 
           <!-- Loading state -->
           <div v-if="quicklistLoading" class="text-center py-12">
-            <div class="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <div class="inline-block w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style="border-color: var(--color-primary-500); border-top-color: transparent;"></div>
             <p class="text-gray-600 mt-2">Loading quicklist...</p>
           </div>
 
@@ -367,7 +368,10 @@ const TailwindChorePage = Vue.defineComponent({
             <p class="text-sm mt-1 text-red-600">{{ quicklistError }}</p>
             <button
               @click="loadQuicklistChores"
-              class="mt-3 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              class="mt-3 px-4 py-2 text-white rounded-lg transition-colors"
+              style="background-color: var(--color-primary-500);"
+              onmouseover="this.style.backgroundColor='var(--color-primary-600)'"
+              onmouseout="this.style.backgroundColor='var(--color-primary-500)'"
             >
               Try Again
             </button>
@@ -390,7 +394,10 @@ const TailwindChorePage = Vue.defineComponent({
             <div class="flex items-center justify-center">
               <button
                 @click="openAddToQuicklistModal()"
-                class="flex items-center gap-2 px-6 py-4 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors min-h-[48px] w-full sm:w-auto justify-center font-medium"
+                class="flex items-center gap-2 px-6 py-4 text-white rounded-xl transition-colors min-h-[48px] w-full sm:w-auto justify-center font-medium"
+                style="background-color: var(--color-primary-500);"
+                onmouseover="this.style.backgroundColor='var(--color-primary-600)'"
+                onmouseout="this.style.backgroundColor='var(--color-primary-500)'"
                 title="Add new chore to quicklist"
               >
                 <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('plus', 'lucide', 16, 'text-white') : ''"></div>
@@ -412,7 +419,7 @@ const TailwindChorePage = Vue.defineComponent({
       <div class="w-full">
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
           <h2 class="text-gray-900 text-2xl font-bold leading-tight mb-6 flex items-center gap-2">
-            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('clipboardList', 'lucide', 20, 'text-blue-500') : ''"></div>
+            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('clipboardList', 'lucide', 20, 'text-primary-500') : ''" style="color: var(--color-primary-500);"></div>
             Unassigned Chores
           </h2>
 
@@ -446,7 +453,10 @@ const TailwindChorePage = Vue.defineComponent({
             <div class="flex items-center justify-center">
               <button
                 @click="openAddChoreModal()"
-                class="flex items-center gap-2 px-6 py-4 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors min-h-[48px] w-full sm:w-auto justify-center font-medium"
+                class="flex items-center gap-2 px-6 py-4 text-white rounded-xl transition-colors min-h-[48px] w-full sm:w-auto justify-center font-medium"
+                style="background-color: var(--color-primary-500);"
+                onmouseover="this.style.backgroundColor='var(--color-primary-600)'"
+                onmouseout="this.style.backgroundColor='var(--color-primary-500)'"
                 title="Add new chore to unassigned"
               >
                 <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('plus', 'lucide', 16, 'text-white') : ''"></div>
@@ -461,7 +471,7 @@ const TailwindChorePage = Vue.defineComponent({
       <div class="w-full">
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
           <h2 class="text-gray-900 text-2xl font-bold leading-tight mb-6 flex items-center gap-2">
-            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('users', 'lucide', 20, 'text-blue-500') : ''"></div>
+            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('users', 'lucide', 20, 'text-primary-500') : ''" style="color: var(--color-primary-500);"></div>
             Family Members
           </h2>
 
@@ -490,7 +500,7 @@ const TailwindChorePage = Vue.defineComponent({
       <div class="w-full">
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
           <h2 class="text-gray-900 text-2xl font-bold leading-tight mb-6 flex items-center gap-2">
-            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('dollar-sign', 'lucide', 20, 'text-blue-500') : ''"></div>
+            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('dollar-sign', 'lucide', 20, 'text-primary-500') : ''" style="color: var(--color-primary-500);"></div>
             Earnings Summary
           </h2>
 

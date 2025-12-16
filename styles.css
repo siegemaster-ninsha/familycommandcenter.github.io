@@ -24,8 +24,11 @@
 
 /* ===========================================
    VUE CLOAK - Hide uncompiled templates
+   Vue requires !important to ensure templates are hidden before compilation
+   stylelint-disable-next-line declaration-no-important
    =========================================== */
 [v-cloak] {
+  /* stylelint-disable-next-line declaration-no-important -- Vue framework requirement */
   display: none !important;
 }
 
@@ -158,11 +161,34 @@ input[type="password"]::-ms-clear {
   --radius-md: 0.5rem;     /* 8px */
   --radius-lg: 0.75rem;    /* 12px */
   --radius-xl: 1rem;       /* 16px */
+  --radius-full: 9999px;   /* pill/circle */
   
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 5%);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 10%), 0 2px 4px -2px rgb(0 0 0 / 10%);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 10%), 0 4px 6px -4px rgb(0 0 0 / 10%);
+  
+  /* Overlay Colors */
+  --color-overlay: rgb(0 0 0 / 50%);
+  --color-overlay-light: rgb(0 0 0 / 15%);
+  --color-overlay-subtle: rgb(0 0 0 / 8%);
+  --color-overlay-transparent: rgb(0 0 0 / 0%);
+  --color-white: #fff;
+  --color-white-overlay: rgb(255 255 255 / 20%);
+  --color-white-overlay-light: rgb(255 255 255 / 30%);
+  --color-white-overlay-strong: rgb(255 255 255 / 80%);
+  
+  /* Extended Status Colors for Shoelace components */
+  --color-success-100: #dcfce7;
+  --color-success-200: #bbf7d0;
+  --color-warning-100: #fef3c7;
+  --color-warning-200: #fde68a;
+  --color-error-100: #fee2e2;
+  --color-error-200: #fecaca;
+  --color-info-50: #eff6ff;
+  --color-info-100: #dbeafe;
+  --color-gray-100: #f3f4f6;
+  --color-gray-700: #374151;
   
   /* Transitions */
   --transition-fast: 150ms ease-in-out;
@@ -194,7 +220,7 @@ input[type="password"]::-ms-clear {
   background: var(--color-warning-500);
   border-radius: 50%;
   animation: optimistic-pulse 1.5s ease-in-out infinite;
-  box-shadow: 0 0 4px rgb(255 140 66 / 50%);
+  box-shadow: 0 0 4px var(--color-warning-500);
 }
 
 @keyframes optimistic-pulse {
@@ -231,7 +257,7 @@ input[type="password"]::-ms-clear {
   left: 50%;
   width: 16px;
   height: 16px;
-  margin: -8px 0 0 -8px;
+  transform: translate(-50%, -50%);
   border: 2px solid transparent;
   border-top: 2px solid currentcolor;
   border-radius: 50%;
@@ -540,33 +566,64 @@ input[type="password"]::-ms-clear {
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  border-radius: 9999px;
+  gap: var(--space-1);
+  border-radius: var(--radius-full);
   font-weight: var(--font-weight-medium);
-  padding: 4px 10px;
+  padding: var(--space-1) var(--space-2);
   font-size: 0.85rem;
   line-height: 1;
 }
-.badge-success { background: var(--color-success-50); color: var(--color-success-700); border: 1px solid rgb(34 197 94 / 20%); }
-.badge-warning { background: var(--color-warning-50); color: var(--color-warning-700); border: 1px solid rgb(234 88 12 / 20%); }
-.badge-error   { background: var(--color-error-50);   color: var(--color-error-700);   border: 1px solid rgb(220 38 38 / 20%); }
+
+.badge-success {
+  background: var(--color-success-50);
+  color: var(--color-success-700);
+  border: 1px solid var(--color-success-500);
+}
+
+.badge-warning {
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
+  border: 1px solid var(--color-warning-500);
+}
+
+.badge-error {
+  background: var(--color-error-50);
+  color: var(--color-error-700);
+  border: 1px solid var(--color-error-500);
+}
 
 /* Tag - compact pill for labels/categories (matches category badge size) */
 .tag {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
-  border-radius: 9999px;
+  gap: var(--space-1);
+  border-radius: var(--radius-full);
   font-weight: 500;
-  padding: 2px 8px;
+  padding: var(--space-1) var(--space-2);
   font-size: 0.75rem; /* text-xs */
   line-height: 1.25;
   white-space: nowrap;
 }
-.tag-primary { background: var(--color-primary-500); color: #fff; }
-.tag-secondary { background: var(--color-secondary-500); color: #fff; }
-.tag-outline { background: var(--color-primary-100); color: var(--color-primary-700); border: 1px solid var(--color-primary-200); }
-.tag-removable { gap: 4px; } /* more gap for remove button */
+
+.tag-primary {
+  background: var(--color-primary-500);
+  color: var(--color-white);
+}
+
+.tag-secondary {
+  background: var(--color-secondary-500);
+  color: var(--color-white);
+}
+
+.tag-outline {
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
+  border: 1px solid var(--color-primary-200);
+}
+
+.tag-removable {
+  gap: var(--space-1);
+}
 
 /* Unassigned Chores */
 .unassigned-area {
@@ -682,23 +739,20 @@ input:focus, select:focus, textarea:focus {
 
 /* Modal overlays */
 .modal-overlay {
-  background-color: rgb(0 0 0 / 50%);
-  backdrop-filter: blur(4px);
+  background-color: var(--color-overlay);
   backdrop-filter: blur(4px);
 
   /* ensure overlay receives touches but doesn't allow events to bleed through */
   pointer-events: auto;
 
   /* lock overlay color on touch devices when :hover sticks */
-  --overlay-bg: rgb(0 0 0 / 50%);
+  --overlay-bg: var(--color-overlay);
 }
 
 /* ensure modal panels render opaque on iOS by promoting to own layer */
 .modal-panel {
-  background-color: #fff !important;
+  background-color: var(--color-white);
   transform: translateZ(0);
-  transform: translateZ(0);
-  backface-visibility: hidden;
   backface-visibility: hidden;
   pointer-events: auto;
 }
@@ -711,8 +765,8 @@ input:focus, select:focus, textarea:focus {
   height: 100%;
   width: 100%;
   max-width: 450px;
-  background-color: #fff;
-  box-shadow: -4px 0 24px rgb(0 0 0 / 15%);
+  background-color: var(--color-white);
+  box-shadow: -4px 0 24px var(--color-overlay-light);
   transform: translateX(100%);
   transition: transform 300ms ease-out;
   z-index: 51;
@@ -720,6 +774,21 @@ input:focus, select:focus, textarea:focus {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* Fix iOS Safari touch event issues on buttons inside fixed/teleported elements */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Ensure all interactive elements in flyouts work on iOS */
+.flyout-panel button,
+.flyout-panel a,
+.flyout-panel input,
+.flyout-panel select,
+.flyout-panel textarea,
+.flyout-panel [role="button"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
 }
 
 /* Flyout content area - scrollable, takes remaining space */
@@ -735,15 +804,19 @@ input:focus, select:focus, textarea:focus {
 .flyout-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgb(0 0 0 / 0%);
+  background-color: var(--color-overlay-transparent);
   transition: background-color 300ms ease-out;
   z-index: 50;
   pointer-events: none;
+  /* Fix iOS Safari touch event issues */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .flyout-backdrop.flyout-open {
-  background-color: rgb(0 0 0 / 50%);
+  background-color: var(--color-overlay);
   pointer-events: auto;
+  cursor: pointer;
 }
 
 /* Full width on mobile */
@@ -920,7 +993,9 @@ body.modal-open {
   }
 }
 
-/* Touch-friendly improvements */
+/* Touch-friendly improvements
+   These !important declarations are intentional to override Tailwind utility classes on touch devices */
+/* stylelint-disable declaration-no-important, selector-class-pattern, design-tokens/no-hardcoded-colors */
 @media (hover: none) and (pointer: coarse) {
   /* Touch device styles */
   .cursor-pointer {
@@ -944,11 +1019,11 @@ body.modal-open {
 
   /* preserve modal overlay backdrop on first tap in iOS safari where :hover can stick */
   .modal-overlay:hover {
-    background-color: rgb(0 0 0 / 50%) !important;
+    background-color: var(--color-overlay) !important;
   }
 
   .modal-panel:hover {
-    background-color: #fff !important;
+    background-color: var(--color-white) !important;
   }
   
   /* Specifically disable common hover classes used throughout the app */
@@ -997,6 +1072,7 @@ body.modal-open {
     z-index: 2;
   }
 }
+/* stylelint-enable declaration-no-important, selector-class-pattern, design-tokens/no-hardcoded-colors */
 
 /* Mobile-specific improvements */
 @media (width <= 640px) {
@@ -1036,7 +1112,7 @@ body.modal-open {
   .btn-error {
     font-size: 1.25rem; /* ~20px (was 14px) */
     min-height: 64px;   /* larger touch target */
-    padding: 16px 20px; /* increase visual weight */
+    padding: var(--space-4) var(--space-5); /* increase visual weight */
     border-radius: var(--radius-xl);
   }
 
@@ -1057,24 +1133,24 @@ body.modal-open {
     right: 0;
     bottom: 0;
     display: flex;
-    gap: 12px;
-    padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-3) calc(var(--space-3) + env(safe-area-inset-bottom));
     background: var(--color-bg-card);
     border-top: 1px solid var(--color-border-card);
-    box-shadow: 0 -6px 16px rgb(0 0 0 / 8%);
+    box-shadow: 0 -6px 16px var(--color-overlay-subtle);
     z-index: 50;
   }
 
   /* Floating Add Button (FAB) for shopping */
   .fab-add-item {
     position: fixed;
-    right: 16px;
-    bottom: calc(16px + env(safe-area-inset-bottom));
+    right: var(--space-4);
+    bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
     width: 56px;
     height: 56px;
-    border-radius: 9999px;
+    border-radius: var(--radius-full);
     background: var(--gradient-success);
-    color: #fff;
+    color: var(--color-white);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1082,19 +1158,22 @@ body.modal-open {
     border: none;
     z-index: 60;
   }
-  .fab-add-item:active { transform: scale(0.96); }
+
+  .fab-add-item:active {
+    transform: scale(0.96);
+  }
 
   /* Ensure minimum touch target size */
   .touch-target {
     min-height: 48px;
     min-width: 48px;
-    padding: 12px;
+    padding: var(--space-3);
   }
   
   /* Improve spacing on mobile */
   .mobile-spacing {
-    padding: 16px 12px;
-    margin-bottom: 16px;
+    padding: var(--space-4) var(--space-3);
+    margin-bottom: var(--space-4);
   }
   
   /* Better text wrapping on mobile */
@@ -1114,7 +1193,7 @@ body.modal-open {
   /* Better button sizing */
   button {
     min-height: 48px;
-    padding: 12px 16px;
+    padding: var(--space-3) var(--space-4);
   }
   
   /* Improved focus states for accessibility */
@@ -1133,9 +1212,6 @@ body.modal-open {
   
   /* Prevent text selection on interactive elements */
   .touch-target {
-    user-select: none;
-    user-select: none;
-    user-select: none;
     user-select: none;
   }
 }
@@ -1161,11 +1237,12 @@ body.modal-open {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   border: none;
   box-shadow: var(--shadow-sm);
 }
 
+/* stylelint-disable declaration-no-important -- Required to override inline styles on delete buttons */
 /* Uniformize existing circular remove/delete buttons without touching markup */
 button.rounded-full[title*="Remove"],
 button.rounded-full[title*="Delete"] {
@@ -1176,9 +1253,9 @@ button.rounded-full[title*="Delete"] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: var(--gradient-error) !important;
-  color: #fff !important;
+  color: var(--color-white) !important;
   border: none;
   box-shadow: var(--shadow-md); /* subtle depth */
   padding: 0;
@@ -1187,40 +1264,71 @@ button.rounded-full[title*="Delete"] {
   font-weight: 700;
   opacity: 1 !important; /* avoid inconsistent transparency */
 }
+/* stylelint-enable declaration-no-important */
 
 button.rounded-full[title*="Remove"] svg,
 button.rounded-full[title*="Delete"] svg {
-  width: 16px; height: 16px;
+  width: 16px;
+  height: 16px;
 }
 
 @media (width <= 640px) {
   button.rounded-full[title*="Remove"],
-  button.rounded-full[title*="Delete"] { width: 32px; height: 32px; min-width: 32px; min-height: 32px; font-size: 18px; }
+  button.rounded-full[title*="Delete"] {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    font-size: 18px;
+  }
 }
 
-.btn-icon svg { width: 18px; height: 18px; }
+.btn-icon svg {
+  width: 18px;
+  height: 18px;
+}
 
 .btn-icon--danger {
   background: var(--gradient-error);
-  color: #fff;
+  color: var(--color-white);
 }
 
 @media (width <= 640px) {
-  .btn-icon { width: 36px; height: 36px; }
-  .btn-icon svg { width: 20px; height: 20px; }
+  .btn-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .btn-icon svg {
+    width: 20px;
+    height: 20px;
+  }
 }
 
 /* Legacy toggle switch styles removed - replaced with Shoelace */
 
 /* Family card actions layout - mobile friendly */
-.card-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.toggle-row { display: inline-flex; align-items: center; gap: 10px; }
-.toggle-row > span { color: var(--color-text-secondary); }
+.card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.toggle-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.toggle-row > span {
+  color: var(--color-text-secondary);
+}
 
 /* Shoelace switch styling for family cards */
 .family-card-switch::part(control) {
-  background: rgb(255 255 255 / 20%);
-  border: 1px solid rgb(255 255 255 / 30%);
+  background: var(--color-white-overlay);
+  border: 1px solid var(--color-white-overlay-light);
   height: 18px;
 }
 
@@ -1230,18 +1338,25 @@ button.rounded-full[title*="Delete"] svg {
 }
 
 .family-card-switch::part(thumb) {
-  background: #fff;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 30%);
+  background: var(--color-white);
+  box-shadow: 0 1px 3px var(--color-overlay);
 }
 
 .family-card-switch::part(control):focus-visible {
-  outline: 2px solid rgb(255 255 255 / 80%);
+  outline: 2px solid var(--color-white-overlay-strong);
   outline-offset: 2px;
 }
 
 @media (width <= 640px) {
-  .card-actions { flex-wrap: wrap; row-gap: 12px; }
-  .toggle-row { width: 100%; justify-content: space-between; }
+  .card-actions {
+    flex-wrap: wrap;
+    row-gap: var(--space-3);
+  }
+
+  .toggle-row {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 /* Tablet optimizations */
@@ -1253,6 +1368,7 @@ button.rounded-full[title*="Delete"] svg {
 }
 
 /* Improved accessibility */
+/* stylelint-disable declaration-no-important -- Required for accessibility override */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -1262,6 +1378,7 @@ button.rounded-full[title*="Delete"] svg {
     transition-duration: 0.01ms !important;
   }
 }
+/* stylelint-enable declaration-no-important */
 
 /* slide-fade transition for expandable cards */
 .slide-fade-enter-active,
@@ -1452,19 +1569,22 @@ button.rounded-full[title*="Delete"] svg {
 
 /* ===========================================
    MODERN SHOELACE CHORE PAGE STYLING
+   Shoelace component customizations use hardcoded values
+   to match the component library's internal styling
    =========================================== */
+/* stylelint-disable design-tokens/no-hardcoded-colors, design-tokens/no-arbitrary-spacing, design-tokens/no-arbitrary-radius */
 
 /* Base Shoelace Card Customizations */
 sl-card {
-  --border-radius: 12px;
+  --border-radius: var(--radius-lg);
   --border-width: 1px;
 
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 10%), 0 1px 2px 0 rgb(0 0 0 / 6%);
+  box-shadow: var(--shadow-sm);
   transition: all 0.2s ease-in-out;
 }
 
 sl-card:hover {
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 10%), 0 2px 4px -1px rgb(0 0 0 / 6%);
+  box-shadow: var(--shadow-md);
 }
 
 /* Modern Quicklist Section Styling */
@@ -1841,13 +1961,14 @@ sl-spinner {
 @media print {
   sl-card {
     box-shadow: none;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--color-neutral-300);
   }
 
   sl-button {
     display: none;
   }
 }
+/* stylelint-enable design-tokens/no-hardcoded-colors, design-tokens/no-arbitrary-spacing, design-tokens/no-arbitrary-radius */
 
 /* ===========================================
    DASHBOARD & WIDGET SYSTEM STYLES

@@ -30,6 +30,7 @@ const FamilyMembersSection = Vue.defineComponent({
               v-for="chore in choresByPerson[person.displayName]" 
               :key="chore.id"
               :class="getChoreClasses(chore)"
+              :style="isChoreSelected(chore) ? { '--tw-ring-color': 'var(--color-primary-400)' } : {}"
               @click.stop="selectChore(chore, $event)"
             >
               <div class="flex items-center gap-3 flex-1 min-w-0">
@@ -96,8 +97,8 @@ const FamilyMembersSection = Vue.defineComponent({
       const baseClasses = "flex items-center gap-3 sm:gap-4 px-3 sm:px-4 min-h-[88px] sm:min-h-[72px] py-3 sm:py-2 justify-between mb-3 sm:mb-2 rounded-lg shadow-sm cursor-pointer border-l-4 transition-all duration-200 touch-target";
       const categoryClasses = this.getCategoryStyle(chore.category).background;
       const selected = this.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, chore) || false;
-      const selectedClasses = selected ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : "hover:shadow-md hover:scale-102 active:scale-95";
-      
+      const selectedClasses = selected ? "ring-4 ring-opacity-75 transform scale-105" : "hover:shadow-md hover:scale-102 active:scale-95";
+      // Ring color applied via inline style in template for theme support
       return `${baseClasses} ${categoryClasses} ${selectedClasses}`;
     },
 
