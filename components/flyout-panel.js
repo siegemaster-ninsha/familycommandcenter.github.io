@@ -111,14 +111,16 @@ const FlyoutPanel = Vue.defineComponent({
       <div 
         class="flyout-backdrop"
         :class="{ 'flyout-open': open }"
+        :style="backdropStyle"
         @click="handleBackdropClick"
       ></div>
       
       <!-- Panel -->
+      <!-- Safari fix: use inline styles in addition to classes to force transform updates -->
       <div 
         class="flyout-panel"
         :class="{ 'flyout-open': open }"
-        :style="{ maxWidth: width }"
+        :style="panelStyle"
         @transitionend="handleTransitionEnd"
       >
         <!-- Header (fixed at top via flexbox) -->
@@ -165,6 +167,25 @@ const FlyoutPanel = Vue.defineComponent({
       closeTimeout: null,
       closedEmitted: false
     };
+  },
+  
+  computed: {
+    // Safari fix: inline styles force the browser to recalculate transforms
+    // even when CSS class changes don't trigger transitions properly
+    panelStyle() {
+      return {
+        maxWidth: this.width,
+        transform: this.open ? 'translateX(0)' : 'translateX(100%)',
+        visibility: this.open ? 'visible' : 'hidden',
+        pointerEvents: this.open ? 'auto' : 'none'
+      };
+    },
+    backdropStyle() {
+      return {
+        backgroundColor: this.open ? 'var(--color-overlay)' : 'var(--color-overlay-transparent)',
+        pointerEvents: this.open ? 'auto' : 'none'
+      };
+    }
   },
   
   watch: {
