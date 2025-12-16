@@ -1316,16 +1316,17 @@ const RecipePage = Vue.defineComponent({
       this.showRecipeModal = false;
       console.log('🍳 showRecipeModal now:', this.showRecipeModal);
       
-      // Force Vue to process the change immediately (iOS PWA fix)
-      this.$nextTick(() => {
-        console.log('🍳 nextTick - showRecipeModal:', this.showRecipeModal);
-      });
-      
+      // Reset other state
       this.scaleMultiplier = 1;
       this.currentImageIndex = 0;
       this.hasUnsavedChanges = false;
       this.originalEditState = null;
       this.selectedIngredients = new Set();
+      
+      // iOS Safari/PWA fix: force Vue to re-render immediately
+      // Safari sometimes doesn't trigger reactivity properly in teleported components
+      this.$forceUpdate();
+      console.log('🍳 $forceUpdate called');
     },
     
     onFlyoutClosed() {
