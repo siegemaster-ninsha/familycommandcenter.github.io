@@ -1821,6 +1821,11 @@ const app = createApp({
       try {
         if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🚪 Logging out user...');
         
+        // Stop midnight scheduler
+        if (window.MidnightScheduler) {
+          window.MidnightScheduler.stop();
+        }
+        
         await authService.signOut();
         
         // Clear authentication state
@@ -2522,6 +2527,12 @@ const app = createApp({
 
         // Add visibility change listener for mobile optimization
         this.setupVisibilityChangeListener();
+        
+        // PHASE 5: Start midnight scheduler for automatic new day trigger
+        if (window.MidnightScheduler) {
+          window.MidnightScheduler.start();
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🌙 [Phase 5] Midnight scheduler started');
+        }
       // if invite token present, show accept prompt after load (only if still authenticated)
       const url = new URL(window.location.href);
       const inviteToken = url.searchParams.get('invite');

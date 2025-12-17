@@ -473,15 +473,20 @@ const RecipePage = Vue.defineComponent({
                 <li
                   v-for="(ing, idx) in scaledIngredients"
                   :key="idx"
-                  @click="toggleIngredient(idx)"
-                  class="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border"
-                  :class="selectedIngredients.has(idx) 
-                    ? 'bg-green-50 border-green-300' 
-                    : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'"
+                  class="flex items-center gap-3 p-3 rounded-lg transition-all border"
+                  :class="editingIngredientIndex === idx 
+                    ? 'bg-blue-50 border-blue-300'
+                    : selectedIngredients.has(idx) 
+                      ? 'bg-green-50 border-green-300' 
+                      : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'"
                 >
-                  <!-- Selection indicator icon -->
+                  <!-- Selection indicator icon (hidden during edit mode) -->
                   <!-- **Validates: Requirements 10.3, 10.4** -->
-                  <div class="flex-shrink-0 w-6 h-6 flex items-center justify-center">
+                  <div 
+                    v-if="editingIngredientIndex !== idx"
+                    @click="toggleIngredient(idx)"
+                    class="flex-shrink-0 w-6 h-6 flex items-center justify-center cursor-pointer"
+                  >
                     <div v-if="selectedIngredients.has(idx)" 
                          v-html="Helpers.IconLibrary.getIcon('squareCheck', 'lucide', 20, 'text-green-600')">
                     </div>
@@ -490,14 +495,62 @@ const RecipePage = Vue.defineComponent({
                     </div>
                   </div>
                   
-                  <!-- Ingredient text -->
-                  <span class="flex-1">{{ formatIngredient(ing) }}</span>
+                  <!-- Ingredient text (view mode) -->
+                  <span 
+                    v-if="editingIngredientIndex !== idx"
+                    @click="startEditIngredient(idx)"
+                    class="flex-1 cursor-pointer hover:text-primary-500"
+                    title="Click to edit"
+                  >{{ formatIngredient(ing) }}</span>
+                  
+                  <!-- Ingredient edit mode - single row layout -->
+                  <div v-else class="flex-1 flex flex-wrap gap-2 items-center">
+                    <input
+                      v-model="editingIngredient.quantity"
+                      type="text"
+                      placeholder="Qty"
+                      class="w-14 px-2 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 min-h-[40px]"
+                      @keyup.enter="saveIngredientEdit"
+                      @keyup.escape="cancelIngredientEdit"
+                    >
+                    <input
+                      v-model="editingIngredient.unit"
+                      type="text"
+                      placeholder="Unit"
+                      class="w-16 px-2 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 min-h-[40px]"
+                      @keyup.enter="saveIngredientEdit"
+                      @keyup.escape="cancelIngredientEdit"
+                    >
+                    <input
+                      v-model="editingIngredient.name"
+                      type="text"
+                      placeholder="Ingredient"
+                      class="flex-1 min-w-[100px] px-2 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 min-h-[40px]"
+                      @keyup.enter="saveIngredientEdit"
+                      @keyup.escape="cancelIngredientEdit"
+                      ref="ingredientNameInput"
+                    >
+                    <button
+                      @click="saveIngredientEdit"
+                      class="flex-shrink-0 w-10 h-10 min-w-[40px] min-h-[40px] rounded-lg bg-green-500 text-white hover:bg-green-600 flex items-center justify-center transition-colors"
+                      title="Save (Enter)"
+                    >
+                      <div v-html="Helpers.IconLibrary.getIcon('check', 'lucide', 16, '')"></div>
+                    </button>
+                    <button
+                      @click="cancelIngredientEdit"
+                      class="flex-shrink-0 w-10 h-10 min-w-[40px] min-h-[40px] rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 flex items-center justify-center transition-colors"
+                      title="Cancel (Esc)"
+                    >
+                      <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 18, '')"></div>
+                    </button>
+                  </div>
                   
                   <!-- Category badge (if ingredient has category) -->
                   <!-- **Feature: multi-image-recipe-categories** -->
                   <!-- **Validates: Requirements 6.1, 6.2** -->
                   <span 
-                    v-if="ing.category"
+                    v-if="ing.category && editingIngredientIndex !== idx"
                     @click.stop="openCategoryDropdown(idx, $event)"
                     data-category-badge
                     class="px-2 py-0.5 rounded-full text-xs font-medium cursor-pointer hover:opacity-80 transition-opacity"
@@ -506,16 +559,36 @@ const RecipePage = Vue.defineComponent({
                     {{ ing.category }}
                   </span>
                   
-                  <!-- Shopping cart icon for quick add -->
-                  <button
-                    @click.stop="addSingleIngredientToShopping(idx)"
-                    class="btn-secondary btn-icon-only flex-shrink-0 p-1.5 rounded-lg"
-                    title="Add to shopping list"
-                  >
-                    <div v-html="Helpers.IconLibrary.getIcon('shoppingCart', 'lucide', 16, '')"></div>
-                  </button>
+                  <!-- Action buttons (view mode only) -->
+                  <template v-if="editingIngredientIndex !== idx">
+                    <!-- Shopping cart icon for quick add -->
+                    <button
+                      @click.stop="addSingleIngredientToShopping(idx)"
+                      class="btn-secondary btn-icon-only flex-shrink-0 p-1.5 rounded-lg"
+                      title="Add to shopping list"
+                    >
+                      <div v-html="Helpers.IconLibrary.getIcon('shoppingCart', 'lucide', 16, '')"></div>
+                    </button>
+                    <!-- Delete ingredient -->
+                    <button
+                      @click.stop="deleteIngredient(idx)"
+                      class="btn-secondary btn-icon-only flex-shrink-0 p-1.5 rounded-lg text-red-500 hover:bg-red-50"
+                      title="Delete ingredient"
+                    >
+                      <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 16, '')"></div>
+                    </button>
+                  </template>
                 </li>
               </ul>
+              
+              <!-- Add new ingredient button -->
+              <button
+                @click="addNewIngredient"
+                class="mt-3 w-full flex items-center justify-center gap-2 p-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-primary-400 hover:text-primary-500 transition-colors"
+              >
+                <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16, '')"></div>
+                <span>Add Ingredient</span>
+              </button>
               
             </div>
             
@@ -527,16 +600,69 @@ const RecipePage = Vue.defineComponent({
               </h3>
               <ol class="space-y-4">
                 <li
-                  v-for="(step, idx) in currentRecipe?.instructions"
+                  v-for="(step, idx) in editForm.instructions"
                   :key="idx"
-                  class="flex gap-4"
+                  class="flex gap-4 group"
                 >
                   <span class="flex-shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-bold">
                     {{ idx + 1 }}
                   </span>
-                  <p class="flex-1 pt-1">{{ step }}</p>
+                  
+                  <!-- View mode -->
+                  <p 
+                    v-if="editingInstructionIndex !== idx"
+                    @click="startEditInstruction(idx)"
+                    class="flex-1 pt-1 cursor-pointer hover:text-primary-500"
+                    title="Click to edit"
+                  >{{ step }}</p>
+                  
+                  <!-- Edit mode -->
+                  <div v-else class="flex-1 flex gap-2">
+                    <textarea
+                      v-model="editingInstruction"
+                      rows="3"
+                      class="flex-1 px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
+                      @keyup.escape="cancelInstructionEdit"
+                      ref="instructionInput"
+                    ></textarea>
+                    <div class="flex flex-col gap-1">
+                      <button
+                        @click="saveInstructionEdit"
+                        class="p-1.5 rounded bg-green-500 text-white hover:bg-green-600"
+                        title="Save"
+                      >
+                        <div v-html="Helpers.IconLibrary.getIcon('check', 'lucide', 14, '')"></div>
+                      </button>
+                      <button
+                        @click="cancelInstructionEdit"
+                        class="p-1.5 rounded bg-gray-300 text-gray-700 hover:bg-gray-400"
+                        title="Cancel"
+                      >
+                        <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 14, '')"></div>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <!-- Delete button (view mode only) -->
+                  <button
+                    v-if="editingInstructionIndex !== idx"
+                    @click="deleteInstruction(idx)"
+                    class="flex-shrink-0 p-1.5 rounded-lg text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Delete step"
+                  >
+                    <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 16, '')"></div>
+                  </button>
                 </li>
               </ol>
+              
+              <!-- Add new instruction button -->
+              <button
+                @click="addNewInstruction"
+                class="mt-4 w-full flex items-center justify-center gap-2 p-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-primary-400 hover:text-primary-500 transition-colors"
+              >
+                <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16, '')"></div>
+                <span>Add Step</span>
+              </button>
             </div>
             
             <!-- Source URL -->
@@ -693,12 +819,22 @@ const RecipePage = Vue.defineComponent({
       editForm: {
         title: '',
         servings: 1,
-        tags: []
+        tags: [],
+        ingredients: [],
+        instructions: []
       },
       inlineTagInput: '',
       hasUnsavedChanges: false,
       originalEditState: null, // snapshot to detect changes
       updating: false,
+      
+      // Ingredient editing state
+      editingIngredientIndex: -1,
+      editingIngredient: { quantity: '', unit: '', name: '', notes: '' },
+      
+      // Instruction editing state
+      editingInstructionIndex: -1,
+      editingInstruction: '',
       
       // Legacy - keeping for backwards compatibility during transition
       showEditModal: false,
@@ -799,9 +935,9 @@ const RecipePage = Vue.defineComponent({
       return originalServings * this.scaleMultiplier;
     },
     scaledIngredients() {
-      if (!this.currentRecipe?.ingredients) return [];
+      if (!this.editForm?.ingredients?.length) return [];
       
-      return this.currentRecipe.ingredients.map(ing => {
+      return this.editForm.ingredients.map(ing => {
         if (ing.quantity === null || ing.quantity === undefined) {
           return ing;
         }
@@ -1296,15 +1432,21 @@ const RecipePage = Vue.defineComponent({
       this.scaleMultiplier = 1;
       this.currentImageIndex = 0;
       
-      // Initialize edit form with current recipe data
+      // Initialize edit form with current recipe data (deep copy arrays)
       this.editForm = {
         title: recipe.title || '',
         servings: recipe.servings || 1,
-        tags: [...(recipe.tags || [])]
+        tags: [...(recipe.tags || [])],
+        ingredients: (recipe.ingredients || []).map(ing => ({ ...ing })),
+        instructions: [...(recipe.instructions || [])]
       };
       this.originalEditState = JSON.stringify(this.editForm);
       this.hasUnsavedChanges = false;
       this.inlineTagInput = '';
+      
+      // Reset editing states
+      this.editingIngredientIndex = -1;
+      this.editingInstructionIndex = -1;
       
       this.showRecipeModal = true;
     },
@@ -1322,6 +1464,12 @@ const RecipePage = Vue.defineComponent({
       this.hasUnsavedChanges = false;
       this.originalEditState = null;
       this.selectedIngredients = new Set();
+      
+      // Reset editing states
+      this.editingIngredientIndex = -1;
+      this.editingInstructionIndex = -1;
+      this.editingIngredient = { quantity: '', unit: '', name: '', notes: '' };
+      this.editingInstruction = '';
     },
     
     onFlyoutClosed() {
@@ -1352,6 +1500,109 @@ const RecipePage = Vue.defineComponent({
       this.inlineTagInput = '';
     },
     
+    // === Ingredient Editing Methods ===
+    
+    startEditIngredient(index) {
+      const ing = this.editForm.ingredients[index];
+      this.editingIngredientIndex = index;
+      this.editingIngredient = {
+        quantity: ing.quantity !== null && ing.quantity !== undefined ? String(ing.quantity) : '',
+        unit: ing.unit || '',
+        name: ing.name || '',
+        notes: ing.notes || ''
+      };
+      this.$nextTick(() => {
+        // refs inside v-for return an array, so we need to get the first element
+        const input = this.$refs.ingredientNameInput;
+        if (Array.isArray(input) && input[0]) {
+          input[0].focus();
+        } else if (input && input.focus) {
+          input.focus();
+        }
+      });
+    },
+    
+    saveIngredientEdit() {
+      if (!this.editingIngredient.name.trim()) {
+        this.showToast('Ingredient name is required', 'warning');
+        return;
+      }
+      
+      const qty = this.editingIngredient.quantity.trim();
+      this.editForm.ingredients[this.editingIngredientIndex] = {
+        ...this.editForm.ingredients[this.editingIngredientIndex],
+        quantity: qty ? parseFloat(qty) || qty : null,
+        unit: this.editingIngredient.unit.trim() || null,
+        name: this.editingIngredient.name.trim(),
+        notes: this.editingIngredient.notes.trim() || null
+      };
+      
+      this.editingIngredientIndex = -1;
+      this.markAsEdited();
+    },
+    
+    cancelIngredientEdit() {
+      this.editingIngredientIndex = -1;
+      this.editingIngredient = { quantity: '', unit: '', name: '', notes: '' };
+    },
+    
+    addNewIngredient() {
+      this.editForm.ingredients.push({
+        quantity: null,
+        unit: null,
+        name: '',
+        notes: null
+      });
+      // Start editing the new ingredient
+      this.startEditIngredient(this.editForm.ingredients.length - 1);
+      this.markAsEdited();
+    },
+    
+    deleteIngredient(index) {
+      this.editForm.ingredients.splice(index, 1);
+      this.markAsEdited();
+    },
+    
+    // === Instruction Editing Methods ===
+    
+    startEditInstruction(index) {
+      this.editingInstructionIndex = index;
+      this.editingInstruction = this.editForm.instructions[index];
+      this.$nextTick(() => {
+        const input = this.$refs.instructionInput;
+        if (input) input.focus();
+      });
+    },
+    
+    saveInstructionEdit() {
+      if (!this.editingInstruction.trim()) {
+        this.showToast('Instruction cannot be empty', 'warning');
+        return;
+      }
+      
+      this.editForm.instructions[this.editingInstructionIndex] = this.editingInstruction.trim();
+      this.editingInstructionIndex = -1;
+      this.editingInstruction = '';
+      this.markAsEdited();
+    },
+    
+    cancelInstructionEdit() {
+      this.editingInstructionIndex = -1;
+      this.editingInstruction = '';
+    },
+    
+    addNewInstruction() {
+      this.editForm.instructions.push('');
+      // Start editing the new instruction
+      this.startEditInstruction(this.editForm.instructions.length - 1);
+      this.markAsEdited();
+    },
+    
+    deleteInstruction(index) {
+      this.editForm.instructions.splice(index, 1);
+      this.markAsEdited();
+    },
+    
     async saveInlineChanges() {
       if (!this.currentRecipe || !this.hasUnsavedChanges) return;
       
@@ -1360,20 +1611,26 @@ const RecipePage = Vue.defineComponent({
         await this.recipeStore.updateRecipe(this.currentRecipe.id, {
           title: this.editForm.title,
           servings: this.editForm.servings,
-          tags: this.editForm.tags
+          tags: this.editForm.tags,
+          ingredients: this.editForm.ingredients,
+          instructions: this.editForm.instructions
         });
         
         // Update local state
         this.currentRecipe.title = this.editForm.title;
         this.currentRecipe.servings = this.editForm.servings;
         this.currentRecipe.tags = [...this.editForm.tags];
+        this.currentRecipe.ingredients = this.editForm.ingredients.map(ing => ({ ...ing }));
+        this.currentRecipe.instructions = [...this.editForm.instructions];
         
         // Reset change tracking
         this.originalEditState = JSON.stringify(this.editForm);
         this.hasUnsavedChanges = false;
+        
+        this.showToast('Recipe saved', 'success');
       } catch (error) {
         console.error('Failed to save recipe:', error);
-        alert('Failed to save changes. Please try again.');
+        this.showToast('Failed to save changes', 'error');
       } finally {
         this.updating = false;
       }
