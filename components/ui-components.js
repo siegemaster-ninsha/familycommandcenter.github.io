@@ -77,25 +77,11 @@ const AppSelectionInfo = Vue.defineComponent({
 
 // Toast notification system using Shoelace alerts
 // Provides a standardized way to show success, error, warning, and info messages
+// Position is controlled via CSS override of .sl-toast-stack (see styles.css)
 window.ToastService = window.ToastService || {
-  _stackInitialized: false,
-  
-  // Initialize the toast stack position (bottom-right)
-  initStack() {
-    if (this._stackInitialized) return;
-    
-    // Create custom toast stack at bottom-right
-    const stack = document.createElement('div');
-    stack.className = 'sl-toast-stack sl-toast-stack--bottom-right';
-    document.body.appendChild(stack);
-    this._stackInitialized = true;
-  },
-  
   // Show a toast notification
   // variant: 'success' | 'danger' | 'warning' | 'primary' (info)
   show(message, variant = 'success', duration = 3000) {
-    this.initStack();
-    
     // Determine icon based on variant
     const icons = {
       success: 'check-circle',
@@ -119,8 +105,7 @@ window.ToastService = window.ToastService || {
     
     // Small delay to ensure element is in DOM before showing
     requestAnimationFrame(() => {
-      // Use custom stack selector for bottom-right positioning
-      alert.toast({ stack: '.sl-toast-stack--bottom-right' });
+      alert.toast();
     });
     
     return alert;
