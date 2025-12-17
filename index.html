@@ -49,8 +49,29 @@
     <!-- Load Shoelace via ESM from a CDN that handles dependencies -->
     <!-- Note: This works on GitHub Pages because ESM loading happens in the browser, not on the server -->
     <script type="module">
+      // Helper to configure Shoelace icons to use Bootstrap Icons CDN
+      async function configureIcons() {
+        try {
+          const { setBasePath } = await import('https://esm.sh/@shoelace-style/shoelace@2.15.0/dist/utilities/base-path.js');
+          // Set base path to Bootstrap Icons CDN - Shoelace will append /assets/icons/{name}.svg
+          // But we need to use registerIconLibrary for custom resolver
+          const { registerIconLibrary } = await import('https://esm.sh/@shoelace-style/shoelace@2.15.0/dist/utilities/icon-library.js');
+          
+          // Register Bootstrap Icons as the default icon library
+          registerIconLibrary('default', {
+            resolver: name => `https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/icons/${name}.svg`
+          });
+          console.log('[OK] Bootstrap Icons configured for Shoelace');
+        } catch (e) {
+          console.warn('[WARN] Could not configure Bootstrap Icons:', e);
+        }
+      }
+
       try {
-        // Try esm.sh which should handle dependencies better
+        // Configure icons FIRST before loading Shoelace components
+        await configureIcons();
+        
+        // Then load Shoelace
         await import('https://esm.sh/@shoelace-style/shoelace@2.15.0');
         console.log('[OK] Shoelace loaded successfully via esm.sh');
 

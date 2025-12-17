@@ -185,39 +185,39 @@ input[type="password"]::-ms-clear {
   --shadow-md: 0 4px 6px -1px var(--color-overlay-10), 0 2px 4px -2px var(--color-overlay-10);
   --shadow-lg: 0 10px 15px -3px var(--color-overlay-10), 0 4px 6px -4px var(--color-overlay-10);
   
-  /* Overlay Colors - Black */
-  --color-overlay: var(--color-overlay);
-  --color-overlay-heavy: var(--color-overlay-heavy);
-  --color-overlay-medium: var(--color-overlay-medium);
-  --color-overlay-light: var(--color-overlay-light);
-  --color-overlay-12: var(--color-overlay-12);
-  --color-overlay-10: var(--color-overlay-10);
-  --color-overlay-subtle: var(--color-overlay-subtle);
-  --color-overlay-6: var(--color-overlay-6);
+  /* Overlay Colors - Black (actual rgba values) */
+  --color-overlay: rgb(0 0 0 / 50%);
+  --color-overlay-heavy: rgb(0 0 0 / 70%);
+  --color-overlay-medium: rgb(0 0 0 / 40%);
+  --color-overlay-light: rgb(0 0 0 / 20%);
+  --color-overlay-12: rgb(0 0 0 / 12%);
+  --color-overlay-10: rgb(0 0 0 / 10%);
+  --color-overlay-subtle: rgb(0 0 0 / 8%);
+  --color-overlay-6: rgb(0 0 0 / 6%);
   --color-overlay-transparent: rgb(0 0 0 / 0%);
   
-  /* Overlay Colors - White */
+  /* Overlay Colors - White (actual rgba values) */
   --color-white: #fff;
-  --color-white-overlay-90: var(--color-white-overlay-90);
-  --color-white-overlay-strong: var(--color-white-overlay-strong);
-  --color-white-overlay-70: var(--color-white-overlay-70);
-  --color-white-overlay-50: var(--color-white-overlay-50);
-  --color-white-overlay-40: var(--color-white-overlay-40);
-  --color-white-overlay-35: var(--color-white-overlay-35);
-  --color-white-overlay-light: var(--color-white-overlay-light);
-  --color-white-overlay-25: var(--color-white-overlay-25);
-  --color-white-overlay: var(--color-white-overlay);
-  --color-white-overlay-15: var(--color-white-overlay-15);
-  --color-white-overlay-10: var(--color-white-overlay-10);
+  --color-white-overlay-90: rgb(255 255 255 / 90%);
+  --color-white-overlay-strong: rgb(255 255 255 / 80%);
+  --color-white-overlay-70: rgb(255 255 255 / 70%);
+  --color-white-overlay-50: rgb(255 255 255 / 50%);
+  --color-white-overlay-40: rgb(255 255 255 / 40%);
+  --color-white-overlay-35: rgb(255 255 255 / 35%);
+  --color-white-overlay-light: rgb(255 255 255 / 30%);
+  --color-white-overlay-25: rgb(255 255 255 / 25%);
+  --color-white-overlay: rgb(255 255 255 / 20%);
+  --color-white-overlay-15: rgb(255 255 255 / 15%);
+  --color-white-overlay-10: rgb(255 255 255 / 10%);
   
   /* Overlay Colors - Primary (blue) */
-  --color-primary-overlay-75: var(--color-primary-overlay-75);
-  --color-primary-overlay-60: var(--color-primary-overlay-60);
-  --color-primary-overlay-50: var(--color-primary-overlay-50);
-  --color-primary-overlay-10: var(--color-primary-overlay-10);
+  --color-primary-overlay-75: rgb(74 144 226 / 75%);
+  --color-primary-overlay-60: rgb(74 144 226 / 60%);
+  --color-primary-overlay-50: rgb(74 144 226 / 50%);
+  --color-primary-overlay-10: rgb(74 144 226 / 10%);
   
   /* Overlay Colors - Error (red) */
-  --color-error-overlay-90: var(--color-error-overlay-90);
+  --color-error-overlay-90: rgb(239 68 68 / 90%);
   
   /* Extended Status Colors for Shoelace components */
   --color-success-100: var(--color-success-100);
@@ -1208,6 +1208,14 @@ body.modal-open {
   background: var(--color-white-overlay);
   color: var(--color-white);
   transform: scale(1.05);
+}
+
+/* Ensure SVG icons inside chore cards inherit white color */
+.chore-card svg,
+.chore-card .chore-delete-btn svg,
+.chore-card .chore-category-btn svg {
+  color: inherit;
+  stroke: currentcolor;
 }
 
 /* ===========================================
