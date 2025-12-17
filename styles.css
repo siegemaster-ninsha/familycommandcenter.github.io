@@ -801,6 +801,18 @@ input:focus, select:focus, textarea:focus {
   cursor: pointer;
 }
 
+/* iOS Safari specific fix for buttons in fixed/teleported elements */
+.flyout-panel .ios-touch-fix {
+  /* Force the element to be a touch target */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  /* Ensure the button is in its own compositing layer */
+  transform: translateZ(0);
+  /* Prevent any inherited pointer-events issues */
+  pointer-events: auto !important;
+}
+
 /* Flyout content area - scrollable, takes remaining space */
 .flyout-content {
   flex: 1;

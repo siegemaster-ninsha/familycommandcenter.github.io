@@ -112,8 +112,8 @@ const FlyoutPanel = Vue.defineComponent({
         class="flyout-backdrop"
         :class="{ 'flyout-open': open }"
         :style="backdropStyle"
-        @click="handleBackdropClick"
-        @touchend.prevent="handleBackdropClick"
+        @click.stop="handleBackdropClick($event)"
+        @touchend.stop.prevent="handleBackdropClick($event)"
       ></div>
       
       <!-- Panel -->
@@ -136,9 +136,9 @@ const FlyoutPanel = Vue.defineComponent({
           </div>
           <button
             v-if="showHeaderClose"
-            @click="close"
-            @touchend.prevent="close"
-            class="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
+            @click.stop="close($event)"
+            @touchend.stop.prevent="close($event)"
+            class="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0 ios-touch-fix"
             aria-label="Close panel"
           >
             <div v-html="closeIcon"></div>
@@ -194,11 +194,11 @@ const FlyoutPanel = Vue.defineComponent({
     open: {
       immediate: true,
       handler(isOpen) {
-        console.log('🚪 FlyoutPanel open changed:', isOpen, 'wasOpen:', this.wasOpen);
+        console.log('🚪 FlyoutPanel open changed:', isOpen, 'wasOpen:', this.wasOpen, 'UA:', navigator.userAgent.includes('Safari') ? 'Safari' : 'Other');
         if (isOpen) {
           this.onOpen();
         } else if (this.wasOpen) {
-          console.log('🚪 FlyoutPanel closing...');
+          console.log('🚪 FlyoutPanel closing - prop changed to false');
           this.onClose();
         }
         this.wasOpen = isOpen;
@@ -223,15 +223,35 @@ const FlyoutPanel = Vue.defineComponent({
   },
   
   methods: {
-    close() {
-      console.log('🚪 FlyoutPanel close() called');
-      this.$emit('close');
+    close(e) {
+      // iOS Safari fix: prevent double-firing from both touchend and click
+      if (this._closeInProgress) {
+        console.log('🚪 FlyoutPanel close() skipped - already in progress');
+        return;
+      }
+      this._closeInProgress = true;
+      
+      console.log('🚪 FlyoutPanel close() called, event:', e?.type || 'direct');
+      
+      // Use setTimeout to ensure the emit happens in a clean call stack
+      // This helps with iOS Safari's event handling quirks
+      setTimeout(() => {
+        this.$emit('close');
+        // Reset the flag after a short delay to allow for legitimate re-closes
+        setTimeout(() => {
+          this._closeInProgress = false;
+        }, 100);
+      }, 0);
     },
     
     handleBackdropClick(e) {
       console.log('🚪 FlyoutPanel backdrop clicked', e.type);
+      // Prevent the event from bubbling which can cause issues on iOS
+      if (e) {
+        e.stopPropagation();
+      }
       if (this.closeOnBackdrop) {
-        this.close();
+        this.close(e);
       }
     },
     
