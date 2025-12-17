@@ -768,23 +768,16 @@ input:focus, select:focus, textarea:focus {
   --header-spacing: var(--space-4);
   --body-spacing: 0;
   --footer-spacing: 0;
-  /* Slow down all transitions (default is 250ms) */
-  --sl-transition-fast: 300ms;
-  --sl-transition-medium: 450ms;
-  --sl-transition-slow: 600ms;
 }
 
 .flyout-sl-drawer::part(panel) {
   background-color: var(--color-white);
   box-shadow: -4px 0 24px var(--color-overlay-light);
-  /* Smoother easing for the slide */
-  transition: transform 450ms cubic-bezier(0.4, 0, 0.2, 1);
+  /* Animation duration controlled via JS animation registry in flyout-panel.js */
 }
 
 .flyout-sl-drawer::part(overlay) {
   background-color: var(--color-overlay);
-  /* Slower fade for the backdrop */
-  transition: opacity 450ms ease-out;
 }
 
 .flyout-sl-drawer::part(header) {
@@ -839,207 +832,9 @@ input:focus, select:focus, textarea:focus {
   }
 }
 
-/* ===========================================
-   NATIVE DIALOG FLYOUT (LEGACY)
-   Uses native <dialog> element for better iOS Safari/PWA support
-   =========================================== */
-
-/* The dialog element - acts as the backdrop container */
-.native-flyout-dialog {
-  /* Reset default dialog styles */
-  padding: 0;
-  border: none;
-  background: transparent;
-  max-width: 100vw;
-  max-height: 100vh;
-  width: 100vw;
-  height: 100vh;
-  /* Position at top-right for slide-in effect */
-  margin: 0;
-  position: fixed;
-  inset: 0;
-  /* Ensure it's above everything */
-  z-index: 50;
-  /* Allow clicks to pass through to backdrop detection */
-  overflow: hidden;
-}
-
-/* Native backdrop - handled by browser */
-.native-flyout-dialog::backdrop {
-  background-color: var(--color-overlay-transparent);
-  transition: background-color 300ms ease-out;
-}
-
-.native-flyout-dialog.flyout-visible::backdrop {
-  background-color: var(--color-overlay);
-}
-
-/* The actual panel that slides in */
-.native-flyout-panel {
-  position: absolute;
-  top: 0;
-  right: 0;
-  height: 100%;
-  width: 100%;
-  max-width: var(--flyout-width, 450px);
-  background-color: var(--color-white);
-  box-shadow: -4px 0 24px var(--color-overlay-light);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  /* Start off-screen */
-  transform: translateX(100%);
-  transition: transform 300ms ease-out;
-  /* iOS Safari optimizations */
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Slide in when visible */
-.native-flyout-dialog.flyout-visible .native-flyout-panel {
-  transform: translateX(0);
-}
-
-/* Full width on mobile */
-@media (width <= 640px) {
-  .native-flyout-panel {
-    max-width: 100%;
-  }
-}
-
-/* Footer safe area for iOS */
-.native-flyout-panel > div:last-child {
-  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
-}
-
-/* Ensure buttons work properly in native dialog */
-.native-flyout-panel button,
-.native-flyout-panel a,
-.native-flyout-panel input,
-.native-flyout-panel select,
-.native-flyout-panel textarea {
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  cursor: pointer;
-}
-
-/* ===========================================
-   LEGACY FLYOUT (keeping for reference/fallback)
-   =========================================== */
-
-/* Flyout panel (slide-in from right) - LEGACY */
-.flyout-panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  height: 100%;
-  width: 100%;
-  max-width: 450px;
-  background-color: var(--color-white);
-  box-shadow: -4px 0 24px var(--color-overlay-light);
-  /* Safari compatibility: explicit webkit prefixes */
-  -webkit-transform: translateX(100%);
-  transform: translateX(100%);
-  -webkit-transition: -webkit-transform 300ms ease-out, visibility 0s 300ms;
-  transition: transform 300ms ease-out, visibility 0s 300ms;
-  z-index: 51;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  /* Fix iOS Safari/PWA: prevent closed flyout from intercepting touches */
-  visibility: hidden;
-  pointer-events: none;
-  /* Fix iOS Safari touch event issues on buttons inside fixed/teleported elements */
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  /* Force GPU acceleration for smoother animations on iOS */
-  -webkit-perspective: 1000;
-  will-change: transform;
-}
-
-/* Ensure all interactive elements in flyouts work on iOS */
-.flyout-panel button,
-.flyout-panel a,
-.flyout-panel input,
-.flyout-panel select,
-.flyout-panel textarea,
-.flyout-panel [role="button"] {
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  cursor: pointer;
-}
-
-/* iOS Safari specific fix for buttons in fixed/teleported elements */
-.flyout-panel .ios-touch-fix {
-  /* Force the element to be a touch target */
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
-  /* Ensure the button is in its own compositing layer */
-  transform: translateZ(0);
-  /* Prevent any inherited pointer-events issues */
-  pointer-events: auto !important;
-}
-
-/* Flyout content area - scrollable, takes remaining space */
-.flyout-content {
-  flex: 1;
-  overflow-y: auto;
-}
-
-.flyout-panel.flyout-open {
-  -webkit-transform: translateX(0);
-  transform: translateX(0);
-  -webkit-transition: -webkit-transform 300ms ease-out, visibility 0s 0s;
-  transition: transform 300ms ease-out, visibility 0s 0s;
-  visibility: visible;
-  pointer-events: auto;
-}
-
-.flyout-backdrop {
-  position: fixed;
-  inset: 0;
-  background-color: var(--color-overlay-transparent);
-  transition: background-color 300ms ease-out;
-  z-index: 50;
-  pointer-events: none;
-  /* Fix iOS Safari touch event issues */
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.flyout-backdrop.flyout-open {
-  background-color: var(--color-overlay);
-  pointer-events: auto;
-  cursor: pointer;
-}
-
-/* Full width on mobile */
-@media (width <= 640px) {
-  .flyout-panel {
-    max-width: 100%;
-  }
-}
-
-/* Flyout footer - account for iOS safe area */
-.flyout-panel > div:last-child {
-  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
-}
-
 /* Prevent body scroll when flyout is open */
 body.flyout-open {
   overflow: hidden;
-}
-
-/* Respect reduced motion preference */
-@media (prefers-reduced-motion: reduce) {
-  .flyout-panel,
-  .flyout-backdrop {
-    transition: none;
-  }
 }
 
 /* fix iOS momentum scroll bleed-through under modals */

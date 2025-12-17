@@ -22,6 +22,67 @@
 //   @opened - Emitted after open animation completes
 //   @closed - Emitted after close animation completes
 
+// Animation duration in ms - adjust this to control drawer speed
+const DRAWER_ANIMATION_DURATION = 800;
+
+// Register custom drawer animations when Shoelace is ready
+// Shoelace uses Web Animations API, not CSS - must use setDefaultAnimation()
+function registerDrawerAnimations() {
+  // Import animation registry from Shoelace CDN
+  import('https://esm.sh/@shoelace-style/shoelace@2.15.0/dist/utilities/animation-registry.js')
+    .then(({ setDefaultAnimation }) => {
+      console.log('🎬 Registering custom drawer animations');
+      
+      // Drawer slide in from end (right side) - pure slide, no fade
+      setDefaultAnimation('drawer.showEnd', {
+        keyframes: [
+          { transform: 'translateX(100%)' },
+          { transform: 'translateX(0)' }
+        ],
+        options: { duration: DRAWER_ANIMATION_DURATION, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' }
+      });
+      
+      // Drawer slide out to end - pure slide, no fade
+      setDefaultAnimation('drawer.hideEnd', {
+        keyframes: [
+          { transform: 'translateX(0)' },
+          { transform: 'translateX(100%)' }
+        ],
+        options: { duration: DRAWER_ANIMATION_DURATION, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' }
+      });
+      
+      // Overlay fade in
+      setDefaultAnimation('drawer.overlay.show', {
+        keyframes: [
+          { opacity: '0' },
+          { opacity: '1' }
+        ],
+        options: { duration: DRAWER_ANIMATION_DURATION, easing: 'ease-out' }
+      });
+      
+      // Overlay fade out
+      setDefaultAnimation('drawer.overlay.hide', {
+        keyframes: [
+          { opacity: '1' },
+          { opacity: '0' }
+        ],
+        options: { duration: DRAWER_ANIMATION_DURATION, easing: 'ease-out' }
+      });
+      
+      console.log('✅ Drawer animations registered with duration:', DRAWER_ANIMATION_DURATION, 'ms');
+    })
+    .catch(err => {
+      console.warn('⚠️ Could not register drawer animations:', err);
+    });
+}
+
+// Register animations when Shoelace is ready
+if (window.customElements?.get('sl-drawer')) {
+  registerDrawerAnimations();
+} else {
+  window.addEventListener('shoelace-ready', registerDrawerAnimations, { once: true });
+}
+
 const FlyoutPanel = Vue.defineComponent({
   name: 'FlyoutPanel',
   
