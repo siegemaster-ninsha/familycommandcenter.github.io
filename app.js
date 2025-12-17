@@ -345,13 +345,18 @@ const app = createApp({
     },
 
     // modal open/close helpers (standardized)
+    // Each open method captures scroll position for flyout-panel to use
     openAddChoreModal() {
+      window.__flyoutScrollY = window.scrollY;
+      console.log('🎯 openAddChoreModal - captured scroll:', window.__flyoutScrollY);
       this.showAddChoreModal = true;
     },
     closeAddChoreModal() {
       this.showAddChoreModal = false;
     },
     openAddToQuicklistModal() {
+      window.__flyoutScrollY = window.scrollY;
+      console.log('🎯 openAddToQuicklistModal - captured scroll:', window.__flyoutScrollY);
       this.showAddToQuicklistModal = true;
     },
     closeAddToQuicklistModal() {
@@ -2231,6 +2236,11 @@ const app = createApp({
 
     // Spending modal methods
     openSpendingModal(person) {
+      // Capture scroll position for flyout-panel (may already be set by EarningsCard click)
+      if (typeof window.__flyoutScrollY !== 'number' || window.__flyoutScrollY === 0) {
+        window.__flyoutScrollY = window.scrollY;
+        console.log('🎯 openSpendingModal - captured scroll:', window.__flyoutScrollY);
+      }
       this.selectedPerson = person;
       this.spendAmount = 0;
       this.spendAmountString = '0';

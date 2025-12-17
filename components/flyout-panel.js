@@ -173,12 +173,20 @@ const FlyoutPanel = Vue.defineComponent({
     open: {
       immediate: true,
       handler(isOpen, wasOpen) {
-        // CRITICAL: Capture scroll position SYNCHRONOUSLY before any async operations
-        // This must happen before $nextTick because something may scroll the page
-        // between now and when $nextTick fires
+        // CRITICAL: Use pre-captured scroll position from click handler if available
+        // The click handler captures scroll BEFORE any Vue reactivity processing
+        // Fall back to current scrollY if not available (shouldn't happen)
         if (isOpen && !wasOpen) {
-          this.savedScrollY = window.scrollY;
-          console.log('🚪 SYNC: Captured scroll position:', this.savedScrollY);
+          // Check for pre-captured scroll position from click handler
+          if (typeof window.__flyoutScrollY === 'number' && window.__flyoutScrollY > 0) {
+            this.savedScrollY = window.__flyoutScrollY;
+            console.log('🚪 Using pre-captured scroll position:', this.savedScrollY);
+          } else {
+            this.savedScrollY = window.scrollY;
+            console.log('🚪 Using current scroll position:', this.savedScrollY);
+          }
+          // Clear the global after using it
+          window.__flyoutScrollY = undefined;
           
           // Apply body lock IMMEDIATELY to prevent any scroll changes
           document.body.classList.add('flyout-open');

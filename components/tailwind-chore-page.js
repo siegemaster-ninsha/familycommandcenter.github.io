@@ -323,6 +323,10 @@ const EarningsCard = {
       }
       this.touchStartX = null;
       this.touchStartY = null;
+      // Capture scroll position IMMEDIATELY at click time, before any async processing
+      // Store it globally so flyout-panel can access it
+      window.__flyoutScrollY = window.scrollY;
+      console.log('🎯 EarningsCard click - captured scroll:', window.__flyoutScrollY);
       this.onClick();
     }
   }
