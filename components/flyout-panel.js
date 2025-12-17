@@ -61,7 +61,6 @@ const FlyoutPanel = Vue.defineComponent({
   template: `
     <sl-drawer
       ref="drawer"
-      :open="open"
       :label="title"
       placement="end"
       :style="drawerStyle"
@@ -96,6 +95,27 @@ const FlyoutPanel = Vue.defineComponent({
       return {
         '--size': this.width
       };
+    }
+  },
+  
+  watch: {
+    // Watch the open prop and control the drawer imperatively
+    open: {
+      immediate: true,
+      handler(isOpen) {
+        this.$nextTick(() => {
+          const drawer = this.$refs.drawer;
+          if (!drawer) return;
+          
+          console.log('🚪 Shoelace drawer open changed:', isOpen);
+          
+          if (isOpen && !drawer.open) {
+            drawer.show();
+          } else if (!isOpen && drawer.open) {
+            drawer.hide();
+          }
+        });
+      }
     }
   },
   
