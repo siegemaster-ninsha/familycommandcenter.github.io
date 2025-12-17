@@ -67,7 +67,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.60 - Zealous Gazelle (Dec 16, 2025)',
+    VERSION: '1.0.61 - Radiant Falcon (Dec 16, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {

@@ -161,29 +161,40 @@ const FlyoutPanel = Vue.defineComponent({
     }
   },
   
+  data() {
+    return {
+      // Store scroll position as reactive data to ensure it persists
+      savedScrollY: 0
+    };
+  },
+  
   watch: {
     // Watch the open prop and control the drawer imperatively
     open: {
       immediate: true,
-      handler(isOpen) {
+      handler(isOpen, wasOpen) {
+        // CRITICAL: Capture scroll position SYNCHRONOUSLY before any async operations
+        // This must happen before $nextTick because something may scroll the page
+        // between now and when $nextTick fires
+        if (isOpen && !wasOpen) {
+          this.savedScrollY = window.scrollY;
+          console.log('🚪 SYNC: Captured scroll position:', this.savedScrollY);
+          
+          // Apply body lock IMMEDIATELY to prevent any scroll changes
+          document.body.classList.add('flyout-open');
+          document.body.style.top = `-${this.savedScrollY}px`;
+        }
+        
         this.$nextTick(() => {
           const drawer = this.$refs.drawer;
           if (!drawer) return;
           
-          console.log('🚪 Shoelace drawer open changed:', isOpen);
+          console.log('🚪 Shoelace drawer open changed:', isOpen, 'savedScrollY:', this.savedScrollY);
           
           if (isOpen && !drawer.open) {
-            // Save scroll position and lock body BEFORE showing drawer to prevent jump
-            this._savedScrollY = window.scrollY;
-            document.body.classList.add('flyout-open');
-            document.body.style.top = `-${this._savedScrollY}px`;
+            // Body lock already applied synchronously above
+            // Just show the drawer
             drawer.show();
-            // Aggressively restore scroll in case Shoelace resets it
-            requestAnimationFrame(() => {
-              if (this._savedScrollY !== undefined) {
-                window.scrollTo(0, this._savedScrollY);
-              }
-            });
           } else if (!isOpen && drawer.open) {
             drawer.hide();
           }
@@ -219,27 +230,30 @@ const FlyoutPanel = Vue.defineComponent({
     
     handleShow() {
       // sl-show fires when drawer starts opening (before animation)
-      // Restore scroll position in case Shoelace reset it
-      if (this._savedScrollY !== undefined && window.scrollY !== this._savedScrollY) {
-        console.log('🚪 Restoring scroll position from', window.scrollY, 'to', this._savedScrollY);
-        window.scrollTo(0, this._savedScrollY);
+      // Ensure body lock is still in place with correct scroll offset
+      if (this.savedScrollY > 0) {
+        document.body.style.top = `-${this.savedScrollY}px`;
+        console.log('🚪 handleShow: Ensuring body.top is set to', `-${this.savedScrollY}px`);
       }
     },
     
     handleAfterShow() {
-      console.log('🚪 Shoelace drawer opened');
-      // Body lock already applied in watcher before show()
+      console.log('🚪 Shoelace drawer opened, savedScrollY:', this.savedScrollY);
       this.$emit('opened');
     },
     
     handleAfterHide() {
-      console.log('🚪 Shoelace drawer closed');
+      console.log('🚪 Shoelace drawer closed, restoring scroll to:', this.savedScrollY);
+      
+      // Remove body lock
       document.body.classList.remove('flyout-open');
       document.body.style.top = '';
+      
       // Restore scroll position after unlocking body
-      if (this._savedScrollY !== undefined) {
-        window.scrollTo(0, this._savedScrollY);
+      if (this.savedScrollY > 0) {
+        window.scrollTo(0, this.savedScrollY);
       }
+      
       this.$emit('closed');
     },
     
