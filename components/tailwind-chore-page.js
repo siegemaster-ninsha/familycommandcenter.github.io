@@ -383,85 +383,19 @@ const TailwindChorePage = Vue.defineComponent({
 
       <!-- Actual Content (when not loading) -->
       <template v-else>
-      <!-- Quicklist Section -->
-      <div class="w-full">
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-gray-900 text-2xl font-bold leading-tight flex items-center gap-2">
-              <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('zap', 'lucide', 20, 'text-primary-500') : ''" style="color: var(--color-primary-500);"></div>
-              Quicklist
-            </h2>
-            <!-- Manage Categories button - Requirements 1.1 -->
-            <button
-              @click="openCategoryManagementModal"
-              class="flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-colors"
-              style="color: var(--color-primary-600); background: var(--color-primary-50);"
-              title="Manage Categories"
-            >
-              <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('settings', 'lucide', 16, '') : ''"></div>
-              <span class="hidden sm:inline">Categories</span>
-            </button>
-          </div>
-          <p class="text-gray-600 text-sm mb-6 text-center">Tap these common chores to assign them quickly</p>
-
-          <!-- Loading state (for quicklist-specific refresh) -->
-          <div v-if="quicklistLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            <sl-skeleton v-for="n in 4" :key="'qlr-'+n" effect="pulse" class="skeleton-card"></sl-skeleton>
-          </div>
-
-          <!-- Error state -->
-          <div v-else-if="quicklistError" class="text-center py-12">
-            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('alertTriangle', 'lucide', 48, 'text-red-500') : ''" class="mx-auto mb-3"></div>
-            <p class="font-medium text-red-700">Error loading quicklist</p>
-            <p class="text-sm mt-1 text-red-600">{{ quicklistError }}</p>
-            <button
-              @click="loadQuicklistChores"
-              class="mt-3 px-4 py-2 text-white rounded-lg transition-colors"
-              style="background-color: var(--color-primary-500);"
-              onmouseover="this.style.backgroundColor='var(--color-primary-600)'"
-              onmouseout="this.style.backgroundColor='var(--color-primary-500)'"
-            >
-              Try Again
-            </button>
-          </div>
-
-          <!-- Quicklist items -->
-          <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
-            <chore-card
-              v-for="quickChore in quicklistChores"
-              :key="quickChore.id"
-              :chore="quickChore"
-              type="quicklist"
-              :is-selected="isQuicklistChoreSelected(quickChore)"
-              :Helpers="Helpers"
-              :on-click="(chore, event) => onQuicklistClick(chore, event)"
-              :on-delete="() => removeFromQuicklist(quickChore.id)"
-            />
-
-            <!-- Add to Quicklist button -->
-            <div class="flex items-center justify-center">
-              <button
-                @click="openAddToQuicklistModal()"
-                class="flex items-center gap-2 px-6 py-4 text-white rounded-xl transition-colors min-h-[48px] w-full sm:w-auto justify-center font-medium"
-                style="background-color: var(--color-primary-500);"
-                onmouseover="this.style.backgroundColor='var(--color-primary-600)'"
-                onmouseout="this.style.backgroundColor='var(--color-primary-500)'"
-                title="Add new chore to quicklist"
-              >
-                <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('plus', 'lucide', 16, 'text-white') : ''"></div>
-                <span>Add to Quicklist</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Empty state -->
-          <div v-if="quicklistChores.length === 0 && !quicklistLoading" class="text-center py-8 text-gray-500">
-            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('minus', 'lucide', 48, 'text-gray-400') : ''" class="mx-auto mb-3"></div>
-            <p>No quicklist chores yet.</p>
-            <p class="text-sm mt-1">Add common chores for quick assignment!</p>
-          </div>
-        </div>
-      </div>
+      <!-- Quicklist Section with Category Accordions -->
+      <quicklist-section
+        :quicklist-chores="quicklistChores"
+        :categories="categories"
+        :loading="quicklistLoading"
+        :error="quicklistError"
+        :selected-chore-id="selectedChoreId"
+        @chore-click="onQuicklistClick"
+        @delete-chore="removeFromQuicklist"
+        @add-chore="openAddToQuicklistModal"
+        @retry="loadQuicklistChores"
+        @manage-categories="openCategoryManagementModal"
+      />
 
       <!-- Unassigned Chores -->
       <div class="w-full">
@@ -567,7 +501,7 @@ const TailwindChorePage = Vue.defineComponent({
   `,
   inject: [
     'people', 'choresByPerson', 'selectedChore', 'selectedChoreId', 'selectedQuicklistChore',
-    'quicklistChores', 'loading', 'error', 'Helpers', 'CONFIG', 'currentUser',
+    'quicklistChores', 'categories', 'loading', 'error', 'Helpers', 'CONFIG', 'currentUser',
     'showAddChoreModal', 'showAddToQuicklistModal',
     'handleChoreClick', 'handleQuicklistChoreClick', 'selectionStore'
   ],

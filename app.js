@@ -442,6 +442,7 @@ const app = createApp({
           this.loadElectronicsStatus(),
           this.loadQuicklistChores(),
           this.loadFamilyMembers(),
+          this.loadCategories(),
           
           // Shopping page data
           this.loadShoppingItems(),
@@ -616,6 +617,18 @@ const app = createApp({
       } catch (error) {
         console.error('Failed to load quicklist chores:', error);
         this.quicklistChores = [];
+      }
+    },
+
+    async loadCategories() {
+      try {
+        const categoriesStore = window.useCategoriesStore ? window.useCategoriesStore() : null;
+        if (categoriesStore) {
+          await categoriesStore.loadCategories();
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('📁 Categories loaded:', categoriesStore.categories.length);
+        }
+      } catch (error) {
+        console.error('Failed to load categories:', error);
       }
     },
 
@@ -2516,6 +2529,10 @@ const app = createApp({
       showConfetti: Vue.computed(() => this.showConfetti),
       confettiPieces: Vue.computed(() => this.confettiPieces),
       quicklistChores: Vue.computed(() => this.quicklistChores || []),
+      categories: Vue.computed(() => {
+        const categoriesStore = window.useCategoriesStore ? window.useCategoriesStore() : null;
+        return categoriesStore ? categoriesStore.sortedCategories : [];
+      }),
       choresByPerson: Vue.computed(() => this.choresByPerson || {}),
       // expose only members enabled for chores on chores page by default; family page iterates over same array but includes toggle to change flag
       // filtered list for boards (Chores page)
