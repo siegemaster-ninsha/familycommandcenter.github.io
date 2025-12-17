@@ -78,22 +78,23 @@ const AppSelectionInfo = Vue.defineComponent({
 // Toast notification system using Shoelace alerts
 // Provides a standardized way to show success, error, warning, and info messages
 window.ToastService = window.ToastService || {
-  _container: null,
+  _stackInitialized: false,
   
-  // Get or create the toast container
-  getContainer() {
-    if (!this._container) {
-      this._container = document.createElement('div');
-      this._container.className = 'toast-container';
-      document.body.appendChild(this._container);
-    }
-    return this._container;
+  // Initialize the toast stack position (bottom-right)
+  initStack() {
+    if (this._stackInitialized) return;
+    
+    // Create custom toast stack at bottom-right
+    const stack = document.createElement('div');
+    stack.className = 'sl-toast-stack sl-toast-stack--bottom-right';
+    document.body.appendChild(stack);
+    this._stackInitialized = true;
   },
   
   // Show a toast notification
   // variant: 'success' | 'danger' | 'warning' | 'primary' (info)
   show(message, variant = 'success', duration = 3000) {
-    const container = this.getContainer();
+    this.initStack();
     
     // Determine icon based on variant
     const icons = {
@@ -113,17 +114,13 @@ window.ToastService = window.ToastService || {
       ${message}
     `;
     
-    // Add to container and show
-    container.appendChild(alert);
+    // Append to body temporarily (required for toast())
+    document.body.appendChild(alert);
     
     // Small delay to ensure element is in DOM before showing
     requestAnimationFrame(() => {
-      alert.toast();
-    });
-    
-    // Clean up after hide
-    alert.addEventListener('sl-after-hide', () => {
-      alert.remove();
+      // Use custom stack selector for bottom-right positioning
+      alert.toast({ stack: '.sl-toast-stack--bottom-right' });
     });
     
     return alert;
@@ -181,25 +178,11 @@ const AppSuccessMessage = Vue.defineComponent({
   }
 });
 
-// Confetti Component
+// Confetti Component - now just a placeholder since canvas-confetti handles rendering
+// Kept for backward compatibility with existing component registration
 const AppConfetti = Vue.defineComponent({
   name: 'AppConfetti',
-  template: `
-    <div v-if="showConfetti" class="confetti-container">
-      <div 
-        v-for="piece in confettiPieces" 
-        :key="piece.id"
-        class="confetti-piece"
-        :class="piece.direction"
-        :style="{ 
-          left: piece.left + 'px', 
-          animationDelay: piece.delay + 's',
-          backgroundColor: piece.color 
-        }"
-      ></div>
-    </div>
-  `,
-  inject: ['showConfetti', 'confettiPieces']
+  template: `<div></div>`
 });
 
 // Export components for manual registration

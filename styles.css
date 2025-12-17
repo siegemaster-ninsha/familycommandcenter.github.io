@@ -1031,30 +1031,30 @@ sl-skeleton {
    TOAST NOTIFICATIONS
    =========================================== */
 
-/* Container for toast notifications - positioned bottom-right */
-.toast-container {
+/* Custom Shoelace toast stack - bottom-right positioning */
+.sl-toast-stack--bottom-right {
   position: fixed;
   bottom: 1rem;
   right: 1rem;
   z-index: 1000;
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   gap: 0.5rem;
-  pointer-events: none;
+  max-width: 400px;
 }
 
-/* Mobile: center toasts at bottom */
+/* Mobile: full width at bottom, above nav */
 @media (max-width: 640px) {
-  .toast-container {
+  .sl-toast-stack--bottom-right {
     left: 1rem;
     right: 1rem;
-    bottom: 5rem; /* Above mobile nav */
+    bottom: 5rem;
+    max-width: none;
   }
 }
 
 /* Customize Shoelace alert toast appearance */
-.toast-container sl-alert {
-  pointer-events: auto;
+.sl-toast-stack--bottom-right sl-alert {
   --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
@@ -1073,115 +1073,7 @@ sl-skeleton {
   }
 }
 
-/* Confetti Animation Styles */
-.confetti-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1000;
-}
-
-.confetti-piece {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background: var(--color-primary-500);
-  animation: confetti-fall 3s linear forwards;
-}
-
-.confetti-piece:nth-child(1) { background: var(--color-primary-500); animation-delay: 0s; }
-.confetti-piece:nth-child(2) { background: var(--color-success-500); animation-delay: 0.1s; }
-.confetti-piece:nth-child(3) { background: var(--color-warning-500); animation-delay: 0.2s; }
-.confetti-piece:nth-child(4) { background: var(--color-secondary-500); animation-delay: 0.3s; }
-.confetti-piece:nth-child(5) { background: var(--color-primary-500); animation-delay: 0.4s; }
-.confetti-piece:nth-child(6) { background: var(--color-success-500); animation-delay: 0.5s; }
-.confetti-piece:nth-child(7) { background: var(--color-warning-500); animation-delay: 0.6s; }
-.confetti-piece:nth-child(8) { background: var(--color-secondary-500); animation-delay: 0.7s; }
-.confetti-piece:nth-child(9) { background: var(--color-primary-500); animation-delay: 0.8s; }
-.confetti-piece:nth-child(10) { background: var(--color-success-500); animation-delay: 0.9s; }
-
-@keyframes confetti-explode {
-  0% {
-    transform: translateY(0) translateX(0) rotate(0deg) scale(0);
-    opacity: 1;
-  }
-
-  15% {
-    transform: translateY(-60vh) translateX(0) rotate(180deg) scale(1);
-    opacity: 1;
-  }
-
-  100% {
-    transform: translateY(120vh) translateX(0) rotate(720deg) scale(0.8);
-    opacity: 0;
-  }
-}
-
-.confetti-piece.left {
-  animation: confetti-explode-left 4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-}
-
-.confetti-piece.right {
-  animation: confetti-explode-right 4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-}
-
-.confetti-piece.center {
-  animation: confetti-explode-center 4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-}
-
-@keyframes confetti-explode-left {
-  0% {
-    transform: translateY(0) translateX(0) rotate(0deg) scale(0);
-    opacity: 1;
-  }
-
-  15% {
-    transform: translateY(-80vh) translateX(-150px) rotate(270deg) scale(1);
-    opacity: 1;
-  }
-
-  100% {
-    transform: translateY(120vh) translateX(-300px) rotate(900deg) scale(0.6);
-    opacity: 0;
-  }
-}
-
-@keyframes confetti-explode-right {
-  0% {
-    transform: translateY(0) translateX(0) rotate(0deg) scale(0);
-    opacity: 1;
-  }
-
-  15% {
-    transform: translateY(-80vh) translateX(150px) rotate(270deg) scale(1);
-    opacity: 1;
-  }
-
-  100% {
-    transform: translateY(120vh) translateX(300px) rotate(900deg) scale(0.6);
-    opacity: 0;
-  }
-}
-
-@keyframes confetti-explode-center {
-  0% {
-    transform: translateY(0) translateX(0) rotate(0deg) scale(0);
-    opacity: 1;
-  }
-
-  15% {
-    transform: translateY(-70vh) translateX(0) rotate(360deg) scale(1.2);
-    opacity: 1;
-  }
-
-  100% {
-    transform: translateY(120vh) translateX(0) rotate(1080deg) scale(0.4);
-    opacity: 0;
-  }
-}
+/* Confetti is now handled by canvas-confetti library - no CSS needed */
 
 /* Success message animation */
 .success-message {

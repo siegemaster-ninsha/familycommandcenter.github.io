@@ -1958,52 +1958,47 @@ const app = createApp({
     },
     
     triggerConfetti() {
-      this.confettiPieces = [];
-      this.showConfetti = true;
+      // Use canvas-confetti for smooth, performant celebration effects
+      if (typeof confetti !== 'function') {
+        console.warn('canvas-confetti not loaded');
+        return;
+      }
       
-      // Confetti colors from theme tokens
+      // Get theme colors for confetti
       const root = getComputedStyle(document.documentElement);
       const token = (v, fb) => (root.getPropertyValue(v) || '').trim() || fb;
       const colors = [
         token('--color-primary-500', '#4A90E2'),
         token('--color-secondary-500', '#7B68EE'),
         token('--color-success-600', '#22c55e'),
-        token('--color-warning-600', '#ea580c'),
-        token('--color-error-600', '#dc2626')
+        token('--color-warning-600', '#ea580c')
       ];
       
-      // Create explosive confetti pieces - 10x the celebration! 🎉
-      for (let i = 0; i < 300; i++) {
-        // Create explosion from bottom center, spreading outward
-        const centerX = window.innerWidth / 2;
-        const spreadRange = window.innerWidth * 0.3; // 30% of screen width
-        const startX = centerX + (Math.random() - 0.5) * spreadRange;
-        
-        // Determine direction based on position relative to center
-        let direction;
-        const randomFactor = Math.random();
-        if (randomFactor < 0.33) {
-          direction = 'left';
-        } else if (randomFactor < 0.66) {
-          direction = 'right';
-        } else {
-          direction = 'center';
-        }
-        
-        this.confettiPieces.push({
-          id: i,
-          left: startX,
-          delay: Math.random() * 1.5, // Spread the explosion over 1.5 seconds
-          direction: direction,
-          color: colors[Math.floor(Math.random() * colors.length)]
-        });
-      }
+      // Fire confetti from bottom center with a nice burst effect
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.9 },
+        colors: colors
+      });
       
-      // Hide confetti after animation (longer duration for the new animation)
+      // Add a second burst slightly delayed for extra celebration
       setTimeout(() => {
-        this.showConfetti = false;
-        this.confettiPieces = [];
-      }, 4500);
+        confetti({
+          particleCount: 50,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors: colors
+        });
+        confetti({
+          particleCount: 50,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors: colors
+        });
+      }, 150);
     },
 
     // Mobile optimization - refresh tokens when app becomes visible
