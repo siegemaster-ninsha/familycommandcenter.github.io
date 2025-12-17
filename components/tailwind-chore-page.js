@@ -396,6 +396,7 @@ const TailwindChorePage = Vue.defineComponent({
         @retry="loadQuicklistChores"
         @manage-categories="openCategoryManagementModal"
         @category-changed="onQuicklistCategoryChanged"
+        @open-schedule="openScheduleModal"
       />
 
       <!-- Unassigned Chores -->
@@ -559,6 +560,17 @@ const TailwindChorePage = Vue.defineComponent({
         await this.$parent.updateQuicklistCategory(chore, categoryId, categoryName);
       } else {
         console.warn('❌ $parent.updateQuicklistCategory method not found');
+      }
+    },
+    
+    // Open schedule modal for a quicklist chore
+    // **Feature: weekly-chore-scheduling**
+    // **Validates: Requirements 1.2, 1.3, 1.5**
+    openScheduleModal(quicklistChore) {
+      if (this.$parent?.openScheduleModal) {
+        this.$parent.openScheduleModal(quicklistChore);
+      } else {
+        console.warn('❌ $parent.openScheduleModal method not found');
       }
     },
 

@@ -39,7 +39,7 @@ const FamilyPage = Vue.defineComponent({
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div class="family-cards-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <div
               v-for="person in allPeople"
               :key="person.id"
@@ -57,7 +57,7 @@ const FamilyPage = Vue.defineComponent({
                     <div class="flex items-center gap-3">
                       <span
                         :class="getElectronicsStatusClass(person.electronicsStatus.status)"
-                        class="text-xs font-medium px-3 py-1 rounded-full flex items-center gap-2"
+                        class="electronics-badge text-xs font-medium px-3 py-1 rounded-full flex items-center gap-2"
                       >
                         <span class="text-sm" v-html="getElectronicsStatusIcon(person.electronicsStatus.status)"></span>
                         <span>{{ getElectronicsStatusText(person.electronicsStatus.status) }}</span>
@@ -69,11 +69,11 @@ const FamilyPage = Vue.defineComponent({
                 <!-- Key Metrics Section -->
                 <div class="flex items-center justify-between mb-4">
                   <div class="text-center">
-                    <div class="text-sm text-white text-opacity-80 mb-1">Total Earnings</div>
+                    <div class="metric-label text-sm text-white text-opacity-80 mb-1">Total Earnings</div>
                     <div class="text-2xl sm:text-3xl font-bold text-white">\${{ person.earnings.toFixed(2) }}</div>
                   </div>
                   <div class="text-center">
-                    <div class="text-sm text-white text-opacity-80 mb-1">Completed Chores</div>
+                    <div class="metric-label text-sm text-white text-opacity-80 mb-1">Completed Chores</div>
                     <div class="text-xl sm:text-2xl font-semibold text-white">{{ person.completedChores || 0 }}</div>
                   </div>
                   <button
@@ -132,126 +132,254 @@ const FamilyPage = Vue.defineComponent({
                       </div>
                     </div>
 
-                    <!-- Daily Chores Section (Requirements 1.1, 1.4) -->
+                    <!-- Weekly Schedule Section (Requirements 7.1-7.4) -->
                     <div v-if="$parent.currentUser?.role === 'parent'" class="bg-white bg-opacity-10 rounded-lg p-4">
                       <h4 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
                         <div v-html="Helpers.IconLibrary.getIcon('calendar', 'lucide', 16, 'text-white')"></div>
-                        Daily Chores
-                        <span class="text-xs text-white text-opacity-70 font-normal ml-1">(auto-assigned each day)</span>
+                        Weekly Schedule
+                        <span class="text-xs text-white text-opacity-70 font-normal ml-1">({{ getMemberScheduledChoreCount(person) }} chore{{ getMemberScheduledChoreCount(person) !== 1 ? 's' : '' }})</span>
                       </h4>
 
-                      <!-- Configured Daily Chores List -->
-                      <div v-if="getDailyChoresForMember(person).length > 0" class="space-y-2 mb-4">
-                        <div
-                          v-for="dailyChore in getDailyChoresForMember(person)"
-                          :key="dailyChore.id"
-                          class="flex items-center justify-between bg-white bg-opacity-20 rounded-lg px-3 py-2"
-                        >
-                          <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <!-- Scheduled Chores by Pattern -->
+                      <div v-if="hasMemberScheduledChores(person)" class="space-y-4 mb-4">
+                        <!-- Daily Chores -->
+                        <div v-if="getMemberScheduledChores(person).daily.length > 0">
+                          <div class="text-xs text-white text-opacity-70 font-medium mb-2 flex items-center gap-2">
+                            <div v-html="Helpers.IconLibrary.getIcon('repeat', 'lucide', 12, 'text-white opacity-70')"></div>
+                            Daily
+                          </div>
+                          <div class="space-y-2">
                             <div
-                              class="flex items-center justify-center rounded-lg shrink-0 w-8 h-8"
-                              :style="{ background: 'rgba(255,255,255,0.3)' }"
-                              v-html="getCategoryIconForDailyChore(dailyChore.category)"
-                            ></div>
-                            <div class="min-w-0 flex-1">
-                              <p class="text-white text-sm font-medium truncate">{{ dailyChore.name }}</p>
-                              <div class="flex items-center gap-2 text-xs text-white text-opacity-80">
-                                <span v-if="dailyChore.amount > 0">\${{ dailyChore.amount.toFixed(2) }}</span>
-                                <span class="px-1.5 py-0.5 rounded bg-white bg-opacity-20">{{ getCategoryLabel(dailyChore.category) }}</span>
+                              v-for="chore in getMemberScheduledChores(person).daily"
+                              :key="chore.id"
+                              class="flex items-center justify-between bg-white bg-opacity-20 rounded-lg px-3 py-2"
+                            >
+                              <div class="flex items-center gap-3 min-w-0 flex-1">
+                                <div
+                                  class="flex items-center justify-center rounded-lg shrink-0 w-8 h-8"
+                                  :style="{ background: 'rgba(255,255,255,0.3)' }"
+                                  v-html="getCategoryIconForDailyChore(chore.category)"
+                                ></div>
+                                <div class="min-w-0 flex-1">
+                                  <p class="text-white text-sm font-medium truncate">{{ chore.name }}</p>
+                                  <div class="flex items-center gap-2 text-xs text-white text-opacity-80">
+                                    <span v-if="chore.amount > 0">\${{ chore.amount.toFixed(2) }}</span>
+                                    <span class="px-1.5 py-0.5 rounded bg-white bg-opacity-20">{{ chore.categoryName || 'Uncategorized' }}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <!-- Remove button with confirmation -->
+                              <button
+                                v-if="!removingDailyChore[person.id + '_schedule_' + chore.id]"
+                                @click="confirmRemoveFromSchedule(person.id, chore.id)"
+                                :disabled="dailyChoreLoading[person.id]"
+                                class="flex items-center justify-center w-8 h-8 rounded-lg bg-white bg-opacity-20 hover:bg-error-500 hover:bg-opacity-80 text-white transition-all duration-200 touch-target flex-shrink-0"
+                                title="Remove from schedule"
+                              >
+                                <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 16, 'text-white')"></div>
+                              </button>
+                              <!-- Confirmation buttons -->
+                              <div v-else class="flex items-center gap-1 flex-shrink-0">
+                                <button
+                                  @click="removeFromSchedule(person.id, chore.id)"
+                                  :disabled="dailyChoreLoading[person.id]"
+                                  class="flex items-center justify-center w-8 h-8 rounded-lg bg-error-500 hover:bg-error-600 text-white transition-all duration-200 touch-target"
+                                  title="Confirm remove"
+                                >
+                                  <div v-html="Helpers.IconLibrary.getIcon('check', 'lucide', 14, 'text-white')"></div>
+                                </button>
+                                <button
+                                  @click="cancelRemoveFromSchedule(person.id, chore.id)"
+                                  class="flex items-center justify-center w-8 h-8 rounded-lg bg-white bg-opacity-30 hover:bg-opacity-50 text-white transition-all duration-200 touch-target"
+                                  title="Cancel"
+                                >
+                                  <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 14, 'text-white')"></div>
+                                </button>
                               </div>
                             </div>
                           </div>
-                          <!-- Remove button with confirmation -->
-                          <button
-                            v-if="!removingDailyChore[person.id + '_' + dailyChore.id]"
-                            @click="confirmRemoveDailyChore(person.id, dailyChore.id)"
-                            :disabled="dailyChoreLoading[person.id]"
-                            class="flex items-center justify-center w-8 h-8 rounded-lg bg-white bg-opacity-20 hover:bg-error-500 hover:bg-opacity-80 text-white transition-all duration-200 touch-target flex-shrink-0"
-                            title="Remove from daily chores"
-                          >
-                            <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 16, 'text-white')"></div>
-                          </button>
-                          <!-- Confirmation buttons -->
-                          <div v-else class="flex items-center gap-1 flex-shrink-0">
-                            <button
-                              @click="removeDailyChore(person.id, dailyChore.id)"
-                              :disabled="dailyChoreLoading[person.id]"
-                              class="flex items-center justify-center w-8 h-8 rounded-lg bg-error-500 hover:bg-error-600 text-white transition-all duration-200 touch-target"
-                              title="Confirm remove"
+                        </div>
+
+                        <!-- Weekday Chores -->
+                        <div v-if="getMemberScheduledChores(person).weekdays.length > 0">
+                          <div class="text-xs text-white text-opacity-70 font-medium mb-2 flex items-center gap-2">
+                            <div v-html="Helpers.IconLibrary.getIcon('briefcase', 'lucide', 12, 'text-white opacity-70')"></div>
+                            Weekdays (Mon-Fri)
+                          </div>
+                          <div class="space-y-2">
+                            <div
+                              v-for="chore in getMemberScheduledChores(person).weekdays"
+                              :key="chore.id"
+                              class="flex items-center justify-between bg-white bg-opacity-20 rounded-lg px-3 py-2"
                             >
-                              <div v-html="Helpers.IconLibrary.getIcon('check', 'lucide', 14, 'text-white')"></div>
-                            </button>
-                            <button
-                              @click="cancelRemoveDailyChore(person.id, dailyChore.id)"
-                              class="flex items-center justify-center w-8 h-8 rounded-lg bg-white bg-opacity-30 hover:bg-opacity-50 text-white transition-all duration-200 touch-target"
-                              title="Cancel"
+                              <div class="flex items-center gap-3 min-w-0 flex-1">
+                                <div
+                                  class="flex items-center justify-center rounded-lg shrink-0 w-8 h-8"
+                                  :style="{ background: 'rgba(255,255,255,0.3)' }"
+                                  v-html="getCategoryIconForDailyChore(chore.category)"
+                                ></div>
+                                <div class="min-w-0 flex-1">
+                                  <p class="text-white text-sm font-medium truncate">{{ chore.name }}</p>
+                                  <div class="flex items-center gap-2 text-xs text-white text-opacity-80">
+                                    <span v-if="chore.amount > 0">\${{ chore.amount.toFixed(2) }}</span>
+                                    <span class="px-1.5 py-0.5 rounded bg-white bg-opacity-20">{{ chore.categoryName || 'Uncategorized' }}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <!-- Remove button with confirmation -->
+                              <button
+                                v-if="!removingDailyChore[person.id + '_schedule_' + chore.id]"
+                                @click="confirmRemoveFromSchedule(person.id, chore.id)"
+                                :disabled="dailyChoreLoading[person.id]"
+                                class="flex items-center justify-center w-8 h-8 rounded-lg bg-white bg-opacity-20 hover:bg-error-500 hover:bg-opacity-80 text-white transition-all duration-200 touch-target flex-shrink-0"
+                                title="Remove from schedule"
+                              >
+                                <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 16, 'text-white')"></div>
+                              </button>
+                              <!-- Confirmation buttons -->
+                              <div v-else class="flex items-center gap-1 flex-shrink-0">
+                                <button
+                                  @click="removeFromSchedule(person.id, chore.id)"
+                                  :disabled="dailyChoreLoading[person.id]"
+                                  class="flex items-center justify-center w-8 h-8 rounded-lg bg-error-500 hover:bg-error-600 text-white transition-all duration-200 touch-target"
+                                  title="Confirm remove"
+                                >
+                                  <div v-html="Helpers.IconLibrary.getIcon('check', 'lucide', 14, 'text-white')"></div>
+                                </button>
+                                <button
+                                  @click="cancelRemoveFromSchedule(person.id, chore.id)"
+                                  class="flex items-center justify-center w-8 h-8 rounded-lg bg-white bg-opacity-30 hover:bg-opacity-50 text-white transition-all duration-200 touch-target"
+                                  title="Cancel"
+                                >
+                                  <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 14, 'text-white')"></div>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Weekend Chores -->
+                        <div v-if="getMemberScheduledChores(person).weekends.length > 0">
+                          <div class="text-xs text-white text-opacity-70 font-medium mb-2 flex items-center gap-2">
+                            <div v-html="Helpers.IconLibrary.getIcon('sun', 'lucide', 12, 'text-white opacity-70')"></div>
+                            Weekends (Sat-Sun)
+                          </div>
+                          <div class="space-y-2">
+                            <div
+                              v-for="chore in getMemberScheduledChores(person).weekends"
+                              :key="chore.id"
+                              class="flex items-center justify-between bg-white bg-opacity-20 rounded-lg px-3 py-2"
                             >
-                              <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 14, 'text-white')"></div>
-                            </button>
+                              <div class="flex items-center gap-3 min-w-0 flex-1">
+                                <div
+                                  class="flex items-center justify-center rounded-lg shrink-0 w-8 h-8"
+                                  :style="{ background: 'rgba(255,255,255,0.3)' }"
+                                  v-html="getCategoryIconForDailyChore(chore.category)"
+                                ></div>
+                                <div class="min-w-0 flex-1">
+                                  <p class="text-white text-sm font-medium truncate">{{ chore.name }}</p>
+                                  <div class="flex items-center gap-2 text-xs text-white text-opacity-80">
+                                    <span v-if="chore.amount > 0">\${{ chore.amount.toFixed(2) }}</span>
+                                    <span class="px-1.5 py-0.5 rounded bg-white bg-opacity-20">{{ chore.categoryName || 'Uncategorized' }}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <!-- Remove button with confirmation -->
+                              <button
+                                v-if="!removingDailyChore[person.id + '_schedule_' + chore.id]"
+                                @click="confirmRemoveFromSchedule(person.id, chore.id)"
+                                :disabled="dailyChoreLoading[person.id]"
+                                class="flex items-center justify-center w-8 h-8 rounded-lg bg-white bg-opacity-20 hover:bg-error-500 hover:bg-opacity-80 text-white transition-all duration-200 touch-target flex-shrink-0"
+                                title="Remove from schedule"
+                              >
+                                <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 16, 'text-white')"></div>
+                              </button>
+                              <!-- Confirmation buttons -->
+                              <div v-else class="flex items-center gap-1 flex-shrink-0">
+                                <button
+                                  @click="removeFromSchedule(person.id, chore.id)"
+                                  :disabled="dailyChoreLoading[person.id]"
+                                  class="flex items-center justify-center w-8 h-8 rounded-lg bg-error-500 hover:bg-error-600 text-white transition-all duration-200 touch-target"
+                                  title="Confirm remove"
+                                >
+                                  <div v-html="Helpers.IconLibrary.getIcon('check', 'lucide', 14, 'text-white')"></div>
+                                </button>
+                                <button
+                                  @click="cancelRemoveFromSchedule(person.id, chore.id)"
+                                  class="flex items-center justify-center w-8 h-8 rounded-lg bg-white bg-opacity-30 hover:bg-opacity-50 text-white transition-all duration-200 touch-target"
+                                  title="Cancel"
+                                >
+                                  <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 14, 'text-white')"></div>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Specific Days Chores -->
+                        <div v-if="getMemberScheduledChores(person).specific.length > 0">
+                          <div class="text-xs text-white text-opacity-70 font-medium mb-2 flex items-center gap-2">
+                            <div v-html="Helpers.IconLibrary.getIcon('calendar-days', 'lucide', 12, 'text-white opacity-70')"></div>
+                            Specific Days
+                          </div>
+                          <div class="space-y-2">
+                            <div
+                              v-for="chore in getMemberScheduledChores(person).specific"
+                              :key="chore.id"
+                              class="flex items-center justify-between bg-white bg-opacity-20 rounded-lg px-3 py-2"
+                            >
+                              <div class="flex items-center gap-3 min-w-0 flex-1">
+                                <div
+                                  class="flex items-center justify-center rounded-lg shrink-0 w-8 h-8"
+                                  :style="{ background: 'rgba(255,255,255,0.3)' }"
+                                  v-html="getCategoryIconForDailyChore(chore.category)"
+                                ></div>
+                                <div class="min-w-0 flex-1">
+                                  <p class="text-white text-sm font-medium truncate">{{ chore.name }}</p>
+                                  <div class="flex items-center gap-2 text-xs text-white text-opacity-80 flex-wrap">
+                                    <span v-if="chore.amount > 0">\${{ chore.amount.toFixed(2) }}</span>
+                                    <span class="px-1.5 py-0.5 rounded bg-white bg-opacity-20">{{ chore.categoryName || 'Uncategorized' }}</span>
+                                    <span class="px-1.5 py-0.5 rounded bg-white bg-opacity-30 text-white">{{ formatScheduledDays(chore.scheduledDays) }}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <!-- Remove button with confirmation -->
+                              <button
+                                v-if="!removingDailyChore[person.id + '_schedule_' + chore.id]"
+                                @click="confirmRemoveFromSchedule(person.id, chore.id)"
+                                :disabled="dailyChoreLoading[person.id]"
+                                class="flex items-center justify-center w-8 h-8 rounded-lg bg-white bg-opacity-20 hover:bg-error-500 hover:bg-opacity-80 text-white transition-all duration-200 touch-target flex-shrink-0"
+                                title="Remove from schedule"
+                              >
+                                <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 16, 'text-white')"></div>
+                              </button>
+                              <!-- Confirmation buttons -->
+                              <div v-else class="flex items-center gap-1 flex-shrink-0">
+                                <button
+                                  @click="removeFromSchedule(person.id, chore.id)"
+                                  :disabled="dailyChoreLoading[person.id]"
+                                  class="flex items-center justify-center w-8 h-8 rounded-lg bg-error-500 hover:bg-error-600 text-white transition-all duration-200 touch-target"
+                                  title="Confirm remove"
+                                >
+                                  <div v-html="Helpers.IconLibrary.getIcon('check', 'lucide', 14, 'text-white')"></div>
+                                </button>
+                                <button
+                                  @click="cancelRemoveFromSchedule(person.id, chore.id)"
+                                  class="flex items-center justify-center w-8 h-8 rounded-lg bg-white bg-opacity-30 hover:bg-opacity-50 text-white transition-all duration-200 touch-target"
+                                  title="Cancel"
+                                >
+                                  <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 14, 'text-white')"></div>
+                                </button>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
 
                       <!-- Empty state -->
-                      <div v-else class="text-center py-4 text-white text-opacity-70 text-sm mb-4">
-                        <p>No daily chores configured</p>
-                        <p class="text-xs mt-1">Add chores from your quicklist below</p>
-                      </div>
-
-                      <!-- Add Daily Chore Dropdown (Requirements 1.2) -->
-                      <div class="relative">
-                        <button
-                          @click="toggleAddDailyChore(person.id)"
-                          :disabled="dailyChoreLoading[person.id] || getAvailableQuicklistChores(person).length === 0"
-                          class="w-full flex items-center justify-center gap-2 bg-white bg-opacity-20 hover:bg-opacity-30 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-all duration-200 touch-target min-h-[44px]"
-                        >
-                          <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16, 'text-white')"></div>
-                          <span class="font-medium text-sm">
-                            {{ getAvailableQuicklistChores(person).length === 0 ? 'No quicklist chores available' : 'Add Daily Chore' }}
-                          </span>
-                          <div 
-                            v-if="getAvailableQuicklistChores(person).length > 0"
-                            v-html="Helpers.IconLibrary.getIcon('chevronDown', 'lucide', 16, 'text-white')" 
-                            :class="[addingDailyChore[person.id] ? 'rotate-180' : 'rotate-0', 'transition-transform duration-200 ml-auto']"
-                          ></div>
-                        </button>
-
-                        <!-- Dropdown menu -->
-                        <transition
-                          enter-active-class="transition-all duration-200 ease-out"
-                          enter-from-class="opacity-0 -translate-y-2"
-                          enter-to-class="opacity-100 translate-y-0"
-                          leave-active-class="transition-all duration-150 ease-in"
-                          leave-from-class="opacity-100 translate-y-0"
-                          leave-to-class="opacity-0 -translate-y-2"
-                        >
-                          <div 
-                            v-if="addingDailyChore[person.id]"
-                            class="absolute z-10 mt-2 w-full bg-white rounded-lg shadow-xl border overflow-hidden max-h-60 overflow-y-auto"
-                            style="border-color: var(--color-border-card);"
-                          >
-                            <div
-                              v-for="quickChore in getAvailableQuicklistChores(person)"
-                              :key="quickChore.id"
-                              @click="addDailyChore(person.id, quickChore.id)"
-                              class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors duration-150 border-b last:border-b-0"
-                              style="border-color: var(--color-border-card);"
-                            >
-                              <div
-                                class="flex items-center justify-center rounded-lg shrink-0 w-8 h-8"
-                                :style="{ background: 'var(--color-primary-50)', color: 'var(--color-primary-600)' }"
-                                v-html="getCategoryIconForDailyChore(quickChore.category)"
-                              ></div>
-                              <div class="min-w-0 flex-1">
-                                <p class="text-primary-custom text-sm font-medium truncate">{{ quickChore.name }}</p>
-                                <div class="flex items-center gap-2 text-xs text-secondary-custom">
-                                  <span v-if="quickChore.amount > 0">\${{ quickChore.amount.toFixed(2) }}</span>
-                                  <span class="px-1.5 py-0.5 rounded" :style="{ background: 'var(--color-primary-50)', color: 'var(--color-primary-700)' }">{{ getCategoryLabel(quickChore.category) }}</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </transition>
+                      <div v-else class="text-center py-4 text-white text-opacity-70 text-sm">
+                        <p>No scheduled chores</p>
+                        <p class="text-xs mt-1">Use the schedule button on quicklist chores to set up weekly schedules</p>
                       </div>
                     </div>
 
@@ -551,6 +679,219 @@ const FamilyPage = Vue.defineComponent({
         default:
           return `<div style="display: inline-block; width: 16px; height: 16px;">${Helpers.IconLibrary.getIcon('monitor', 'lucide', 16, 'text-current')}</div>`;
       }
+    },
+
+    // =============================================
+    // WEEKLY SCHEDULE METHODS (Requirements 7.1-7.4)
+    // =============================================
+
+    /**
+     * Get all quicklist chores where a member has days scheduled
+     * Groups by day pattern (weekdays, weekends, daily, specific days)
+     * Sorts by category within groups
+     * 
+     * **Feature: weekly-chore-scheduling**
+     * **Validates: Requirements 7.1, 7.4**
+     * 
+     * @param {Object} person - Family member object
+     * @returns {Object} Grouped scheduled chores { pattern: [chores] }
+     */
+    getMemberScheduledChores(person) {
+      const quicklistChores = this.$parent.quicklistChores || [];
+      const memberId = person.id;
+      
+      // Find all quicklist chores where this member has days scheduled
+      const scheduledChores = [];
+      
+      for (const chore of quicklistChores) {
+        const schedule = chore.schedule || {};
+        const memberDays = schedule[memberId];
+        
+        if (memberDays && Array.isArray(memberDays) && memberDays.length > 0) {
+          scheduledChores.push({
+            ...chore,
+            scheduledDays: memberDays,
+            dayPattern: this.getDayPattern(memberDays)
+          });
+        }
+      }
+      
+      // Group by day pattern
+      const grouped = {
+        daily: [],
+        weekdays: [],
+        weekends: [],
+        specific: []
+      };
+      
+      for (const chore of scheduledChores) {
+        grouped[chore.dayPattern].push(chore);
+      }
+      
+      // Sort each group by category (Uncategorized last)
+      const sortByCategory = (a, b) => {
+        const catA = a.categoryName || 'Uncategorized';
+        const catB = b.categoryName || 'Uncategorized';
+        if (catA === 'Uncategorized' && catB !== 'Uncategorized') return 1;
+        if (catB === 'Uncategorized' && catA !== 'Uncategorized') return -1;
+        return catA.localeCompare(catB);
+      };
+      
+      grouped.daily.sort(sortByCategory);
+      grouped.weekdays.sort(sortByCategory);
+      grouped.weekends.sort(sortByCategory);
+      grouped.specific.sort(sortByCategory);
+      
+      return grouped;
+    },
+
+    /**
+     * Determine the day pattern for a set of days
+     * @param {string[]} days - Array of day codes
+     * @returns {string} Pattern: 'daily', 'weekdays', 'weekends', or 'specific'
+     */
+    getDayPattern(days) {
+      if (!days || days.length === 0) return 'specific';
+      
+      const sortedDays = [...days].sort();
+      const weekdays = ['mon', 'tue', 'wed', 'thu', 'fri'].sort();
+      const weekends = ['sat', 'sun'].sort();
+      const allDays = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'].sort();
+      
+      if (sortedDays.length === 7 && sortedDays.every((d, i) => d === allDays[i])) {
+        return 'daily';
+      }
+      if (sortedDays.length === 5 && sortedDays.every((d, i) => d === weekdays[i])) {
+        return 'weekdays';
+      }
+      if (sortedDays.length === 2 && sortedDays.every((d, i) => d === weekends[i])) {
+        return 'weekends';
+      }
+      return 'specific';
+    },
+
+    /**
+     * Format days array for display
+     * @param {string[]} days - Array of day codes
+     * @returns {string} Formatted string like "Mon, Wed, Fri" or "Weekdays"
+     */
+    formatScheduledDays(days) {
+      if (!days || days.length === 0) return '';
+      
+      const pattern = this.getDayPattern(days);
+      if (pattern === 'daily') return 'Daily';
+      if (pattern === 'weekdays') return 'Weekdays';
+      if (pattern === 'weekends') return 'Weekends';
+      
+      // Format specific days
+      const dayLabels = {
+        sun: 'Sun', mon: 'Mon', tue: 'Tue', wed: 'Wed',
+        thu: 'Thu', fri: 'Fri', sat: 'Sat'
+      };
+      const dayOrder = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+      const sortedDays = [...days].sort((a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b));
+      return sortedDays.map(d => dayLabels[d]).join(', ');
+    },
+
+    /**
+     * Get pattern label for display
+     * @param {string} pattern - Pattern key
+     * @returns {string} Human-readable label
+     */
+    getPatternLabel(pattern) {
+      const labels = {
+        daily: 'Daily',
+        weekdays: 'Weekdays (Mon-Fri)',
+        weekends: 'Weekends (Sat-Sun)',
+        specific: 'Specific Days'
+      };
+      return labels[pattern] || pattern;
+    },
+
+    /**
+     * Check if a member has any scheduled chores
+     * @param {Object} person - Family member object
+     * @returns {boolean}
+     */
+    hasMemberScheduledChores(person) {
+      const grouped = this.getMemberScheduledChores(person);
+      return grouped.daily.length > 0 || 
+             grouped.weekdays.length > 0 || 
+             grouped.weekends.length > 0 || 
+             grouped.specific.length > 0;
+    },
+
+    /**
+     * Get total count of scheduled chores for a member
+     * @param {Object} person - Family member object
+     * @returns {number}
+     */
+    getMemberScheduledChoreCount(person) {
+      const grouped = this.getMemberScheduledChores(person);
+      return grouped.daily.length + 
+             grouped.weekdays.length + 
+             grouped.weekends.length + 
+             grouped.specific.length;
+    },
+
+    /**
+     * Remove a chore from a member's schedule entirely
+     * Calls store action to update quicklist chore schedule
+     * 
+     * **Feature: weekly-chore-scheduling**
+     * **Validates: Requirements 7.3**
+     * 
+     * @param {string} memberId - Family member ID
+     * @param {string} quicklistId - Quicklist chore ID
+     */
+    async removeFromSchedule(memberId, quicklistId) {
+      // Set loading state
+      this.dailyChoreLoading = { ...this.dailyChoreLoading, [memberId]: true };
+      
+      try {
+        const choresStore = window.useChoresStore ? window.useChoresStore() : null;
+        if (choresStore) {
+          // Remove all days for this member (empty array removes from schedule)
+          const result = await choresStore.updateQuicklistSchedule(quicklistId, memberId, []);
+          if (result.success) {
+            if (window.useUIStore) {
+              const uiStore = window.useUIStore();
+              uiStore.showSuccess('Removed from schedule');
+            }
+          } else {
+            if (window.useUIStore) {
+              const uiStore = window.useUIStore();
+              uiStore.showError(result.error || 'Failed to remove from schedule');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to remove from schedule:', error);
+        if (window.useUIStore) {
+          const uiStore = window.useUIStore();
+          uiStore.showError('Failed to remove from schedule');
+        }
+      } finally {
+        this.dailyChoreLoading = { ...this.dailyChoreLoading, [memberId]: false };
+      }
+    },
+
+    /**
+     * Confirm removal from schedule
+     * @param {string} memberId - Family member ID
+     * @param {string} choreId - Quicklist chore ID
+     */
+    confirmRemoveFromSchedule(memberId, choreId) {
+      this.removingDailyChore = { ...this.removingDailyChore, [`${memberId}_schedule_${choreId}`]: true };
+    },
+
+    /**
+     * Cancel removal from schedule confirmation
+     * @param {string} memberId - Family member ID
+     * @param {string} choreId - Quicklist chore ID
+     */
+    cancelRemoveFromSchedule(memberId, choreId) {
+      this.removingDailyChore = { ...this.removingDailyChore, [`${memberId}_schedule_${choreId}`]: false };
     }
   }
 });

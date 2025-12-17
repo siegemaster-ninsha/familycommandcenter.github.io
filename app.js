@@ -68,6 +68,10 @@ const app = createApp({
       multiAssignSelectedMembers: [],
       // Category management modal
       showCategoryManagementModal: false,
+      // Schedule modal for weekly chore scheduling
+      // **Feature: weekly-chore-scheduling**
+      showScheduleModal: false,
+      scheduleModalChore: null,
       // Assign category modal (for uncategorized quicklist chores)
       showAssignCategoryModal: false,
       assignCategoryChore: null,
@@ -1211,6 +1215,57 @@ const app = createApp({
     
     closeCategoryManagementModal() {
       this.showCategoryManagementModal = false;
+    },
+    
+    // Schedule modal methods
+    // **Feature: weekly-chore-scheduling**
+    // **Validates: Requirements 1.2, 1.3, 1.5**
+    openScheduleModal(quicklistChore) {
+      this.scheduleModalChore = quicklistChore;
+      this.showScheduleModal = true;
+    },
+    
+    closeScheduleModal() {
+      this.showScheduleModal = false;
+      this.scheduleModalChore = null;
+    },
+    
+    // Handle schedule save from modal
+    // Makes API call directly since this.quicklistChores is the source of truth in app.js
+    async handleScheduleSave({ quicklistId, schedule }) {
+      const uiStore = window.useUIStore?.();
+      
+      // Verify the quicklist chore exists in our local data
+      const quicklistChore = this.quicklistChores.find(c => c.id === quicklistId);
+      if (!quicklistChore) {
+        console.error('[handleScheduleSave] Quicklist chore not found:', quicklistId);
+        if (uiStore) {
+          uiStore.showError('Quicklist chore not found');
+        }
+        return;
+      }
+      
+      try {
+        // Make API call directly to update schedule
+        const encodedQuicklistId = encodeURIComponent(quicklistId);
+        await this.apiCall(`${CONFIG.API.ENDPOINTS.QUICKLIST}/${encodedQuicklistId}/schedule`, {
+          method: 'PUT',
+          body: JSON.stringify({ schedule })
+        });
+        
+        // Update local state optimistically
+        quicklistChore.schedule = schedule;
+        
+        if (uiStore) {
+          uiStore.showSuccess('Schedule updated successfully');
+        }
+        this.closeScheduleModal();
+      } catch (error) {
+        console.error('Failed to save schedule:', error);
+        if (uiStore) {
+          uiStore.showError('Failed to update schedule');
+        }
+      }
     },
     
     // Update quicklist chore category (inline dropdown)
@@ -2608,6 +2663,9 @@ const app = createApp({
       showMultiAssignModal: Vue.computed(() => this.showMultiAssignModal),
       multiAssignSelectedMembers: Vue.toRef(this, 'multiAssignSelectedMembers'),
       showCategoryManagementModal: Vue.computed(() => this.showCategoryManagementModal),
+      // Schedule modal state - **Feature: weekly-chore-scheduling**
+      showScheduleModal: Vue.computed(() => this.showScheduleModal),
+      scheduleModalChore: Vue.computed(() => this.scheduleModalChore),
       // add child / invite parent modal flags
       showCreateChildModal: Vue.computed(() => this.showCreateChildModal),
       showInviteModal: Vue.computed(() => this.showInviteModal),
@@ -2660,6 +2718,10 @@ const app = createApp({
       cancelMultiAssignment: this.cancelMultiAssignment,
       openCategoryManagementModal: this.openCategoryManagementModal,
       closeCategoryManagementModal: this.closeCategoryManagementModal,
+      // Schedule modal methods - **Feature: weekly-chore-scheduling**
+      openScheduleModal: this.openScheduleModal,
+      closeScheduleModal: this.closeScheduleModal,
+      handleScheduleSave: this.handleScheduleSave,
       updateQuicklistCategory: this.updateQuicklistCategory,
       deleteChore: this.deleteChore,
       deletePerson: this.performDeletePerson,
@@ -2821,6 +2883,11 @@ function checkAndRegisterComponents() {
   console.log('📦 Registering category-management-modal');
   if (window.CategoryManagementModalComponent) {
     app.component('category-management-modal', window.CategoryManagementModalComponent);
+  }
+
+  console.log('📦 Registering schedule-modal');
+  if (window.ScheduleModalComponent) {
+    app.component('schedule-modal', window.ScheduleModalComponent);
   }
 
   console.log('📦 Registering nav-menu');

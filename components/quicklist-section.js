@@ -1,6 +1,8 @@
 // Quicklist Section Component with Category Accordions
 // **Feature: quicklist-categories**
 // **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5, 6.1, 6.4**
+// **Feature: weekly-chore-scheduling**
+// **Validates: Requirements 1.1, 4.1, 4.2, 4.3**
 
 const QuicklistSection = Vue.defineComponent({
   name: 'QuicklistSection',
@@ -117,6 +119,23 @@ const QuicklistSection = Vue.defineComponent({
                     <!-- Spacer to push buttons right -->
                     <span style="flex: 1;"></span>
 
+                    <!-- Schedule button - Requirements 1.1, 4.1, 4.2, 4.3 -->
+                    <button
+                      @click.stop="$emit('open-schedule', chore)"
+                      class="chore-schedule-btn"
+                      title="Schedule this chore"
+                    >
+                      <div v-html="getIcon('calendar', 16)"></div>
+                      <sl-badge 
+                        v-if="getScheduleCount(chore) > 0" 
+                        variant="primary" 
+                        pill 
+                        class="schedule-badge"
+                      >
+                        {{ getScheduleCount(chore) }}
+                      </sl-badge>
+                    </button>
+
                     <!-- Assign Category dropdown - only for Uncategorized chores -->
                     <!-- Wrapper div stops all event propagation to prevent accordion toggle -->
                     <div 
@@ -201,7 +220,7 @@ const QuicklistSection = Vue.defineComponent({
       default: null
     }
   },
-  emits: ['chore-click', 'delete-chore', 'add-chore', 'retry', 'manage-categories', 'category-changed'],
+  emits: ['chore-click', 'delete-chore', 'add-chore', 'retry', 'manage-categories', 'category-changed', 'open-schedule'],
   data() {
     return {
       searchQuery: '',
@@ -333,6 +352,20 @@ const QuicklistSection = Vue.defineComponent({
      */
     isUncategorized(chore) {
       return !chore.categoryName || chore.categoryName === 'Uncategorized';
+    },
+    
+    /**
+     * Get the schedule count for a quicklist chore
+     * Returns the total number of member-day combinations
+     * **Feature: weekly-chore-scheduling**
+     * **Validates: Requirements 1.1, 4.2**
+     */
+    getScheduleCount(chore) {
+      if (!chore || !chore.schedule) {
+        return 0;
+      }
+      return Object.values(chore.schedule)
+        .reduce((sum, days) => sum + (Array.isArray(days) ? days.length : 0), 0);
     },
     
     /**

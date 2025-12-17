@@ -786,6 +786,126 @@ const useChoresStore = Pinia.defineStore('chores', {
       this.multiAssignSelectedMembers = [];
     },
     
+    // =============================================
+    // WEEKLY SCHEDULE MANAGEMENT
+    // **Feature: weekly-chore-scheduling**
+    // **Validates: Requirements 1.3, 1.5**
+    // =============================================
+    
+    /**
+     * Update the schedule for a specific member on a quicklist chore
+     * Uses optimistic update with rollback on error
+     * 
+     * @param {string} quicklistId - Quicklist chore ID
+     * @param {string} memberId - Family member ID
+     * @param {string[]} days - Array of day codes (sun, mon, tue, wed, thu, fri, sat)
+     * @returns {Promise<{success: boolean, error?: string}>}
+     */
+    async updateQuicklistSchedule(quicklistId, memberId, days) {
+      // Find the quicklist chore
+      const quicklistChore = this.quicklistChores.find(c => c.id === quicklistId);
+      if (!quicklistChore) {
+        console.error('[updateQuicklistSchedule] Quicklist chore not found:', quicklistId);
+        return { success: false, error: 'Quicklist chore not found' };
+      }
+      
+      // Store original schedule for rollback
+      const originalSchedule = quicklistChore.schedule 
+        ? JSON.parse(JSON.stringify(quicklistChore.schedule)) 
+        : {};
+      
+      // Optimistic update
+      if (!quicklistChore.schedule) {
+        quicklistChore.schedule = {};
+      }
+      
+      if (days && days.length > 0) {
+        quicklistChore.schedule[memberId] = [...days];
+      } else {
+        // Empty days array removes member from schedule
+        delete quicklistChore.schedule[memberId];
+      }
+      
+      try {
+        // Make API call to update schedule
+        const encodedQuicklistId = encodeURIComponent(quicklistId);
+        const response = await apiService.put(
+          `${CONFIG.API.ENDPOINTS.QUICKLIST}/${encodedQuicklistId}/schedule`,
+          { memberId, days }
+        );
+        
+        // Update local state with server response if available
+        if (response && response.quicklistChore) {
+          const index = this.quicklistChores.findIndex(c => c.id === quicklistId);
+          if (index !== -1) {
+            this.quicklistChores[index] = {
+              ...this.quicklistChores[index],
+              ...response.quicklistChore
+            };
+          }
+        }
+        
+        console.log('[OK] Schedule updated for quicklist:', quicklistId, 'member:', memberId);
+        return { success: true };
+      } catch (error) {
+        // Rollback on error
+        quicklistChore.schedule = originalSchedule;
+        console.error('[updateQuicklistSchedule] Failed:', error);
+        return { success: false, error: error.message };
+      }
+    },
+    
+    /**
+     * Update the entire schedule for a quicklist chore (all members at once)
+     * Used when saving from the schedule modal
+     * 
+     * @param {string} quicklistId - Quicklist chore ID
+     * @param {Object} schedule - Schedule object { memberId: [days], ... }
+     * @returns {Promise<{success: boolean, error?: string}>}
+     */
+    async updateQuicklistFullSchedule(quicklistId, schedule) {
+      // Find the quicklist chore
+      const quicklistChore = this.quicklistChores.find(c => c.id === quicklistId);
+      if (!quicklistChore) {
+        console.error('[updateQuicklistFullSchedule] Quicklist chore not found:', quicklistId);
+        return { success: false, error: 'Quicklist chore not found' };
+      }
+      
+      // Store original schedule for rollback
+      const originalSchedule = quicklistChore.schedule 
+        ? JSON.parse(JSON.stringify(quicklistChore.schedule)) 
+        : {};
+      
+      // Optimistic update - replace entire schedule
+      quicklistChore.schedule = schedule ? { ...schedule } : {};
+      
+      try {
+        // Make API calls for each member in the new schedule
+        // We need to update each member individually since the API expects per-member updates
+        const memberIds = new Set([
+          ...Object.keys(originalSchedule),
+          ...Object.keys(schedule || {})
+        ]);
+        
+        for (const memberId of memberIds) {
+          const days = schedule[memberId] || [];
+          const encodedQuicklistId = encodeURIComponent(quicklistId);
+          await apiService.put(
+            `${CONFIG.API.ENDPOINTS.QUICKLIST}/${encodedQuicklistId}/schedule`,
+            { memberId, days }
+          );
+        }
+        
+        console.log('[OK] Full schedule updated for quicklist:', quicklistId);
+        return { success: true };
+      } catch (error) {
+        // Rollback on error
+        quicklistChore.schedule = originalSchedule;
+        console.error('[updateQuicklistFullSchedule] Failed:', error);
+        return { success: false, error: error.message };
+      }
+    },
+    
     // form helpers
     resetNewChoreForm() {
       this.newChore = {

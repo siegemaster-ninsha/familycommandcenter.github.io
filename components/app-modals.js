@@ -757,6 +757,17 @@ const AppModals = Vue.defineComponent({
       :open="showCategoryManagementModal"
       @close="closeCategoryManagementModal"
     ></category-management-modal>
+    
+    <!-- Schedule Modal for Weekly Chore Scheduling -->
+    <!-- **Feature: weekly-chore-scheduling** -->
+    <!-- **Validates: Requirements 1.2, 1.3, 1.5** -->
+    <schedule-modal
+      :open="showScheduleModal"
+      :quicklist-chore="scheduleModalChore"
+      :family-members="people"
+      @save="handleScheduleSave"
+      @close="closeScheduleModal"
+    ></schedule-modal>
   `,
   data() {
     return {
@@ -802,7 +813,12 @@ const AppModals = Vue.defineComponent({
     // Category management
     'categoriesStore',
     'showCategoryManagementModal',
-    'closeCategoryManagementModal'
+    'closeCategoryManagementModal',
+    // Schedule modal - **Feature: weekly-chore-scheduling**
+    'showScheduleModal',
+    'scheduleModalChore',
+    'closeScheduleModal',
+    'handleScheduleSave'
   ],
   methods: {
     // Handle category created inline in quicklist form

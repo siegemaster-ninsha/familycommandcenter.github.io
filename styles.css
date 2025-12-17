@@ -234,12 +234,23 @@ input[type="password"]::-ms-clear {
   text-decoration: none;
   transition: top var(--transition-fast);
   box-shadow: var(--shadow-lg);
+  /* Touch target accessibility - WCAG 2.5.5 */
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .skip-link:focus {
   top: var(--space-4);
   outline: 2px solid var(--color-white);
   outline-offset: 2px;
+}
+
+/* Alternative selector for skip link - ensures touch target compliance */
+a[href="#main-content"] {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
 }
 
 /* ===========================================
@@ -643,6 +654,11 @@ input[type="password"]::-ms-clear {
   color: var(--color-quicklist-text);
 }
 
+/* Family Member Cards Grid - Prevents sibling cards from stretching when one expands */
+.family-cards-grid {
+  align-items: start;
+}
+
 /* Family Member Cards */
 .family-card {
   border-color: var(--color-family-card-border);
@@ -650,6 +666,40 @@ input[type="password"]::-ms-clear {
 
 .family-card:hover {
   border-color: var(--color-family-card-hover);
+}
+
+/* Card container minimum padding - ensures all family cards have adequate spacing (Requirements 4.2) */
+.family-card {
+  padding: var(--space-3); /* 12px minimum padding on all sides */
+}
+
+/* Responsive padding for family cards - larger on desktop */
+@media (min-width: 640px) {
+  .family-card {
+    padding: var(--space-6); /* 24px on larger screens */
+  }
+}
+
+/* Header user info card padding - ensures minimum vertical padding (Requirements 4.1) */
+.header-user-card,
+.card.flex.items-center.gap-3 {
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-3);
+  min-height: 44px;
+}
+
+/* Electronics status badge - prevent text wrapping on narrow cards (Requirements 3.1) */
+.family-card .electronics-badge,
+.family-card [class*="bg-success-600"][class*="rounded-full"],
+.family-card [class*="bg-warning-600"][class*="rounded-full"],
+.family-card [class*="bg-error-600"][class*="rounded-full"] {
+  white-space: nowrap;
+}
+
+/* Metric labels - ensure consistent width and prevent wrapping (Requirements 3.2) */
+.family-card .metric-label,
+.family-card .text-sm.text-white.text-opacity-80 {
+  white-space: nowrap;
 }
 
 .family-avatar {
@@ -3639,6 +3689,47 @@ html {
   background: rgba(255, 255, 255, 0.35);
 }
 
+/* Schedule button - compact for horizontal layout */
+/* **Feature: weekly-chore-scheduling** */
+/* **Validates: Requirements 1.1, 4.1, 4.2, 4.3, 8.1** */
+.chore-schedule-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem; /* 44px minimum touch target - Requirements 8.1 */
+  min-height: 2.75rem;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 0.375rem;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+  padding: 0 0.5rem;
+  gap: 0.25rem;
+}
+
+.chore-schedule-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.chore-schedule-btn:focus-visible {
+  outline: 2px solid var(--color-primary-300);
+  outline-offset: 2px;
+}
+
+/* Schedule badge positioning */
+.chore-schedule-btn .schedule-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  font-size: 0.625rem;
+  min-width: 1rem;
+  height: 1rem;
+  padding: 0 0.25rem;
+}
+
 /* Delete button - compact for horizontal layout */
 .chore-delete-btn {
   display: flex;
@@ -3756,4 +3847,256 @@ html {
 
 .quicklist-accordion:has(sl-dropdown[open])::part(content) {
   overflow: visible !important;
+}
+
+/* ===========================================
+   SCHEDULE MODAL STYLES
+   Feature: weekly-chore-scheduling
+   Requirements: 8.1, 8.2, 8.3, 8.4
+   =========================================== */
+
+/* Schedule modal content container */
+.schedule-modal-content {
+  padding: var(--space-2);
+}
+
+/* Day labels header row */
+.schedule-day-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border-card);
+  margin-bottom: var(--space-4);
+}
+
+/* Member label column (name) */
+.schedule-member-label {
+  width: 100px;
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.schedule-member-name {
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Days row container */
+.schedule-days-row {
+  display: flex;
+  gap: var(--space-2); /* 8px gaps between day toggles - Requirements 8.2 */
+  flex-shrink: 0;
+}
+
+/* Day label in header */
+.schedule-day-label {
+  width: 44px; /* 44px minimum touch target - Requirements 8.1 */
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+}
+
+
+
+/* Family members list */
+.schedule-members-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4); /* 16px spacing between member rows - Requirements 8.2 */
+}
+
+/* Individual member row */
+.schedule-member-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-card);
+  border-radius: var(--radius-lg);
+}
+
+/* Day toggle button - Requirements 8.1, 8.4 */
+.schedule-day-toggle {
+  width: 44px; /* 44px minimum touch target - Requirements 8.1 */
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  background: var(--color-neutral-100);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 150ms ease;
+  flex-shrink: 0;
+}
+
+.schedule-day-toggle:hover {
+  background: var(--color-neutral-200);
+}
+
+/* Focus indicator for accessibility - Requirements 8.4 */
+.schedule-day-toggle:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-300);
+}
+
+.schedule-day-toggle:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+/* Selected state - Requirements 1.4 */
+.schedule-day-toggle--selected {
+  background: var(--color-primary-500);
+  color: var(--color-white);
+  border-color: var(--color-primary-600);
+}
+
+.schedule-day-toggle--selected:hover {
+  background: var(--color-primary-600);
+}
+
+/* Days and shortcuts container - vertical stack */
+.schedule-days-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex: 1;
+}
+
+/* Shortcuts row - Weekday and Weekend side by side */
+.schedule-shortcuts-row {
+  display: flex;
+  gap: var(--space-1);
+}
+
+/* Shortcut button base - Requirements 2.1, 2.2, 2.3 */
+.schedule-shortcut-btn {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary-600);
+  background: var(--color-primary-50);
+  border: 1px solid var(--color-primary-200);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 150ms ease;
+  white-space: nowrap;
+  min-height: 32px;
+  text-align: center;
+}
+
+.schedule-shortcut-btn:hover {
+  background: var(--color-primary-100);
+  border-color: var(--color-primary-300);
+}
+
+.schedule-shortcut-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary-300);
+}
+
+/* Weekday button - spans width of M-F (5 day toggles + 4 gaps) */
+/* Each day toggle is 44px, gap is 4px, so 5*44 + 4*4 = 236px */
+.schedule-shortcut-btn--weekday {
+  width: calc(5 * 44px + 4 * var(--space-1));
+  flex-shrink: 0;
+}
+
+/* Weekend button - spans width of S-S (2 day toggles + 1 gap) */
+/* 2*44 + 1*4 = 92px */
+.schedule-shortcut-btn--weekend {
+  width: calc(2 * 44px + 1 * var(--space-1));
+  flex-shrink: 0;
+}
+
+/* Daily button - full width of all 7 days */
+.schedule-shortcut-btn--daily {
+  width: 100%;
+}
+
+/* Empty state */
+.schedule-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  text-align: center;
+}
+
+/* ===========================================
+   SCHEDULE MODAL RESPONSIVE STYLES
+   Requirements: 8.3 - Full-width on mobile
+   =========================================== */
+
+@media (max-width: 640px) {
+  /* Stack layout vertically on mobile */
+  .schedule-day-header {
+    display: none; /* Hide header on mobile, labels are in toggles */
+  }
+  
+  .schedule-member-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+    padding: var(--space-3);
+  }
+  
+  .schedule-member-label {
+    width: 100%;
+    min-width: unset;
+    margin-bottom: var(--space-1);
+  }
+  
+  .schedule-member-name {
+    font-size: var(--font-size-base);
+  }
+  
+  .schedule-days-container {
+    width: 100%;
+  }
+  
+  .schedule-days-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr); /* Equal width columns for all 7 days */
+    gap: var(--space-1);
+    width: 100%;
+  }
+  
+  /* Flexible day toggles that fill available space - still meets 44px touch target */
+  .schedule-day-toggle {
+    width: 100%; /* Fill grid cell */
+    min-width: unset;
+    height: 44px;
+    flex-shrink: unset;
+    font-size: var(--font-size-xs); /* Slightly smaller text */
+  }
+  
+  /* Shortcut buttons use proportional widths on mobile */
+  .schedule-shortcuts-row {
+    width: 100%;
+  }
+  
+  .schedule-shortcut-btn--weekday {
+    width: calc(5 / 7 * 100% - var(--space-1) / 2);
+  }
+  
+  .schedule-shortcut-btn--weekend {
+    width: calc(2 / 7 * 100% - var(--space-1) / 2);
+  }
 }
