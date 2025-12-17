@@ -768,6 +768,8 @@ input:focus, select:focus, textarea:focus {
   --header-spacing: var(--space-4);
   --body-spacing: 0;
   --footer-spacing: 0;
+  /* Slow down the transition (default is 250ms) */
+  --sl-transition-medium: 400ms;
 }
 
 .flyout-sl-drawer::part(panel) {
