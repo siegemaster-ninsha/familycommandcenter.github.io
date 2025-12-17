@@ -1,5 +1,6 @@
-// Flyout Panel Component
+// Flyout Panel Component - Native Dialog Implementation
 // A reusable slide-in panel from the right side of the screen
+// Uses native <dialog> element for better iOS Safari/PWA support
 // 
 // USAGE:
 //   <flyout-panel 
@@ -21,46 +22,13 @@
 //   @opened - Emitted after open animation completes
 //   @closed - Emitted after close animation completes
 //
-// IMPORTANT - CLOSING BEHAVIOR:
-// The flyout uses CSS transitions for smooth open/close animations. There are several
-// key issues to be aware of when implementing close behavior:
-//
-// 1. EMPTY CONTENT FLASH: If you clear your data (e.g., currentItem = null) at the
-//    same time as setting open = false, the flyout will show empty content during
-//    the close animation. 
-//    
-//    FIX: Don't clear data on close. The data will be replaced when opening a new
-//    item anyway. Example:
-//    
-//    // BAD - causes empty content flash
-//    closeModal() {
-//      this.showFlyout = false;
-//      this.currentItem = null;  // Content disappears during animation!
-//    }
-//    
-//    // GOOD - content stays visible during close animation
-//    closeModal() {
-//      this.showFlyout = false;
-//      // Don't clear currentItem - it gets replaced on next open
-//    }
-//
-// 2. TRANSITIONEND NOT FIRING: On mobile or with prefers-reduced-motion, the
-//    CSS transitionend event may not fire reliably. This component includes a
-//    350ms timeout fallback to ensure @closed is always emitted.
-//
-// 3. REQUIRED CSS: The flyout requires these CSS classes in styles.css:
-//    - .flyout-panel (positioning, transform for slide animation)
-//    - .flyout-panel.flyout-open (transform to show panel)
-//    - .flyout-backdrop (overlay behind panel)
-//    - .flyout-backdrop.flyout-open (visible state)
-//
-// 4. INJECTED METHODS ON MOBILE: Injected methods from Vue's provide/inject work
-//    correctly when called directly in @click handlers. No wrapper methods needed.
-//    
-//    // CORRECT - call injected method directly
-//    inject: ['cancelAddToQuicklist'],
-//    template: `<button @click="cancelAddToQuicklist">Close</button>`
-//    - body.flyout-open (prevents scroll when open)
+// IMPLEMENTATION NOTES:
+// This component uses the native HTML <dialog> element which provides:
+// - Native focus trapping (no JS needed)
+// - Native backdrop click handling via ::backdrop pseudo-element
+// - Native Escape key handling (can be disabled)
+// - Better iOS Safari PWA support
+// - Proper accessibility out of the box
 
 const FlyoutPanel = Vue.defineComponent({
   name: 'FlyoutPanel',
@@ -106,25 +74,16 @@ const FlyoutPanel = Vue.defineComponent({
   emits: ['close', 'opened', 'closed'],
   
   template: `
-    <Teleport to="body">
-      <!-- Backdrop -->
-      <div 
-        class="flyout-backdrop"
-        :class="{ 'flyout-open': open }"
-        :style="backdropStyle"
-        @click.stop="handleBackdropClick($event)"
-        @touchend.stop.prevent="handleBackdropClick($event)"
-      ></div>
-      
-      <!-- Panel -->
-      <!-- Safari fix: use inline styles in addition to classes to force transform updates -->
-      <div 
-        class="flyout-panel"
-        :class="{ 'flyout-open': open }"
-        :style="panelStyle"
-        @transitionend="handleTransitionEnd"
-      >
-        <!-- Header (fixed at top via flexbox) -->
+    <dialog
+      ref="dialog"
+      class="native-flyout-dialog"
+      :style="dialogStyle"
+      @close="handleNativeClose"
+      @cancel="handleCancel"
+      @click="handleDialogClick"
+    >
+      <div class="native-flyout-panel" :style="panelStyle" @click.stop>
+        <!-- Header -->
         <div 
           class="flex-shrink-0 bg-white border-b px-4 py-3 flex items-center justify-between"
           style="border-color: var(--color-border-card);"
@@ -136,9 +95,9 @@ const FlyoutPanel = Vue.defineComponent({
           </div>
           <button
             v-if="showHeaderClose"
-            @click.stop="close($event)"
-            @touchend.stop.prevent="close($event)"
-            class="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0 ios-touch-fix"
+            type="button"
+            @click="requestClose"
+            class="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
             aria-label="Close panel"
           >
             <div v-html="closeIcon"></div>
@@ -150,7 +109,7 @@ const FlyoutPanel = Vue.defineComponent({
           <slot></slot>
         </div>
         
-        <!-- Footer (fixed at bottom via flexbox) -->
+        <!-- Footer -->
         <div 
           v-if="showFooter || $slots.footer"
           class="flex-shrink-0 bg-white border-t px-4 py-3"
@@ -159,33 +118,25 @@ const FlyoutPanel = Vue.defineComponent({
           <slot name="footer"></slot>
         </div>
       </div>
-    </Teleport>
+    </dialog>
   `,
   
   data() {
     return {
       closeIcon: Helpers.IconLibrary.getIcon('x', 'lucide', 20, ''),
-      wasOpen: false,
-      closeTimeout: null,
-      closedEmitted: false
+      isAnimating: false
     };
   },
   
   computed: {
-    // Safari fix: inline styles force the browser to recalculate transforms
-    // even when CSS class changes don't trigger transitions properly
-    panelStyle() {
+    dialogStyle() {
       return {
-        maxWidth: this.width,
-        transform: this.open ? 'translateX(0)' : 'translateX(100%)',
-        visibility: this.open ? 'visible' : 'hidden',
-        pointerEvents: this.open ? 'auto' : 'none'
+        '--flyout-width': this.width
       };
     },
-    backdropStyle() {
+    panelStyle() {
       return {
-        backgroundColor: this.open ? 'var(--color-overlay)' : 'var(--color-overlay-transparent)',
-        pointerEvents: this.open ? 'auto' : 'none'
+        maxWidth: this.width
       };
     }
   },
@@ -193,118 +144,91 @@ const FlyoutPanel = Vue.defineComponent({
   watch: {
     open: {
       immediate: true,
-      handler(isOpen) {
-        console.log('🚪 FlyoutPanel open changed:', isOpen, 'wasOpen:', this.wasOpen, 'UA:', navigator.userAgent.includes('Safari') ? 'Safari' : 'Other');
-        if (isOpen) {
-          this.onOpen();
-        } else if (this.wasOpen) {
-          console.log('🚪 FlyoutPanel closing - prop changed to false');
-          this.onClose();
-        }
-        this.wasOpen = isOpen;
+      handler(isOpen, wasOpen) {
+        // Wait for next tick to ensure dialog ref is available
+        this.$nextTick(() => {
+          if (isOpen && !wasOpen) {
+            this.showDialog();
+          } else if (!isOpen && wasOpen) {
+            this.hideDialog();
+          }
+        });
       }
-    }
-  },
-  
-  mounted() {
-    document.addEventListener('keydown', this.handleKeydown);
-  },
-  
-  beforeUnmount() {
-    document.removeEventListener('keydown', this.handleKeydown);
-    // Clean up timeout
-    if (this.closeTimeout) {
-      clearTimeout(this.closeTimeout);
-    }
-    // Clean up body class if component unmounts while open
-    if (this.open) {
-      document.body.classList.remove('flyout-open');
     }
   },
   
   methods: {
-    close(e) {
-      // iOS Safari fix: prevent double-firing from both touchend and click
-      if (this._closeInProgress) {
-        console.log('🚪 FlyoutPanel close() skipped - already in progress');
+    showDialog() {
+      const dialog = this.$refs.dialog;
+      if (!dialog || dialog.open) return;
+      
+      console.log('🚪 Native dialog showModal()');
+      
+      // Use showModal() for proper modal behavior (backdrop, focus trap)
+      dialog.showModal();
+      
+      // Prevent body scroll
+      document.body.classList.add('flyout-open');
+      
+      // Trigger animation
+      requestAnimationFrame(() => {
+        dialog.classList.add('flyout-visible');
+        // Emit opened after animation
+        setTimeout(() => {
+          this.$emit('opened');
+        }, 300);
+      });
+    },
+    
+    hideDialog() {
+      const dialog = this.$refs.dialog;
+      if (!dialog || !dialog.open) return;
+      
+      console.log('🚪 Native dialog hiding');
+      
+      // Start close animation
+      dialog.classList.remove('flyout-visible');
+      
+      // Wait for animation then close
+      setTimeout(() => {
+        if (dialog.open) {
+          dialog.close();
+        }
+        document.body.classList.remove('flyout-open');
+        this.$emit('closed');
+      }, 300);
+    },
+    
+    requestClose() {
+      console.log('🚪 Native dialog requestClose()');
+      this.$emit('close');
+    },
+    
+    handleNativeClose() {
+      // Native close event fired (e.g., from dialog.close())
+      console.log('🚪 Native dialog close event');
+      // The parent should already know via @close emit
+    },
+    
+    handleCancel(e) {
+      // Cancel event fires when user presses Escape
+      console.log('🚪 Native dialog cancel (Escape pressed)');
+      if (!this.closeOnEscape) {
+        e.preventDefault();
         return;
       }
-      this._closeInProgress = true;
-      
-      console.log('🚪 FlyoutPanel close() called, event:', e?.type || 'direct');
-      
-      // Use setTimeout to ensure the emit happens in a clean call stack
-      // This helps with iOS Safari's event handling quirks
-      setTimeout(() => {
-        this.$emit('close');
-        // Reset the flag after a short delay to allow for legitimate re-closes
-        setTimeout(() => {
-          this._closeInProgress = false;
-        }, 100);
-      }, 0);
+      // Prevent default to handle closing ourselves with animation
+      e.preventDefault();
+      this.requestClose();
     },
     
-    handleBackdropClick(e) {
-      console.log('🚪 FlyoutPanel backdrop clicked', e.type);
-      // Prevent the event from bubbling which can cause issues on iOS
-      if (e) {
-        e.stopPropagation();
+    handleDialogClick(e) {
+      // Click on the dialog backdrop (outside the panel)
+      // The dialog element itself is the backdrop when using showModal()
+      if (e.target === this.$refs.dialog && this.closeOnBackdrop) {
+        console.log('🚪 Native dialog backdrop click');
+        this.requestClose();
       }
-      if (this.closeOnBackdrop) {
-        this.close(e);
-      }
-    },
-    
-    handleKeydown(e) {
-      if (e.key === 'Escape' && this.open && this.closeOnEscape) {
-        this.close();
-      }
-    },
-    
-    handleTransitionEnd(e) {
-      // Only handle the transform transition on the panel itself
-      if (e.propertyName === 'transform' && e.target === e.currentTarget) {
-        if (this.open) {
-          this.$emit('opened');
-        } else {
-          this.emitClosed();
-        }
-      }
-    },
-    
-    emitClosed() {
-      // Prevent duplicate emissions
-      if (this.closedEmitted) return;
-      this.closedEmitted = true;
-      
-      // Clear the fallback timeout
-      if (this.closeTimeout) {
-        clearTimeout(this.closeTimeout);
-        this.closeTimeout = null;
-      }
-      
-      this.$emit('closed');
-    },
-    
-    onOpen() {
-      // Reset closed state when opening
-      this.closedEmitted = false;
-      if (this.closeTimeout) {
-        clearTimeout(this.closeTimeout);
-        this.closeTimeout = null;
-      }
-      // Prevent body scroll when flyout is open
-      document.body.classList.add('flyout-open');
-    },
-    
-    onClose() {
-      document.body.classList.remove('flyout-open');
-      
-      // Fallback: emit closed after transition duration (300ms) + buffer
-      // This handles cases where transitionend doesn't fire (reduced motion, mobile quirks)
-      this.closeTimeout = setTimeout(() => {
-        this.emitClosed();
-      }, 350);
     }
   }
 });

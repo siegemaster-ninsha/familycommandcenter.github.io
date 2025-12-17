@@ -757,7 +757,96 @@ input:focus, select:focus, textarea:focus {
   pointer-events: auto;
 }
 
-/* Flyout panel (slide-in from right) */
+/* ===========================================
+   NATIVE DIALOG FLYOUT
+   Uses native <dialog> element for better iOS Safari/PWA support
+   =========================================== */
+
+/* The dialog element - acts as the backdrop container */
+.native-flyout-dialog {
+  /* Reset default dialog styles */
+  padding: 0;
+  border: none;
+  background: transparent;
+  max-width: 100vw;
+  max-height: 100vh;
+  width: 100vw;
+  height: 100vh;
+  /* Position at top-right for slide-in effect */
+  margin: 0;
+  position: fixed;
+  inset: 0;
+  /* Ensure it's above everything */
+  z-index: 50;
+  /* Allow clicks to pass through to backdrop detection */
+  overflow: hidden;
+}
+
+/* Native backdrop - handled by browser */
+.native-flyout-dialog::backdrop {
+  background-color: var(--color-overlay-transparent);
+  transition: background-color 300ms ease-out;
+}
+
+.native-flyout-dialog.flyout-visible::backdrop {
+  background-color: var(--color-overlay);
+}
+
+/* The actual panel that slides in */
+.native-flyout-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 100%;
+  max-width: var(--flyout-width, 450px);
+  background-color: var(--color-white);
+  box-shadow: -4px 0 24px var(--color-overlay-light);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Start off-screen */
+  transform: translateX(100%);
+  transition: transform 300ms ease-out;
+  /* iOS Safari optimizations */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Slide in when visible */
+.native-flyout-dialog.flyout-visible .native-flyout-panel {
+  transform: translateX(0);
+}
+
+/* Full width on mobile */
+@media (width <= 640px) {
+  .native-flyout-panel {
+    max-width: 100%;
+  }
+}
+
+/* Footer safe area for iOS */
+.native-flyout-panel > div:last-child {
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Ensure buttons work properly in native dialog */
+.native-flyout-panel button,
+.native-flyout-panel a,
+.native-flyout-panel input,
+.native-flyout-panel select,
+.native-flyout-panel textarea {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+/* ===========================================
+   LEGACY FLYOUT (keeping for reference/fallback)
+   =========================================== */
+
+/* Flyout panel (slide-in from right) - LEGACY */
 .flyout-panel {
   position: fixed;
   top: 0;
