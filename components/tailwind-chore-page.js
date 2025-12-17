@@ -386,10 +386,22 @@ const TailwindChorePage = Vue.defineComponent({
       <!-- Quicklist Section -->
       <div class="w-full">
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <h2 class="text-gray-900 text-2xl font-bold leading-tight mb-6 flex items-center gap-2">
-            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('zap', 'lucide', 20, 'text-primary-500') : ''" style="color: var(--color-primary-500);"></div>
-            Quicklist
-          </h2>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-gray-900 text-2xl font-bold leading-tight flex items-center gap-2">
+              <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('zap', 'lucide', 20, 'text-primary-500') : ''" style="color: var(--color-primary-500);"></div>
+              Quicklist
+            </h2>
+            <!-- Manage Categories button - Requirements 1.1 -->
+            <button
+              @click="openCategoryManagementModal"
+              class="flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-colors"
+              style="color: var(--color-primary-600); background: var(--color-primary-50);"
+              title="Manage Categories"
+            >
+              <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('settings', 'lucide', 16, '') : ''"></div>
+              <span class="hidden sm:inline">Categories</span>
+            </button>
+          </div>
           <p class="text-gray-600 text-sm mb-6 text-center">Tap these common chores to assign them quickly</p>
 
           <!-- Loading state (for quicklist-specific refresh) -->
@@ -595,6 +607,14 @@ const TailwindChorePage = Vue.defineComponent({
         console.log('✅ $parent.openMultiAssignModal executed');
       } else {
         console.warn('❌ $parent.openMultiAssignModal method not found');
+      }
+    },
+    // Open category management modal - Requirements 1.1
+    openCategoryManagementModal() {
+      if (this.$parent?.openCategoryManagementModal) {
+        this.$parent.openCategoryManagementModal();
+      } else {
+        console.warn('❌ $parent.openCategoryManagementModal method not found');
       }
     },
 

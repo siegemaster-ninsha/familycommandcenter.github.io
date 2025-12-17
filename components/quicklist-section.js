@@ -1,107 +1,351 @@
-// Quicklist Section Component
+// Quicklist Section Component with Category Accordions
+// **Feature: quicklist-categories**
+// **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5, 6.1, 6.4**
+
 const QuicklistSection = Vue.defineComponent({
   name: 'QuicklistSection',
   template: `
-    <div class="mb-6 sm:mb-8">
-      <h2 class="text-primary-custom text-lg sm:text-[22px] font-bold leading-tight tracking-[-0.015em] px-2 sm:px-4 pb-3 pt-5 flex items-center gap-2">
-        <div v-html="Helpers.IconLibrary.getIcon('zap', 'lucide', 20, 'text-primary-custom')"></div>
-        Quicklist
-      </h2>
-      <div class="rounded-lg mx-2 sm:mx-4 p-3 sm:p-4 border-2 border-dashed" :style="{ background: 'var(--color-bg-card)', borderColor: 'var(--color-border-card)' }">
-        <p class="text-secondary-custom text-sm mb-4 sm:mb-3 text-center px-2">Select these common chores to assign them quickly</p>
-        
-        <div class="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-2 justify-center">
-          <div 
-            v-for="quickChore in quicklistChores" 
-            :key="quickChore.id"
-            :class="getQuicklistChoreClasses(quickChore)"
-            @click="selectQuicklistChore(quickChore)"
+    <div class="w-full">
+      <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-gray-900 text-2xl font-bold leading-tight flex items-center gap-2">
+            <div v-html="getIcon('zap', 20)" style="color: var(--color-primary-500);"></div>
+            Quicklist
+          </h2>
+          <!-- Manage Categories button -->
+          <button
+            @click="$emit('manage-categories')"
+            class="flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-colors"
+            style="color: var(--color-primary-600); background: var(--color-primary-50);"
+            title="Manage Categories"
           >
-            <div class="flex items-center gap-3 sm:gap-2 flex-1 min-w-0">
-              <!-- Remove button (integrated when selected) -->
-              <button
-                v-if="Helpers?.isChoreSelected?.($parent?.selectedChoreId, $parent?.selectedQuicklistChore, quickChore)"
-                @click.stop="removeFromQuicklist(quickChore.id)"
-                class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 touch-target rounded-md"
-                style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);"
-                :class="'hover:scale-105 active:scale-95'"
-                title="Remove from quicklist"
-              >
-                <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 14, 'text-red-600 drop-shadow-sm')"></div>
-              </button>
-
-              <div
-                class="flex items-center justify-center rounded-lg shrink-0 size-10 sm:size-8"
-                :style="{ background: 'var(--color-primary-50)', color: 'var(--color-primary-600)' }"
-                v-html="getCategoryIcon(quickChore.category)"
-              >
-              </div>
-              <div class="flex flex-col flex-1 min-w-0">
-              <p class="text-primary-custom text-sm font-medium leading-tight line-clamp-2 sm:line-clamp-1">{{ quickChore.name }}</p>
-              <p v-if="quickChore.amount > 0" class="text-secondary-custom text-xs">\${{ quickChore.amount.toFixed(2) }}</p>
+            <div v-html="getIcon('settings', 16)"></div>
+            <span class="hidden sm:inline">Categories</span>
+          </button>
+        </div>
+        
+        <!-- Search Input - Requirements 6.1 -->
+        <div class="mb-4">
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <div v-html="getIcon('search', 18)" style="color: var(--color-neutral-400);"></div>
             </div>
-            <span class="text-xs px-2 py-1 rounded-full shrink-0 self-start sm:self-center" :style="{ background: 'var(--color-primary-50)', color: 'var(--color-primary-800)' }">
-              {{ getCategoryLabel(quickChore.category) }}
-            </span>
-          </div>
-          
-          <!-- Add to Quicklist button -->
-          <div class="flex items-center justify-center mt-2 sm:mt-0">
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search quicklist chores..."
+              class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+              style="border-color: var(--color-neutral-200); background: var(--color-bg-card);"
+            />
             <button
-              @click="$parent.showAddToQuicklistModal = true"
-              class="flex items-center gap-2 px-4 py-3 sm:px-3 sm:py-2 rounded-lg border-2 border-dashed transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center"
-              :style="{ background: 'var(--color-primary-50)', color: 'var(--color-primary-700)', borderColor: 'var(--color-primary-300)' }"
-              title="Add new chore to quicklist"
+              v-if="searchQuery"
+              @click="searchQuery = ''"
+              class="absolute inset-y-0 right-0 pr-3 flex items-center"
+              title="Clear search"
             >
-              <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16, 'text-white')"></div>
-              <span class="text-sm font-medium">Add to Quicklist</span>
+              <div v-html="getIcon('x', 18)" style="color: var(--color-neutral-400);"></div>
             </button>
           </div>
+        </div>
+        
+        <p class="text-gray-600 text-sm mb-4 text-center">Tap these common chores to assign them quickly</p>
+
+        <!-- Loading state -->
+        <div v-if="loading" class="space-y-3">
+          <sl-skeleton v-for="n in 3" :key="'ql-skel-'+n" effect="pulse" class="skeleton-card"></sl-skeleton>
+        </div>
+
+        <!-- Error state -->
+        <div v-else-if="error" class="text-center py-12">
+          <div v-html="getIcon('alertTriangle', 48)" class="mx-auto mb-3" style="color: var(--color-error-500);"></div>
+          <p class="font-medium text-red-700">Error loading quicklist</p>
+          <p class="text-sm mt-1 text-red-600">{{ error }}</p>
+          <button
+            @click="$emit('retry')"
+            class="mt-3 px-4 py-2 text-white rounded-lg transition-colors"
+            style="background-color: var(--color-primary-500);"
+          >
+            Try Again
+          </button>
+        </div>
+
+        <!-- Empty state when no chores at all -->
+        <div v-else-if="totalChoreCount === 0" class="text-center py-8 text-gray-500">
+          <div v-html="getIcon('inbox', 48)" class="mx-auto mb-3" style="color: var(--color-neutral-400);"></div>
+          <p>No quicklist chores yet.</p>
+          <p class="text-sm mt-1">Add common chores for quick assignment!</p>
+        </div>
+
+        <!-- No search results - Requirements 6.4 -->
+        <div v-else-if="filteredChoreCount === 0 && searchQuery.trim()" class="text-center py-8 text-gray-500">
+          <div v-html="getIcon('searchX', 48)" class="mx-auto mb-3" style="color: var(--color-neutral-400);"></div>
+          <p>No matching chores</p>
+          <p class="text-sm mt-1">Try a different search term</p>
+        </div>
+
+        <!-- Category Accordions - Requirements 3.1, 3.2, 3.3, 3.4, 3.5 -->
+        <div v-else class="space-y-2 mb-6">
+          <sl-details
+            v-for="categoryName in sortedCategoryNames"
+            :key="categoryName"
+            :summary="getCategorySummary(categoryName)"
+            :open="isExpanded(categoryName)"
+            @sl-show="onCategoryExpand(categoryName)"
+            @sl-hide="onCategoryCollapse(categoryName)"
+            class="quicklist-accordion"
+          >
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-2">
+              <div
+                v-for="chore in getChoresForCategory(categoryName)"
+                :key="chore.id"
+                :class="getChoreCardClasses(chore)"
+                @click="$emit('chore-click', chore)"
+              >
+                <div class="flex items-center gap-3 flex-1 min-w-0">
+                  <div
+                    class="flex items-center justify-center rounded-lg shrink-0 w-10 h-10"
+                    :style="{ background: 'var(--color-primary-50)', color: 'var(--color-primary-600)' }"
+                    v-html="getCategoryIcon(chore.category)"
+                  ></div>
+                  <div class="flex flex-col flex-1 min-w-0">
+                    <p class="text-gray-900 text-sm font-medium leading-tight line-clamp-2">{{ chore.name }}</p>
+                    <p v-if="chore.amount > 0" class="text-gray-500 text-xs">\${{ chore.amount.toFixed(2) }}</p>
+                  </div>
+                </div>
+                <!-- Delete button -->
+                <button
+                  @click.stop="$emit('delete-chore', chore.id)"
+                  class="flex items-center justify-center w-8 h-8 rounded-lg opacity-60 hover:opacity-100 transition-opacity"
+                  style="background: rgba(239, 68, 68, 0.1);"
+                  title="Remove from quicklist"
+                >
+                  <div v-html="getIcon('trash', 14)" style="color: var(--color-error-500);"></div>
+                </button>
+              </div>
+            </div>
+          </sl-details>
+        </div>
+
+        <!-- Add to Quicklist button -->
+        <div class="flex items-center justify-center">
+          <button
+            @click="$emit('add-chore')"
+            class="flex items-center gap-2 px-6 py-4 text-white rounded-xl transition-colors min-h-[48px] w-full sm:w-auto justify-center font-medium"
+            style="background-color: var(--color-primary-500);"
+            title="Add new chore to quicklist"
+          >
+            <div v-html="getIcon('plus', 16)"></div>
+            <span>Add to Quicklist</span>
+          </button>
         </div>
       </div>
     </div>
   `,
-  inject: ['quicklistChores', 'showAddToQuicklistModal', 'handleQuicklistChoreClick', 'openAddToQuicklistModal', 'Helpers'],
+  props: {
+    quicklistChores: {
+      type: Array,
+      default: () => []
+    },
+    categories: {
+      type: Array,
+      default: () => []
+    },
+    loading: {
+      type: Boolean,
+      default: false
+    },
+    error: {
+      type: String,
+      default: null
+    },
+    selectedChoreId: {
+      type: String,
+      default: null
+    }
+  },
+  emits: ['chore-click', 'delete-chore', 'add-chore', 'retry', 'manage-categories'],
+  data() {
+    return {
+      searchQuery: '',
+      expandedCategories: new Set()
+    };
+  },
+
+  computed: {
+    /**
+     * Groups quicklist items by category, filtered by search query
+     * **Feature: quicklist-categories**
+     * **Validates: Requirements 3.1, 6.1, 6.2**
+     */
+    groupedChores() {
+      const query = (this.searchQuery || '').trim().toLowerCase();
+      
+      // Filter chores by search query
+      let filtered = this.quicklistChores || [];
+      if (query) {
+        filtered = filtered.filter(chore => {
+          const name = (chore.name || '').toLowerCase();
+          return name.includes(query);
+        });
+      }
+      
+      // Group by category
+      const grouped = Object.create(null);
+      
+      // Initialize groups for each category
+      (this.categories || []).forEach(cat => {
+        if (cat && cat.name) {
+          grouped[cat.name] = [];
+        }
+      });
+      
+      // Always have Uncategorized group
+      grouped['Uncategorized'] = [];
+      
+      // Assign chores to groups
+      filtered.forEach(chore => {
+        const categoryName = chore.categoryName || 'Uncategorized';
+        if (Object.hasOwn(grouped, categoryName)) {
+          grouped[categoryName].push(chore);
+        } else {
+          grouped['Uncategorized'].push(chore);
+        }
+      });
+      
+      return grouped;
+    },
+    
+    /**
+     * Returns sorted category names with Uncategorized always last
+     * **Feature: quicklist-categories**
+     * **Validates: Requirements 3.5**
+     */
+    sortedCategoryNames() {
+      const grouped = this.groupedChores;
+      const categories = this.categories || [];
+      
+      // Build a map of category name to sortOrder
+      const categoryOrder = new Map();
+      categories.forEach((cat, idx) => {
+        if (cat && cat.name) {
+          categoryOrder.set(cat.name, cat.sortOrder ?? idx);
+        }
+      });
+      
+      // Get keys that have chores (non-empty groups)
+      const keys = Object.keys(grouped).filter(key => grouped[key].length > 0);
+      
+      return keys.sort((a, b) => {
+        // Uncategorized always last
+        if (a === 'Uncategorized') return 1;
+        if (b === 'Uncategorized') return -1;
+        
+        // Then by sortOrder from categories
+        const orderA = categoryOrder.get(a) ?? Infinity;
+        const orderB = categoryOrder.get(b) ?? Infinity;
+        return orderA - orderB;
+      });
+    },
+    
+    /**
+     * Total count of all quicklist chores
+     */
+    totalChoreCount() {
+      return (this.quicklistChores || []).length;
+    },
+    
+    /**
+     * Count of chores after filtering
+     */
+    filteredChoreCount() {
+      return Object.values(this.groupedChores).reduce((sum, arr) => sum + arr.length, 0);
+    }
+  },
+  
+  watch: {
+    // Auto-expand categories when search is active
+    searchQuery(newVal) {
+      if (newVal && newVal.trim()) {
+        // Expand all categories with matching results
+        this.sortedCategoryNames.forEach(name => {
+          this.expandedCategories.add(name);
+        });
+      }
+    }
+  },
+  
+  mounted() {
+    // Expand all categories by default for better UX
+    this.sortedCategoryNames.forEach(name => {
+      this.expandedCategories.add(name);
+    });
+  },
+  
   methods: {
-    getQuicklistChoreClasses(quickChore) {
-      const baseClasses = "relative group flex items-center gap-3 sm:gap-2 bg-white px-4 py-4 sm:px-3 sm:py-2 rounded-lg shadow-sm cursor-pointer border-l-4 border-primary-500 transition-all duration-200 touch-target min-h-[68px] sm:min-h-[56px]";
-      const selected = this.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, quickChore) || false;
-      const selectedClasses = selected ? "ring-4 ring-blue-400 ring-opacity-75 transform scale-105" : "hover:shadow-md hover:scale-105 active:scale-95";
-      return `${baseClasses} ${selectedClasses}`;
+    getIcon(name, size) {
+      const Helpers = window.Helpers;
+      if (Helpers?.IconLibrary?.getIcon) {
+        return Helpers.IconLibrary.getIcon(name, 'lucide', size, 'currentColor');
+      }
+      return '';
     },
     
     getCategoryIcon(category) {
-      return this.Helpers?.getCategoryIcon?.(category) || '';
-    },
-
-    getCategoryLabel(category) {
-      return this.Helpers?.getCategoryLabel?.(category) || '';
+      const Helpers = window.Helpers;
+      return Helpers?.getCategoryIcon?.(category) || '';
     },
     
-    selectQuicklistChore(quickChore) {
-      const handler = this.handleQuicklistChoreClick || this.$parent?.handleQuicklistChoreClick;
-      if (typeof handler === 'function') {
-        handler(quickChore);
-      } else {
-        console.warn('handleQuicklistChoreClick not available');
-      }
-      console.log('Quicklist chore selected:', quickChore.name);
+    /**
+     * Get chores for a specific category
+     */
+    getChoresForCategory(categoryName) {
+      return this.groupedChores[categoryName] || [];
     },
     
-    async removeFromQuicklist(quicklistId) {
-      try {
-        await this.$parent.apiCall(`${CONFIG.API.ENDPOINTS.QUICKLIST}/${quicklistId}`, {
-          method: 'DELETE'
-        });
-        await this.$parent.loadQuicklistChores();
-      } catch (error) {
-        console.error('Failed to remove from quicklist:', error);
-        // Show user-friendly error message
-        this.$parent.showSuccessMessage(`Failed to remove item from quicklist. Please try again.`);
-      }
+    /**
+     * Get summary text for accordion header (category name + count)
+     * **Validates: Requirements 3.2**
+     */
+    getCategorySummary(categoryName) {
+      const count = this.getChoresForCategory(categoryName).length;
+      return `${categoryName} (${count})`;
+    },
+    
+    /**
+     * Check if a category accordion is expanded
+     */
+    isExpanded(categoryName) {
+      return this.expandedCategories.has(categoryName);
+    },
+    
+    /**
+     * Handle accordion expand event
+     * **Validates: Requirements 3.3**
+     */
+    onCategoryExpand(categoryName) {
+      this.expandedCategories.add(categoryName);
+    },
+    
+    /**
+     * Handle accordion collapse event
+     * **Validates: Requirements 3.4**
+     */
+    onCategoryCollapse(categoryName) {
+      this.expandedCategories.delete(categoryName);
+    },
+    
+    /**
+     * Get CSS classes for a chore card
+     */
+    getChoreCardClasses(chore) {
+      const baseClasses = "relative group flex items-center gap-3 bg-white px-4 py-3 rounded-lg shadow-sm cursor-pointer border-l-4 transition-all duration-200 hover:shadow-md hover:scale-102";
+      const borderColor = "border-primary-500";
+      const selected = this.selectedChoreId === chore.id;
+      const selectedClasses = selected ? "ring-2 ring-blue-400 ring-opacity-75 transform scale-105" : "";
+      return `${baseClasses} ${borderColor} ${selectedClasses}`;
     }
   }
 });
 
 // Export component for manual registration
-window.QuicklistSectionComponent = QuicklistSection; 
+window.QuicklistSectionComponent = QuicklistSection;

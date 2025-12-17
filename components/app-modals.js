@@ -46,6 +46,13 @@ const AppModals = Vue.defineComponent({
               <option value="game">Electronics Requirement</option>
             </select>
           </div>
+          <!-- Category Selector - Requirements 2.1, 2.2 -->
+          <category-selector
+            v-model="newQuicklistChore.categoryId"
+            :categories="categoriesStore?.categories || []"
+            label="Category"
+            @category-created="onQuicklistCategoryCreated"
+          ></category-selector>
           <div>
             <label class="flex items-center gap-2 cursor-pointer">
               <input 
@@ -755,6 +762,13 @@ const AppModals = Vue.defineComponent({
         </div>
       </template>
     </flyout-panel>
+
+    <!-- Category Management Modal -->
+    <!-- _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_ -->
+    <category-management-modal
+      :open="showCategoryManagementModal"
+      @close="closeCategoryManagementModal"
+    ></category-management-modal>
   `,
   data() {
     return {
@@ -796,9 +810,17 @@ const AppModals = Vue.defineComponent({
     'confirmMultiAssignment', 'cancelMultiAssignment',
     // add child / invite parent modals
     'showCreateChildModal', 'showInviteModal', 'closeCreateChildModal', 'closeInviteModal',
-    'people'
+    'people',
+    // Category management
+    'categoriesStore',
+    'showCategoryManagementModal',
+    'closeCategoryManagementModal'
   ],
   methods: {
+    // Handle category created inline in quicklist form
+    onQuicklistCategoryCreated(category) {
+      console.log('[OK] Category created inline:', category.name);
+    },
     getCategoryLabel(category) {
       switch(category) {
         case 'school': return 'School';

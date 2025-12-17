@@ -29,6 +29,9 @@ const CONFIG = {
       QUICKLIST: '/quicklist',
       QUICKLIST_INITIALIZE: '/quicklist/initialize',
       
+      // Categories
+      CATEGORIES: '/categories',
+      
       // Shopping Items
       SHOPPING_ITEMS: '/shopping-items',
       SHOPPING_ITEMS_CLEAR_COMPLETED: '/shopping-items/clear-completed',
@@ -67,7 +70,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.62 - Quantum Raven (Dec 16, 2025)',
+    VERSION: '1.0.63 - Gleaming Quail (Dec 16, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {

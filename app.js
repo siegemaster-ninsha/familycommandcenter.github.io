@@ -48,6 +48,7 @@ const app = createApp({
         name: '',
         amount: 0,
         category: 'regular',
+        categoryId: '',  // Category ID for grouping (empty = Uncategorized)
         isDetailed: false,
         defaultDetails: ''
       },
@@ -65,6 +66,8 @@ const app = createApp({
       showMultiAssignModal: false,
       selectedQuicklistChore: null,
       multiAssignSelectedMembers: [],
+      // Category management modal
+      showCategoryManagementModal: false,
       // Person management
       people: [],
       // manual add person removed
@@ -1099,6 +1102,7 @@ const app = createApp({
           name: this.newQuicklistChore.name.trim(),
           amount: this.newQuicklistChore.amount,
           category: this.newQuicklistChore.category,
+          categoryId: this.newQuicklistChore.categoryId || null,  // Category ID for grouping
           isDetailed: this.newQuicklistChore.isDetailed || false,
           defaultDetails: this.newQuicklistChore.defaultDetails || ''
         };
@@ -1151,7 +1155,7 @@ const app = createApp({
     
     cancelAddToQuicklist() {
       this.showAddToQuicklistModal = false;
-      this.newQuicklistChore = { name: '', amount: 0, category: 'regular', isDetailed: false, defaultDetails: '' };
+      this.newQuicklistChore = { name: '', amount: 0, category: 'regular', categoryId: '', isDetailed: false, defaultDetails: '' };
     },
 
     // Multi-assignment modal methods for quicklist chores
@@ -1180,6 +1184,16 @@ const app = createApp({
       this.showMultiAssignModal = false;
       this.selectedQuicklistChore = null;
       this.multiAssignSelectedMembers = [];
+    },
+
+    // Category management modal methods
+    // _Requirements: 1.1_
+    openCategoryManagementModal() {
+      this.showCategoryManagementModal = true;
+    },
+    
+    closeCategoryManagementModal() {
+      this.showCategoryManagementModal = false;
     },
 
     async confirmMultiAssignment() {
@@ -2540,6 +2554,7 @@ const app = createApp({
       showChoreDetailsModal: Vue.computed(() => this.showChoreDetailsModal),
       showMultiAssignModal: Vue.computed(() => this.showMultiAssignModal),
       multiAssignSelectedMembers: Vue.toRef(this, 'multiAssignSelectedMembers'),
+      showCategoryManagementModal: Vue.computed(() => this.showCategoryManagementModal),
       // add child / invite parent modal flags
       showCreateChildModal: Vue.computed(() => this.showCreateChildModal),
       showInviteModal: Vue.computed(() => this.showInviteModal),
@@ -2590,6 +2605,8 @@ const app = createApp({
       openMultiAssignModal: this.openMultiAssignModal,
       confirmMultiAssignment: this.confirmMultiAssignment,
       cancelMultiAssignment: this.cancelMultiAssignment,
+      openCategoryManagementModal: this.openCategoryManagementModal,
+      closeCategoryManagementModal: this.closeCategoryManagementModal,
       deleteChore: this.deleteChore,
       deletePerson: this.performDeletePerson,
       executeDeletePerson: this.executeDeletePerson,
@@ -2631,7 +2648,10 @@ const app = createApp({
       approveSpendingRequest: this.approveSpendingRequest
       ,
       // shared api helper
-      apiCall: this.apiCall
+      apiCall: this.apiCall,
+      
+      // Categories store for category management
+      categoriesStore: Vue.computed(() => window.useCategoriesStore?.())
     };
   }
 });
@@ -2737,6 +2757,16 @@ function checkAndRegisterComponents() {
   console.log('📦 Registering flyout-panel');
   if (window.FlyoutPanel) {
     app.component('flyout-panel', window.FlyoutPanel);
+  }
+
+  console.log('📦 Registering category-selector');
+  if (window.CategorySelectorComponent) {
+    app.component('category-selector', window.CategorySelectorComponent);
+  }
+
+  console.log('📦 Registering category-management-modal');
+  if (window.CategoryManagementModalComponent) {
+    app.component('category-management-modal', window.CategoryManagementModalComponent);
   }
 
   console.log('📦 Registering nav-menu');

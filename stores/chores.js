@@ -125,7 +125,136 @@ const useChoresStore = Pinia.defineStore('chores', {
     choreCount: (state) => state.chores.length,
     
     // quicklist count
-    quicklistCount: (state) => state.quicklistChores.length
+    quicklistCount: (state) => state.quicklistChores.length,
+    
+    /**
+     * Groups quicklist items by their categoryName
+     * Items with null/undefined categoryName go to "Uncategorized"
+     * 
+     * **Feature: quicklist-categories**
+     * **Validates: Requirements 3.1**
+     * 
+     * @returns {Object} Object with category names as keys and arrays of chores as values
+     */
+    quicklistByCategory: (state) => {
+      const useCategoriesStore = window.useCategoriesStore;
+      const categories = useCategoriesStore ? useCategoriesStore().sortedCategories : [];
+      
+      // Use Object.create(null) to avoid prototype pollution issues
+      const grouped = Object.create(null);
+      
+      // Initialize groups for each category
+      categories.forEach(cat => {
+        if (cat && cat.name) {
+          grouped[cat.name] = [];
+        }
+      });
+      
+      // Always have Uncategorized group
+      grouped['Uncategorized'] = [];
+      
+      // Assign chores to groups
+      (state.quicklistChores || []).forEach(chore => {
+        const categoryName = chore.categoryName || 'Uncategorized';
+        if (Object.hasOwn(grouped, categoryName)) {
+          grouped[categoryName].push(chore);
+        } else {
+          // Category doesn't exist in our list, put in Uncategorized
+          grouped['Uncategorized'].push(chore);
+        }
+      });
+      
+      return grouped;
+    },
+    
+    /**
+     * Returns sorted category names with Uncategorized always last
+     * 
+     * **Feature: quicklist-categories**
+     * **Validates: Requirements 3.5**
+     * 
+     * @returns {string[]} Sorted array of category names
+     */
+    sortedCategoryNames() {
+      const grouped = this.quicklistByCategory;
+      const useCategoriesStore = window.useCategoriesStore;
+      const categories = useCategoriesStore ? useCategoriesStore().sortedCategories : [];
+      
+      // Build a map of category name to sortOrder
+      const categoryOrder = new Map();
+      categories.forEach((cat, idx) => {
+        if (cat && cat.name) {
+          categoryOrder.set(cat.name, cat.sortOrder ?? idx);
+        }
+      });
+      
+      const keys = Object.keys(grouped);
+      
+      return keys.sort((a, b) => {
+        // Uncategorized always last
+        if (a === 'Uncategorized') return 1;
+        if (b === 'Uncategorized') return -1;
+        
+        // Then by sortOrder from categories
+        const orderA = categoryOrder.get(a) ?? Infinity;
+        const orderB = categoryOrder.get(b) ?? Infinity;
+        return orderA - orderB;
+      });
+    },
+    
+    /**
+     * Filters quicklist items by search query while maintaining category grouping
+     * Empty/whitespace queries return all items grouped by category
+     * 
+     * **Feature: quicklist-categories**
+     * **Validates: Requirements 6.1, 6.2, 6.3**
+     * 
+     * @param {string} searchQuery - Search query string
+     * @returns {Object} Filtered and grouped object
+     */
+    filteredQuicklistByCategory: (state) => {
+      return (searchQuery) => {
+        const useCategoriesStore = window.useCategoriesStore;
+        const categories = useCategoriesStore ? useCategoriesStore().sortedCategories : [];
+        
+        // Filter by search query
+        const query = (searchQuery || '').trim().toLowerCase();
+        let filtered = state.quicklistChores || [];
+        
+        if (query) {
+          filtered = filtered.filter(chore => {
+            const name = (chore.name || '').toLowerCase();
+            return name.includes(query);
+          });
+        }
+        
+        // Use Object.create(null) to avoid prototype pollution issues
+        const grouped = Object.create(null);
+        
+        // Initialize groups for each category
+        categories.forEach(cat => {
+          if (cat && cat.name) {
+            grouped[cat.name] = [];
+          }
+        });
+        
+        // Always have Uncategorized group
+        grouped['Uncategorized'] = [];
+        
+        // Assign filtered chores to groups
+        filtered.forEach(chore => {
+          const categoryName = chore.categoryName || 'Uncategorized';
+          if (Object.hasOwn(grouped, categoryName)) {
+            grouped[categoryName].push(chore);
+          } else {
+            // Category doesn't exist in our list, put in Uncategorized
+            grouped['Uncategorized'].push(chore);
+          }
+        });
+        
+        return grouped;
+      };
+    }
   },
   
   actions: {
