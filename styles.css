@@ -845,6 +845,220 @@ body.modal-open {
 }
 
 /* ===========================================
+   SHOELACE CHORE CARDS
+   Uses Shoelace's <sl-card> for consistent styling
+   =========================================== */
+
+/* Base chore card styling */
+.chore-card {
+  --border-radius: var(--radius-xl);
+  --border-width: 2px;
+  --border-color: var(--color-primary-600);
+  --padding: var(--space-3);
+  width: 100%;
+  cursor: pointer;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.chore-card::part(base) {
+  background: var(--gradient-primary);
+  border-color: var(--color-primary-600);
+}
+
+.chore-card::part(body) {
+  padding: var(--space-3) var(--space-4);
+}
+
+/* Hover state */
+@media (hover: hover) {
+  .chore-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+/* Selected state */
+.chore-card--selected {
+  --border-width: 4px;
+  --border-color: var(--color-primary-300);
+  transform: scale(1.02);
+  z-index: 10;
+}
+
+.chore-card--selected::part(base) {
+  background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-700));
+  box-shadow: 0 25px 50px -12px var(--color-primary-500), 0 0 0 4px rgb(250 204 21 / 60%);
+}
+
+/* Completed state */
+.chore-card--completed::part(base) {
+  opacity: 0.7;
+}
+
+/* Card content layout */
+.chore-card-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Checkbox styling */
+.chore-card .chore-checkbox {
+  --sl-color-primary-600: var(--color-white);
+  flex-shrink: 0;
+}
+
+.chore-card .chore-checkbox::part(control) {
+  border-color: rgb(255 255 255 / 50%);
+  background-color: transparent;
+}
+
+.chore-card .chore-checkbox::part(control--checked) {
+  background-color: var(--color-secondary-500);
+  border-color: var(--color-secondary-500);
+}
+
+/* Chore name */
+.chore-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-white);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.chore-name--completed {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+/* Amount badge - use theme colors */
+.chore-card .chore-amount {
+  flex-shrink: 0;
+  --sl-color-primary-600: var(--color-white);
+}
+
+.chore-card .chore-amount::part(base) {
+  background-color: rgb(255 255 255 / 20%);
+  border: 1px solid rgb(255 255 255 / 40%);
+  color: var(--color-white);
+  font-weight: 600;
+}
+
+/* Delete button */
+.chore-card .chore-delete-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: rgb(255 255 255 / 10%);
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: var(--radius-md);
+  color: rgb(255 255 255 / 70%);
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.chore-card .chore-delete-btn:hover {
+  background: rgb(255 255 255 / 20%);
+  color: var(--color-white);
+  transform: scale(1.05);
+}
+
+/* ===========================================
+   SHOELACE SKELETON LOADING STATES
+   =========================================== */
+
+/* Skeleton for section headers */
+.skeleton-header {
+  --border-radius: var(--radius-md);
+  height: 2rem;
+  width: 200px;
+}
+
+/* Skeleton for subtext */
+.skeleton-subtext {
+  --border-radius: var(--radius-sm);
+  height: 1rem;
+  width: 300px;
+  margin: 0 auto;
+}
+
+/* Skeleton for chore cards */
+.skeleton-card {
+  --border-radius: var(--radius-xl);
+  height: 60px;
+  width: 100%;
+}
+
+/* Skeleton for avatar */
+.skeleton-avatar {
+  --border-radius: 50%;
+  height: 48px;
+  width: 48px;
+  flex-shrink: 0;
+}
+
+/* Skeleton for name */
+.skeleton-name {
+  --border-radius: var(--radius-md);
+  height: 1.5rem;
+  width: 120px;
+}
+
+/* Skeleton for earnings cards */
+.skeleton-earnings {
+  --border-radius: var(--radius-xl);
+  height: 100px;
+  width: 100%;
+}
+
+/* Customize Shoelace skeleton colors to match theme */
+sl-skeleton {
+  --color: var(--color-neutral-300);
+  --sheen-color: var(--color-neutral-200);
+}
+
+/* ===========================================
+   TOAST NOTIFICATIONS
+   =========================================== */
+
+/* Container for toast notifications - positioned bottom-right */
+.toast-container {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+/* Mobile: center toasts at bottom */
+@media (max-width: 640px) {
+  .toast-container {
+    left: 1rem;
+    right: 1rem;
+    bottom: 5rem; /* Above mobile nav */
+  }
+}
+
+/* Customize Shoelace alert toast appearance */
+.toast-container sl-alert {
+  pointer-events: auto;
+  --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ===========================================
    PRINT STYLES
    =========================================== */
 

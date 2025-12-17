@@ -301,8 +301,8 @@
                 <app-confetti></app-confetti>
 
                 <!-- Page Content -->
-                <div v-if="!loading && !error">
-                  <!-- Chores Page -->
+                <div v-if="!error">
+                  <!-- Chores Page (handles its own loading skeleton) -->
                   <div v-if="currentPage === 'chores'">
                     <chore-page></chore-page>
                   </div>

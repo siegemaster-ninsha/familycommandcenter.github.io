@@ -1,66 +1,70 @@
 // Tailwind Chore Page Component with Reusable Cards
 // Using standard Tailwind components instead of custom components
 
-// Unified Chore Card Component
+// Register this page as having its own skeleton loading
+// This tells AppLoadingState not to show the spinner when on this page
+if (window.SkeletonRegistry) {
+  window.SkeletonRegistry.register('chores');
+}
+
+// Unified Chore Card Component - Shoelace Implementation
 const ChoreCard = {
   template: `
-    <div
-      class="relative flex items-center gap-3 p-4 rounded-xl transition-all duration-200 cursor-pointer border-2 hover:shadow-lg hover:-translate-y-0.5"
-      :aria-selected="isSelected"
-      role="option"
+    <sl-card
+      class="chore-card"
       :class="[
-        isSelected ? 'shadow-2xl scale-105 z-10 border-4 ring-8 ring-yellow-400 ring-opacity-80' : ''
+        isSelected ? 'chore-card--selected' : '',
+        chore.completed && type !== 'quicklist' ? 'chore-card--completed' : ''
       ]"
       :style="getCardStyle()"
       @touchstart.passive="handleTouchStart"
       @touchmove.passive="handleTouchMove"
       @click.stop="handleClick"
     >
-      <!-- Completion checkbox (not for quicklist) -->
-      <button
-        v-if="type !== 'quicklist'"
-        @click.stop="handleToggleComplete"
-        class="w-[44px] h-[44px] flex items-center justify-center flex-shrink-0 rounded transition-colors"
-        :class="chore.completed ? 'text-green-400' : 'text-white text-opacity-50 hover:text-opacity-80'"
-        :aria-checked="chore.completed"
-        role="checkbox"
-      >
-        <div v-if="chore.completed" v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('squareCheck', 'lucide', 32, '') : ''"></div>
-        <div v-else v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('square', 'lucide', 32, '') : ''"></div>
-      </button>
+      <div class="chore-card-content">
+        <!-- Completion checkbox (not for quicklist) -->
+        <sl-checkbox
+          v-if="type !== 'quicklist'"
+          :checked="chore.completed"
+          @sl-change="handleToggleComplete"
+          @click.stop
+          size="large"
+          class="chore-checkbox"
+        ></sl-checkbox>
 
-      <!-- Chore name - grows to fill space -->
-      <p
-        :class="chore.completed && type !== 'quicklist' ? 'line-through text-white opacity-60' : 'text-white'"
-        class="text-sm font-medium leading-normal line-clamp-2 flex-1 min-w-0"
-      >
-        {{ chore.name }}
-      </p>
+        <!-- Chore name - grows to fill space -->
+        <span
+          :class="chore.completed && type !== 'quicklist' ? 'chore-name--completed' : ''"
+          class="chore-name"
+        >
+          {{ chore.name }}
+        </span>
 
-      <!-- Pay amount -->
-      <p v-if="chore.amount > 0" :class="chore.completed && type !== 'quicklist' ? 'text-white opacity-50' : 'text-white text-opacity-90'" class="text-xs font-medium whitespace-nowrap flex-shrink-0">
-        \${{ chore.amount.toFixed(2) }}
-      </p>
+        <!-- Pay amount -->
+        <sl-badge v-if="chore.amount > 0" variant="primary" pill class="chore-amount">
+          \${{ chore.amount.toFixed(2) }}
+        </sl-badge>
 
-      <!-- Approval button (assigned type only) -->
-      <button
-        v-if="type === 'assigned' && showApprovalButton && chore.isPendingApproval"
-        @click.stop="handleApprove"
-        class="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors flex-shrink-0"
-      >
-        Approve
-      </button>
+        <!-- Approval button (assigned type only) -->
+        <sl-button
+          v-if="type === 'assigned' && showApprovalButton && chore.isPendingApproval"
+          @click.stop="handleApprove"
+          variant="success"
+          size="small"
+        >
+          Approve
+        </sl-button>
 
-      <!-- Delete/Remove button -->
-      <button
-        @click.stop="handleDelete"
-        class="flex items-center justify-center opacity-70 hover:opacity-100 transition-all duration-200 rounded-md bg-white bg-opacity-10 border border-white border-opacity-20 hover:scale-105 active:scale-95 flex-shrink-0"
-        :class="getButtonSize()"
-        :title="getButtonTitle()"
-      >
-        <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('trash', 'lucide', getTrashIconSize(), 'text-white drop-shadow-sm') : ''"></div>
-      </button>
-    </div>
+        <!-- Delete/Remove button -->
+        <button
+          @click.stop="handleDelete"
+          class="chore-delete-btn"
+          :title="getButtonTitle()"
+        >
+          <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('trash', 'lucide', 18, 'text-white') : ''"></div>
+        </button>
+      </div>
+    </sl-card>
   `,
   props: {
     chore: { type: Object, required: true },
@@ -83,18 +87,8 @@ const ChoreCard = {
   },
   methods: {
     getCardStyle() {
-      // Use theme colors via CSS custom properties
-      if (this.isSelected) {
-        return {
-          backgroundColor: 'var(--color-primary-700)',
-          borderColor: 'var(--color-primary-300)',
-          boxShadow: '0 25px 50px -12px var(--color-primary-500)'
-        };
-      }
-      return {
-        backgroundColor: 'var(--color-primary-500)',
-        borderColor: 'var(--color-primary-600)'
-      };
+      // Styles now handled via CSS classes (chore-card--selected, chore-card--completed)
+      return {};
     },
     handleTouchStart(event) {
       if (event.touches && event.touches.length > 0) {
@@ -146,10 +140,11 @@ const ChoreCard = {
       this.touchStartY = null;
       this.onClick(this.chore, event);
     },
-    handleToggleComplete() {
+    handleToggleComplete(event) {
       if (this.onToggleComplete) {
-        // Pass a synthetic event-like object with the new state
-        this.onToggleComplete(this.chore, { target: { checked: !this.chore.completed } });
+        // Shoelace sl-change event has checked state in event.target.checked
+        const newState = event?.target?.checked ?? !this.chore.completed;
+        this.onToggleComplete(this.chore, { target: { checked: newState } });
       }
     },
     handleApprove() {
@@ -338,14 +333,52 @@ const TailwindChorePage = Vue.defineComponent({
   name: 'TailwindChorePage',
   template: `
     <div class="space-y-6 pb-24 sm:pb-0">
-      <!-- Page Header -->
-      <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('clipboardList', 'lucide', 24, 'text-primary-500') : ''" style="color: var(--color-primary-500);"></div>
-          Chores
-        </h1>
+      <!-- Loading Skeleton State -->
+      <div v-if="loading" class="space-y-6">
+        <!-- Quicklist Skeleton -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <sl-skeleton effect="pulse" class="skeleton-header mb-6"></sl-skeleton>
+          <sl-skeleton effect="pulse" class="skeleton-subtext mb-6"></sl-skeleton>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <sl-skeleton v-for="n in 4" :key="'ql-'+n" effect="pulse" class="skeleton-card"></sl-skeleton>
+          </div>
+        </div>
+        
+        <!-- Unassigned Skeleton -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <sl-skeleton effect="pulse" class="skeleton-header mb-6"></sl-skeleton>
+          <div class="space-y-4">
+            <sl-skeleton v-for="n in 2" :key="'ua-'+n" effect="pulse" class="skeleton-card"></sl-skeleton>
+          </div>
+        </div>
+        
+        <!-- Family Members Skeleton -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <sl-skeleton effect="pulse" class="skeleton-header mb-6"></sl-skeleton>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div v-for="n in 2" :key="'fm-'+n" class="border-2 rounded-xl p-6" style="border-color: var(--color-neutral-200);">
+              <div class="flex items-center gap-3 mb-4">
+                <sl-skeleton effect="pulse" class="skeleton-avatar"></sl-skeleton>
+                <sl-skeleton effect="pulse" class="skeleton-name"></sl-skeleton>
+              </div>
+              <div class="space-y-3">
+                <sl-skeleton v-for="m in 2" :key="'fc-'+n+'-'+m" effect="pulse" class="skeleton-card"></sl-skeleton>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Earnings Skeleton -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <sl-skeleton effect="pulse" class="skeleton-header mb-6"></sl-skeleton>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <sl-skeleton v-for="n in 2" :key="'ea-'+n" effect="pulse" class="skeleton-earnings"></sl-skeleton>
+          </div>
+        </div>
       </div>
 
+      <!-- Actual Content (when not loading) -->
+      <template v-else>
       <!-- Quicklist Section -->
       <div class="w-full">
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
@@ -355,10 +388,9 @@ const TailwindChorePage = Vue.defineComponent({
           </h2>
           <p class="text-gray-600 text-sm mb-6 text-center">Tap these common chores to assign them quickly</p>
 
-          <!-- Loading state -->
-          <div v-if="quicklistLoading" class="text-center py-12">
-            <div class="inline-block w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style="border-color: var(--color-primary-500); border-top-color: transparent;"></div>
-            <p class="text-gray-600 mt-2">Loading quicklist...</p>
+          <!-- Loading state (for quicklist-specific refresh) -->
+          <div v-if="quicklistLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <sl-skeleton v-for="n in 4" :key="'qlr-'+n" effect="pulse" class="skeleton-card"></sl-skeleton>
           </div>
 
           <!-- Error state -->
@@ -514,6 +546,7 @@ const TailwindChorePage = Vue.defineComponent({
           </div>
         </div>
       </div>
+      </template>
     </div>
   `,
   inject: [
