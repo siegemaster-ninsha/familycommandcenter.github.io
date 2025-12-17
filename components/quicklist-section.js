@@ -94,34 +94,72 @@ const QuicklistSection = Vue.defineComponent({
             @sl-hide="onCategoryCollapse(categoryName)"
             class="quicklist-accordion"
           >
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-2">
-              <div
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-2">
+              <!-- Use sl-card to match other chore cards -->
+              <sl-card
                 v-for="chore in getChoresForCategory(categoryName)"
                 :key="chore.id"
-                :class="getChoreCardClasses(chore)"
+                class="chore-card"
+                :class="selectedChoreId === chore.id ? 'chore-card--selected' : ''"
                 @click="$emit('chore-click', chore)"
               >
-                <div class="flex items-center gap-3 flex-1 min-w-0">
-                  <div
-                    class="flex items-center justify-center rounded-lg shrink-0 w-10 h-10"
-                    :style="{ background: 'var(--color-primary-50)', color: 'var(--color-primary-600)' }"
-                    v-html="getCategoryIcon(chore.category)"
-                  ></div>
-                  <div class="flex flex-col flex-1 min-w-0">
-                    <p class="text-gray-900 text-sm font-medium leading-tight line-clamp-2">{{ chore.name }}</p>
-                    <p v-if="chore.amount > 0" class="text-gray-500 text-xs">\${{ chore.amount.toFixed(2) }}</p>
+                <div class="chore-card-content">
+                  <!-- Chore name - full width on top -->
+                  <span class="chore-name">{{ chore.name }}</span>
+
+                  <!-- Actions row: badge + buttons -->
+                  <div class="chore-card-actions">
+                    <!-- Pay amount -->
+                    <sl-badge v-if="chore.amount > 0" variant="primary" pill class="chore-amount">
+                      \${{ chore.amount.toFixed(2) }}
+                    </sl-badge>
+
+                    <!-- Spacer to push buttons right -->
+                    <span style="flex: 1;"></span>
+
+                    <!-- Assign Category dropdown - only for Uncategorized chores -->
+                    <!-- Wrapper div stops all event propagation to prevent accordion toggle -->
+                    <div 
+                      v-if="isUncategorized(chore)" 
+                      @click.stop 
+                      @touchstart.stop
+                      @touchend.stop
+                      class="dropdown-wrapper"
+                    >
+                      <sl-dropdown 
+                        :hoist="true" 
+                        placement="bottom-start"
+                      >
+                        <button
+                          slot="trigger"
+                          class="chore-category-btn"
+                          title="Assign category"
+                        >
+                          <div v-html="getIcon('folderPlus', 16)"></div>
+                        </button>
+                        <sl-menu @sl-select="(e) => onCategorySelect(chore, e)">
+                          <sl-menu-item
+                            v-for="cat in categories"
+                            :key="cat.id"
+                            :value="cat.id"
+                          >
+                            {{ cat.name }}
+                          </sl-menu-item>
+                        </sl-menu>
+                      </sl-dropdown>
+                    </div>
+
+                    <!-- Delete button -->
+                    <button
+                      @click.stop="$emit('delete-chore', chore.id)"
+                      class="chore-delete-btn"
+                      title="Remove from quicklist"
+                    >
+                      <div v-html="getIcon('trash', 18)"></div>
+                    </button>
                   </div>
                 </div>
-                <!-- Delete button -->
-                <button
-                  @click.stop="$emit('delete-chore', chore.id)"
-                  class="flex items-center justify-center w-8 h-8 rounded-lg opacity-60 hover:opacity-100 transition-opacity"
-                  style="background: rgba(239, 68, 68, 0.1);"
-                  title="Remove from quicklist"
-                >
-                  <div v-html="getIcon('trash', 14)" style="color: var(--color-error-500);"></div>
-                </button>
-              </div>
+              </sl-card>
             </div>
           </sl-details>
         </div>
@@ -163,7 +201,7 @@ const QuicklistSection = Vue.defineComponent({
       default: null
     }
   },
-  emits: ['chore-click', 'delete-chore', 'add-chore', 'retry', 'manage-categories'],
+  emits: ['chore-click', 'delete-chore', 'add-chore', 'retry', 'manage-categories', 'category-changed'],
   data() {
     return {
       searchQuery: '',
@@ -290,16 +328,43 @@ const QuicklistSection = Vue.defineComponent({
       return '';
     },
     
-    getCategoryIcon(category) {
-      const Helpers = window.Helpers;
-      return Helpers?.getCategoryIcon?.(category) || '';
+    /**
+     * Check if a chore is uncategorized
+     */
+    isUncategorized(chore) {
+      return !chore.categoryName || chore.categoryName === 'Uncategorized';
     },
     
     /**
-     * Get chores for a specific category
+     * Handle category selection from dropdown
+     * Stops propagation to prevent accordion toggle
+     */
+    onCategorySelect(chore, event) {
+      // Stop propagation to prevent accordion from toggling
+      if (event) {
+        event.stopPropagation();
+        event.preventDefault?.();
+      }
+      
+      const categoryId = event.detail?.item?.value;
+      if (categoryId) {
+        const category = (this.categories || []).find(c => c.id === categoryId);
+        if (category) {
+          this.$emit('category-changed', { chore, categoryId, categoryName: category.name });
+        }
+      }
+    },
+    
+    /**
+     * Get chores for a specific category, sorted alphabetically by name
      */
     getChoresForCategory(categoryName) {
-      return this.groupedChores[categoryName] || [];
+      const chores = this.groupedChores[categoryName] || [];
+      return [...chores].sort((a, b) => {
+        const nameA = (a.name || '').toLowerCase();
+        const nameB = (b.name || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
     },
     
     /**
@@ -332,17 +397,6 @@ const QuicklistSection = Vue.defineComponent({
      */
     onCategoryCollapse(categoryName) {
       this.expandedCategories.delete(categoryName);
-    },
-    
-    /**
-     * Get CSS classes for a chore card
-     */
-    getChoreCardClasses(chore) {
-      const baseClasses = "relative group flex items-center gap-3 bg-white px-4 py-3 rounded-lg shadow-sm cursor-pointer border-l-4 transition-all duration-200 hover:shadow-md hover:scale-102";
-      const borderColor = "border-primary-500";
-      const selected = this.selectedChoreId === chore.id;
-      const selectedClasses = selected ? "ring-2 ring-blue-400 ring-opacity-75 transform scale-105" : "";
-      return `${baseClasses} ${borderColor} ${selectedClasses}`;
     }
   }
 });

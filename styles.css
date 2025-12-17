@@ -145,6 +145,23 @@ input[type="password"]::-ms-clear {
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
   
+  /* Font Size Scale (follows Tailwind conventions) */
+  --font-size-xs: 0.75rem;     /* 12px */
+  --font-size-sm: 0.875rem;    /* 14px */
+  --font-size-base: 1rem;      /* 16px */
+  --font-size-lg: 1.125rem;    /* 18px */
+  --font-size-xl: 1.25rem;     /* 20px */
+  --font-size-2xl: 1.5rem;     /* 24px */
+  --font-size-3xl: 1.875rem;   /* 30px */
+  --font-size-4xl: 2.25rem;    /* 36px */
+  
+  /* Line Height Scale */
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+  
   /* Spacing Scale */
   --space-1: 0.25rem;   /* 4px */
   --space-2: 0.5rem;    /* 8px */
@@ -197,6 +214,87 @@ input[type="password"]::-ms-clear {
   
   /* Focus */
   --color-focus-ring: var(--color-primary-500);
+}
+
+/* ===========================================
+   ACCESSIBILITY - SKIP LINK (WCAG 2.4.1)
+   Allows keyboard users to skip navigation
+   =========================================== */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: var(--space-4);
+  z-index: 9999;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-primary-500);
+  color: var(--color-white);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: top var(--transition-fast);
+  box-shadow: var(--shadow-lg);
+}
+
+.skip-link:focus {
+  top: var(--space-4);
+  outline: 2px solid var(--color-white);
+  outline-offset: 2px;
+}
+
+/* ===========================================
+   ACCESSIBILITY - FORCED COLORS MODE
+   Support for Windows High Contrast Mode
+   =========================================== */
+@media (forced-colors: active) {
+  /* Ensure focus indicators are visible */
+  :focus {
+    outline: 2px solid CanvasText !important;
+    outline-offset: 2px;
+  }
+  
+  /* Ensure buttons have visible borders */
+  .btn-primary,
+  .btn-secondary,
+  .btn-success,
+  .btn-warning,
+  .btn-error {
+    border: 2px solid ButtonText !important;
+  }
+  
+  /* Ensure cards have visible borders */
+  .card {
+    border: 1px solid CanvasText !important;
+  }
+}
+
+/* ===========================================
+   TYPOGRAPHY UTILITIES
+   Use these classes for consistent text sizing
+   =========================================== */
+.text-xs { font-size: var(--font-size-xs); }
+.text-sm { font-size: var(--font-size-sm); }
+.text-base { font-size: var(--font-size-base); }
+.text-lg { font-size: var(--font-size-lg); }
+.text-xl { font-size: var(--font-size-xl); }
+.text-2xl { font-size: var(--font-size-2xl); }
+.text-3xl { font-size: var(--font-size-3xl); }
+.text-4xl { font-size: var(--font-size-4xl); }
+
+/* ===========================================
+   READABILITY UTILITIES
+   Max line length for optimal reading (45-75 chars)
+   =========================================== */
+.prose {
+  max-width: 65ch;
+}
+
+.prose-sm {
+  max-width: 45ch;
+}
+
+.prose-lg {
+  max-width: 75ch;
 }
 
 /* ===========================================
@@ -888,7 +986,7 @@ body.modal-open {
 }
 
 .chore-card::part(body) {
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-3);
 }
 
 /* Hover state */
@@ -996,6 +1094,29 @@ body.modal-open {
 }
 
 .chore-card .chore-delete-btn:hover {
+  background: rgb(255 255 255 / 20%);
+  color: var(--color-white);
+  transform: scale(1.05);
+}
+
+/* Category assignment button (for uncategorized quicklist chores) */
+.chore-card .chore-category-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: rgb(255 255 255 / 10%);
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: var(--radius-md);
+  color: rgb(255 255 255 / 70%);
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.chore-card .chore-category-btn:hover {
   background: rgb(255 255 255 / 20%);
   color: var(--color-white);
   transform: scale(1.05);
@@ -3420,4 +3541,219 @@ html {
 .quicklist-empty-state svg {
   margin: 0 auto 0.75rem;
   color: var(--color-neutral-400);
+}
+
+/* ===========================================
+   QUICKLIST CHORE CARD STYLES
+   Feature: quicklist-categories
+   =========================================== */
+
+/* Quicklist chore card using sl-card */
+.quicklist-accordion sl-card.chore-card {
+  --border-radius: 0.75rem;
+  --padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.quicklist-accordion sl-card.chore-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.quicklist-accordion sl-card.chore-card::part(base) {
+  background: var(--color-primary-500);
+  border: none;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.quicklist-accordion sl-card.chore-card::part(body) {
+  padding: 0.625rem 0.75rem;
+}
+
+/* Chore card content layout - compact horizontal design */
+.chore-card-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+}
+
+/* Chore name - grows to fill available space */
+.chore-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+
+/* Action buttons row (for when needed) */
+.chore-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+}
+
+/* Chore amount badge */
+.chore-card-content sl-badge.chore-amount {
+  flex-shrink: 0;
+}
+
+.chore-card-content sl-badge.chore-amount::part(base) {
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+}
+
+/* Category assign button - compact for horizontal layout */
+.chore-category-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 0.375rem;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.chore-category-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* Delete button - compact for horizontal layout */
+.chore-delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 0.375rem;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.chore-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+}
+
+/* Dropdown styling for category selection */
+.chore-card-content sl-dropdown {
+  flex-shrink: 0;
+}
+
+.chore-card-content sl-dropdown sl-menu {
+  min-width: 140px;
+}
+
+.chore-card-content sl-dropdown sl-menu-item::part(base) {
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+}
+
+.chore-card-content sl-dropdown sl-menu-item::part(base):hover {
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+}
+
+/* Selected chore card state */
+.quicklist-accordion sl-card.chore-card--selected::part(base) {
+  background: var(--color-primary-600);
+  box-shadow: 0 0 0 3px var(--color-primary-300);
+}
+
+
+/* Dropdown wrapper - prevents event propagation to accordion */
+.chore-card-actions .dropdown-wrapper {
+  display: contents;
+}
+
+/* Fix sl-dropdown menu visibility and positioning */
+.chore-card-actions sl-dropdown {
+  position: static;
+}
+
+.chore-card-actions sl-dropdown::part(panel) {
+  z-index: 9999;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  min-width: 140px;
+  border: 1px solid var(--color-neutral-200);
+}
+
+/* Style the menu */
+.chore-card-actions sl-dropdown sl-menu {
+  background: white;
+  border-radius: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+/* Style menu items */
+.chore-card-actions sl-dropdown sl-menu-item::part(base) {
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  color: var(--color-neutral-700);
+}
+
+.chore-card-actions sl-dropdown sl-menu-item::part(base):hover {
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+}
+
+.chore-card-actions sl-dropdown sl-menu-item::part(checked-icon) {
+  display: none;
+}
+
+/* CRITICAL: Hide sl-menu when dropdown is closed */
+/* The menu content was rendering visibly even when closed */
+.chore-card-actions sl-dropdown:not([open]) sl-menu {
+  display: none !important;
+}
+
+/* Ensure menu is visible when dropdown is open */
+.chore-card-actions sl-dropdown[open] sl-menu {
+  display: block;
+}
+
+/* Allow dropdown to escape sl-card overflow:hidden */
+/* When dropdown is open, temporarily allow overflow on parent card */
+.quicklist-accordion sl-card:has(sl-dropdown[open]) {
+  overflow: visible !important;
+}
+
+.quicklist-accordion sl-card:has(sl-dropdown[open])::part(base) {
+  overflow: visible !important;
+}
+
+/* Also allow overflow on sl-details when dropdown is open */
+.quicklist-accordion:has(sl-dropdown[open]) {
+  overflow: visible !important;
+}
+
+.quicklist-accordion:has(sl-dropdown[open])::part(content) {
+  overflow: visible !important;
 }

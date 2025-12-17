@@ -34,18 +34,6 @@ const AppModals = Vue.defineComponent({
               placeholder="0.00"
             >
           </div>
-          <div>
-            <label class="block text-sm font-medium text-primary-custom mb-1">Chore Type</label>
-            <select 
-              v-model="newQuicklistChore.category"
-              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              style="border-color: var(--color-border-card)"
-            >
-              <option value="regular">Regular Chore</option>
-              <option value="school">School Chore</option>
-              <option value="game">Electronics Requirement</option>
-            </select>
-          </div>
           <!-- Category Selector - Requirements 2.1, 2.2 -->
           <category-selector
             v-model="newQuicklistChore.categoryId"
@@ -162,17 +150,6 @@ const AppModals = Vue.defineComponent({
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="0.00"
             >
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-primary-custom mb-1">Chore Type</label>
-            <select 
-              v-model="newChore.category"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-            >
-              <option value="regular">Regular Chore</option>
-              <option value="school">School Chore</option>
-              <option value="game">Electronics Requirement</option>
-            </select>
           </div>
           <div>
             <label class="flex items-center gap-2 cursor-pointer">
@@ -690,8 +667,19 @@ const AppModals = Vue.defineComponent({
         <h2 class="text-lg font-bold text-primary-custom">Assign "{{ selectedQuicklistChore?.name }}"</h2>
       </template>
       <template #default>
-        <p class="text-secondary-custom mb-6">
-          Select which family members should be assigned this chore. Each selected member will get their own copy of the chore.
+        <!-- Category Selector for Quicklist Chore -->
+        <div class="mb-4 p-3 rounded-lg" style="background: var(--color-neutral-50); border: 1px solid var(--color-border-card);">
+          <category-selector
+            :model-value="selectedQuicklistChore?.categoryId || ''"
+            :categories="categoriesStore?.categories || []"
+            label="Category"
+            @update:model-value="updateQuicklistChoreCategory"
+            @category-created="onQuicklistCategoryCreated"
+          ></category-selector>
+        </div>
+
+        <p class="text-secondary-custom mb-4">
+          Select which family members should be assigned this chore.
         </p>
 
         <!-- Family Member Cards -->
@@ -820,6 +808,33 @@ const AppModals = Vue.defineComponent({
     // Handle category created inline in quicklist form
     onQuicklistCategoryCreated(category) {
       console.log('[OK] Category created inline:', category.name);
+    },
+    // Update quicklist chore category from the flyout
+    async updateQuicklistChoreCategory(categoryId) {
+      if (!this.selectedQuicklistChore) return;
+      
+      const categoryName = categoryId 
+        ? this.categoriesStore?.categories?.find(c => c.id === categoryId)?.name || ''
+        : '';
+      
+      console.log('[OK] Updating quicklist chore category:', {
+        choreId: this.selectedQuicklistChore.id,
+        categoryId,
+        categoryName
+      });
+      
+      // Update local state immediately for responsive UI
+      this.selectedQuicklistChore.categoryId = categoryId || null;
+      this.selectedQuicklistChore.categoryName = categoryName;
+      
+      // Call parent method to persist the change
+      if (this.$parent?.updateQuicklistCategory) {
+        await this.$parent.updateQuicklistCategory(
+          this.selectedQuicklistChore,
+          categoryId,
+          categoryName
+        );
+      }
     },
     getCategoryLabel(category) {
       switch(category) {

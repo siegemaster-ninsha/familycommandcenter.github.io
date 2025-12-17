@@ -62,6 +62,13 @@ const noHardcodedColorsRule = stylelint.createPlugin(
 
       root.walkDecls((decl) => {
         const value = decl.value;
+        const prop = decl.prop;
+
+        // Skip CSS custom property definitions (--color-*, --gradient-*, etc.)
+        // These ARE the token definitions, not violations
+        if (prop.startsWith('--')) {
+          return;
+        }
 
         // Skip if using allowed patterns (CSS variables)
         if (allowedPatterns.some(pattern => pattern.test(value))) {

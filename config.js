@@ -70,7 +70,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.64 - Resilient Kangaroo (Dec 16, 2025)',
+    VERSION: '1.0.65 - Eager Gazelle (Dec 17, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {

@@ -68,6 +68,10 @@ const app = createApp({
       multiAssignSelectedMembers: [],
       // Category management modal
       showCategoryManagementModal: false,
+      // Assign category modal (for uncategorized quicklist chores)
+      showAssignCategoryModal: false,
+      assignCategoryChore: null,
+      assignCategorySelectedId: '',
       // Person management
       people: [],
       // manual add person removed
@@ -1207,6 +1211,38 @@ const app = createApp({
     
     closeCategoryManagementModal() {
       this.showCategoryManagementModal = false;
+    },
+    
+    // Update quicklist chore category (inline dropdown)
+    async updateQuicklistCategory(chore, categoryId, categoryName) {
+      if (!chore) return;
+      
+      try {
+        // Update the quicklist chore with the new category
+        await this.apiCall(`${CONFIG.API.ENDPOINTS.QUICKLIST}/${chore.id}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            categoryId: categoryId || null,
+            categoryName: categoryName
+          })
+        });
+        
+        // Reload quicklist to reflect changes
+        await this.loadQuicklistChores();
+        
+        // Show success message
+        const uiStore = window.useUIStore?.();
+        if (uiStore) {
+          const displayName = categoryName || 'Uncategorized';
+          uiStore.showSuccess(`Moved to "${displayName}"`);
+        }
+      } catch (error) {
+        console.error('Failed to update category:', error);
+        const uiStore = window.useUIStore?.();
+        if (uiStore) {
+          uiStore.showError('Failed to update category');
+        }
+      }
     },
 
     async confirmMultiAssignment() {
@@ -2624,6 +2660,7 @@ const app = createApp({
       cancelMultiAssignment: this.cancelMultiAssignment,
       openCategoryManagementModal: this.openCategoryManagementModal,
       closeCategoryManagementModal: this.closeCategoryManagementModal,
+      updateQuicklistCategory: this.updateQuicklistCategory,
       deleteChore: this.deleteChore,
       deletePerson: this.performDeletePerson,
       executeDeletePerson: this.executeDeletePerson,

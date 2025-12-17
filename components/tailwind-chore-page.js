@@ -395,6 +395,7 @@ const TailwindChorePage = Vue.defineComponent({
         @add-chore="openAddToQuicklistModal"
         @retry="loadQuicklistChores"
         @manage-categories="openCategoryManagementModal"
+        @category-changed="onQuicklistCategoryChanged"
       />
 
       <!-- Unassigned Chores -->
@@ -549,6 +550,15 @@ const TailwindChorePage = Vue.defineComponent({
         this.$parent.openCategoryManagementModal();
       } else {
         console.warn('❌ $parent.openCategoryManagementModal method not found');
+      }
+    },
+    
+    // Handle category change for a quicklist chore
+    async onQuicklistCategoryChanged({ chore, categoryId, categoryName }) {
+      if (this.$parent?.updateQuicklistCategory) {
+        await this.$parent.updateQuicklistCategory(chore, categoryId, categoryName);
+      } else {
+        console.warn('❌ $parent.updateQuicklistCategory method not found');
       }
     },
 
