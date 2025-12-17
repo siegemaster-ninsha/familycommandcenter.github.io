@@ -70,7 +70,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.66 - Kinetic Phoenix (Dec 17, 2025)',
+    VERSION: '1.0.67 - Jubilant Cheetah (Dec 17, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
@@ -606,7 +606,7 @@ const CONFIG = {
 // THEME UTILITY FUNCTIONS
 // ===========================================
 
-const ThemeManager = {
+window.ThemeManager = {
   // ===========================================
   // STANDARDIZED SHADE GENERATION SYSTEM
   // ===========================================

@@ -1589,8 +1589,7 @@ const app = createApp({
           completedChoresCleared = 0,
           dailyChoresCleared = 0,
           dailyChoresCreated = 0,
-          duplicatesSkipped = 0,
-          membersProcessed = 0
+          duplicatesSkipped = 0
         } = summary;
         
         // Build detailed success message with counts
@@ -2446,11 +2445,11 @@ const app = createApp({
         document.body.classList.remove('modal-open');
       }
     },
-    selectedChoreId(newVal, oldVal) {
+    selectedChoreId() {
       // Verbose selection tracking removed - use browser DevTools if needed
     },
     
-    showSuccessMessageFlag(newVal, oldVal) {
+    showSuccessMessageFlag() {
       // Verbose flag tracking removed - use browser DevTools if needed
     }
   },

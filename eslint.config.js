@@ -72,6 +72,12 @@ module.exports = [
         WidgetBase: 'readonly',
         lucide: 'readonly',
         
+        // Third-party libraries (CDN)
+        confetti: 'readonly',
+        
+        // Browser APIs
+        caches: 'readonly',
+        
         // Store functions (used across files, defined in stores/)
         useAuthStore: 'readonly',
         useChoresStore: 'readonly',

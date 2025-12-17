@@ -463,18 +463,18 @@ const AccountPage = Vue.defineComponent({
   watch: {
     // Auto-save preferences when they change (debounced)
     preferences: {
-      handler(newVal) {
+      handler() {
         if (this._initialLoad) return; // Skip initial load
         this._debouncedSavePreferences();
       },
       deep: true
     },
     // Auto-save profile when it changes (debounced)
-    'profileForm.name'(newVal) {
+    'profileForm.name'() {
       if (this._initialLoad) return;
       this._debouncedSaveProfile();
     },
-    'profileForm.familyName'(newVal) {
+    'profileForm.familyName'() {
       if (this._initialLoad) return;
       this._debouncedSaveProfile();
     }

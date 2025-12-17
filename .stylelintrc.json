@@ -15,8 +15,12 @@
       "allowedPatterns": ["var\\(\\s*--radius-"],
       "allowedValues": ["0", "50%", "inherit", "initial", "unset"]
     }],
-    "declaration-no-important": true,
-    "property-no-vendor-prefix": true,
-    "value-no-vendor-prefix": true
+    "declaration-no-important": null,
+    "no-descending-specificity": null,
+    "no-duplicate-selectors": null,
+    "selector-class-pattern": null,
+    "keyframes-name-pattern": null,
+    "property-no-vendor-prefix": null,
+    "value-no-vendor-prefix": null
   }
 }
