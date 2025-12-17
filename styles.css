@@ -832,9 +832,11 @@ input:focus, select:focus, textarea:focus {
   }
 }
 
-/* Prevent body scroll when flyout is open */
+/* Prevent body scroll when flyout is open while preserving scroll position */
 body.flyout-open {
-  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  overflow-y: scroll; /* Prevent layout shift from scrollbar disappearing */
 }
 
 /* fix iOS momentum scroll bleed-through under modals */

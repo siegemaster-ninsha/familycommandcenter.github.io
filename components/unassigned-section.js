@@ -52,7 +52,7 @@ const UnassignedSection = Vue.defineComponent({
         <!-- Add new chore button - always visible inside container -->
         <div class="flex items-center justify-center" :class="choresByPerson.unassigned.length === 0 ? 'mt-4' : ''">
           <button
-            @click="openAddChoreModal()"
+            @click.stop="openAddChoreModal()"
             class="flex items-center gap-2 px-4 py-3 sm:px-4 sm:py-2 rounded-lg border-2 border-dashed transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center"
             :style="{ background: 'var(--color-primary-50)', color: 'var(--color-primary-700)', borderColor: 'var(--color-primary-300)' }"
             title="Add new chore to unassigned"

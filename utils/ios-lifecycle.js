@@ -186,6 +186,11 @@ class MobileLifecycleManager {
    */
   _handleFocus() {
     setTimeout(() => {
+      // Skip refresh if a flyout/modal is open - it causes scroll jumps
+      if (document.body.classList.contains('flyout-open') || document.body.classList.contains('modal-open')) {
+        this._log('Window focused but flyout/modal open, skipping refresh');
+        return;
+      }
       if (document.visibilityState === 'visible') {
         this._log('Window focused');
         this.refreshStyles();

@@ -260,11 +260,11 @@ const PersonCard = {
 const EarningsCard = {
   template: `
     <div
-      class="border-2 rounded-xl p-6 cursor-pointer hover:shadow-xl hover:scale-102 transition-all duration-200 shadow-lg"
-      style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
+      class="border-2 rounded-xl p-6 cursor-pointer hover:shadow-xl hover:scale-102 transition-all duration-200 shadow-lg select-none"
+      style="background-color: var(--color-primary-500); border-color: var(--color-primary-600); -webkit-tap-highlight-color: transparent;"
       @touchstart.passive="handleTouchStart"
       @touchmove.passive="handleTouchMove"
-      @click="handleClick"
+      @click.stop="handleClick"
     >
       <div class="flex items-center justify-between">
         <div class="flex flex-col">
@@ -484,7 +484,7 @@ const TailwindChorePage = Vue.defineComponent({
             <!-- Add new chore button -->
             <div class="flex items-center justify-center">
               <button
-                @click="openAddChoreModal()"
+                @click.stop="openAddChoreModal()"
                 class="flex items-center gap-2 px-6 py-4 text-white rounded-xl transition-colors min-h-[48px] w-full sm:w-auto justify-center font-medium"
                 style="background-color: var(--color-primary-500);"
                 onmouseover="this.style.backgroundColor='var(--color-primary-600)'"

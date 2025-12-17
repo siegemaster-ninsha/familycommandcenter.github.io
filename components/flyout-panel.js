@@ -127,8 +127,10 @@ const FlyoutPanel = Vue.defineComponent({
       :style="drawerStyle"
       class="flyout-sl-drawer"
       @sl-request-close="handleRequestClose"
+      @sl-show="handleShow"
       @sl-after-show="handleAfterShow"
       @sl-after-hide="handleAfterHide"
+      @sl-initial-focus="handleInitialFocus"
     >
       <!-- Custom header with close button -->
       <div slot="header-actions" v-if="showHeaderClose">
@@ -171,7 +173,17 @@ const FlyoutPanel = Vue.defineComponent({
           console.log('🚪 Shoelace drawer open changed:', isOpen);
           
           if (isOpen && !drawer.open) {
+            // Save scroll position and lock body BEFORE showing drawer to prevent jump
+            this._savedScrollY = window.scrollY;
+            document.body.classList.add('flyout-open');
+            document.body.style.top = `-${this._savedScrollY}px`;
             drawer.show();
+            // Aggressively restore scroll in case Shoelace resets it
+            requestAnimationFrame(() => {
+              if (this._savedScrollY !== undefined) {
+                window.scrollTo(0, this._savedScrollY);
+              }
+            });
           } else if (!isOpen && drawer.open) {
             drawer.hide();
           }
@@ -205,16 +217,35 @@ const FlyoutPanel = Vue.defineComponent({
       this.$emit('close');
     },
     
+    handleShow() {
+      // sl-show fires when drawer starts opening (before animation)
+      // Restore scroll position in case Shoelace reset it
+      if (this._savedScrollY !== undefined && window.scrollY !== this._savedScrollY) {
+        console.log('🚪 Restoring scroll position from', window.scrollY, 'to', this._savedScrollY);
+        window.scrollTo(0, this._savedScrollY);
+      }
+    },
+    
     handleAfterShow() {
       console.log('🚪 Shoelace drawer opened');
-      document.body.classList.add('flyout-open');
+      // Body lock already applied in watcher before show()
       this.$emit('opened');
     },
     
     handleAfterHide() {
       console.log('🚪 Shoelace drawer closed');
       document.body.classList.remove('flyout-open');
+      document.body.style.top = '';
+      // Restore scroll position after unlocking body
+      if (this._savedScrollY !== undefined) {
+        window.scrollTo(0, this._savedScrollY);
+      }
       this.$emit('closed');
+    },
+    
+    handleInitialFocus(event) {
+      // Prevent drawer from auto-focusing its panel, which can scroll page to top
+      event.preventDefault();
     }
   }
 });

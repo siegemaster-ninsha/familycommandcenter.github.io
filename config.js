@@ -67,7 +67,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.58 - Xtreme Viper (Dec 16, 2025)',
+    VERSION: '1.0.59 - Quick Hedgehog (Dec 16, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
