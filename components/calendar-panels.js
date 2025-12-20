@@ -63,12 +63,14 @@ const CalendarMixin = {
     
     async fetchApi(path) {
       const baseUrl = window.CONFIG?.API?.BASE_URL || '';
-      const authStore = window.Pinia?.useAuthStore?.();
-      const token = authStore?.idToken;
-      const accountId = authStore?.currentAccountId;
+      
+      // Use authService for auth header (same pattern as other components)
+      const authHeader = window.authService?.getAuthHeader?.();
+      // Get accountId from apiService (set during app initialization)
+      const accountId = window.apiService?.accountId;
       
       const headers = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      if (authHeader) headers['Authorization'] = authHeader;
       if (accountId) headers['X-Account-Id'] = accountId;
       
       const response = await fetch(`${baseUrl}${path}`, { headers });

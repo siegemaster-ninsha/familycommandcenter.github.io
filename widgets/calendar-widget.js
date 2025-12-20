@@ -192,12 +192,14 @@ const CalendarWidget = {
     
     async fetchApi(path) {
       const baseUrl = window.CONFIG?.API?.BASE_URL || '';
-      const authStore = window.Pinia?.useAuthStore?.();
-      const token = authStore?.idToken;
-      const accountId = authStore?.currentAccountId;
+      
+      // Use authService for auth header (same pattern as other components)
+      const authHeader = window.authService?.getAuthHeader?.();
+      // Get accountId from apiService (set during app initialization)
+      const accountId = window.apiService?.accountId;
       
       const headers = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      if (authHeader) headers['Authorization'] = authHeader;
       if (accountId) headers['X-Account-Id'] = accountId;
       
       const response = await fetch(`${baseUrl}${path}`, { headers });
@@ -224,17 +226,16 @@ const CalendarWidget = {
       
       try {
         const baseUrl = window.CONFIG?.API?.BASE_URL || '';
-        const authStore = window.Pinia?.useAuthStore?.();
-        const token = authStore?.idToken;
-        const accountId = authStore?.currentAccountId;
+        const authHeader = window.authService?.getAuthHeader?.();
+        const accountId = window.apiService?.accountId;
+        
+        const headers = { 'Content-Type': 'application/json' };
+        if (authHeader) headers['Authorization'] = authHeader;
+        if (accountId) headers['X-Account-Id'] = accountId;
         
         const response = await fetch(`${baseUrl}/calendar/config`, {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            'X-Account-Id': accountId
-          },
+          headers,
           body: JSON.stringify({ 
             calendarUrl: this.newCalendarUrl,
             name: this.newCalendarName || 'Calendar'
@@ -265,16 +266,16 @@ const CalendarWidget = {
       
       try {
         const baseUrl = window.CONFIG?.API?.BASE_URL || '';
-        const authStore = window.Pinia?.useAuthStore?.();
-        const token = authStore?.idToken;
-        const accountId = authStore?.currentAccountId;
+        const authHeader = window.authService?.getAuthHeader?.();
+        const accountId = window.apiService?.accountId;
+        
+        const headers = {};
+        if (authHeader) headers['Authorization'] = authHeader;
+        if (accountId) headers['X-Account-Id'] = accountId;
         
         await fetch(`${baseUrl}/calendar/config?id=${calendarId}`, {
           method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'X-Account-Id': accountId
-          }
+          headers
         });
         
         await this.onRefresh();
