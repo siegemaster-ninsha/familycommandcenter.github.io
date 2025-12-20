@@ -8,17 +8,16 @@ const QuicklistSection = Vue.defineComponent({
   name: 'QuicklistSection',
   template: `
     <div class="w-full">
-      <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+      <div class="quicklist-section-container rounded-xl shadow-lg border p-6" style="border-color: var(--color-primary-200);">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-gray-900 text-2xl font-bold leading-tight flex items-center gap-2">
-            <div v-html="getIcon('zap', 20)" style="color: var(--color-primary-500);"></div>
+          <h2 class="text-2xl font-bold leading-tight flex items-center gap-2" style="color: var(--color-text-primary);">
+            <div v-html="getIcon('zap', 20)" style="color: var(--color-text-primary);"></div>
             Quicklist
           </h2>
           <!-- Manage Categories button -->
           <button
             @click="$emit('manage-categories')"
-            class="flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-colors"
-            style="color: var(--color-primary-600); background: var(--color-primary-50);"
+            class="btn-secondary flex items-center gap-1 px-3 py-2 text-sm"
             title="Manage Categories"
           >
             <div v-html="getIcon('settings', 16)"></div>
@@ -30,14 +29,14 @@ const QuicklistSection = Vue.defineComponent({
         <div class="mb-4">
           <div class="relative">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <div v-html="getIcon('search', 18)" style="color: var(--color-neutral-400);"></div>
+              <div v-html="getIcon('search', 18)" style="color: var(--color-text-secondary);"></div>
             </div>
             <input
               v-model="searchQuery"
               type="text"
               placeholder="Search quicklist chores..."
               class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-              style="border-color: var(--color-neutral-200); background: var(--color-bg-card);"
+              style="border-color: var(--color-border-card); background: var(--color-surface-2); color: var(--color-text-primary);"
             />
             <button
               v-if="searchQuery"
@@ -45,12 +44,12 @@ const QuicklistSection = Vue.defineComponent({
               class="absolute inset-y-0 right-0 pr-3 flex items-center"
               title="Clear search"
             >
-              <div v-html="getIcon('x', 18)" style="color: var(--color-neutral-400);"></div>
+              <div v-html="getIcon('x', 18)" style="color: var(--color-text-secondary);"></div>
             </button>
           </div>
         </div>
         
-        <p class="text-gray-600 text-sm mb-4 text-center">Tap these common chores to assign them quickly</p>
+        <p class="text-sm mb-4 text-center" style="color: var(--color-text-secondary);">Tap these common chores to assign them quickly</p>
 
         <!-- Loading state -->
         <div v-if="loading" class="space-y-3">
@@ -72,14 +71,14 @@ const QuicklistSection = Vue.defineComponent({
         </div>
 
         <!-- Empty state when no chores at all -->
-        <div v-else-if="totalChoreCount === 0" class="text-center py-8 text-gray-500">
+        <div v-else-if="totalChoreCount === 0" class="text-center py-8" style="color: var(--color-text-secondary);">
           <div v-html="getIcon('inbox', 48)" class="mx-auto mb-3" style="color: var(--color-neutral-400);"></div>
           <p>No quicklist chores yet.</p>
           <p class="text-sm mt-1">Add common chores for quick assignment!</p>
         </div>
 
         <!-- No search results - Requirements 6.4 -->
-        <div v-else-if="filteredChoreCount === 0 && searchQuery.trim()" class="text-center py-8 text-gray-500">
+        <div v-else-if="filteredChoreCount === 0 && searchQuery.trim()" class="text-center py-8" style="color: var(--color-text-secondary);">
           <div v-html="getIcon('searchX', 48)" class="mx-auto mb-3" style="color: var(--color-neutral-400);"></div>
           <p>No matching chores</p>
           <p class="text-sm mt-1">Try a different search term</p>
@@ -189,8 +188,7 @@ const QuicklistSection = Vue.defineComponent({
         <div class="flex items-center justify-center">
           <button
             @click="$emit('add-chore')"
-            class="flex items-center gap-2 px-6 py-4 text-white rounded-xl transition-colors min-h-[48px] w-full sm:w-auto justify-center font-medium"
-            style="background-color: var(--color-primary-500);"
+            class="btn-primary flex items-center gap-2 px-6 py-4 text-white rounded-xl min-h-[48px] w-full sm:w-auto justify-center font-medium"
             title="Add new chore to quicklist"
           >
             <div v-html="getIcon('plus', 16)"></div>

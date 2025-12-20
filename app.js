@@ -2128,7 +2128,22 @@ const app = createApp({
     },
     
     triggerConfetti() {
-      // Use canvas-confetti for smooth, performant celebration effects
+      // Check celebration style preference
+      const celebrationStyle = this.accountSettings?.preferences?.celebrationStyle || 'confetti';
+      
+      // Nyan Cat fly-across animation
+      if (celebrationStyle === 'nyancat' && window.NyanCat) {
+        window.NyanCat.fly({ duration: 2500, size: 120, withRainbow: true });
+        return;
+      }
+      
+      // Nyan Cat rain animation
+      if (celebrationStyle === 'nyancat-rain' && window.NyanCat) {
+        window.NyanCat.rain(15);
+        return;
+      }
+      
+      // Default: canvas-confetti
       if (typeof confetti !== 'function') {
         console.warn('canvas-confetti not loaded');
         return;

@@ -71,7 +71,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.81 - Youthful Mongoose (Dec 20, 2025)',
+    VERSION: '1.0.82 - Eager Panda (Dec 20, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
@@ -806,11 +806,29 @@ window.ThemeManager = {
     const root = document.documentElement;
     const isDark = this.isDarkTheme(theme);
     
+    // DEBUG: Log theme application details
+    const textHsl = this.hexToHsl(theme.colors.textPrimary);
+    const primaryHsl = this.hexToHsl(theme.colors.primary);
+    console.log('🎨 THEME DEBUG:', {
+      themeId,
+      themeName: theme.name,
+      primary: theme.colors.primary,
+      primaryHsl,
+      textPrimary: theme.colors.textPrimary,
+      textHsl,
+      isDark,
+      textLightness: textHsl?.l
+    });
+    
     try {
       // ===========================================
       // PRIMARY COLOR SCALE (50-900)
       // ===========================================
       const primaryShades = this.generateAllShades(theme.colors.primary);
+      
+      // DEBUG: Log generated shades
+      console.log('🎨 PRIMARY SHADES:', primaryShades);
+      
       root.style.setProperty('--color-primary-50', primaryShades[50]);
       root.style.setProperty('--color-primary-100', primaryShades[100]);
       root.style.setProperty('--color-primary-200', primaryShades[200]);
@@ -885,29 +903,83 @@ window.ThemeManager = {
       }
 
       // ===========================================
-      // BACKGROUND & SURFACE COLORS
+      // SURFACE COLOR SYSTEM
       // ===========================================
-      let bgPrimary, bgSecondary, cardBg, borderColor;
+      // Creates a layered surface system that adapts to light/dark themes
+      // Surface-0: Page background (lowest layer)
+      // Surface-1: Cards, panels (elevated)
+      // Surface-2: Hover states, nested cards (more elevated)
+      // Surface-3: Dropdowns, modals (highest elevation)
+      
+      let surface0, surface1, surface2, surface3, borderColor;
       
       if (isDark) {
-        // Dark themes: derive backgrounds from primary, going darker
-        bgPrimary = primaryShades[900];
-        bgSecondary = secondaryShades[900];
-        cardBg = primaryShades[800];
-        borderColor = primaryShades[700];
+        // Dark themes: derive surfaces from primary
+        // For very dark primaries (like #030432), we need to LIGHTEN to create visible surfaces
+        const primaryHsl = this.hexToHsl(theme.colors.primary);
+        
+        if (primaryHsl && primaryHsl.l < 15) {
+          // Very dark primary - use absolute lightness values to ensure visible surfaces
+          // Keep the hue and some saturation from the primary
+          surface0 = this.hslToHex(primaryHsl.h, Math.min(primaryHsl.s, 30), 8);   // Page bg
+          surface1 = this.hslToHex(primaryHsl.h, Math.min(primaryHsl.s, 25), 14);  // Cards
+          surface2 = this.hslToHex(primaryHsl.h, Math.min(primaryHsl.s, 20), 20);  // Hover
+          surface3 = this.hslToHex(primaryHsl.h, Math.min(primaryHsl.s, 18), 26);  // Modals
+          borderColor = this.hslToHex(primaryHsl.h, Math.min(primaryHsl.s, 20), 25);
+        } else {
+          // Normal dark primary - use shade system
+          surface0 = primaryShades[900];  // Darkest - page background
+          surface1 = primaryShades[800];  // Cards
+          surface2 = primaryShades[700];  // Hover/nested
+          surface3 = primaryShades[600];  // Modals/dropdowns
+          borderColor = primaryShades[700];
+        }
       } else {
-        // Light themes: use lightest shades for backgrounds
-        bgPrimary = primaryShades[50];
-        bgSecondary = secondaryShades[50];
-        cardBg = '#ffffff'; // Cards are always white in light mode
-        borderColor = primaryShades[200];
+        // Light themes: tint surfaces with primary color for cohesion
+        // Cards should have a visible but subtle tint, not be pure white
+        const primaryHsl = this.hexToHsl(theme.colors.primary);
+        
+        // Surface-0: Page background - noticeable primary tint
+        surface0 = this.hslToHex(primaryHsl.h, Math.min(primaryHsl.s * 0.35, 35), 94);
+        
+        // Surface-1: Cards - visible tint, not pure white
+        // Increased saturation and slightly lower lightness for more color
+        surface1 = this.hslToHex(primaryHsl.h, Math.min(primaryHsl.s * 0.3, 30), 95);
+        
+        // Surface-2: Nested content - more visible tint
+        surface2 = this.hslToHex(primaryHsl.h, Math.min(primaryHsl.s * 0.4, 40), 91);
+        
+        // Surface-3: Modals/dropdowns - subtle tint
+        surface3 = this.hslToHex(primaryHsl.h, Math.min(primaryHsl.s * 0.2, 20), 98);
+        
+        borderColor = this.hslToHex(primaryHsl.h, Math.min(primaryHsl.s * 0.4, 40), 82);
       }
 
-      root.style.setProperty('--color-bg-primary', bgPrimary);
-      root.style.setProperty('--color-bg-secondary', bgSecondary);
-      root.style.setProperty('--color-bg-card', cardBg);
-      root.style.setProperty('--color-bg-card-hover', isDark ? primaryShades[700] : primaryShades[100]);
+      // Set surface variables
+      root.style.setProperty('--color-surface-0', surface0);
+      root.style.setProperty('--color-surface-1', surface1);
+      root.style.setProperty('--color-surface-2', surface2);
+      root.style.setProperty('--color-surface-3', surface3);
+      
+      // DEBUG: Log surface colors
+      console.log('🎨 SURFACE COLORS:', {
+        isDark,
+        surface0,
+        surface1,
+        surface2,
+        surface3,
+        borderColor
+      });
+      
+      // Map to legacy background variables for compatibility
+      root.style.setProperty('--color-bg-primary', surface0);
+      root.style.setProperty('--color-bg-secondary', surface2);
+      root.style.setProperty('--color-bg-card', surface1);
+      root.style.setProperty('--color-bg-card-hover', surface2);
       root.style.setProperty('--color-border-card', borderColor);
+      
+      // Set modal/panel background (uses highest surface for dark, white for light)
+      root.style.setProperty('--color-bg-elevated', surface3);
 
       // ===========================================
       // NEUTRAL COLOR SCALE
@@ -942,15 +1014,33 @@ window.ThemeManager = {
       // COMPONENT-SPECIFIC COLORS (semantic aliases)
       // ===========================================
       root.style.setProperty('--color-quicklist-border', borderColor);
-      root.style.setProperty('--color-quicklist-bg', cardBg);
+      root.style.setProperty('--color-quicklist-bg', surface1);
       root.style.setProperty('--color-quicklist-text', theme.colors.textPrimary);
-      root.style.setProperty('--color-family-card-bg', cardBg);
+      root.style.setProperty('--color-family-card-bg', surface1);
       root.style.setProperty('--color-family-card-border', borderColor);
       root.style.setProperty('--color-family-card-hover', theme.colors.primary);
-      root.style.setProperty('--color-unassigned-bg', cardBg);
+      root.style.setProperty('--color-unassigned-bg', surface1);
       root.style.setProperty('--color-unassigned-border', borderColor);
       root.style.setProperty('--color-earnings-border', successShades[200]);
       root.style.setProperty('--color-earnings-text', successShades[600]);
+
+      // Status badge colors (for electronics status, etc.)
+      // Dark themes need darker backgrounds with lighter text
+      if (isDark) {
+        root.style.setProperty('--color-success-bg', successShades[900]);
+        root.style.setProperty('--color-success-text', successShades[300]);
+        root.style.setProperty('--color-warning-bg', warningShades[900]);
+        root.style.setProperty('--color-warning-text', warningShades[300]);
+        root.style.setProperty('--color-error-bg', errorShades[900]);
+        root.style.setProperty('--color-error-text', errorShades[300]);
+      } else {
+        root.style.setProperty('--color-success-bg', successShades[50]);
+        root.style.setProperty('--color-success-text', successShades[700]);
+        root.style.setProperty('--color-warning-bg', warningShades[50]);
+        root.style.setProperty('--color-warning-text', warningShades[700]);
+        root.style.setProperty('--color-error-bg', errorShades[50]);
+        root.style.setProperty('--color-error-text', errorShades[700]);
+      }
 
       // ===========================================
       // GRADIENTS (using standardized shades)
@@ -1011,6 +1101,11 @@ window.ThemeManager = {
     '--color-bg-primary': '#f8fafc',
     '--color-bg-secondary': '#f1f5f9',
     '--color-bg-card': '#ffffff',
+    '--color-bg-elevated': '#ffffff',
+    '--color-surface-0': '#f8fafc',
+    '--color-surface-1': '#ffffff',
+    '--color-surface-2': '#f1f5f9',
+    '--color-surface-3': '#ffffff',
     '--color-text-primary': '#2D3748',
     '--color-text-secondary': '#718096',
     '--color-primary-500': '#4A90E2',

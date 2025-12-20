@@ -8,7 +8,7 @@ const CategorySelector = Vue.defineComponent({
   name: 'CategorySelector',
   template: `
     <div class="category-selector">
-      <label v-if="label" class="block text-sm font-medium text-primary-custom mb-1">{{ label }}</label>
+      <label v-if="label" class="block text-sm font-medium mb-1" style="color: var(--color-text-primary);">{{ label }}</label>
       
       <!-- Category Dropdown -->
       <div class="relative" v-if="!showInlineAdd">
@@ -16,7 +16,7 @@ const CategorySelector = Vue.defineComponent({
           :value="modelValue"
           @change="onCategoryChange"
           class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 appearance-none pr-10"
-          style="border-color: var(--color-border-card)"
+          style="border-color: var(--color-border-card); background: var(--color-surface-2); color: var(--color-text-primary);"
         >
           <option value="">Uncategorized</option>
           <option 
@@ -30,7 +30,7 @@ const CategorySelector = Vue.defineComponent({
         </select>
         <!-- Dropdown arrow icon -->
         <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-          <div v-html="getIcon('chevronDown', 16)" style="color: var(--color-neutral-400);"></div>
+          <div v-html="getIcon('chevronDown', 16)" style="color: var(--color-text-secondary);"></div>
         </div>
       </div>
       
@@ -43,7 +43,7 @@ const CategorySelector = Vue.defineComponent({
             type="text"
             maxlength="50"
             class="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-            style="border-color: var(--color-border-card)"
+            style="border-color: var(--color-border-card); background: var(--color-surface-2); color: var(--color-text-primary);"
             placeholder="New category name"
             @keyup.enter="createCategory"
             @keyup.escape="cancelInlineAdd"

@@ -95,6 +95,14 @@ input[type="password"]::-ms-clear {
   --color-error-600: #dc2626;
   --color-error-700: #b91c1c;
   
+  /* Status Badge Colors (for electronics status, etc.) */
+  --color-success-bg: var(--color-success-50);
+  --color-success-text: var(--color-success-700);
+  --color-warning-bg: var(--color-warning-50);
+  --color-warning-text: var(--color-warning-700);
+  --color-error-bg: var(--color-error-50);
+  --color-error-text: var(--color-error-700);
+  
   /* ===========================================
      COMPUTED SEMANTIC COLORS
      (These are calculated from base colors above)
@@ -110,7 +118,14 @@ input[type="password"]::-ms-clear {
   --color-bg-secondary: var(--color-neutral-100);
   --color-bg-card: var(--color-neutral-50);
   --color-bg-card-hover: var(--color-neutral-100);
+  --color-bg-elevated: #fff;
   --color-border-card: var(--color-neutral-200);
+  
+  /* Surface Color System (layered elevation) */
+  --color-surface-0: var(--color-bg-primary);   /* Page background */
+  --color-surface-1: var(--color-bg-card);      /* Cards, panels */
+  --color-surface-2: var(--color-bg-card-hover); /* Hover, nested */
+  --color-surface-3: var(--color-bg-elevated);  /* Modals, dropdowns */
   
   /* Component-Specific Colors (inherit from base theme) */
   --color-quicklist-border: var(--color-border-card);
@@ -493,9 +508,9 @@ a[href="#main-content"] {
 }
 
 .btn-secondary {
-  background: white;
-  color: var(--color-primary-500);
-  border: 1px solid var(--color-primary-500);
+  background: var(--color-surface-2);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-card);
   border-radius: var(--radius-lg);
   padding: var(--space-3) var(--space-4);
   font-weight: var(--font-weight-medium);
@@ -939,7 +954,7 @@ input:focus, select:focus, textarea:focus {
 
 /* ensure modal panels render opaque on iOS by promoting to own layer */
 .modal-panel {
-  background-color: var(--color-white);
+  background-color: var(--color-surface-3);
   transform: translateZ(0);
   backface-visibility: hidden;
   pointer-events: auto;
@@ -959,7 +974,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 .flyout-sl-drawer::part(panel) {
-  background-color: var(--color-white);
+  background-color: var(--color-surface-3);
   box-shadow: -4px 0 24px var(--color-overlay-light);
 
   /* Animation duration controlled via JS animation registry in flyout-panel.js */
@@ -970,7 +985,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 .flyout-sl-drawer::part(header) {
-  background-color: var(--color-white);
+  background-color: var(--color-surface-3);
   border-bottom: 1px solid var(--color-border-card);
   padding: var(--space-3) var(--space-4);
 }
@@ -986,7 +1001,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 .flyout-sl-drawer::part(footer) {
-  background-color: var(--color-white);
+  background-color: var(--color-surface-3);
   border-top: 1px solid var(--color-border-card);
   padding: var(--space-3) var(--space-4);
   padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
@@ -1107,11 +1122,13 @@ body.modal-open {
 /* Expanded state - remove bottom border radius to connect with flyout */
 .chore-card--expanded {
   --border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 }
 
 .chore-card--expanded::part(base) {
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+
   /* Remove bottom border when flyout is attached */
   border-bottom: none;
 }
@@ -1424,7 +1441,7 @@ sl-skeleton {
   }
 
   .modal-panel:hover {
-    background-color: var(--color-white) !important;
+    background-color: var(--color-surface-3) !important;
   }
   
   /* Specifically disable common hover classes used throughout the app */
@@ -2833,7 +2850,7 @@ body.resizing-widget * {
 
 .trivia-widget .answer-option {
   padding: 0.75rem 1rem;
-  background: white;
+  background: var(--color-surface-1);
   border-radius: var(--radius-md);
   transition: all 0.2s ease;
   text-align: center;
@@ -2842,7 +2859,7 @@ body.resizing-widget * {
   user-select: none;
   cursor: pointer;
   width: 100%;
-  color: var(--color-neutral-800);
+  color: var(--color-text-primary);
 }
 
 .trivia-widget .answer-option:focus {
@@ -2881,7 +2898,7 @@ body.resizing-widget * {
 .trivia-widget .answer-section {
   margin-bottom: 1.5rem;
   padding: 1rem;
-  background: white;
+  background: var(--color-surface-1);
   border-radius: var(--radius-md);
 }
 
@@ -3495,7 +3512,7 @@ body.resizing-widget * {
 .calendar-widget .event-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--color-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3569,7 +3586,7 @@ body.resizing-widget * {
    =========================================== */
 
 .calendar-panel {
-  background: var(--color-white);
+  background: var(--color-surface-1);
   border-radius: var(--radius-xl);
   border: 1px solid var(--color-border-card);
   overflow: hidden;
@@ -3581,7 +3598,7 @@ body.resizing-widget * {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-4) var(--space-6);
-  border-bottom: 1px solid var(--color-neutral-200);
+  border-bottom: 1px solid var(--color-border-card);
 }
 
 .calendar-panel-title {
@@ -3591,11 +3608,11 @@ body.resizing-widget * {
   margin: 0;
   font-size: var(--font-size-xl);
   font-weight: 700;
-  color: var(--color-neutral-900);
+  color: var(--color-text-primary);
 }
 
 .calendar-panel-title svg {
-  color: var(--color-primary-500);
+  color: var(--color-text-primary);
 }
 
 .calendar-panel-date {
@@ -3662,16 +3679,16 @@ body.resizing-widget * {
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
-  background: var(--color-neutral-50);
+  background: var(--color-surface-2);
   transition: background-color 0.15s ease;
 }
 
 .calendar-event:hover {
-  background: var(--color-primary-50);
+  background: var(--color-surface-3);
 }
 
 .calendar-event--allday {
-  background: var(--color-primary-50);
+  background: var(--color-surface-2);
   border-left: 3px solid var(--color-primary-500);
 }
 
@@ -3686,6 +3703,7 @@ body.resizing-widget * {
   font-size: var(--font-size-sm);
   color: var(--color-text-primary);
   line-height: 1.4;
+
   /* Allow wrapping for longer event titles */
   word-break: break-word;
 }
@@ -3702,7 +3720,7 @@ body.resizing-widget * {
   grid-template-columns: 48px 1fr 70px;
   gap: var(--space-2);
   padding: var(--space-2) 0;
-  border-bottom: 1px solid var(--color-neutral-300);
+  border-bottom: 1px solid var(--color-border-card);
   align-items: center;
 }
 
@@ -3711,10 +3729,10 @@ body.resizing-widget * {
 }
 
 .calendar-day--today {
-  background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-primary-100) 100%);
+  background: var(--color-surface-2);
   margin: 0 calc(-1 * var(--space-6));
   padding: var(--space-2) var(--space-6);
-  border-radius: var(--radius-lg);
+  border-radius: 0;
   border-bottom: none;
 }
 
@@ -3752,7 +3770,7 @@ body.resizing-widget * {
 .calendar-weather-high {
   font-size: var(--font-size-sm);
   font-weight: 600;
-  color: var(--color-neutral-900);
+  color: var(--color-text-primary);
 }
 
 .calendar-weather-low {
@@ -3761,7 +3779,7 @@ body.resizing-widget * {
 }
 
 .calendar-day--today .calendar-weather-high {
-  color: var(--color-primary-700);
+  color: var(--color-text-primary);
 }
 
 /* Header right section */
@@ -3785,17 +3803,17 @@ body.resizing-widget * {
 }
 
 .calendar-day--today .calendar-day-name {
-  color: var(--color-primary-600);
+  color: var(--color-text-primary);
 }
 
 .calendar-day-date {
   font-size: var(--font-size-xl);
   font-weight: 700;
-  color: var(--color-neutral-800);
+  color: var(--color-text-primary);
 }
 
 .calendar-day--today .calendar-day-date {
-  color: var(--color-primary-600);
+  color: var(--color-text-primary);
 }
 
 .calendar-day-events {
@@ -3813,15 +3831,15 @@ body.resizing-widget * {
 .calendar-event--compact {
   padding: var(--space-2) var(--space-3);
   gap: var(--space-2);
-  background: var(--color-primary-50);
+  background: var(--color-surface-2);
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-primary-100);
+  border: 1px solid var(--color-border-card);
   align-items: center;
 }
 
 .calendar-event--compact:hover {
-  background: var(--color-primary-100);
-  border-color: var(--color-primary-200);
+  background: var(--color-surface-3);
+  border-color: var(--color-primary-500);
 }
 
 .calendar-event--compact .calendar-event-title {
@@ -4042,7 +4060,7 @@ body {
   .card,
   .modal-panel,
   .nav-menu {
-    background-color: var(--color-bg-card, #fff);
+    background-color: var(--color-surface-1);
     transform: translateZ(0);
   }
 }
@@ -4192,20 +4210,20 @@ html {
 
 /* Shoelace sl-details customization */
 .quicklist-accordion::part(base) {
-  border: 1px solid var(--color-neutral-200);
+  border: 1px solid var(--color-border-card);
   border-radius: var(--radius-md);
-  background: var(--color-bg-card, #fff);
+  background: var(--color-surface-1);
 }
 
 .quicklist-accordion::part(header) {
   padding: 0.75rem 1rem;
   font-weight: 600;
-  color: var(--color-neutral-800);
-  background: var(--color-neutral-50);
+  color: var(--color-text-primary);
+  background: var(--color-surface-2);
 }
 
 .quicklist-accordion::part(header):hover {
-  background: var(--color-neutral-100);
+  background: var(--color-bg-card-hover);
 }
 
 .quicklist-accordion::part(summary) {
@@ -4221,7 +4239,7 @@ html {
 
 .quicklist-accordion::part(content) {
   padding: 0;
-  background: var(--color-bg-card, #fff);
+  background: var(--color-surface-1);
 }
 
 /* Quicklist chore card within accordion */
@@ -4345,7 +4363,7 @@ html {
 
 /* Hide right section when truly empty (no money, no chevron, no action buttons) */
 .chore-card-split .chore-card-right-section:empty,
-.chore-card-split .chore-card-right-section:not(:has(.chore-card-money-row)):not(:has(.chore-expand-indicator)):not(:has(.chore-card-actions-row)) {
+.chore-card-split .chore-card-right-section:not(:has(.chore-card-money-row), :has(.chore-expand-indicator), :has(.chore-card-actions-row)) {
   display: none;
 }
 
@@ -4418,7 +4436,7 @@ html {
 .chore-card-split .chore-schedule-btn .schedule-badge {
   position: absolute;
   top: -6px;
-  right: -6px;
+  right: -10px;
   font-size: 0.5rem;
   min-width: 0.875rem;
   height: 0.875rem;
@@ -4426,14 +4444,17 @@ html {
   pointer-events: none; /* Don't interfere with button clicks */
 }
 
-/* Ensure schedule badge text is white in compact mode */
+/* Override Shoelace badge primary color to use theme color in compact mode */
 .chore-card-split .chore-schedule-btn .schedule-badge::part(base) {
+  background: var(--color-white-overlay-25);
   color: white;
+  padding: 0 0.125rem;
 }
 
 /* Approval button styling */
 .chore-card-split .chore-approve-btn {
   --sl-color-success-600: var(--color-success-600);
+
   min-width: 2rem;
   min-height: 2rem;
 }
@@ -4555,16 +4576,18 @@ html {
 .chore-schedule-btn .schedule-badge {
   position: absolute;
   top: -4px;
-  right: -4px;
+  right: -8px;
   font-size: 0.625rem;
   min-width: 1rem;
   height: 1rem;
   padding: 0 0.25rem;
 }
 
-/* Ensure schedule badge text is white for visibility */
+/* Override Shoelace badge primary color to use theme color */
 .chore-schedule-btn .schedule-badge::part(base) {
+  background: var(--color-white-overlay-25);
   color: white;
+  padding: 0 0.125rem;
 }
 
 /* Delete button - 44px minimum touch target for accessibility */
@@ -4626,16 +4649,16 @@ html {
 
 .chore-card-actions sl-dropdown::part(panel) {
   z-index: 9999;
-  background: white;
+  background: var(--color-surface-3);
   border-radius: var(--radius-md);
   box-shadow: 0 4px 16px var(--color-overlay-medium);
   min-width: 140px;
-  border: 1px solid var(--color-neutral-200);
+  border: 1px solid var(--color-border-card);
 }
 
 /* Style the menu */
 .chore-card-actions sl-dropdown sl-menu {
-  background: white;
+  background: var(--color-surface-3);
   border-radius: var(--radius-md);
   padding: 0.25rem 0;
 }
@@ -4644,12 +4667,12 @@ html {
 .chore-card-actions sl-dropdown sl-menu-item::part(base) {
   padding: 0.625rem 1rem;
   font-size: 0.875rem;
-  color: var(--color-neutral-700);
+  color: var(--color-text-primary);
 }
 
 .chore-card-actions sl-dropdown sl-menu-item::part(base):hover {
-  background: var(--color-primary-50);
-  color: var(--color-primary-700);
+  background: var(--color-surface-2);
+  color: var(--color-primary-500);
 }
 
 .chore-card-actions sl-dropdown sl-menu-item::part(checked-icon) {
@@ -4956,11 +4979,13 @@ html {
   overflow: hidden;
   position: relative;
   width: 100%;
+
   /* Rounded corners on container so they don't show during slide transition */
   border-radius: 0 0 var(--radius-xl) var(--radius-xl);
 }
 
 /* Track - holds all pages in a row, slides horizontally */
+
 /* Width is 200% to hold 2 pages, each page is 50% of track = 100% of container */
 .slide-panel-track {
   display: flex;
@@ -5002,13 +5027,14 @@ html {
   left: 0;
   right: 0;
   height: 0;
+
   /* Only clip vertically during height transition - slide-panel handles horizontal clipping */
-  overflow-y: hidden;
-  overflow-x: visible;
+  overflow: visible hidden;
   transition: height 200ms ease-out;
   z-index: 10;
+
   /* Pull up to connect seamlessly with card (compensate for shadow/transform effects) */
-  margin-top: -9px;
+  margin-top: calc(-1 * var(--space-2) - 1px);
 }
 
 .chore-action-flyout--expanded {
@@ -5021,10 +5047,12 @@ html {
   width: 100%;
   height: 48px;
   gap: 0;
+
   /* Rounded bottom corners only - connects to card above */
   border-radius: 0 0 var(--radius-xl) var(--radius-xl);
   overflow: hidden;
   background: var(--color-primary-300);
+
   /* No border on top since it connects to card */
   border: none;
   box-shadow: 0 4px 12px var(--color-overlay-light);
@@ -5050,6 +5078,7 @@ html {
   border-radius: 0;
   transition: all 150ms ease;
   padding: 0;
+
   /* Darker primary background with blue text/icons */
   background: var(--color-primary-300) !important;
   border: none !important;
@@ -5194,6 +5223,7 @@ html {
   -webkit-overflow-scrolling: touch;
   background: var(--color-primary-300);
   height: 48px;
+
   /* No border-radius here - parent .slide-panel handles it to avoid visible corners during transition */
 }
 
@@ -5264,7 +5294,7 @@ html {
 }
 
 /* Mobile: Circle-only avatar chips (hide name to save space) */
-@media (max-width: 640px) {
+@media (width <= 640px) {
   .avatar-chip {
     /* Circle shape - no padding for name */
     padding: var(--space-1);
@@ -5348,4 +5378,139 @@ html {
 
 .chore-action-btn--approve:hover {
   background: var(--color-success-700);
+}
+
+/* ===========================================
+   SHOELACE COMPONENT THEME OVERRIDES
+   Ensure Shoelace components use our surface colors
+   =========================================== */
+
+/* Quicklist section - subtle primary tint for visual distinction */
+.quicklist-section-container {
+  background: var(--color-surface-1);
+  border-color: var(--color-primary-200);
+}
+
+/* sl-details (accordion) - Category accordions in quicklist */
+sl-details.quicklist-accordion {
+  --sl-color-neutral-0: var(--color-surface-1);
+  --sl-color-neutral-50: var(--color-surface-1);
+  --sl-color-neutral-100: var(--color-surface-2);
+  --sl-panel-background-color: var(--color-surface-2);
+  --sl-panel-border-color: var(--color-border-card);
+  --sl-color-neutral-200: var(--color-border-card);
+  --sl-spacing-medium: var(--space-3);
+
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-border-card);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-2);
+}
+
+/* Override the base part background */
+sl-details.quicklist-accordion::part(base) {
+  background: var(--color-surface-1);
+  border: none;
+  border-radius: var(--radius-lg);
+}
+
+sl-details.quicklist-accordion::part(header) {
+  background: var(--color-primary-500);
+  color: white;
+  padding: var(--space-3) var(--space-4);
+  font-weight: 600;
+  border-radius: var(--radius-lg);
+}
+
+sl-details.quicklist-accordion::part(header):hover {
+  background: var(--color-primary-600);
+}
+
+sl-details.quicklist-accordion::part(content) {
+  background: var(--color-surface-2);
+  padding: var(--space-3);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+sl-details.quicklist-accordion::part(summary-icon) {
+  color: white;
+}
+
+/* Chore cards inside quicklist - ensure they use surface colors */
+sl-details.quicklist-accordion sl-card {
+  --sl-panel-background-color: var(--color-surface-1);
+  --sl-panel-border-color: var(--color-border-card);
+  --sl-color-neutral-0: var(--color-surface-1);
+}
+
+sl-details.quicklist-accordion sl-card::part(base) {
+  background: var(--color-surface-1);
+  border-color: var(--color-border-card);
+}
+
+/* General sl-card overrides for theme consistency */
+sl-card {
+  --sl-panel-background-color: var(--color-surface-1);
+  --sl-panel-border-color: var(--color-border-card);
+  --sl-color-neutral-0: var(--color-surface-1);
+}
+
+sl-card::part(base) {
+  background: var(--color-surface-1);
+  border-color: var(--color-border-card);
+}
+
+/* sl-input overrides */
+sl-input::part(base) {
+  background: var(--color-surface-1);
+  border-color: var(--color-border-card);
+}
+
+sl-input::part(input) {
+  color: var(--color-text-primary);
+}
+
+sl-input::part(input)::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* sl-skeleton for loading states */
+sl-skeleton {
+  --color: var(--color-surface-2);
+  --sheen-color: var(--color-surface-3);
+}
+
+/* Schedule badge on quicklist chore cards - smaller size */
+.schedule-badge {
+  --sl-badge-font-size: 0.6rem;
+  --sl-spacing-x-small: 0.2rem;
+
+  transform: scale(0.75);
+  transform-origin: center;
+}
+
+.schedule-badge::part(base) {
+  font-size: 0.6rem;
+  padding: 0.1rem 0.35rem;
+  min-width: 1rem;
+  min-height: 1rem;
+}
+
+/* ===========================================
+   THEME-AWARE BUTTON ICON COLORS
+   Ensure icons in buttons adapt to theme
+   =========================================== */
+
+.btn-secondary svg,
+.btn-secondary [class*="icon"] {
+  color: var(--color-text-primary);
+  transition: color var(--transition-normal);
+}
+
+/* On hover, icons should turn white to match the text */
+@media (hover: hover) {
+  .btn-secondary:hover svg,
+  .btn-secondary:hover [class*="icon"] {
+    color: white;
+  }
 }

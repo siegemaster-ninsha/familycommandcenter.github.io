@@ -161,6 +161,24 @@ const AccountPage = Vue.defineComponent({
               </label>
             </div>
             
+            <!-- Celebration Style Selector -->
+            <div v-if="preferences.confettiEnabled" class="flex items-center justify-between">
+              <div>
+                <label class="font-medium text-primary-custom">Celebration Style</label>
+                <p class="text-sm text-secondary-custom">Choose how to celebrate completed chores</p>
+              </div>
+              <select 
+                v-model="preferences.celebrationStyle"
+                class="px-3 py-2 rounded-lg border text-sm"
+                style="background-color: var(--color-surface); border-color: var(--color-border); color: var(--color-text-primary);"
+                :disabled="isChild"
+              >
+                <option value="confetti">🎊 Confetti</option>
+                <option value="nyancat">🌈 Nyan Cat</option>
+                <option value="nyancat-rain">🐱 Nyan Cat Rain</option>
+              </select>
+            </div>
+            
             <div class="flex items-center justify-between">
               <div>
                 <label class="font-medium text-primary-custom">Sound Effects</label>
@@ -533,6 +551,7 @@ const AccountPage = Vue.defineComponent({
       
       preferences: {
         confettiEnabled: true,
+        celebrationStyle: 'confetti',
         soundEnabled: false,
         autoSave: true,
         requireApproval: false,

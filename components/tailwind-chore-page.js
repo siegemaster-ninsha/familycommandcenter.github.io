@@ -221,7 +221,7 @@ const ChoreCard = {
         }
       }
     },
-    handleCardClick(event) {
+    handleCardClick() {
       // Ignore scroll gestures
       if (this.didScroll) {
         this.didScroll = false;
@@ -260,7 +260,7 @@ const ChoreCard = {
       this.actionPage = 'default';
       this.onCollapse?.(this.chore);
     },
-    onPageChange({ from, to }) {
+    onPageChange() {
       // Could add analytics or other side effects here
     },
     isCurrentAssignee(member) {
@@ -273,6 +273,7 @@ const ChoreCard = {
 };
 
 // Legacy ChoreCard for quicklist (simpler, no expand)
+// eslint-disable-next-line no-unused-vars
 const QuicklistChoreCard = {
   template: `
     <sl-card
@@ -346,8 +347,11 @@ const PersonCard = {
   template: `
     <div
       class="border-2 rounded-xl p-6 transition-all duration-200 shadow-lg hover:shadow-xl min-w-0 overflow-hidden"
-      :class="[canAssign ? 'cursor-pointer hover:scale-102 bg-gray-50' : 'bg-white']"
-      style="border-color: var(--color-neutral-200);"
+      :class="[canAssign ? 'cursor-pointer hover:scale-102' : '']"
+      :style="{ 
+        borderColor: 'var(--color-border-card)', 
+        backgroundColor: canAssign ? 'var(--color-surface-2)' : 'var(--color-surface-1)'
+      }"
       @click="handleCardClick"
     >
       <!-- Person header -->
@@ -357,13 +361,13 @@ const PersonCard = {
             {{ personDisplayName.charAt(0) }}
           </div>
           <div>
-            <h3 class="font-bold text-gray-900 text-xl">{{ personDisplayName }}</h3>
+            <h3 class="font-bold text-xl" style="color: var(--color-text-primary);">{{ personDisplayName }}</h3>
           </div>
         </div>
 
         <!-- Electronics status -->
         <div class="flex items-center gap-2">
-          <div :class="getElectronicsStatusClass(person.electronicsStatus.status)" class="px-2 py-1 rounded-full text-xs font-medium">
+          <div :style="getElectronicsStatusStyle(person.electronicsStatus.status)" class="px-2 py-1 rounded-full text-xs font-medium">
             {{ getElectronicsStatusText(person.electronicsStatus.status) }}
           </div>
         </div>
@@ -371,7 +375,7 @@ const PersonCard = {
 
       <!-- Person's chores -->
       <div class="space-y-2 min-h-[60px]" @click.stop>
-        <div v-if="!personChores || personChores.length === 0" class="text-center py-6 text-gray-500">
+        <div v-if="!personChores || personChores.length === 0" class="text-center py-6" style="color: var(--color-text-secondary);">
           <p class="text-sm">No chores assigned</p>
           <p class="text-xs mt-1">Select a chore and tap here to assign it</p>
         </div>
@@ -420,7 +424,7 @@ const PersonCard = {
     }
   },
   methods: {
-    handleCardClick(event) {
+    handleCardClick() {
       // Only trigger assign if canAssign and not clicking on a chore
       if (this.canAssign) {
         this.onAssign();
@@ -435,12 +439,13 @@ const PersonCard = {
     handleChoreReassign(chore, member) {
       this.onChoreReassign?.(chore, member);
     },
-    getElectronicsStatusClass(status) {
+    getElectronicsStatusStyle(status) {
+      // Use CSS variables for theme-aware status colors
       switch(status) {
-        case 'allowed': return 'bg-green-100 text-green-800';
-        case 'restricted': return 'bg-yellow-100 text-yellow-800';
-        case 'blocked': return 'bg-red-100 text-red-800';
-        default: return 'bg-green-100 text-green-800';
+        case 'allowed': return { backgroundColor: 'var(--color-success-bg)', color: 'var(--color-success-text)' };
+        case 'restricted': return { backgroundColor: 'var(--color-warning-bg)', color: 'var(--color-warning-text)' };
+        case 'blocked': return { backgroundColor: 'var(--color-error-bg)', color: 'var(--color-error-text)' };
+        default: return { backgroundColor: 'var(--color-success-bg)', color: 'var(--color-success-text)' };
       }
     },
     getElectronicsStatusText(status) {
@@ -539,7 +544,7 @@ const TailwindChorePage = Vue.defineComponent({
         <!-- Loading Skeleton State -->
         <div v-if="loading" class="space-y-6">
           <!-- Quicklist Skeleton -->
-          <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <div class="rounded-xl shadow-lg border p-6" style="background: var(--color-surface-1); border-color: var(--color-border-card);">
             <sl-skeleton effect="pulse" class="skeleton-header mb-6"></sl-skeleton>
             <sl-skeleton effect="pulse" class="skeleton-subtext mb-6"></sl-skeleton>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -548,7 +553,7 @@ const TailwindChorePage = Vue.defineComponent({
           </div>
           
           <!-- Unassigned Skeleton -->
-          <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <div class="rounded-xl shadow-lg border p-6" style="background: var(--color-surface-1); border-color: var(--color-border-card);">
             <sl-skeleton effect="pulse" class="skeleton-header mb-6"></sl-skeleton>
             <div class="space-y-4">
               <sl-skeleton v-for="n in 2" :key="'ua-'+n" effect="pulse" class="skeleton-card"></sl-skeleton>
@@ -556,10 +561,10 @@ const TailwindChorePage = Vue.defineComponent({
           </div>
           
           <!-- Family Members Skeleton -->
-          <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <div class="rounded-xl shadow-lg border p-6" style="background: var(--color-surface-1); border-color: var(--color-border-card);">
             <sl-skeleton effect="pulse" class="skeleton-header mb-6"></sl-skeleton>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div v-for="n in 2" :key="'fm-'+n" class="border-2 rounded-xl p-6" style="border-color: var(--color-neutral-200);">
+              <div v-for="n in 2" :key="'fm-'+n" class="border-2 rounded-xl p-6" style="border-color: var(--color-border-card);">
                 <div class="flex items-center gap-3 mb-4">
                   <sl-skeleton effect="pulse" class="skeleton-avatar"></sl-skeleton>
                   <sl-skeleton effect="pulse" class="skeleton-name"></sl-skeleton>
@@ -572,7 +577,7 @@ const TailwindChorePage = Vue.defineComponent({
           </div>
           
           <!-- Earnings Skeleton -->
-          <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <div class="rounded-xl shadow-lg border p-6" style="background: var(--color-surface-1); border-color: var(--color-border-card);">
             <sl-skeleton effect="pulse" class="skeleton-header mb-6"></sl-skeleton>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <sl-skeleton v-for="n in 2" :key="'ea-'+n" effect="pulse" class="skeleton-earnings"></sl-skeleton>
@@ -600,20 +605,21 @@ const TailwindChorePage = Vue.defineComponent({
 
         <!-- Unassigned Chores -->
         <div class="w-full">
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <h2 class="text-gray-900 text-2xl font-bold leading-tight mb-6 flex items-center gap-2">
-            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('clipboardList', 'lucide', 20, 'text-primary-500') : ''" style="color: var(--color-primary-500);"></div>
+        <div class="rounded-xl shadow-lg border p-6" style="background: var(--color-surface-1); border-color: var(--color-primary-200);">
+          <h2 class="text-2xl font-bold leading-tight mb-6 flex items-center gap-2" style="color: var(--color-text-primary);">
+            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('clipboardList', 'lucide', 20, 'text-primary-500') : ''" style="color: var(--color-text-primary);"></div>
             Unassigned Chores
           </h2>
 
           <!-- Inner container for chores -->
           <div
-            class="min-h-[120px] rounded-lg p-6 transition-all duration-200 bg-gray-50"
+            class="min-h-[120px] rounded-lg p-6 transition-all duration-200"
+            style="background: var(--color-surface-2);"
             :class="[selectedChore ? 'cursor-pointer hover:shadow-lg hover:scale-102' : '']"
             @click="selectedChore ? assignSelectedChore('unassigned') : null"
           >
             <!-- Empty state when no chores -->
-            <div v-if="choresByPerson.unassigned.length === 0" class="text-center text-gray-500 py-6 flex flex-col items-center justify-center">
+            <div v-if="choresByPerson.unassigned.length === 0" class="text-center py-6 flex flex-col items-center justify-center" style="color: var(--color-text-secondary);">
               <p class="text-sm px-2">No unassigned chores</p>
               <p class="text-xs mt-2 px-2">Create new chores here - they'll be available for any family member to pick up</p>
             </div>
@@ -639,10 +645,7 @@ const TailwindChorePage = Vue.defineComponent({
             <div class="flex items-center justify-center">
               <button
                 @click.stop="openAddChoreModal()"
-                class="flex items-center gap-2 px-6 py-4 text-white rounded-xl transition-colors min-h-[48px] w-full sm:w-auto justify-center font-medium"
-                style="background-color: var(--color-primary-500);"
-                onmouseover="this.style.backgroundColor='var(--color-primary-600)'"
-                onmouseout="this.style.backgroundColor='var(--color-primary-500)'"
+                class="btn-primary flex items-center gap-2 px-6 py-4 rounded-xl min-h-[48px] w-full sm:w-auto justify-center"
                 title="Add new chore to unassigned"
               >
                 <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('plus', 'lucide', 16, 'text-white') : ''"></div>
@@ -655,9 +658,9 @@ const TailwindChorePage = Vue.defineComponent({
 
       <!-- Family Members & Assigned Chores -->
       <div class="w-full">
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <h2 class="text-gray-900 text-2xl font-bold leading-tight mb-6 flex items-center gap-2">
-            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('users', 'lucide', 20, 'text-primary-500') : ''" style="color: var(--color-primary-500);"></div>
+        <div class="rounded-xl shadow-lg border p-6" style="background: var(--color-surface-1); border-color: var(--color-primary-200);">
+          <h2 class="text-2xl font-bold leading-tight mb-6 flex items-center gap-2" style="color: var(--color-text-primary);">
+            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('users', 'lucide', 20, 'text-primary-500') : ''" style="color: var(--color-text-primary);"></div>
             Family Members
           </h2>
 
@@ -686,9 +689,9 @@ const TailwindChorePage = Vue.defineComponent({
 
       <!-- Earnings Summary -->
       <div class="w-full">
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <h2 class="text-gray-900 text-2xl font-bold leading-tight mb-6 flex items-center gap-2">
-            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('dollar-sign', 'lucide', 20, 'text-primary-500') : ''" style="color: var(--color-primary-500);"></div>
+        <div class="rounded-xl shadow-lg border p-6" style="background: var(--color-surface-1); border-color: var(--color-primary-200);">
+          <h2 class="text-2xl font-bold leading-tight mb-6 flex items-center gap-2" style="color: var(--color-text-primary);">
+            <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('dollar-sign', 'lucide', 20, 'text-primary-500') : ''" style="color: var(--color-text-primary);"></div>
             Earnings Summary
           </h2>
 

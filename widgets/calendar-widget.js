@@ -258,7 +258,7 @@ const CalendarWidget = {
       
       try {
         // Use centralized apiService for consistent auth/accountId handling
-        const result = await window.apiService.put('/calendar/config', { 
+        await window.apiService.put('/calendar/config', { 
           calendarUrl: this.newCalendarUrl,
           name: this.newCalendarName || 'Calendar'
         });

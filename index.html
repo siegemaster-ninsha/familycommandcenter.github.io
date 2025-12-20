@@ -124,6 +124,9 @@
     
     <!-- Canvas Confetti for celebration effects -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    
+    <!-- Nyan Cat celebration animation -->
+    <script src="utils/nyan-cat.js"></script>
 
     <!-- Tailwind CSS Configuration -->
     <script>
@@ -279,7 +282,7 @@
               <div v-if="!isAuthenticated" class="flex flex-col items-center justify-center min-h-[400px] text-center">
                 <div class="card p-8 max-w-md">
                   <div class="mb-6">
-                    <div v-html="Helpers.IconLibrary.getIcon('lock', 'lucide', 64, 'mx-auto text-primary')"></div>
+                    <div v-html="Helpers.IconLibrary.getIcon('lock', 'lucide', 64, 'mx-auto')" style="color: var(--color-text-primary);"></div>
                   </div>
                   <h2 class="card-title text-2xl mb-4">Welcome to Family Hub</h2>
                   <p class="text-secondary mb-6">Please sign in to access your family command center.</p>
