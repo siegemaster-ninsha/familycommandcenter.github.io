@@ -2083,6 +2083,49 @@ const app = createApp({
         this.showSuccessMessage('Failed to approve chore');
       }
     },
+
+    // Reassign a chore to a different family member (or unassign)
+    async reassignChore(chore, newAssignee) {
+      if (!chore || !chore.id) {
+        console.warn('No chore provided for reassignment');
+        return { success: false };
+      }
+
+      // Don't reassign to same person
+      if (chore.assignedTo === newAssignee) {
+        return { success: true };
+      }
+
+      const originalAssignedTo = chore.assignedTo;
+      const choreIndex = this.chores.findIndex(c => c.id === chore.id);
+
+      try {
+        // Optimistic update
+        if (choreIndex !== -1) {
+          this.chores[choreIndex].assignedTo = newAssignee;
+        }
+
+        // Make API call
+        await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/assign`, {
+          method: 'PUT',
+          body: JSON.stringify({ assignedTo: newAssignee })
+        });
+
+        if (CONFIG.ENV.IS_DEVELOPMENT) {
+          console.log('[OK] Chore reassigned:', chore.name, 'to:', newAssignee || 'unassigned');
+        }
+
+        return { success: true };
+      } catch (error) {
+        // Rollback on error
+        if (choreIndex !== -1) {
+          this.chores[choreIndex].assignedTo = originalAssignedTo;
+        }
+        console.error('Failed to reassign chore:', error);
+        this.showSuccessMessage(`Failed to reassign "${chore.name}"`);
+        return { success: false, error: error.message };
+      }
+    },
     
     triggerConfetti() {
       // Use canvas-confetti for smooth, performant celebration effects
@@ -2734,6 +2777,7 @@ const app = createApp({
       handleScheduleSave: this.handleScheduleSave,
       updateQuicklistCategory: this.updateQuicklistCategory,
       deleteChore: this.deleteChore,
+      reassignChore: this.reassignChore,
       deletePerson: this.performDeletePerson,
       executeDeletePerson: this.executeDeletePerson,
       cancelDeletePerson: this.cancelDeletePerson,

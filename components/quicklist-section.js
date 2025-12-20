@@ -97,7 +97,7 @@ const QuicklistSection = Vue.defineComponent({
             class="quicklist-accordion"
           >
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-2">
-              <!-- Use sl-card to match other chore cards -->
+              <!-- Use sl-card with 2x2 grid layout for better space utilization -->
               <sl-card
                 v-for="chore in getChoresForCategory(categoryName)"
                 :key="chore.id"
@@ -105,77 +105,79 @@ const QuicklistSection = Vue.defineComponent({
                 :class="selectedChoreId === chore.id ? 'chore-card--selected' : ''"
                 @click="$emit('chore-click', chore)"
               >
-                <div class="chore-card-content">
-                  <!-- Chore name - full width on top -->
+                <div class="chore-card-content chore-card-split" :class="{ 'has-amount': chore.amount > 0 }">
+                  <!-- Left section: Chore name -->
                   <span class="chore-name">{{ chore.name }}</span>
 
-                  <!-- Actions row: badge + buttons -->
-                  <div class="chore-card-actions">
-                    <!-- Pay amount -->
-                    <sl-badge v-if="chore.amount > 0" variant="primary" pill class="chore-amount">
-                      \${{ chore.amount.toFixed(2) }}
-                    </sl-badge>
-
-                    <!-- Spacer to push buttons right -->
-                    <span style="flex: 1;"></span>
-
-                    <!-- Schedule button - Requirements 1.1, 4.1, 4.2, 4.3 -->
-                    <button
-                      @click.stop="$emit('open-schedule', chore)"
-                      class="chore-schedule-btn"
-                      title="Schedule this chore"
-                    >
-                      <div v-html="getIcon('calendar', 16)"></div>
-                      <sl-badge 
-                        v-if="getScheduleCount(chore) > 0" 
-                        variant="primary" 
-                        pill 
-                        class="schedule-badge"
-                      >
-                        {{ getScheduleCount(chore) }}
+                  <!-- Right section: Money on top, buttons below, with horizontal divider -->
+                  <div class="chore-card-right-section">
+                    <!-- Money badge (only if has amount) -->
+                    <div v-if="chore.amount > 0" class="chore-card-money-row">
+                      <sl-badge variant="primary" pill class="chore-amount">
+                        \${{ chore.amount.toFixed(2) }}
                       </sl-badge>
-                    </button>
-
-                    <!-- Assign Category dropdown - only for Uncategorized chores -->
-                    <!-- Wrapper div stops all event propagation to prevent accordion toggle -->
-                    <div 
-                      v-if="isUncategorized(chore)" 
-                      @click.stop 
-                      @touchstart.stop
-                      @touchend.stop
-                      class="dropdown-wrapper"
-                    >
-                      <sl-dropdown 
-                        :hoist="true" 
-                        placement="bottom-start"
-                      >
-                        <button
-                          slot="trigger"
-                          class="chore-category-btn"
-                          title="Assign category"
-                        >
-                          <div v-html="getIcon('folderPlus', 16)"></div>
-                        </button>
-                        <sl-menu @sl-select="(e) => onCategorySelect(chore, e)">
-                          <sl-menu-item
-                            v-for="cat in categories"
-                            :key="cat.id"
-                            :value="cat.id"
-                          >
-                            {{ cat.name }}
-                          </sl-menu-item>
-                        </sl-menu>
-                      </sl-dropdown>
                     </div>
 
-                    <!-- Delete button -->
-                    <button
-                      @click.stop="$emit('delete-chore', chore.id)"
-                      class="chore-delete-btn"
-                      title="Remove from quicklist"
-                    >
-                      <div v-html="getIcon('trash', 18)"></div>
-                    </button>
+                    <!-- Action buttons -->
+                    <div class="chore-card-actions-row">
+                      <!-- Schedule button - Requirements 1.1, 4.1, 4.2, 4.3 -->
+                      <button
+                        @click.stop="$emit('open-schedule', chore)"
+                        class="chore-schedule-btn"
+                        title="Schedule this chore"
+                      >
+                        <div v-html="getIcon('calendar', 16)"></div>
+                        <sl-badge 
+                          v-if="getScheduleCount(chore) > 0" 
+                          variant="primary" 
+                          pill 
+                          class="schedule-badge"
+                        >
+                          {{ getScheduleCount(chore) }}
+                        </sl-badge>
+                      </button>
+
+                      <!-- Assign Category dropdown - only for Uncategorized chores -->
+                      <!-- Wrapper div stops all event propagation to prevent accordion toggle -->
+                      <div 
+                        v-if="isUncategorized(chore)" 
+                        @click.stop 
+                        @touchstart.stop
+                        @touchend.stop
+                        class="dropdown-wrapper"
+                      >
+                        <sl-dropdown 
+                          :hoist="true" 
+                          placement="bottom-start"
+                        >
+                          <button
+                            slot="trigger"
+                            class="chore-category-btn"
+                            title="Assign category"
+                          >
+                            <div v-html="getIcon('folderPlus', 16)"></div>
+                          </button>
+                          <sl-menu @sl-select="(e) => onCategorySelect(chore, e)">
+                            <sl-menu-item
+                              v-for="cat in categories"
+                              :key="cat.id"
+                              :value="cat.id"
+                            >
+                              {{ cat.name }}
+                            </sl-menu-item>
+                          </sl-menu>
+                        </sl-dropdown>
+                      </div>
+
+                      <!-- Delete button -->
+                      <button
+                        @click.stop="$emit('delete-chore', chore.id)"
+                        class="chore-delete-btn"
+                        title="Remove from quicklist"
+                      >
+                        <div v-html="getIcon('trash', 18)"></div>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </sl-card>

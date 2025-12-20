@@ -1104,11 +1104,64 @@ body.modal-open {
   opacity: 0.7;
 }
 
+/* Expanded state - remove bottom border radius to connect with flyout */
+.chore-card--expanded {
+  --border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+
+.chore-card--expanded::part(base) {
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  /* Remove bottom border when flyout is attached */
+  border-bottom: none;
+}
+
 /* Card content layout */
 .chore-card-content {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+}
+
+/* Legacy divided card layout - kept for backwards compatibility */
+.chore-card-content.chore-card-divided {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Left zone: Checkbox + Name */
+.chore-card-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+}
+
+/* Right zone: Money + Actions with visual separator */
+.chore-card-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--color-white-overlay-35);
+  margin-left: var(--space-3);
+  min-height: 32px;
+}
+
+/* Money section */
+.chore-card-money {
+  display: flex;
+  align-items: center;
+}
+
+/* Actions section - legacy horizontal layout */
+.chore-card-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 /* Checkbox styling */
@@ -3669,10 +3722,168 @@ html {
 }
 
 .quicklist-accordion sl-card.chore-card::part(body) {
-  padding: 0.625rem 0.75rem;
+  padding: var(--space-3);
 }
 
-/* Chore card content layout - compact horizontal design */
+/* ===========================================
+   UNIFIED CHORE CARD SPLIT LAYOUT
+   3-section layout: Name | Money | Buttons
+   ┌─────────────────────────┬─────────────┐
+   │  ☐ Chore Name           │   $10.00    │  ← money (centered)
+   │                         ├─────────────┤  ← horizontal divider
+   │                         │     🗑      │  ← buttons
+   └─────────────────────────┴─────────────┘
+   Cards without money show only buttons in right section (no divider)
+   =========================================== */
+
+/* Base split layout - works for all chore cards */
+.chore-card-content.chore-card-split {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  min-height: 3.5rem;
+}
+
+/* Left section: Checkbox + Name - grows to fill available space */
+.chore-card-split .chore-card-left-section {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-right: var(--space-3);
+}
+
+/* Chore name in split layout */
+.chore-card-split .chore-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+
+/* Right section: Contains money + buttons stacked vertically */
+.chore-card-split .chore-card-right-section {
+  display: flex;
+  flex-direction: column;
+  border-left: 2px solid var(--color-white-overlay-35);
+  min-width: 4.5rem;
+  flex-shrink: 0;
+}
+
+/* Hide right section when truly empty (no money, no chevron, no action buttons) */
+.chore-card-split .chore-card-right-section:empty,
+.chore-card-split .chore-card-right-section:not(:has(.chore-card-money-row)):not(:has(.chore-expand-indicator)):not(:has(.chore-card-actions-row)) {
+  display: none;
+}
+
+/* Money row - top of right section, centered */
+.chore-card-split .chore-card-money-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 2px solid var(--color-white-overlay-35);
+  flex: 1;
+}
+
+/* Actions row - bottom of right section */
+.chore-card-split .chore-card-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  flex: 1;
+}
+
+/* When card has NO money, center the buttons vertically */
+.chore-card-split:not(.has-amount) .chore-card-right-section {
+  justify-content: center;
+}
+
+.chore-card-split:not(.has-amount) .chore-card-actions-row {
+  flex: none;
+}
+
+/* ===========================================
+   UNIFIED BUTTON STYLES FOR ALL CHORE CARDS
+   Consistent 32px square buttons
+   =========================================== */
+.chore-card-split .chore-schedule-btn,
+.chore-card-split .chore-delete-btn,
+.chore-card-split .chore-category-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem; /* 32px */
+  min-height: 2rem; /* 32px */
+  width: 2rem; /* Force exact size */
+  height: 2rem; /* Force exact size */
+  padding: 0;
+  gap: 0;
+  box-sizing: border-box;
+  border: none;
+  background: var(--color-white-overlay-15);
+  border-radius: var(--radius-sm);
+  color: var(--color-white-overlay-strong);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.chore-card-split .chore-delete-btn:hover {
+  background: var(--color-error-overlay-90);
+  color: white;
+}
+
+.chore-card-split .chore-schedule-btn:hover,
+.chore-card-split .chore-category-btn:hover {
+  background: var(--color-white-overlay-35);
+}
+
+/* Schedule badge in compact mode - position relative to button, not extending it */
+.chore-card-split .chore-schedule-btn .schedule-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  font-size: 0.5rem;
+  min-width: 0.875rem;
+  height: 0.875rem;
+  padding: 0 0.125rem;
+  pointer-events: none; /* Don't interfere with button clicks */
+}
+
+/* Approval button styling */
+.chore-card-split .chore-approve-btn {
+  --sl-color-success-600: var(--color-success-600);
+  min-width: 2rem;
+  min-height: 2rem;
+}
+
+.chore-card-split .chore-approve-btn::part(base) {
+  padding: 0 var(--space-2);
+  min-height: 2rem;
+  font-size: 0.875rem;
+}
+
+/* ===========================================
+   QUICKLIST-SPECIFIC OVERRIDES
+   Quicklist cards allow 3-line names
+   =========================================== */
+.quicklist-accordion .chore-card-split .chore-name {
+  -webkit-line-clamp: 3;
+}
+
+/* Default chore card content layout - horizontal for family member cards */
 .chore-card-content {
   display: flex;
   flex-direction: row;
@@ -3681,7 +3892,7 @@ html {
   min-height: 2.5rem;
 }
 
-/* Chore name - grows to fill available space */
+/* Default chore name - grows to fill available space */
 .chore-name {
   flex: 1;
   min-width: 0;
@@ -3719,13 +3930,13 @@ html {
   border-radius: var(--radius-full);
 }
 
-/* Category assign button - compact for horizontal layout */
+/* Category assign button - 44px minimum touch target for accessibility */
 .chore-category-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
+  min-width: 2.75rem; /* 44px */
+  min-height: 2.75rem; /* 44px */
   border: none;
   background: var(--color-white-overlay-15);
   border-radius: var(--radius-sm);
@@ -3782,13 +3993,13 @@ html {
   padding: 0 0.25rem;
 }
 
-/* Delete button - compact for horizontal layout */
+/* Delete button - 44px minimum touch target for accessibility */
 .chore-delete-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
+  min-width: 2.75rem; /* 44px */
+  min-height: 2.75rem; /* 44px */
   border: none;
   background: var(--color-white-overlay-15);
   border-radius: var(--radius-sm);
@@ -4158,3 +4369,409 @@ html {
 }
 
 
+
+
+/* ===========================================
+   SLIDE PANEL COMPONENT
+   Reusable horizontal sliding container for
+   multi-page inline navigation
+   =========================================== */
+
+/* Container - clips overflow during slide */
+.slide-panel {
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  /* Rounded corners on container so they don't show during slide transition */
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+}
+
+/* Track - holds all pages in a row, slides horizontally */
+/* Width is 200% to hold 2 pages, each page is 50% of track = 100% of container */
+.slide-panel-track {
+  display: flex;
+  width: 200%;
+  will-change: transform;
+}
+
+/* Individual page - each takes 50% of track (= 100% of container) */
+.slide-panel-page {
+  flex: 0 0 50%;
+  width: 50%;
+  box-sizing: border-box;
+}
+
+/* Active page indicator (for potential styling) */
+.slide-panel-page--active {
+  /* Can add focus/active styles here if needed */
+}
+
+/* ===========================================
+   CHORE ACTION FLYOUT
+   Bottom flyout action bar that slides down from card
+   =========================================== */
+
+/* Wrapper needs relative positioning for flyout */
+.chore-card-wrapper {
+  position: relative;
+}
+
+/* When expanded, raise above sibling cards so flyout overlays them */
+.chore-card-wrapper--expanded {
+  z-index: 20;
+}
+
+/* Flyout container - positioned below the card, slides down */
+.chore-action-flyout {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 0;
+  /* Only clip vertically during height transition - slide-panel handles horizontal clipping */
+  overflow-y: hidden;
+  overflow-x: visible;
+  transition: height 200ms ease-out;
+  z-index: 10;
+  /* Pull up to connect seamlessly with card (compensate for shadow/transform effects) */
+  margin-top: -9px;
+}
+
+.chore-action-flyout--expanded {
+  height: 48px;
+}
+
+/* Button group fills the entire flyout - no border, no padding */
+.chore-action-button-group {
+  display: flex;
+  width: 100%;
+  height: 48px;
+  gap: 0;
+  /* Rounded bottom corners only - connects to card above */
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  overflow: hidden;
+  background: var(--color-primary-300);
+  /* No border on top since it connects to card */
+  border: none;
+  box-shadow: 0 4px 12px var(--color-overlay-light);
+}
+
+.chore-action-button-group::part(base) {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.chore-action-button-group sl-button {
+  flex: 1;
+  height: 100%;
+}
+
+/* Primary-300 buttons with blue icons */
+.chore-action-button-group sl-button::part(base) {
+  width: 100%;
+  height: 100%;
+  min-height: 48px;
+  justify-content: center;
+  border-radius: 0;
+  transition: all 150ms ease;
+  padding: 0;
+  /* Darker primary background with blue text/icons */
+  background: var(--color-primary-300) !important;
+  border: none !important;
+  color: var(--color-primary-600) !important;
+}
+
+.chore-action-button-group sl-button::part(base):hover {
+  background: var(--color-primary-400) !important;
+}
+
+.chore-action-button-group sl-button::part(label) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary-600);
+}
+
+/* Icon color inside buttons */
+.chore-action-button-group sl-button svg,
+.chore-action-button-group sl-button span {
+  color: var(--color-primary-600) !important;
+}
+
+/* First button - rounded bottom-left corner */
+.chore-action-button-group sl-button:first-child::part(base) {
+  border-radius: 0 0 0 var(--radius-xl);
+}
+
+/* Last button - rounded bottom-right corner */
+.chore-action-button-group sl-button:last-child::part(base) {
+  border-radius: 0 0 var(--radius-xl) 0;
+}
+
+/* Only button - both bottom corners rounded */
+.chore-action-button-group sl-button:only-child::part(base) {
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+}
+
+/* Divider lines between buttons */
+.chore-action-button-group sl-button:not(:last-child)::part(base)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 20%;
+  height: 60%;
+  width: 1px;
+  background: var(--color-primary-100);
+}
+
+
+
+/* Individual action button */
+.chore-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-width: 80px;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all 150ms ease;
+  color: white;
+}
+
+/* Complete button - success green */
+.chore-action-btn--complete {
+  background: var(--color-success-500);
+}
+
+.chore-action-btn--complete:hover {
+  background: var(--color-success-600);
+}
+
+/* Reassign button - primary blue */
+.chore-action-btn--reassign {
+  background: var(--color-primary-500);
+}
+
+.chore-action-btn--reassign:hover {
+  background: var(--color-primary-600);
+}
+
+/* Delete button - danger red */
+.chore-action-btn--delete {
+  background: var(--color-error-500);
+}
+
+.chore-action-btn--delete:hover {
+  background: var(--color-error-600);
+}
+
+/* Back button - compact circle matching avatar chip height, blue icon on light bg */
+.chore-action-btn--back {
+  background: var(--color-white-overlay-25);
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  color: var(--color-primary-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  transition: background 150ms ease;
+}
+
+@media (hover: hover) {
+  .chore-action-btn--back:hover {
+    background: var(--color-white-overlay-35);
+  }
+}
+
+.chore-action-btn--back:active {
+  background: var(--color-white-overlay-40);
+}
+
+/* Back button icon - same blue as flyout icons */
+.chore-action-btn--back svg {
+  color: var(--color-primary-600);
+}
+
+/* ===========================================
+   REASSIGN PICKER
+   Avatar chips for family member selection
+   =========================================== */
+
+/* Reassign picker row */
+.chore-reassign-picker {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--color-primary-300);
+  height: 48px;
+  /* No border-radius here - parent .slide-panel handles it to avoid visible corners during transition */
+}
+
+/* Avatar chip - horizontal pill button with initial + name */
+.avatar-chip {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-1);
+  border: none;
+  background: var(--color-primary-500);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background 150ms ease;
+  flex-shrink: 0;
+  height: 32px;
+}
+
+/* Hover only for non-touch devices */
+@media (hover: hover) {
+  .avatar-chip:hover {
+    background: var(--color-primary-600);
+  }
+}
+
+/* Subtle active state without jarring transform */
+.avatar-chip:active {
+  background: var(--color-primary-700);
+}
+
+/* Avatar circle - smaller for compact layout */
+.avatar-chip-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background: var(--color-white-overlay-25);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  flex-shrink: 0;
+}
+
+/* Unassigned chip - different style */
+.avatar-chip--unassigned {
+  background: var(--color-neutral-400);
+}
+
+.avatar-chip--unassigned:hover {
+  background: var(--color-neutral-500);
+}
+
+/* Current assignee - dimmed */
+.avatar-chip--current {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Avatar name label */
+.avatar-chip-name {
+  font-size: var(--font-size-xs);
+  color: white;
+  white-space: nowrap;
+  font-weight: var(--font-weight-medium);
+}
+
+/* Mobile: Circle-only avatar chips (hide name to save space) */
+@media (max-width: 640px) {
+  .avatar-chip {
+    /* Circle shape - no padding for name */
+    padding: var(--space-1);
+    width: 32px;
+    justify-content: center;
+  }
+
+  .avatar-chip-name {
+    display: none;
+  }
+}
+
+
+/* ===========================================
+   CHORE CARD EXPANDED STATE
+   =========================================== */
+
+/* Wrapper for proper spacing */
+.chore-card-wrapper {
+  margin-bottom: var(--space-2);
+}
+
+/* Expanded card state */
+.chore-card--expanded {
+  --border-width: 3px;
+}
+
+.chore-card--expanded::part(base) {
+  border-color: var(--color-primary-400);
+}
+
+/* Completed indicator (non-interactive checkmark) */
+.chore-completed-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background: var(--color-success-500);
+  color: white;
+  flex-shrink: 0;
+  margin-right: var(--space-2);
+}
+
+/* Completed name strikethrough */
+.chore-name--completed {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+/* Expand indicator (chevron) */
+.chore-expand-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: var(--color-white-overlay-60);
+  transition: transform 200ms ease;
+  flex-shrink: 0;
+}
+
+.chore-expand-indicator--expanded {
+  transform: rotate(180deg);
+}
+
+/* Undo button style */
+.chore-action-btn--undo {
+  background: var(--color-neutral-500);
+}
+
+.chore-action-btn--undo:hover {
+  background: var(--color-neutral-600);
+}
+
+/* Approve button style */
+.chore-action-btn--approve {
+  background: var(--color-success-600);
+}
+
+.chore-action-btn--approve:hover {
+  background: var(--color-success-700);
+}

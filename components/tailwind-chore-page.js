@@ -7,88 +7,202 @@ if (window.SkeletonRegistry) {
   window.SkeletonRegistry.register('chores');
 }
 
-// Unified Chore Card Component - Shoelace Implementation
+// Unified Chore Card Component - Shoelace Implementation with Bottom Flyout Actions
+// Tap card to show flyout action bar below the card
+// Uses slide-panel for reassign member picker
 const ChoreCard = {
   template: `
-    <sl-card
-      class="chore-card"
-      :class="[
-        isSelected ? 'chore-card--selected' : '',
-        chore.completed && type !== 'quicklist' ? 'chore-card--completed' : ''
-      ]"
-      :style="getCardStyle()"
-      @touchstart.passive="handleTouchStart"
-      @touchmove.passive="handleTouchMove"
-      @click.stop="handleClick"
-    >
-      <div class="chore-card-content">
-        <!-- Completion checkbox (not for quicklist) -->
-        <sl-checkbox
-          v-if="type !== 'quicklist'"
-          :checked="chore.completed"
-          @sl-change="handleToggleComplete"
-          @click.stop
-          size="large"
-          class="chore-checkbox"
-        ></sl-checkbox>
+    <div class="chore-card-wrapper min-w-0" :class="{ 'chore-card-wrapper--expanded': isElevated }">
+      <sl-card
+        class="chore-card"
+        :class="[
+          isElevated ? 'chore-card--expanded' : '',
+          chore.completed && type !== 'quicklist' ? 'chore-card--completed' : ''
+        ]"
+        @touchstart.passive="handleTouchStart"
+        @touchmove.passive="handleTouchMove"
+        @click.stop="handleCardClick"
+      >
+        <div class="chore-card-content chore-card-split" :class="{ 'has-amount': chore.amount > 0 }">
+          <!-- Left section: Completed indicator + Name -->
+          <div class="chore-card-left-section">
+            <!-- Completed checkmark indicator (not interactive) -->
+            <div 
+              v-if="type !== 'quicklist' && chore.completed" 
+              class="chore-completed-indicator"
+            >
+              <div v-html="getIcon('check', 16)"></div>
+            </div>
 
-        <!-- Chore name - grows to fill space -->
-        <span
-          :class="chore.completed && type !== 'quicklist' ? 'chore-name--completed' : ''"
-          class="chore-name"
-        >
-          {{ chore.name }}
-        </span>
+            <!-- Chore name - grows to fill space -->
+            <span
+              :class="chore.completed && type !== 'quicklist' ? 'chore-name--completed' : ''"
+              class="chore-name"
+            >
+              {{ chore.name }}
+            </span>
+          </div>
 
-        <!-- Pay amount -->
-        <sl-badge v-if="chore.amount > 0" variant="primary" pill class="chore-amount">
-          \${{ chore.amount.toFixed(2) }}
-        </sl-badge>
+          <!-- Right section: Money + expand indicator -->
+          <div class="chore-card-right-section">
+            <!-- Money badge (only if has amount) -->
+            <div v-if="chore.amount > 0" class="chore-card-money-row">
+              <sl-badge variant="primary" pill class="chore-amount">
+                \${{ chore.amount.toFixed(2) }}
+              </sl-badge>
+            </div>
 
-        <!-- Approval button (assigned type only) -->
-        <sl-button
-          v-if="type === 'assigned' && showApprovalButton && chore.isPendingApproval"
-          @click.stop="handleApprove"
-          variant="success"
-          size="small"
-        >
-          Approve
-        </sl-button>
+            <!-- Expand indicator (chevron) - hidden for assigned chores -->
+            <div 
+              v-if="type === 'quicklist'"
+              class="chore-expand-indicator" 
+              :class="{ 'chore-expand-indicator--expanded': isExpanded }"
+            >
+              <div v-html="getIcon('chevronDown', 16)"></div>
+            </div>
+          </div>
+        </div>
+      </sl-card>
 
-        <!-- Delete/Remove button -->
-        <button
-          @click.stop="handleDelete"
-          class="chore-delete-btn"
-          :title="getButtonTitle()"
-        >
-          <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('trash', 'lucide', 18, 'text-white') : ''"></div>
-        </button>
+      <!-- Bottom Flyout Action Bar - positioned below the card -->
+      <div 
+        class="chore-action-flyout" 
+        :class="{ 'chore-action-flyout--expanded': isExpanded }"
+        @click.stop
+      >
+        <slide-panel :active-page="actionPage" @page-change="onPageChange">
+          <!-- Main actions page -->
+          <template #default>
+            <sl-button-group class="chore-action-button-group">
+              <!-- Complete/Uncomplete button -->
+              <sl-button 
+                v-if="type !== 'quicklist'"
+                @click="handleComplete"
+                variant="primary"
+                :title="chore.completed ? 'Undo' : 'Done'"
+              >
+                <span v-html="getIcon(chore.completed ? 'rotateCcw' : 'check', 20)"></span>
+              </sl-button>
+
+              <!-- Approve button (for parents, when pending) -->
+              <sl-button 
+                v-if="type === 'assigned' && showApprovalButton && chore.isPendingApproval"
+                @click="handleApprove"
+                variant="primary"
+                title="Approve"
+              >
+                <span v-html="getIcon('checkCircle', 20)"></span>
+              </sl-button>
+
+              <!-- Reassign button (for assigned chores) -->
+              <sl-button 
+                v-if="type === 'assigned' || type === 'unassigned'"
+                @click="showReassignPicker"
+                variant="primary"
+                title="Reassign"
+              >
+                <span v-html="getIcon('userPlus', 20)"></span>
+              </sl-button>
+
+              <!-- Delete button -->
+              <sl-button 
+                @click="handleDelete"
+                variant="primary"
+                title="Delete"
+              >
+                <span v-html="getIcon('trash', 20)"></span>
+              </sl-button>
+            </sl-button-group>
+          </template>
+
+          <!-- Reassign picker page -->
+          <template #reassign>
+            <div class="chore-reassign-picker">
+              <!-- Back button -->
+              <button @click="actionPage = 'default'" class="chore-action-btn chore-action-btn--back">
+                <div v-html="getIcon('arrowLeft', 16)"></div>
+              </button>
+
+              <!-- Family member chips -->
+              <button 
+                v-for="member in familyMembers" 
+                :key="member.id"
+                @click="handleReassign(member)"
+                class="avatar-chip"
+                :class="{ 'avatar-chip--current': isCurrentAssignee(member) }"
+                :disabled="isCurrentAssignee(member)"
+              >
+                <div class="avatar-chip-circle">{{ getInitial(member) }}</div>
+                <span class="avatar-chip-name">{{ member.displayName }}</span>
+              </button>
+
+              <!-- Unassigned option -->
+              <button 
+                v-if="type === 'assigned'"
+                @click="handleReassign(null)"
+                class="avatar-chip avatar-chip--unassigned"
+              >
+                <div class="avatar-chip-circle">
+                  <div v-html="getIcon('inbox', 16)"></div>
+                </div>
+                <span class="avatar-chip-name">None</span>
+              </button>
+            </div>
+          </template>
+        </slide-panel>
       </div>
-    </sl-card>
+    </div>
   `,
+  components: {
+    'slide-panel': window.SlidePanelComponent
+  },
   props: {
     chore: { type: Object, required: true },
     type: { type: String, required: true, validator: (value) => ['quicklist', 'unassigned', 'assigned'].includes(value) },
-    isSelected: { type: Boolean, default: false },
+    isExpanded: { type: Boolean, default: false },
     showApprovalButton: { type: Boolean, default: false },
+    familyMembers: { type: Array, default: () => [] },
     Helpers: { type: Object, required: true },
     // Event handlers
-    onClick: { type: Function, required: true },
+    onExpand: { type: Function },
+    onCollapse: { type: Function },
     onToggleComplete: { type: Function },
     onApprove: { type: Function },
-    onDelete: { type: Function }
+    onDelete: { type: Function },
+    onReassign: { type: Function }
   },
   data() {
     return {
       touchStartX: null,
       touchStartY: null,
-      didScroll: false
+      didScroll: false,
+      actionPage: 'default',
+      isElevated: false,  // Controls z-index, delayed on collapse
+      elevationTimer: null
     };
   },
+  watch: {
+    // Handle z-index elevation with delay on collapse
+    isExpanded(newVal) {
+      if (newVal) {
+        // Expanding: immediately elevate
+        clearTimeout(this.elevationTimer);
+        this.isElevated = true;
+      } else {
+        // Collapsing: delay z-index reset until animation completes (200ms)
+        this.elevationTimer = setTimeout(() => {
+          this.isElevated = false;
+        }, 220);  // Slightly longer than 200ms animation
+        this.actionPage = 'default';
+      }
+    }
+  },
+  beforeUnmount() {
+    clearTimeout(this.elevationTimer);
+  },
   methods: {
-    getCardStyle() {
-      // Styles now handled via CSS classes (chore-card--selected, chore-card--completed)
-      return {};
+    getIcon(name, size) {
+      return this.Helpers?.IconLibrary?.getIcon?.(name, 'lucide', size, 'currentColor') || '';
     },
     handleTouchStart(event) {
       if (event.touches && event.touches.length > 0) {
@@ -102,34 +216,13 @@ const ChoreCard = {
       if (event.touches && event.touches.length > 0) {
         const deltaX = Math.abs(event.touches[0].clientX - this.touchStartX);
         const deltaY = Math.abs(event.touches[0].clientY - this.touchStartY);
-        // 10px threshold to distinguish scroll from tap
         if (deltaX > 10 || deltaY > 10) {
           this.didScroll = true;
         }
       }
     },
-    getCategoryIcon(category) {
-      try {
-        return this.Helpers?.getCategoryIcon?.(category) || '';
-      } catch (error) {
-        console.warn('Failed to get category icon for:', category, error);
-        return '';
-      }
-    },
-    getIconSize() {
-      return 'w-14 h-14';
-    },
-    getButtonSize() {
-      return this.type === 'quicklist' ? 'w-8 h-8' : 'w-10 h-10';
-    },
-    getTrashIconSize() {
-      return this.type === 'quicklist' ? 16 : 18;
-    },
-    getButtonTitle() {
-      return this.type === 'quicklist' ? 'Remove from quicklist' : 'Delete chore';
-    },
-    handleClick(event) {
-      // Ignore clicks that were actually scroll gestures on mobile
+    handleCardClick(event) {
+      // Ignore scroll gestures
       if (this.didScroll) {
         this.didScroll = false;
         this.touchStartX = null;
@@ -138,24 +231,111 @@ const ChoreCard = {
       }
       this.touchStartX = null;
       this.touchStartY = null;
-      this.onClick(this.chore, event);
-    },
-    handleToggleComplete(event) {
-      if (this.onToggleComplete) {
-        // Shoelace sl-change event has checked state in event.target.checked
-        const newState = event?.target?.checked ?? !this.chore.completed;
-        this.onToggleComplete(this.chore, { target: { checked: newState } });
+      
+      // Toggle expansion
+      if (this.isExpanded) {
+        this.onCollapse?.(this.chore);
+      } else {
+        this.onExpand?.(this.chore);
       }
+    },
+    handleComplete() {
+      const newState = !this.chore.completed;
+      this.onToggleComplete?.(this.chore, { target: { checked: newState } });
+      this.onCollapse?.(this.chore);
     },
     handleApprove() {
-      if (this.onApprove) {
-        this.onApprove(this.chore);
-      }
+      this.onApprove?.(this.chore);
+      this.onCollapse?.(this.chore);
     },
     handleDelete() {
-      if (this.onDelete) {
-        this.onDelete(this.chore);
+      this.onDelete?.(this.chore);
+      this.onCollapse?.(this.chore);
+    },
+    showReassignPicker() {
+      this.actionPage = 'reassign';
+    },
+    handleReassign(member) {
+      this.onReassign?.(this.chore, member);
+      this.actionPage = 'default';
+      this.onCollapse?.(this.chore);
+    },
+    onPageChange({ from, to }) {
+      // Could add analytics or other side effects here
+    },
+    isCurrentAssignee(member) {
+      return this.chore.assignedTo === member.displayName;
+    },
+    getInitial(member) {
+      return (member.displayName || member.name || '?').charAt(0).toUpperCase();
+    }
+  }
+};
+
+// Legacy ChoreCard for quicklist (simpler, no expand)
+const QuicklistChoreCard = {
+  template: `
+    <sl-card
+      class="chore-card"
+      :class="[isSelected ? 'chore-card--selected' : '']"
+      @touchstart.passive="handleTouchStart"
+      @touchmove.passive="handleTouchMove"
+      @click.stop="handleClick"
+    >
+      <div class="chore-card-content chore-card-split" :class="{ 'has-amount': chore.amount > 0 }">
+        <div class="chore-card-left-section">
+          <span class="chore-name">{{ chore.name }}</span>
+        </div>
+        <div class="chore-card-right-section">
+          <div v-if="chore.amount > 0" class="chore-card-money-row">
+            <sl-badge variant="primary" pill class="chore-amount">
+              \${{ chore.amount.toFixed(2) }}
+            </sl-badge>
+          </div>
+          <div class="chore-card-actions-row">
+            <button @click.stop="handleDelete" class="chore-delete-btn" title="Remove from quicklist">
+              <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('trash', 'lucide', 18, 'text-white') : ''"></div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </sl-card>
+  `,
+  props: {
+    chore: { type: Object, required: true },
+    isSelected: { type: Boolean, default: false },
+    Helpers: { type: Object, required: true },
+    onClick: { type: Function, required: true },
+    onDelete: { type: Function }
+  },
+  data() {
+    return { touchStartX: null, touchStartY: null, didScroll: false };
+  },
+  methods: {
+    handleTouchStart(event) {
+      if (event.touches?.length > 0) {
+        this.touchStartX = event.touches[0].clientX;
+        this.touchStartY = event.touches[0].clientY;
+        this.didScroll = false;
       }
+    },
+    handleTouchMove(event) {
+      if (this.touchStartX === null) return;
+      if (event.touches?.length > 0) {
+        const deltaX = Math.abs(event.touches[0].clientX - this.touchStartX);
+        const deltaY = Math.abs(event.touches[0].clientY - this.touchStartY);
+        if (deltaX > 10 || deltaY > 10) this.didScroll = true;
+      }
+    },
+    handleClick(event) {
+      if (this.didScroll) {
+        this.didScroll = false;
+        return;
+      }
+      this.onClick(this.chore, event);
+    },
+    handleDelete() {
+      this.onDelete?.(this.chore);
     }
   }
 };
@@ -165,10 +345,10 @@ const ChoreCard = {
 const PersonCard = {
   template: `
     <div
-      class="border-2 rounded-xl p-6 transition-all duration-200 shadow-lg hover:shadow-xl"
+      class="border-2 rounded-xl p-6 transition-all duration-200 shadow-lg hover:shadow-xl min-w-0 overflow-hidden"
       :class="[canAssign ? 'cursor-pointer hover:scale-102 bg-gray-50' : 'bg-white']"
       style="border-color: var(--color-neutral-200);"
-      @click="canAssign ? onAssign() : null"
+      @click="handleCardClick"
     >
       <!-- Person header -->
       <div class="flex items-center justify-between mb-6">
@@ -190,7 +370,7 @@ const PersonCard = {
       </div>
 
       <!-- Person's chores -->
-      <div class="space-y-3 min-h-[60px]">
+      <div class="space-y-2 min-h-[60px]" @click.stop>
         <div v-if="!personChores || personChores.length === 0" class="text-center py-6 text-gray-500">
           <p class="text-sm">No chores assigned</p>
           <p class="text-xs mt-1">Select a chore and tap here to assign it</p>
@@ -201,13 +381,16 @@ const PersonCard = {
           :key="chore.id"
           :chore="chore"
           type="assigned"
-          :is-selected="isChoreSelected(chore)"
+          :is-expanded="expandedChoreId === chore.id"
           :show-approval-button="showApprovalButton"
+          :family-members="familyMembers"
           :Helpers="Helpers"
-          :on-click="(c, event) => onChoreClick(c, event)"
+          :on-expand="handleChoreExpand"
+          :on-collapse="handleChoreCollapse"
           :on-toggle-complete="(c, event) => onChoreToggle(c, event)"
           :on-approve="(c) => onChoreApprove(c)"
           :on-delete="(c) => onChoreDelete(c)"
+          :on-reassign="handleChoreReassign"
         />
       </div>
     </div>
@@ -215,16 +398,18 @@ const PersonCard = {
   props: {
     person: { type: Object, required: true },
     personChores: { type: Array, default: () => [] },
+    familyMembers: { type: Array, default: () => [] },
     canAssign: { type: Boolean, default: false },
     showApprovalButton: { type: Boolean, default: false },
-    selectedChoreId: { type: String, default: null },
-    selectedQuicklistChore: { type: Object, default: null },
+    expandedChoreId: { type: String, default: null },
     Helpers: { type: Object, required: true },
     onAssign: { type: Function, required: true },
-    onChoreClick: { type: Function, required: true },
+    onChoreExpand: { type: Function },
+    onChoreCollapse: { type: Function },
     onChoreToggle: { type: Function, required: true },
     onChoreApprove: { type: Function, required: true },
-    onChoreDelete: { type: Function, required: true }
+    onChoreDelete: { type: Function, required: true },
+    onChoreReassign: { type: Function }
   },
   components: {
     ChoreCard
@@ -235,6 +420,21 @@ const PersonCard = {
     }
   },
   methods: {
+    handleCardClick(event) {
+      // Only trigger assign if canAssign and not clicking on a chore
+      if (this.canAssign) {
+        this.onAssign();
+      }
+    },
+    handleChoreExpand(chore) {
+      this.onChoreExpand?.(chore);
+    },
+    handleChoreCollapse(chore) {
+      this.onChoreCollapse?.(chore);
+    },
+    handleChoreReassign(chore, member) {
+      this.onChoreReassign?.(chore, member);
+    },
     getElectronicsStatusClass(status) {
       switch(status) {
         case 'allowed': return 'bg-green-100 text-green-800';
@@ -250,9 +450,6 @@ const PersonCard = {
         case 'blocked': return 'Blocked';
         default: return 'Allowed';
       }
-    },
-    isChoreSelected(chore) {
-      return this.Helpers?.isChoreSelected?.(this.selectedChoreId, this.selectedQuicklistChore, chore) || false;
     }
   }
 };
@@ -420,16 +617,19 @@ const TailwindChorePage = Vue.defineComponent({
             </div>
 
             <!-- Container for chores -->
-            <div v-else class="space-y-4 mb-6">
+            <div v-else class="space-y-2 mb-6" @click.stop>
               <chore-card
                 v-for="chore in choresByPerson.unassigned"
                 :key="chore.id"
                 :chore="chore"
                 type="unassigned"
-                :is-selected="isChoreSelected(chore)"
+                :is-expanded="expandedChoreId === chore.id"
+                :family-members="people"
                 :Helpers="Helpers"
-                :on-click="(c, event) => selectChore(c, event)"
+                :on-expand="handleChoreExpand"
+                :on-collapse="handleChoreCollapse"
                 :on-delete="() => deleteChore(chore)"
+                :on-reassign="handleChoreReassign"
               />
             </div>
 
@@ -465,16 +665,18 @@ const TailwindChorePage = Vue.defineComponent({
               :key="person.id"
               :person="person"
               :person-chores="choresByPerson[person.displayName] || []"
+              :family-members="people"
               :can-assign="!!selectedChore"
               :show-approval-button="currentUser?.role === 'parent'"
-              :selected-chore-id="selectedChoreId"
-              :selected-quicklist-chore="selectedQuicklistChore"
+              :expanded-chore-id="expandedChoreId"
               :Helpers="Helpers"
               :on-assign="() => assignSelectedChore(person.displayName)"
-              :on-chore-click="selectChore"
+              :on-chore-expand="handleChoreExpand"
+              :on-chore-collapse="handleChoreCollapse"
               :on-chore-toggle="handleChoreCompletionToggle"
               :on-chore-approve="approveChore"
               :on-chore-delete="deleteChore"
+              :on-chore-reassign="handleChoreReassign"
             />
           </div>
         </div>
@@ -516,7 +718,8 @@ const TailwindChorePage = Vue.defineComponent({
   data() {
     return {
       quicklistLoading: false,
-      quicklistError: null
+      quicklistError: null,
+      expandedChoreId: null  // Track which chore's action panel is expanded
     }
   },
   // NOTE: Data is preloaded by parent app.js in loadAllData() - no need to load on mount
@@ -688,6 +891,44 @@ const TailwindChorePage = Vue.defineComponent({
     openSpendModal(person) {
       if (this.$parent.openSpendingModal) {
         this.$parent.openSpendingModal(person);
+      }
+    },
+
+    // Chore expansion handlers for tap-to-expand action panel
+    handleChoreExpand(chore) {
+      // Collapse any other expanded chore and expand this one
+      this.expandedChoreId = chore.id;
+    },
+
+    handleChoreCollapse(chore) {
+      // Only collapse if this is the currently expanded chore
+      if (this.expandedChoreId === chore.id) {
+        this.expandedChoreId = null;
+      }
+    },
+
+    // Handle reassigning a chore to a different family member
+    async handleChoreReassign(chore, member) {
+      // Use 'unassigned' string for the "None" option (backend expects this, not null)
+      const newAssignee = member ? member.displayName : 'unassigned';
+      
+      // Don't reassign to same person
+      if (chore.assignedTo === newAssignee) {
+        return;
+      }
+
+      try {
+        // Use the parent app's reassignChore method (not the Pinia store)
+        if (this.$parent?.reassignChore) {
+          await this.$parent.reassignChore(chore, newAssignee);
+        } else {
+          console.warn('reassignChore method not found on parent');
+        }
+        
+        // Collapse the action panel after successful reassign
+        this.expandedChoreId = null;
+      } catch (error) {
+        console.error('Failed to reassign chore:', error);
       }
     }
   }
