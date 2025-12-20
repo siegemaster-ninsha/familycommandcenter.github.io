@@ -533,71 +533,73 @@ const EarningsCard = {
 const TailwindChorePage = Vue.defineComponent({
   name: 'TailwindChorePage',
   template: `
-    <div class="space-y-6 pb-24 sm:pb-0">
-      <!-- Loading Skeleton State -->
-      <div v-if="loading" class="space-y-6">
-        <!-- Quicklist Skeleton -->
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <sl-skeleton effect="pulse" class="skeleton-header mb-6"></sl-skeleton>
-          <sl-skeleton effect="pulse" class="skeleton-subtext mb-6"></sl-skeleton>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            <sl-skeleton v-for="n in 4" :key="'ql-'+n" effect="pulse" class="skeleton-card"></sl-skeleton>
+    <div class="chore-page-layout">
+      <!-- Main Content Column -->
+      <div class="chore-page-main space-y-6 pb-24 sm:pb-0">
+        <!-- Loading Skeleton State -->
+        <div v-if="loading" class="space-y-6">
+          <!-- Quicklist Skeleton -->
+          <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <sl-skeleton effect="pulse" class="skeleton-header mb-6"></sl-skeleton>
+            <sl-skeleton effect="pulse" class="skeleton-subtext mb-6"></sl-skeleton>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <sl-skeleton v-for="n in 4" :key="'ql-'+n" effect="pulse" class="skeleton-card"></sl-skeleton>
+            </div>
           </div>
-        </div>
-        
-        <!-- Unassigned Skeleton -->
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <sl-skeleton effect="pulse" class="skeleton-header mb-6"></sl-skeleton>
-          <div class="space-y-4">
-            <sl-skeleton v-for="n in 2" :key="'ua-'+n" effect="pulse" class="skeleton-card"></sl-skeleton>
+          
+          <!-- Unassigned Skeleton -->
+          <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <sl-skeleton effect="pulse" class="skeleton-header mb-6"></sl-skeleton>
+            <div class="space-y-4">
+              <sl-skeleton v-for="n in 2" :key="'ua-'+n" effect="pulse" class="skeleton-card"></sl-skeleton>
+            </div>
           </div>
-        </div>
-        
-        <!-- Family Members Skeleton -->
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <sl-skeleton effect="pulse" class="skeleton-header mb-6"></sl-skeleton>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div v-for="n in 2" :key="'fm-'+n" class="border-2 rounded-xl p-6" style="border-color: var(--color-neutral-200);">
-              <div class="flex items-center gap-3 mb-4">
-                <sl-skeleton effect="pulse" class="skeleton-avatar"></sl-skeleton>
-                <sl-skeleton effect="pulse" class="skeleton-name"></sl-skeleton>
-              </div>
-              <div class="space-y-3">
-                <sl-skeleton v-for="m in 2" :key="'fc-'+n+'-'+m" effect="pulse" class="skeleton-card"></sl-skeleton>
+          
+          <!-- Family Members Skeleton -->
+          <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <sl-skeleton effect="pulse" class="skeleton-header mb-6"></sl-skeleton>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div v-for="n in 2" :key="'fm-'+n" class="border-2 rounded-xl p-6" style="border-color: var(--color-neutral-200);">
+                <div class="flex items-center gap-3 mb-4">
+                  <sl-skeleton effect="pulse" class="skeleton-avatar"></sl-skeleton>
+                  <sl-skeleton effect="pulse" class="skeleton-name"></sl-skeleton>
+                </div>
+                <div class="space-y-3">
+                  <sl-skeleton v-for="m in 2" :key="'fc-'+n+'-'+m" effect="pulse" class="skeleton-card"></sl-skeleton>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        <!-- Earnings Skeleton -->
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <sl-skeleton effect="pulse" class="skeleton-header mb-6"></sl-skeleton>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <sl-skeleton v-for="n in 2" :key="'ea-'+n" effect="pulse" class="skeleton-earnings"></sl-skeleton>
+          
+          <!-- Earnings Skeleton -->
+          <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <sl-skeleton effect="pulse" class="skeleton-header mb-6"></sl-skeleton>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <sl-skeleton v-for="n in 2" :key="'ea-'+n" effect="pulse" class="skeleton-earnings"></sl-skeleton>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Actual Content (when not loading) -->
-      <template v-else>
-      <!-- Quicklist Section with Category Accordions -->
-      <quicklist-section
-        :quicklist-chores="quicklistChores"
-        :categories="categories"
-        :loading="quicklistLoading"
-        :error="quicklistError"
-        :selected-chore-id="selectedChoreId"
-        @chore-click="onQuicklistClick"
-        @delete-chore="removeFromQuicklist"
-        @add-chore="openAddToQuicklistModal"
-        @retry="loadQuicklistChores"
-        @manage-categories="openCategoryManagementModal"
-        @category-changed="onQuicklistCategoryChanged"
-        @open-schedule="openScheduleModal"
-      />
+        <!-- Actual Content (when not loading) -->
+        <template v-else>
+        <!-- Quicklist Section with Category Accordions -->
+        <quicklist-section
+          :quicklist-chores="quicklistChores"
+          :categories="categories"
+          :loading="quicklistLoading"
+          :error="quicklistError"
+          :selected-chore-id="selectedChoreId"
+          @chore-click="onQuicklistClick"
+          @delete-chore="removeFromQuicklist"
+          @add-chore="openAddToQuicklistModal"
+          @retry="loadQuicklistChores"
+          @manage-categories="openCategoryManagementModal"
+          @category-changed="onQuicklistCategoryChanged"
+          @open-schedule="openScheduleModal"
+        />
 
-      <!-- Unassigned Chores -->
-      <div class="w-full">
+        <!-- Unassigned Chores -->
+        <div class="w-full">
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
           <h2 class="text-gray-900 text-2xl font-bold leading-tight mb-6 flex items-center gap-2">
             <div v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('clipboardList', 'lucide', 20, 'text-primary-500') : ''" style="color: var(--color-primary-500);"></div>
@@ -701,6 +703,13 @@ const TailwindChorePage = Vue.defineComponent({
         </div>
       </div>
       </template>
+      </div>
+      
+      <!-- Calendar Sidebar (desktop only) -->
+      <aside class="chore-page-sidebar">
+        <today-calendar-panel />
+        <week-calendar-panel />
+      </aside>
     </div>
   `,
   inject: [
@@ -713,7 +722,9 @@ const TailwindChorePage = Vue.defineComponent({
   components: {
     ChoreCard,
     PersonCard,
-    EarningsCard
+    EarningsCard,
+    'today-calendar-panel': window.TodayCalendarPanel,
+    'week-calendar-panel': window.WeekCalendarPanel
   },
   data() {
     return {
