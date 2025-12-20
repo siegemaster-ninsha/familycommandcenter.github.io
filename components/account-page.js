@@ -281,7 +281,108 @@ const AccountPage = Vue.defineComponent({
         </div>
       </div>
 
-
+      <!-- Calendar Configuration (Parents Only) -->
+      <div v-if="!isChild" class="rounded-lg border-2 p-6 shadow-lg" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
+        <h3 class="text-primary-custom text-lg font-bold mb-4 flex items-center gap-2">
+          <div v-html="Helpers.IconLibrary.getIcon('calendar', 'lucide', 20, 'text-primary-custom')"></div>
+          Family Calendars
+        </h3>
+        <p class="text-secondary-custom text-sm mb-6">Link iCloud or other iCal calendars to show events on the chore board.</p>
+        
+        <!-- Loading state -->
+        <div v-if="calendarLoading" class="flex items-center justify-center py-8">
+          <div class="animate-spin h-6 w-6" v-html="Helpers.IconLibrary.getIcon('loader', 'lucide', 24, 'text-primary-custom')"></div>
+        </div>
+        
+        <template v-else>
+          <!-- Existing calendars -->
+          <div v-if="calendars.length > 0" class="space-y-3 mb-6">
+            <div 
+              v-for="(cal, index) in calendars" 
+              :key="cal.id"
+              class="flex items-center gap-3 p-3 rounded-lg border"
+              style="border-color: var(--color-border-card); background: var(--color-neutral-50);"
+            >
+              <span 
+                class="w-3 h-3 rounded-full flex-shrink-0" 
+                :style="{ background: getCalendarColor(index) }"
+              ></span>
+              <span class="flex-1 font-medium text-primary-custom">{{ cal.name }}</span>
+              <button 
+                @click="removeCalendar(cal.id)"
+                class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                title="Remove calendar"
+              >
+                <div v-html="Helpers.IconLibrary.getIcon('trash', 'lucide', 16, 'text-red-500')"></div>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Add calendar form -->
+          <div v-if="showAddCalendarForm" class="p-4 rounded-lg border mb-4" style="border-color: var(--color-border-card); background: var(--color-neutral-50);">
+            <div class="space-y-3">
+              <div>
+                <label class="block text-sm font-medium text-primary-custom mb-1">Calendar Name</label>
+                <input 
+                  v-model="newCalendarName"
+                  type="text"
+                  placeholder="e.g., Family, Work, School"
+                  class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  style="border-color: var(--color-border-card);"
+                >
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-primary-custom mb-1">Calendar URL</label>
+                <input 
+                  v-model="newCalendarUrl"
+                  type="url"
+                  placeholder="webcal://p123-caldav.icloud.com/..."
+                  class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  style="border-color: var(--color-border-card);"
+                  @keyup.enter="saveCalendar"
+                >
+              </div>
+              <p v-if="calendarError" class="text-sm text-red-500">{{ calendarError }}</p>
+              <div class="flex gap-2">
+                <button 
+                  @click="saveCalendar"
+                  :disabled="calendarSaving"
+                  class="btn-primary touch-target"
+                >
+                  {{ calendarSaving ? 'Adding...' : 'Add Calendar' }}
+                </button>
+                <button 
+                  @click="showAddCalendarForm = false; calendarError = null;"
+                  class="btn-secondary touch-target"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+            
+            <!-- Help text -->
+            <div class="mt-4 p-3 rounded-lg" style="background: var(--color-primary-50);">
+              <p class="text-sm text-primary-custom font-medium mb-2">How to get your iCloud calendar URL:</p>
+              <ol class="text-sm text-secondary-custom space-y-1 ml-4 list-decimal">
+                <li>Open Calendar app on iPhone/Mac</li>
+                <li>Tap the calendar name → Share</li>
+                <li>Enable "Public Calendar"</li>
+                <li>Copy the webcal:// link</li>
+              </ol>
+            </div>
+          </div>
+          
+          <!-- Add button -->
+          <button 
+            v-if="!showAddCalendarForm"
+            @click="showAddCalendarForm = true"
+            class="btn-primary touch-target flex items-center gap-2"
+          >
+            <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16, 'text-white')"></div>
+            Add Calendar
+          </button>
+        </template>
+      </div>
 
       <!-- Data Management -->
       <div class="rounded-lg border-2 p-6 shadow-lg" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
@@ -451,6 +552,15 @@ const AccountPage = Vue.defineComponent({
       clearCacheLoading: false,
       storageStats: null,
       
+      // Calendar state
+      calendars: [],
+      calendarLoading: false,
+      calendarSaving: false,
+      calendarError: null,
+      showAddCalendarForm: false,
+      newCalendarName: '',
+      newCalendarUrl: '',
+      
       availableThemes: Object.values(CONFIG.THEMES),
       
       // Auto-save state
@@ -486,6 +596,7 @@ const AccountPage = Vue.defineComponent({
     this.loadCurrentTheme();
     this.loadPreferences();
     this.loadStorageStats();
+    this.loadCalendars();
     
     // Sync preloaded account settings to local state
     if (this.accountSettings) {
@@ -1030,7 +1141,117 @@ const AccountPage = Vue.defineComponent({
       }
     },
 
+    // Calendar management methods
+    async loadCalendars() {
+      this.calendarLoading = true;
+      try {
+        const authStore = window.Pinia?.useAuthStore?.();
+        const token = authStore?.idToken;
+        const accountId = authStore?.currentAccountId;
+        
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        if (accountId) headers['X-Account-Id'] = accountId;
+        
+        const response = await fetch(`${CONFIG.API.BASE_URL}/calendar/config`, { headers });
+        if (response.ok) {
+          const data = await response.json();
+          this.calendars = data.calendars || [];
+        }
+      } catch (error) {
+        console.error('Error loading calendars:', error);
+      } finally {
+        this.calendarLoading = false;
+      }
+    },
     
+    async saveCalendar() {
+      if (!this.newCalendarUrl.trim()) {
+        this.calendarError = 'Please enter a calendar URL';
+        return;
+      }
+      if (!this.newCalendarName.trim()) {
+        this.calendarError = 'Please enter a calendar name';
+        return;
+      }
+      
+      this.calendarSaving = true;
+      this.calendarError = null;
+      
+      try {
+        const authStore = window.Pinia?.useAuthStore?.();
+        const token = authStore?.idToken;
+        const accountId = authStore?.currentAccountId;
+        
+        const response = await fetch(`${CONFIG.API.BASE_URL}/calendar/config`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'X-Account-Id': accountId
+          },
+          body: JSON.stringify({
+            calendarUrl: this.newCalendarUrl,
+            name: this.newCalendarName
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(result.message || 'Failed to add calendar');
+        }
+        
+        // Reset form and reload
+        this.newCalendarName = '';
+        this.newCalendarUrl = '';
+        this.showAddCalendarForm = false;
+        await this.loadCalendars();
+        this.showSuccessMessage('Calendar added successfully!');
+      } catch (error) {
+        this.calendarError = error.message;
+      } finally {
+        this.calendarSaving = false;
+      }
+    },
+    
+    async removeCalendar(calendarId) {
+      if (!confirm('Remove this calendar?')) return;
+      
+      try {
+        const authStore = window.Pinia?.useAuthStore?.();
+        const token = authStore?.idToken;
+        const accountId = authStore?.currentAccountId;
+        
+        await fetch(`${CONFIG.API.BASE_URL}/calendar/config?id=${calendarId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'X-Account-Id': accountId
+          }
+        });
+        
+        await this.loadCalendars();
+        this.showSuccessMessage('Calendar removed');
+      } catch (error) {
+        console.error('Failed to remove calendar:', error);
+      }
+    },
+    
+    getCalendarColor(index) {
+      const CALENDAR_COLORS = [
+        'var(--color-primary-500)',
+        'var(--color-secondary-500)',
+        'var(--color-success-500)',
+        'var(--color-warning-500)',
+        '#e91e63',
+        '#9c27b0',
+        '#00bcd4',
+        '#ff5722'
+      ];
+      return CALENDAR_COLORS[index % CALENDAR_COLORS.length];
+    },
+
     getCurrentThemeName() {
       const theme = this.availableThemes.find(t => t.id === this.currentTheme);
       return theme ? theme.name : 'Unknown';
