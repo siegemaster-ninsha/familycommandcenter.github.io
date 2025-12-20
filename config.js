@@ -71,7 +71,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.79 - Zealous Cobra (Dec 20, 2025)',
+    VERSION: '1.0.80 - Luminous Alpaca (Dec 20, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
