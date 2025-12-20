@@ -195,8 +195,8 @@ const CalendarWidget = {
       
       // Use authService for auth header (same pattern as other components)
       const authHeader = window.authService?.getAuthHeader?.();
-      // Get accountId from apiService (set during app initialization)
-      const accountId = window.apiService?.accountId;
+      // Get accountId from the root Vue app instance
+      const accountId = this.$root?.accountId;
       
       const headers = { 'Content-Type': 'application/json' };
       if (authHeader) headers['Authorization'] = authHeader;
@@ -227,7 +227,7 @@ const CalendarWidget = {
       try {
         const baseUrl = window.CONFIG?.API?.BASE_URL || '';
         const authHeader = window.authService?.getAuthHeader?.();
-        const accountId = window.apiService?.accountId;
+        const accountId = this.$root?.accountId;
         
         const headers = { 'Content-Type': 'application/json' };
         if (authHeader) headers['Authorization'] = authHeader;
@@ -267,7 +267,7 @@ const CalendarWidget = {
       try {
         const baseUrl = window.CONFIG?.API?.BASE_URL || '';
         const authHeader = window.authService?.getAuthHeader?.();
-        const accountId = window.apiService?.accountId;
+        const accountId = this.$root?.accountId;
         
         const headers = {};
         if (authHeader) headers['Authorization'] = authHeader;

@@ -34,6 +34,13 @@ const CalendarMixin = {
   
   methods: {
     async fetchCalendarData(startDate, endDate) {
+      // Wait for auth to be ready before making API calls
+      if (!window.authService?.getAuthHeader?.()) {
+        console.log('Calendar: Waiting for auth...');
+        this.loading = false;
+        return;
+      }
+      
       this.loading = true;
       this.error = null;
       
@@ -66,8 +73,8 @@ const CalendarMixin = {
       
       // Use authService for auth header (same pattern as other components)
       const authHeader = window.authService?.getAuthHeader?.();
-      // Get accountId from apiService (set during app initialization)
-      const accountId = window.apiService?.accountId;
+      // Get accountId from the root Vue app instance
+      const accountId = this.$root?.accountId;
       
       const headers = { 'Content-Type': 'application/json' };
       if (authHeader) headers['Authorization'] = authHeader;
