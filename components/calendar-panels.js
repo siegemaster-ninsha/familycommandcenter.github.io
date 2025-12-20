@@ -239,7 +239,13 @@ const WeekCalendarPanel = {
   
   data() {
     return {
-      _hasFetched: false
+      _hasFetched: false,
+      // Weather data
+      forecast: [],
+      weatherLoading: false,
+      weatherError: null,
+      coordinates: null,
+      locationName: ''
     };
   },
   
@@ -250,37 +256,35 @@ const WeekCalendarPanel = {
           <span v-html="getIcon('calendar-days', 18)"></span>
           This Week
         </h3>
-        <div v-if="calendars.length > 1" class="calendar-legend">
-          <span 
-            v-for="cal in calendars" 
-            :key="cal.id" 
-            class="calendar-legend-item"
-            :title="cal.name"
-          >
-            <span class="calendar-color-dot" :style="{ background: getCalendarColor(cal.id) }"></span>
-          </span>
+        <div class="calendar-header-right">
+          <span v-if="locationName" class="calendar-location">{{ locationName }}</span>
+          <div v-if="calendars.length > 1" class="calendar-legend">
+            <span 
+              v-for="cal in calendars" 
+              :key="cal.id" 
+              class="calendar-legend-item"
+              :title="cal.name"
+            >
+              <span class="calendar-color-dot" :style="{ background: getCalendarColor(cal.id) }"></span>
+            </span>
+          </div>
         </div>
       </div>
       
       <div class="calendar-panel-body">
-        <div v-if="loading" class="calendar-panel-loading">
+        <div v-if="loading && weatherLoading" class="calendar-panel-loading">
           <sl-spinner></sl-spinner>
         </div>
         
-        <div v-else-if="!configured" class="calendar-panel-empty">
+        <div v-else-if="!configured && forecast.length === 0" class="calendar-panel-empty">
           <span v-html="getIcon('calendar-x', 32)"></span>
           <p>No calendar linked</p>
           <p class="calendar-panel-hint">Parents can add calendars in Settings</p>
         </div>
         
-        <div v-else-if="events.length === 0" class="calendar-panel-empty">
-          <span v-html="getIcon('calendar-check', 32)"></span>
-          <p>No events this week</p>
-        </div>
-        
         <div v-else class="calendar-week-view">
           <div 
-            v-for="day in weekDays" 
+            v-for="(day, index) in weekDays" 
             :key="day.key"
             class="calendar-day"
             :class="{ 'calendar-day--today': day.isToday }"
@@ -289,6 +293,8 @@ const WeekCalendarPanel = {
               <span class="calendar-day-name">{{ day.dayName }}</span>
               <span class="calendar-day-date">{{ day.dateNum }}</span>
             </div>
+            
+            <!-- Events for this day -->
             <div class="calendar-day-events">
               <div 
                 v-for="event in day.events" 
@@ -297,11 +303,26 @@ const WeekCalendarPanel = {
                 :class="{ 'calendar-event--allday': event.allDay }"
                 :title="event.title + (event.calendarName ? ' (' + event.calendarName + ')' : '')"
               >
-                <span class="calendar-color-dot" :style="{ background: getCalendarColor(event.calendarId) }"></span>
+                <span class="calendar-event-dot" :style="{ background: getCalendarColor(event.calendarId) }"></span>
                 <span class="calendar-event-title">{{ event.title }}</span>
               </div>
               <div v-if="day.events.length === 0" class="calendar-day-empty">—</div>
             </div>
+            
+            <!-- Weather for this day (right side) -->
+            <div v-if="forecast[index]" class="calendar-day-weather">
+              <img 
+                :src="getWeatherIconUrl(forecast[index].icon)" 
+                :alt="forecast[index].description"
+                :title="forecast[index].description"
+                class="calendar-weather-icon"
+              />
+              <div class="calendar-weather-temps">
+                <span class="calendar-weather-high">{{ forecast[index].high }}°</span>
+                <span class="calendar-weather-low">{{ forecast[index].low }}°</span>
+              </div>
+            </div>
+            <div v-else class="calendar-day-weather calendar-day-weather--empty"></div>
           </div>
         </div>
       </div>
@@ -343,6 +364,7 @@ const WeekCalendarPanel = {
   methods: {
     loadCalendarData() {
       this.loadWeekEvents();
+      this.loadWeatherData();
     },
     
     async loadWeekEvents() {
@@ -352,6 +374,105 @@ const WeekCalendarPanel = {
       weekEnd.setDate(weekEnd.getDate() + 7);
       
       await this.fetchCalendarData(today, weekEnd);
+    },
+    
+    async loadWeatherData() {
+      this.weatherLoading = true;
+      this.weatherError = null;
+      
+      try {
+        await this.getLocation();
+        if (this.coordinates) {
+          await this.fetchWeatherForecast();
+        }
+      } catch (err) {
+        console.error('Weather fetch error:', err);
+        this.weatherError = err.message;
+      } finally {
+        this.weatherLoading = false;
+      }
+    },
+    
+    async getLocation() {
+      // Check if geolocation is available
+      if (!navigator.geolocation) {
+        console.warn('Geolocation not supported');
+        this.useDefaultLocation('No geolocation support');
+        return;
+      }
+      
+      return new Promise((resolve) => {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            this.coordinates = {
+              lat: position.coords.latitude,
+              lon: position.coords.longitude
+            };
+            console.log('📍 Got user location:', this.coordinates);
+            resolve();
+          },
+          (error) => {
+            // Handle specific error codes
+            let reason = 'Unknown error';
+            switch (error.code) {
+              case error.PERMISSION_DENIED:
+                reason = 'Location permission denied';
+                break;
+              case error.POSITION_UNAVAILABLE:
+                reason = 'Location unavailable';
+                break;
+              case error.TIMEOUT:
+                reason = 'Location request timed out';
+                break;
+            }
+            console.warn('Geolocation failed:', reason);
+            this.useDefaultLocation(reason);
+            resolve();
+          },
+          { 
+            timeout: 10000, 
+            maximumAge: 300000,
+            enableHighAccuracy: false
+          }
+        );
+      });
+    },
+    
+    useDefaultLocation(reason) {
+      // Default to Seattle
+      this.coordinates = { lat: 47.6062, lon: -122.3321 };
+      this.locationName = 'Seattle (default)';
+      console.log('Using default location:', reason);
+    },
+    
+    async fetchWeatherForecast() {
+      const baseUrl = window.CONFIG?.API?.BASE_URL || '';
+      const units = 'imperial';
+      
+      const [currentResponse, forecastResponse] = await Promise.all([
+        fetch(`${baseUrl}/weather/current?lat=${this.coordinates.lat}&lon=${this.coordinates.lon}&units=${units}`),
+        fetch(`${baseUrl}/weather/forecast?lat=${this.coordinates.lat}&lon=${this.coordinates.lon}&units=${units}`)
+      ]);
+      
+      if (!currentResponse.ok || !forecastResponse.ok) {
+        throw new Error('Weather API request failed');
+      }
+      
+      const currentData = await currentResponse.json();
+      const forecastData = await forecastResponse.json();
+      
+      this.forecast = forecastData.forecast.slice(0, 7);
+      
+      if (currentData.weather?.location) {
+        this.locationName = currentData.weather.location.name;
+      }
+    },
+    
+    getWeatherIconUrl(icon) {
+      // Force day icons for forecast (replace 'n' suffix with 'd')
+      // OpenWeatherMap uses codes like 01d (day) and 01n (night)
+      const dayIcon = icon.replace(/n$/, 'd');
+      return `https://openweathermap.org/img/wn/${dayIcon}@2x.png`;
     }
   }
 };
