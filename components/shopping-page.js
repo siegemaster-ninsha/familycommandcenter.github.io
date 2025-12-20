@@ -79,11 +79,11 @@ const ShoppingPage = Vue.defineComponent({
             </div>
 
             <!-- Category items -->
-            <div class="space-y-1">
+            <TransitionGroup name="shopping-item" tag="div" class="shopping-items-container">
               <div
                 v-for="item in category.items"
                 :key="item.id"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors cursor-pointer"
+                class="shopping-item flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer"
                 :class="[
                   item.isToggling ? 'opacity-75 pointer-events-none' : '',
                   item.completed ? 'opacity-75' : ''
@@ -103,8 +103,9 @@ const ShoppingPage = Vue.defineComponent({
                   </div>
                   <div
                     v-else
-                    v-html="Helpers.IconLibrary.getIcon(item.completed ? 'squareCheck' : 'square', 'lucide', 22, 'text-white transition-transform duration-200 ' + (item.completed ? 'scale-110' : 'scale-100'))"
-                    class="cursor-pointer"
+                    v-html="Helpers.IconLibrary.getIcon(item.completed ? 'squareCheck' : 'square', 'lucide', 22, 'text-white')"
+                    class="cursor-pointer checkbox-icon"
+                    :class="item.completed ? 'checkbox-checked' : ''"
                   ></div>
                 </div>
                 <div class="flex-1 min-w-0">
@@ -150,7 +151,7 @@ const ShoppingPage = Vue.defineComponent({
                   </button>
                 </div>
               </div>
-            </div>
+            </TransitionGroup>
 
             <!-- Show message if category is empty -->
             <div v-if="category.items.length === 0" class="text-center py-4 text-secondary-custom text-sm">
@@ -714,6 +715,7 @@ const ShoppingPage = Vue.defineComponent({
 
       // Sort items within each category (completed to bottom, then alphabetically)
       Object.keys(grouped).forEach(category => {
+        const beforeSort = grouped[category].map(i => `${i.name}(${i.completed ? '✓' : '○'})`).join(', ');
         grouped[category].sort((a, b) => {
           // First, completed items go to bottom
           if (a.completed !== b.completed) {
@@ -722,6 +724,10 @@ const ShoppingPage = Vue.defineComponent({
           // Then sort alphabetically by name
           return a.name.localeCompare(b.name);
         });
+        const afterSort = grouped[category].map(i => `${i.name}(${i.completed ? '✓' : '○'})`).join(', ');
+        if (beforeSort !== afterSort) {
+          console.log(`[SORT] ${category} reordered:`, { before: beforeSort, after: afterSort });
+        }
       });
 
       // Convert to array and sort categories by logical grocery store order
@@ -901,8 +907,10 @@ const ShoppingPage = Vue.defineComponent({
     },
 
     async handleToggleItem(itemId) {
+      console.log('[TOGGLE] Before toggle, itemId:', itemId);
       // Use store's toggleItemComplete method - handles offline-first logic
       await this.shoppingStore.toggleItemComplete(itemId);
+      console.log('[TOGGLE] After toggle, categorySections will recompute');
     },
 
     async removeItem(itemId) {

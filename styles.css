@@ -1818,6 +1818,77 @@ button.rounded-full[title*="Delete"] svg {
   transform: translateY(0);
 }
 
+/* Shopping item list animations - FLIP animation for reordering */
+.shopping-items-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  position: relative;
+}
+
+.shopping-item {
+  /* Needed for FLIP animation to work properly */
+  transition: transform 300ms ease, opacity 200ms ease;
+}
+
+/* Move animation - the magic for position changes */
+.shopping-item-move {
+  transition: transform 300ms ease;
+}
+
+/* Enter animation - new items fade in from right */
+.shopping-item-enter-active {
+  transition: all 250ms ease-out;
+}
+
+.shopping-item-enter-from {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+/* Leave animation - removed items fade out */
+.shopping-item-leave-active {
+  transition: all 200ms ease-in;
+  position: absolute;
+  width: 100%;
+}
+
+.shopping-item-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+/* Checkbox bounce animation */
+.checkbox-icon {
+  transition: transform 150ms ease;
+}
+
+.checkbox-checked {
+  animation: checkbox-bounce 400ms ease;
+}
+
+@keyframes checkbox-bounce {
+  0% {
+    transform: scale(1);
+  }
+
+  25% {
+    transform: scale(1.3);
+  }
+
+  50% {
+    transform: scale(0.9);
+  }
+
+  75% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   .border-dashed {
@@ -2179,6 +2250,18 @@ sl-card.family-member-card::part(header) {
 
 sl-card.family-member-card::part(content) {
   padding: 0;
+  overflow: visible;
+}
+
+/* Allow flyout to overflow the family member card */
+sl-card.family-member-card::part(base) {
+  overflow: visible;
+}
+
+/* Person card - allow flyout overflow and add bottom padding for last chore */
+.person-card {
+  overflow: visible;
+  padding-bottom: 56px; /* Extra space for flyout when last chore is expanded */
 }
 
 /* Modern Assigned Chore Cards (inside family member cards) */
@@ -4375,6 +4458,11 @@ html {
   padding: var(--space-1) var(--space-2);
   border-bottom: 2px solid var(--color-white-overlay-35);
   flex: 1;
+}
+
+/* Hide divider when money row is the only/last item (no actions below) */
+.chore-card-split .chore-card-money-row:last-child {
+  border-bottom: none;
 }
 
 /* Actions row - bottom of right section */

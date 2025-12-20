@@ -346,7 +346,7 @@ const QuicklistChoreCard = {
 const PersonCard = {
   template: `
     <div
-      class="border-2 rounded-xl p-6 transition-all duration-200 shadow-lg hover:shadow-xl min-w-0 overflow-hidden"
+      class="person-card border-2 rounded-xl p-6 transition-all duration-200 shadow-lg hover:shadow-xl min-w-0"
       :class="[canAssign ? 'cursor-pointer hover:scale-102' : '']"
       :style="{ 
         borderColor: 'var(--color-border-card)', 

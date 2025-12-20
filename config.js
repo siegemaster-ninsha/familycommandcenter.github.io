@@ -71,7 +71,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.82 - Eager Panda (Dec 20, 2025)',
+    VERSION: '1.0.83 - Majestic Tiger (Dec 20, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {

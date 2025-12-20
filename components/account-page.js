@@ -169,13 +169,17 @@ const AccountPage = Vue.defineComponent({
               </div>
               <select 
                 v-model="preferences.celebrationStyle"
+                @change="previewCelebration"
                 class="px-3 py-2 rounded-lg border text-sm"
                 style="background-color: var(--color-surface); border-color: var(--color-border); color: var(--color-text-primary);"
                 :disabled="isChild"
               >
+                <option value="random">🎲 Random</option>
                 <option value="confetti">🎊 Confetti</option>
+                <option value="cannons">💥 Side Cannons</option>
+                <option value="fireworks">🎆 Fireworks</option>
                 <option value="nyancat">🌈 Nyan Cat</option>
-                <option value="nyancat-rain">🐱 Nyan Cat Rain</option>
+                <option value="coins">🪙 Mario Coins</option>
               </select>
             </div>
             
@@ -551,7 +555,7 @@ const AccountPage = Vue.defineComponent({
       
       preferences: {
         confettiEnabled: true,
-        celebrationStyle: 'confetti',
+        celebrationStyle: 'random',
         soundEnabled: false,
         autoSave: true,
         requireApproval: false,
@@ -639,6 +643,35 @@ const AccountPage = Vue.defineComponent({
     }
   },
   methods: {
+    // Preview celebration when style is changed
+    previewCelebration() {
+      const style = this.preferences.celebrationStyle;
+      console.log('🎉 Previewing celebration:', style);
+      
+      // Trigger the specific celebration based on selection
+      switch (style) {
+        case 'confetti':
+          this.$parent.triggerConfettiBurst?.();
+          break;
+        case 'cannons':
+          this.$parent.triggerSideCannons?.();
+          break;
+        case 'fireworks':
+          this.$parent.triggerFireworks?.();
+          break;
+        case 'nyancat':
+          this.$parent.triggerNyanCat?.();
+          break;
+        case 'coins':
+          // Preview with a fake $1 chore
+          this.$parent.triggerCoinRain?.({ amount: 1 });
+          break;
+        case 'random':
+          this.$parent.triggerRandomCelebration?.({ amount: 1 });
+          break;
+      }
+    },
+    
     // Debounced auto-save for preferences (500ms delay)
     _debouncedSavePreferences() {
       if (this._autoSaveTimer) {

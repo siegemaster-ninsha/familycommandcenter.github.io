@@ -2033,7 +2033,7 @@ const app = createApp({
         }
         
         if (chore.completed) {
-          this.triggerConfetti();
+          this.triggerConfetti(chore);
           this.showSuccessMessage(requireApproval ? `"${chore.name}" marked complete. Pending parent approval.` : `Great job! "${chore.name}" completed!`);
         } else {
           this.showSuccessMessageFlag = false;
@@ -2127,23 +2127,176 @@ const app = createApp({
       }
     },
     
-    triggerConfetti() {
-      // Check celebration style preference
-      const celebrationStyle = this.accountSettings?.preferences?.celebrationStyle || 'confetti';
+    triggerConfetti(chore = null) {
+      // Check celebration style preference - 'random' enables random selection
+      const celebrationStyle = this.accountSettings?.preferences?.celebrationStyle || 'random';
       
-      // Nyan Cat fly-across animation
+      // Debug logging
+      console.log('🎉 triggerConfetti called');
+      console.log('  - chore:', chore?.name, 'amount:', chore?.amount);
+      console.log('  - celebrationStyle:', celebrationStyle);
+      
+      // If set to random, pick a random celebration
+      if (celebrationStyle === 'random') {
+        this.triggerRandomCelebration(chore);
+        return;
+      }
+      
+      // Otherwise use the specific style selected
+      if (celebrationStyle === 'coins' && chore?.amount > 0 && window.CoinRain) {
+        this.triggerCoinRain(chore);
+        return;
+      }
+      
       if (celebrationStyle === 'nyancat' && window.NyanCat) {
-        window.NyanCat.fly({ duration: 2500, size: 120, withRainbow: true });
+        this.triggerNyanCat();
         return;
       }
       
-      // Nyan Cat rain animation
-      if (celebrationStyle === 'nyancat-rain' && window.NyanCat) {
-        window.NyanCat.rain(15);
+      if (celebrationStyle === 'cannons') {
+        this.triggerSideCannons();
         return;
       }
       
-      // Default: canvas-confetti
+      if (celebrationStyle === 'fireworks') {
+        this.triggerFireworks();
+        return;
+      }
+      
+      // Default to confetti
+      this.triggerConfettiBurst();
+    },
+    
+    triggerRandomCelebration(chore = null) {
+      // Build list of available celebrations
+      const celebrations = ['confetti', 'nyancat', 'cannons', 'fireworks'];
+      
+      // Only include coin rain if chore has money
+      if (chore?.amount > 0 && window.CoinRain) {
+        celebrations.push('coins');
+      }
+      
+      // Pick random celebration
+      const randomIndex = Math.floor(Math.random() * celebrations.length);
+      const selected = celebrations[randomIndex];
+      
+      console.log('  → Random celebration selected:', selected, 'from', celebrations);
+      
+      switch (selected) {
+        case 'coins':
+          this.triggerCoinRain(chore);
+          break;
+        case 'nyancat':
+          this.triggerNyanCat();
+          break;
+        case 'cannons':
+          this.triggerSideCannons();
+          break;
+        case 'fireworks':
+          this.triggerFireworks();
+          break;
+        default:
+          this.triggerConfettiBurst();
+      }
+    },
+    
+    triggerCoinRain(chore) {
+      console.log('  → Raining coins!');
+      const coinCount = Math.min(Math.max(Math.floor(chore.amount * 10), 15), 40);
+      window.CoinRain.rain({ count: coinCount, withSound: true });
+    },
+    
+    triggerNyanCat() {
+      console.log('  → Nyan Cat fly animation');
+      if (window.NyanCat) {
+        window.NyanCat.fly({ duration: 2500, size: 1500 });
+      }
+    },
+    
+    triggerFireworks() {
+      console.log('  → Fireworks!');
+      
+      if (typeof confetti !== 'function') {
+        console.warn('canvas-confetti not loaded');
+        return;
+      }
+      
+      const colors = ['#ff0000', '#ffa500', '#ffff00', '#00ff00', '#00ffff', '#ff00ff', '#FFD700'];
+      
+      const firework = (x, y) => {
+        confetti({
+          particleCount: 80,
+          spread: 360,
+          startVelocity: 30,
+          decay: 0.95,
+          gravity: 0.8,
+          origin: { x, y },
+          colors: colors,
+          ticks: 200
+        });
+      };
+      
+      // Launch sequence - multiple fireworks at different positions
+      firework(0.2, 0.3);
+      setTimeout(() => firework(0.8, 0.25), 200);
+      setTimeout(() => firework(0.5, 0.2), 400);
+      setTimeout(() => firework(0.3, 0.35), 600);
+      setTimeout(() => firework(0.7, 0.3), 800);
+      setTimeout(() => firework(0.5, 0.15), 1000);
+    },
+    
+    triggerSideCannons() {
+      console.log('  → Side cannons!');
+      
+      if (typeof confetti !== 'function') {
+        console.warn('canvas-confetti not loaded');
+        return;
+      }
+      
+      const root = getComputedStyle(document.documentElement);
+      const token = (v, fb) => (root.getPropertyValue(v) || '').trim() || fb;
+      const colors = [
+        token('--color-primary-500', '#4A90E2'),
+        token('--color-secondary-500', '#7B68EE'),
+        token('--color-success-600', '#22c55e'),
+        token('--color-warning-600', '#ea580c'),
+        '#FFD700', '#FF69B4'
+      ];
+      
+      const fireCannonBurst = (angle, originX) => {
+        confetti({
+          particleCount: 100,
+          angle: angle,
+          spread: 70,
+          startVelocity: 90,
+          decay: 0.92,
+          origin: { x: originX, y: 0.8 },
+          colors: colors,
+          gravity: 0.8,
+          ticks: 300
+        });
+      };
+      
+      // Fire both cannons simultaneously
+      fireCannonBurst(55, 0);   // Left cannon
+      fireCannonBurst(125, 1);  // Right cannon
+      
+      // Second wave - even more powerful
+      setTimeout(() => {
+        fireCannonBurst(50, 0);
+        fireCannonBurst(130, 1);
+      }, 150);
+      
+      // Third wave - higher arc
+      setTimeout(() => {
+        fireCannonBurst(65, 0);
+        fireCannonBurst(115, 1);
+      }, 300);
+    },
+    
+    triggerConfettiBurst() {
+      console.log('  → Confetti burst');
+      
       if (typeof confetti !== 'function') {
         console.warn('canvas-confetti not loaded');
         return;

@@ -36,6 +36,7 @@ module.exports = [
         File: 'readonly',
         FileReader: 'readonly',
         Image: 'readonly',
+        Audio: 'readonly',
         Event: 'readonly',
         CustomEvent: 'readonly',
         MutationObserver: 'readonly',
