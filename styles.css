@@ -3862,6 +3862,11 @@ html {
   pointer-events: none; /* Don't interfere with button clicks */
 }
 
+/* Ensure schedule badge text is white in compact mode */
+.chore-card-split .chore-schedule-btn .schedule-badge::part(base) {
+  color: white;
+}
+
 /* Approval button styling */
 .chore-card-split .chore-approve-btn {
   --sl-color-success-600: var(--color-success-600);
@@ -3991,6 +3996,11 @@ html {
   min-width: 1rem;
   height: 1rem;
   padding: 0 0.25rem;
+}
+
+/* Ensure schedule badge text is white for visibility */
+.chore-schedule-btn .schedule-badge::part(base) {
+  color: white;
 }
 
 /* Delete button - 44px minimum touch target for accessibility */
