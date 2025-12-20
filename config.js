@@ -71,7 +71,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.84 - Keen Quokka (Dec 20, 2025)',
+    VERSION: '1.0.85 - Dynamic Narwhal (Dec 20, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {

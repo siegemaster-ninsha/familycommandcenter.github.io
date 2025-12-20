@@ -1008,7 +1008,8 @@ input:focus, select:focus, textarea:focus {
 }
 
 .flyout-sl-drawer::part(close-button) {
-  padding: var(--space-2);
+  /* Hide Shoelace's default close button - we use our own in header-actions slot */
+  display: none;
 }
 
 /* Content area styling */
@@ -5601,4 +5602,231 @@ sl-skeleton {
   .btn-secondary:hover [class*="icon"] {
     color: white;
   }
+}
+
+
+/* ===========================================
+   VIRTUAL KEYBOARD STYLES
+   On-screen keyboard for desktop/tablet use
+   =========================================== */
+
+/* Keyboard container - fixed at bottom of viewport */
+.virtual-keyboard-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10000;
+  background: var(--color-surface-1);
+  border-top: 1px solid var(--color-border-card);
+  box-shadow: 0 -4px 20px var(--color-overlay-medium);
+  transform: translateY(100%);
+  transition: transform 0.2s ease;
+}
+
+.virtual-keyboard-container.visible {
+  transform: translateY(0);
+}
+
+/* Keyboard header with title and close button */
+.virtual-keyboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border-card);
+}
+
+.virtual-keyboard-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.virtual-keyboard-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.virtual-keyboard-close:hover {
+  background: var(--color-error-100);
+  color: var(--color-error-600);
+}
+
+/* Override simple-keyboard default theme */
+.virtual-keyboard-theme.simple-keyboard {
+  background: var(--color-surface-1);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  font-family: inherit;
+}
+
+.virtual-keyboard-theme .hg-button {
+  background: var(--color-surface-3);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-card);
+  border-radius: var(--radius-md);
+  box-shadow: 0 1px 2px var(--color-overlay-subtle);
+  height: 48px;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  transition: background 0.1s ease, transform 0.1s ease;
+}
+
+.virtual-keyboard-theme .hg-button:hover {
+  background: var(--color-bg-card-hover);
+}
+
+.virtual-keyboard-theme .hg-button:active {
+  background: var(--color-primary-100);
+  transform: scale(0.95);
+}
+
+/* Special keys styling */
+.virtual-keyboard-theme .hg-button-bksp,
+.virtual-keyboard-theme .hg-button-enter,
+.virtual-keyboard-theme .hg-button-shift,
+.virtual-keyboard-theme .hg-button-tab,
+.virtual-keyboard-theme .hg-button-lock {
+  background: var(--color-neutral-200);
+  color: var(--color-text-primary);
+}
+
+.virtual-keyboard-theme .hg-button-bksp:hover,
+.virtual-keyboard-theme .hg-button-enter:hover,
+.virtual-keyboard-theme .hg-button-shift:hover,
+.virtual-keyboard-theme .hg-button-tab:hover,
+.virtual-keyboard-theme .hg-button-lock:hover {
+  background: var(--color-neutral-300);
+}
+
+/* Space bar */
+.virtual-keyboard-theme .hg-button-space {
+  min-width: 200px;
+}
+
+/* Shift active state */
+.virtual-keyboard-theme .hg-button-shift.hg-activeButton {
+  background: var(--color-primary-500);
+  color: white;
+}
+
+/* Input wrapper with keyboard toggle */
+.keyboard-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.keyboard-input-wrapper .keyboard-input {
+  flex: 1;
+  padding-right: var(--space-12); /* Space for keyboard icon (48px) */
+}
+
+/* Keyboard toggle button inside input */
+.keyboard-toggle-btn {
+  position: absolute;
+  right: var(--space-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.keyboard-toggle-btn:hover {
+  background: var(--color-neutral-100);
+  color: var(--color-text-secondary);
+}
+
+.keyboard-toggle-btn.active {
+  background: var(--color-primary-100);
+  color: var(--color-primary-600);
+}
+
+/* Responsive adjustments */
+@media (width <= 768px) {
+  .virtual-keyboard-theme .hg-button {
+    height: 44px;
+    font-size: var(--font-size-sm);
+  }
+  
+  .virtual-keyboard-theme .hg-button-space {
+    min-width: 150px;
+  }
+}
+
+@media (width <= 480px) {
+  .virtual-keyboard-theme.simple-keyboard {
+    padding: var(--space-2);
+  }
+  
+  .virtual-keyboard-theme .hg-button {
+    height: 40px;
+    font-size: var(--font-size-xs);
+    border-radius: var(--radius-sm);
+  }
+  
+  .virtual-keyboard-header {
+    padding: var(--space-2) var(--space-3);
+  }
+}
+
+/* Hide keyboard toggle on devices with native keyboards (optional) */
+@media (hover: none) and (pointer: coarse) {
+  /*
+   * On touch devices, you might want to hide the toggle since they have native keyboards
+   * Uncomment below to hide on mobile/tablet touch devices:
+   * .keyboard-toggle-btn { display: none; }
+   * .keyboard-input-wrapper .keyboard-input { padding-right: var(--space-3); }
+   */
+}
+
+
+/* Auto-enhanced keyboard inputs */
+.keyboard-auto-enhanced {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.keyboard-auto-enhanced input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Ensure toggle button is positioned correctly in auto-enhanced inputs */
+.keyboard-auto-enhanced .keyboard-toggle-btn {
+  position: absolute;
+  right: var(--space-2, 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  flex-shrink: 0;
+}
+
+/* Prevent wrapper from causing overflow */
+.keyboard-input-wrapper {
+  max-width: 100%;
+  overflow: hidden;
 }

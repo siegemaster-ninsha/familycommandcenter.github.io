@@ -3141,6 +3141,11 @@ function checkAndRegisterComponents() {
     app.component('update-prompt', window.UpdatePrompt);
   }
 
+  console.log('📦 Registering keyboard-input');
+  if (window.KeyboardInput) {
+    app.component('keyboard-input', window.KeyboardInput);
+  }
+
   console.log('✅ All components registered, mounting app...');
 
   // Use Pinia for state management
