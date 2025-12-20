@@ -1145,13 +1145,10 @@ const AccountPage = Vue.defineComponent({
     async loadCalendars() {
       this.calendarLoading = true;
       try {
-        const authStore = window.Pinia?.useAuthStore?.();
-        const token = authStore?.idToken;
-        const accountId = authStore?.currentAccountId;
-        
+        const authHeader = authService.getAuthHeader();
         const headers = { 'Content-Type': 'application/json' };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-        if (accountId) headers['X-Account-Id'] = accountId;
+        if (authHeader) headers['Authorization'] = authHeader;
+        if (this.accountId) headers['X-Account-Id'] = this.accountId;
         
         const response = await fetch(`${CONFIG.API.BASE_URL}/calendar/config`, { headers });
         if (response.ok) {
@@ -1179,17 +1176,14 @@ const AccountPage = Vue.defineComponent({
       this.calendarError = null;
       
       try {
-        const authStore = window.Pinia?.useAuthStore?.();
-        const token = authStore?.idToken;
-        const accountId = authStore?.currentAccountId;
+        const authHeader = authService.getAuthHeader();
+        const headers = { 'Content-Type': 'application/json' };
+        if (authHeader) headers['Authorization'] = authHeader;
+        if (this.accountId) headers['X-Account-Id'] = this.accountId;
         
         const response = await fetch(`${CONFIG.API.BASE_URL}/calendar/config`, {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            'X-Account-Id': accountId
-          },
+          headers,
           body: JSON.stringify({
             calendarUrl: this.newCalendarUrl,
             name: this.newCalendarName
@@ -1219,16 +1213,14 @@ const AccountPage = Vue.defineComponent({
       if (!confirm('Remove this calendar?')) return;
       
       try {
-        const authStore = window.Pinia?.useAuthStore?.();
-        const token = authStore?.idToken;
-        const accountId = authStore?.currentAccountId;
+        const authHeader = authService.getAuthHeader();
+        const headers = {};
+        if (authHeader) headers['Authorization'] = authHeader;
+        if (this.accountId) headers['X-Account-Id'] = this.accountId;
         
         await fetch(`${CONFIG.API.BASE_URL}/calendar/config?id=${calendarId}`, {
           method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'X-Account-Id': accountId
-          }
+          headers
         });
         
         await this.loadCalendars();
