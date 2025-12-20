@@ -707,7 +707,6 @@ const TailwindChorePage = Vue.defineComponent({
       
       <!-- Calendar Sidebar (desktop only) -->
       <aside class="chore-page-sidebar">
-        <today-calendar-panel />
         <week-calendar-panel />
       </aside>
     </div>
@@ -723,7 +722,6 @@ const TailwindChorePage = Vue.defineComponent({
     ChoreCard,
     PersonCard,
     EarningsCard,
-    'today-calendar-panel': window.TodayCalendarPanel,
     'week-calendar-panel': window.WeekCalendarPanel
   },
   data() {

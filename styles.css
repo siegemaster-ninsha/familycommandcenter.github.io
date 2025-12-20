@@ -3674,7 +3674,7 @@ body.resizing-widget * {
 
 .calendar-day {
   display: grid;
-  grid-template-columns: 70px 1fr;
+  grid-template-columns: 50px 1fr;
   gap: var(--space-3);
   padding: var(--space-2) 0;
   border-bottom: 1px solid var(--color-border);
@@ -3759,7 +3759,7 @@ body.resizing-widget * {
 }
 
 .chore-page-sidebar {
-  width: 320px;
+  width: 380px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
