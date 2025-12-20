@@ -28,15 +28,45 @@ const CalendarMixin = {
       calendars: [],
       configured: false,
       loading: true,
-      error: null
+      error: null,
+      _authWatcher: null
     };
   },
   
+  computed: {
+    // Watch for accountId from root app
+    rootAccountId() {
+      return this.$root?.accountId;
+    }
+  },
+  
+  watch: {
+    // When accountId becomes available, fetch calendar data
+    rootAccountId: {
+      immediate: true,
+      handler(newVal) {
+        if (newVal && !this._hasFetched) {
+          console.log('Calendar: accountId now available, fetching data...');
+          this._hasFetched = true;
+          this.loadCalendarData();
+        }
+      }
+    }
+  },
+  
   methods: {
+    // Override in each component to call the appropriate load method
+    loadCalendarData() {
+      // Implemented by each panel
+    },
+    
     async fetchCalendarData(startDate, endDate) {
       // Wait for auth to be ready before making API calls
-      if (!window.authService?.getAuthHeader?.()) {
-        console.log('Calendar: Waiting for auth...');
+      const authHeader = window.authService?.getAuthHeader?.();
+      const accountId = this.$root?.accountId;
+      
+      if (!authHeader || !accountId) {
+        console.log('Calendar: Waiting for auth...', { hasAuth: !!authHeader, hasAccountId: !!accountId });
         this.loading = false;
         return;
       }
@@ -69,11 +99,14 @@ const CalendarMixin = {
     },
     
     async fetchApi(path) {
-      const baseUrl = window.CONFIG?.API?.BASE_URL || '';
+      // Use centralized apiService for consistent auth/accountId handling
+      if (window.apiService) {
+        return window.apiService.get(path);
+      }
       
-      // Use authService for auth header (same pattern as other components)
+      // Fallback to manual fetch if apiService not available
+      const baseUrl = window.CONFIG?.API?.BASE_URL || '';
       const authHeader = window.authService?.getAuthHeader?.();
-      // Get accountId from the root Vue app instance
       const accountId = this.$root?.accountId;
       
       const headers = { 'Content-Type': 'application/json' };
@@ -113,6 +146,12 @@ const CalendarMixin = {
 const TodayCalendarPanel = {
   name: 'TodayCalendarPanel',
   mixins: [CalendarMixin],
+  
+  data() {
+    return {
+      _hasFetched: false
+    };
+  },
   
   template: `
     <div class="calendar-panel calendar-panel--today">
@@ -177,11 +216,11 @@ const TodayCalendarPanel = {
     }
   },
   
-  mounted() {
-    this.loadTodayEvents();
-  },
-  
   methods: {
+    loadCalendarData() {
+      this.loadTodayEvents();
+    },
+    
     async loadTodayEvents() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -197,6 +236,12 @@ const TodayCalendarPanel = {
 const WeekCalendarPanel = {
   name: 'WeekCalendarPanel',
   mixins: [CalendarMixin],
+  
+  data() {
+    return {
+      _hasFetched: false
+    };
+  },
   
   template: `
     <div class="calendar-panel calendar-panel--week">
@@ -295,11 +340,11 @@ const WeekCalendarPanel = {
     }
   },
   
-  mounted() {
-    this.loadWeekEvents();
-  },
-  
   methods: {
+    loadCalendarData() {
+      this.loadWeekEvents();
+    },
+    
     async loadWeekEvents() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);

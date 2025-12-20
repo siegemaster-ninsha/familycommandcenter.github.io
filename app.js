@@ -2485,6 +2485,16 @@ const app = createApp({
   },
   
   watch: {
+    // Sync accountId to apiService when it changes
+    accountId: {
+      immediate: true,
+      handler(newVal) {
+        if (window.apiService && newVal) {
+          window.apiService.setAccountId(newVal);
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🔗 apiService.accountId synced:', newVal);
+        }
+      }
+    },
     // toggle body scroll lock whenever any modal opens/closes
     isAnyModalOpen(newVal) {
       if (newVal) {

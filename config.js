@@ -71,7 +71,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.76 - Wonderful Bear (Dec 19, 2025)',
+    VERSION: '1.0.77 - Resilient Penguin (Dec 19, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {

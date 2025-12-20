@@ -1145,16 +1145,9 @@ const AccountPage = Vue.defineComponent({
     async loadCalendars() {
       this.calendarLoading = true;
       try {
-        const authHeader = authService.getAuthHeader();
-        const headers = { 'Content-Type': 'application/json' };
-        if (authHeader) headers['Authorization'] = authHeader;
-        if (this.accountId) headers['X-Account-Id'] = this.accountId;
-        
-        const response = await fetch(`${CONFIG.API.BASE_URL}/calendar/config`, { headers });
-        if (response.ok) {
-          const data = await response.json();
-          this.calendars = data.calendars || [];
-        }
+        // Use centralized apiService for consistent auth/accountId handling
+        const data = await window.apiService.get('/calendar/config');
+        this.calendars = data.calendars || [];
       } catch (error) {
         console.error('Error loading calendars:', error);
       } finally {
@@ -1176,25 +1169,11 @@ const AccountPage = Vue.defineComponent({
       this.calendarError = null;
       
       try {
-        const authHeader = authService.getAuthHeader();
-        const headers = { 'Content-Type': 'application/json' };
-        if (authHeader) headers['Authorization'] = authHeader;
-        if (this.accountId) headers['X-Account-Id'] = this.accountId;
-        
-        const response = await fetch(`${CONFIG.API.BASE_URL}/calendar/config`, {
-          method: 'PUT',
-          headers,
-          body: JSON.stringify({
-            calendarUrl: this.newCalendarUrl,
-            name: this.newCalendarName
-          })
+        // Use centralized apiService for consistent auth/accountId handling
+        await window.apiService.put('/calendar/config', {
+          calendarUrl: this.newCalendarUrl,
+          name: this.newCalendarName
         });
-        
-        const result = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(result.message || 'Failed to add calendar');
-        }
         
         // Reset form and reload
         this.newCalendarName = '';
@@ -1213,15 +1192,8 @@ const AccountPage = Vue.defineComponent({
       if (!confirm('Remove this calendar?')) return;
       
       try {
-        const authHeader = authService.getAuthHeader();
-        const headers = {};
-        if (authHeader) headers['Authorization'] = authHeader;
-        if (this.accountId) headers['X-Account-Id'] = this.accountId;
-        
-        await fetch(`${CONFIG.API.BASE_URL}/calendar/config?id=${calendarId}`, {
-          method: 'DELETE',
-          headers
-        });
+        // Use centralized apiService for consistent auth/accountId handling
+        await window.apiService.delete(`/calendar/config?id=${calendarId}`);
         
         await this.loadCalendars();
         this.showSuccessMessage('Calendar removed');

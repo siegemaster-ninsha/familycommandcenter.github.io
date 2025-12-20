@@ -75,8 +75,8 @@ CalendarWidgetMetadata.settings = {
   }
 };
 
-// Calendar colors for multiple calendars
-const CALENDAR_COLORS = [
+// Calendar colors for multiple calendars (prefixed to avoid collision with calendar-panels.js)
+const WIDGET_CALENDAR_COLORS = [
   'var(--color-primary-500)',
   'var(--color-secondary-500)',
   'var(--color-success-500)',
@@ -104,7 +104,8 @@ const CalendarWidget = {
       newCalendarName: '',
       newCalendarUrl: '',
       configError: null,
-      selectedEvent: null
+      selectedEvent: null,
+      _hasFetched: false
     };
   },
   
@@ -159,11 +160,39 @@ const CalendarWidget = {
     isParent() {
       const authStore = window.Pinia?.useAuthStore?.();
       return authStore?.isParent ?? true;
+    },
+    
+    // Watch for accountId from root app
+    rootAccountId() {
+      return this.$root?.accountId;
+    }
+  },
+  
+  watch: {
+    // When accountId becomes available, fetch calendar data
+    rootAccountId: {
+      immediate: true,
+      handler(newVal) {
+        if (newVal && !this._hasFetched) {
+          console.log('CalendarWidget: accountId now available, fetching data...');
+          this._hasFetched = true;
+          this.onRefresh();
+        }
+      }
     }
   },
   
   methods: {
     async onRefresh() {
+      // Wait for auth to be ready before making API calls
+      const authHeader = window.authService?.getAuthHeader?.();
+      const accountId = this.$root?.accountId;
+      
+      if (!authHeader || !accountId) {
+        console.log('CalendarWidget: Waiting for auth...', { hasAuth: !!authHeader, hasAccountId: !!accountId });
+        return;
+      }
+      
       try {
         const configResponse = await this.fetchApi('/calendar/config');
         this.configured = configResponse.configured;
@@ -191,11 +220,14 @@ const CalendarWidget = {
     },
     
     async fetchApi(path) {
-      const baseUrl = window.CONFIG?.API?.BASE_URL || '';
+      // Use centralized apiService for consistent auth/accountId handling
+      if (window.apiService) {
+        return window.apiService.get(path);
+      }
       
-      // Use authService for auth header (same pattern as other components)
+      // Fallback to manual fetch if apiService not available
+      const baseUrl = window.CONFIG?.API?.BASE_URL || '';
       const authHeader = window.authService?.getAuthHeader?.();
-      // Get accountId from the root Vue app instance
       const accountId = this.$root?.accountId;
       
       const headers = { 'Content-Type': 'application/json' };
@@ -212,7 +244,7 @@ const CalendarWidget = {
     
     getCalendarColor(calendarId) {
       const index = this.calendars.findIndex(c => c.id === calendarId);
-      return CALENDAR_COLORS[index % CALENDAR_COLORS.length];
+      return WIDGET_CALENDAR_COLORS[index % WIDGET_CALENDAR_COLORS.length];
     },
     
     async saveCalendar() {
@@ -225,28 +257,11 @@ const CalendarWidget = {
       this.loading = true;
       
       try {
-        const baseUrl = window.CONFIG?.API?.BASE_URL || '';
-        const authHeader = window.authService?.getAuthHeader?.();
-        const accountId = this.$root?.accountId;
-        
-        const headers = { 'Content-Type': 'application/json' };
-        if (authHeader) headers['Authorization'] = authHeader;
-        if (accountId) headers['X-Account-Id'] = accountId;
-        
-        const response = await fetch(`${baseUrl}/calendar/config`, {
-          method: 'PUT',
-          headers,
-          body: JSON.stringify({ 
-            calendarUrl: this.newCalendarUrl,
-            name: this.newCalendarName || 'Calendar'
-          })
+        // Use centralized apiService for consistent auth/accountId handling
+        const result = await window.apiService.put('/calendar/config', { 
+          calendarUrl: this.newCalendarUrl,
+          name: this.newCalendarName || 'Calendar'
         });
-        
-        const result = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(result.message || 'Failed to save calendar');
-        }
         
         this.configured = true;
         this.addingCalendar = false;
@@ -265,18 +280,8 @@ const CalendarWidget = {
       if (!confirm('Remove this calendar?')) return;
       
       try {
-        const baseUrl = window.CONFIG?.API?.BASE_URL || '';
-        const authHeader = window.authService?.getAuthHeader?.();
-        const accountId = this.$root?.accountId;
-        
-        const headers = {};
-        if (authHeader) headers['Authorization'] = authHeader;
-        if (accountId) headers['X-Account-Id'] = accountId;
-        
-        await fetch(`${baseUrl}/calendar/config?id=${calendarId}`, {
-          method: 'DELETE',
-          headers
-        });
+        // Use centralized apiService for consistent auth/accountId handling
+        await window.apiService.delete(`/calendar/config?id=${calendarId}`);
         
         await this.onRefresh();
       } catch (error) {
