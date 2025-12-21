@@ -729,7 +729,8 @@ const RecipePage = Vue.defineComponent({
       </flyout-panel>
 
       <!-- Delete Confirmation Modal -->
-      <div v-if="showDeleteConfirm" class="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto modal-overlay" @click.self="showDeleteConfirm = false">
+      <!-- z-[800] ensures modal appears above Shoelace drawer (z-index: 700) -->
+      <div v-if="showDeleteConfirm" class="fixed inset-0 bg-black bg-opacity-50 z-[800] overflow-y-auto modal-overlay" @click.self="showDeleteConfirm = false">
         <div class="min-h-full flex items-start sm:items-center justify-center p-2 sm:p-4 py-4">
           <div class="bg-white rounded-lg w-full max-w-sm p-6 modal-panel">
           <h2 class="text-xl font-bold text-primary-custom mb-4">Delete Recipe?</h2>
