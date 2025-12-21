@@ -220,9 +220,9 @@ const WeatherWidget = {
           },
           (error) => {
             console.warn('Geolocation failed:', error.message);
-            // Fall back to default location (Seattle)
-            this.coordinates = { lat: 47.6062, lon: -122.3321 };
-            this.locationName = 'Seattle, WA (default)';
+            // Fall back to default location (Tavares, FL)
+            this.coordinates = { lat: 28.8036, lon: -81.7256 };
+            this.locationName = 'Tavares, FL (default)';
             this.locationError = 'Using default location';
             resolve();
           },
@@ -268,7 +268,7 @@ const WeatherWidget = {
       
       // Fallback: Use simple mapping for demo/offline mode
       const locationMap = {
-        'seattle': { lat: 47.6062, lon: -122.3321, name: 'Seattle, WA' },
+        'tavares': { lat: 28.8036, lon: -81.7256, name: 'Tavares, FL' },
         'new york': { lat: 40.7128, lon: -74.0060, name: 'New York, NY' },
         'los angeles': { lat: 34.0522, lon: -118.2437, name: 'Los Angeles, CA' },
         'chicago': { lat: 41.8781, lon: -87.6298, name: 'Chicago, IL' },
@@ -289,7 +289,7 @@ const WeatherWidget = {
         // Default to first word as city name
         this.locationName = location;
         this.locationError = 'Location not found, using default';
-        this.coordinates = { lat: 47.6062, lon: -122.3321 }; // Seattle default
+        this.coordinates = { lat: 28.8036, lon: -81.7256 }; // Tavares, FL default
       }
     },
     

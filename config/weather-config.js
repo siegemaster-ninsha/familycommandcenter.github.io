@@ -17,9 +17,9 @@ window.WEATHER_CONFIG = {
   
   // Fallback location if geolocation fails
   defaultLocation: {
-    lat: 47.6062,
-    lon: -122.3321,
-    name: 'Seattle, WA'
+    lat: 28.8036,
+    lon: -81.7256,
+    name: 'Tavares, FL'
   },
   
   // Enable/disable mock data mode

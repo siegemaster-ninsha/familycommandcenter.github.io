@@ -439,9 +439,9 @@ const WeekCalendarPanel = {
     },
     
     useDefaultLocation(reason) {
-      // Default to Seattle
-      this.coordinates = { lat: 47.6062, lon: -122.3321 };
-      this.locationName = 'Seattle (default)';
+      // Default to Tavares, FL
+      this.coordinates = { lat: 28.8036, lon: -81.7256 };
+      this.locationName = 'Tavares, FL (default)';
       console.log('Using default location:', reason);
     },
     
