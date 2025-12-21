@@ -90,6 +90,8 @@ module.exports = [
         useUIStore: 'readonly',
         useOfflineStore: 'readonly',
         useRecipesStore: 'readonly',
+        useCategoriesStore: 'readonly',
+        useChatStore: 'readonly',
         
         // Component globals (used across files)
         OfflineIndicator: 'readonly',

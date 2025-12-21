@@ -129,6 +129,7 @@ const app = createApp({
         { key: 'family', label: 'Family' },
         { key: 'shopping', label: 'Shopping' },
         { key: 'recipes', label: 'Recipes' },
+        { key: 'learning', label: 'Learning' },
         { key: 'account', label: 'Account' }
       ],
       
@@ -3144,6 +3145,16 @@ function checkAndRegisterComponents() {
   console.log('📦 Registering keyboard-input');
   if (window.KeyboardInput) {
     app.component('keyboard-input', window.KeyboardInput);
+  }
+
+  console.log('📦 Registering ai-chat-panel');
+  if (window.AIChatPanel) {
+    app.component('ai-chat-panel', window.AIChatPanel);
+  }
+
+  console.log('📦 Registering learning-hub-page');
+  if (window.LearningHubPage) {
+    app.component('learning-hub-page', window.LearningHubPage);
   }
 
   console.log('✅ All components registered, mounting app...');

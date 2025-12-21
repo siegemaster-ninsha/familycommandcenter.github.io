@@ -51,6 +51,9 @@ const CONFIG = {
       
       // Account Settings
       ACCOUNT_SETTINGS: '/account-settings',
+      
+      // Chat
+      CHAT_MESSAGE: '/chat/message',
       // Membership & Invites & Spending
       FAMILY_CHILDREN: '/family-members/children',
       PARENT_INVITE: '/family-members/parents/invite',
@@ -71,7 +74,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.85 - Dynamic Narwhal (Dec 20, 2025)',
+    VERSION: '1.0.86 - Quantum Yak (Dec 21, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
