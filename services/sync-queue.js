@@ -65,11 +65,14 @@ class SyncQueue {
   async enqueue(change) {
     const db = await this._ensureDb();
 
+    // Deep clone data to unwrap Vue reactive proxies - IndexedDB can't clone Proxy objects
+    const clonedData = JSON.parse(JSON.stringify(change.data));
+
     const entry = {
       type: change.type,
       entity: change.entity,
       entityId: change.entityId,
-      data: change.data,
+      data: clonedData,
       timestamp: Date.now(),
       serverTimestamp: change.serverTimestamp || null,
       status: 'pending',

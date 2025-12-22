@@ -78,10 +78,36 @@ const RecipePage = Vue.defineComponent({
             </button>
           </form>
           
-          <!-- Image Processing Status -->
+          <!-- Job Progress Status -->
+          <!-- **Feature: async-job-service** -->
+          <!-- **Validates: Requirements 4.1, 4.4, 5.3, 6.3** -->
+          <div v-if="activeJob" class="mt-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 flex-1">
+                <div class="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <div class="flex-1">
+                  <span class="text-blue-700 font-medium">{{ activeJobStatusMessage }}</span>
+                  <div v-if="activeJob.progress > 0" class="mt-2">
+                    <div class="w-full bg-blue-200 rounded-full h-2">
+                      <div 
+                        class="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                        :style="{ width: activeJob.progress + '%' }"
+                      ></div>
+                    </div>
+                    <div class="flex justify-between text-xs text-blue-600 mt-1">
+                      <span>{{ activeJob.progress }}%</span>
+                      <span v-if="activeJobETA">ETA: {{ activeJobETA }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Legacy Image Processing Status (fallback) -->
           <!-- **Feature: recipe-image-capture** -->
           <!-- **Validates: Requirements 5.2, 5.3, 5.4** -->
-          <div v-if="imageProcessing" class="mt-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
+          <div v-else-if="imageProcessing" class="mt-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
             <div class="flex items-center gap-3">
               <div class="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
               <span class="text-blue-700">{{ imageProcessingStatus || 'Processing image...' }}</span>
@@ -795,13 +821,19 @@ const RecipePage = Vue.defineComponent({
   setup() {
     const recipeStore = window.useRecipeStore();
     const shoppingStore = window.useShoppingStore();
-    return { recipeStore, shoppingStore };
+    const jobStore = window.useJobStore ? window.useJobStore() : null;
+    return { recipeStore, shoppingStore, jobStore };
   },
   
   data() {
     return {
       // URL scraping
       scrapeUrl: '',
+      
+      // Job tracking for async operations
+      // **Feature: async-job-service**
+      // **Validates: Requirements 4.1, 4.4, 5.3, 6.3**
+      currentJobId: null,
       
       // Save options for scraped recipe
       selectedTags: [],
@@ -908,6 +940,31 @@ const RecipePage = Vue.defineComponent({
     imageError() {
       return this.recipeStore.imageError;
     },
+    // Job tracking computed properties
+    // **Feature: async-job-service**
+    // **Validates: Requirements 4.1, 4.4, 5.3, 6.3**
+    activeJob() {
+      if (!this.currentJobId || !this.jobStore) return null;
+      return this.jobStore.getJob(this.currentJobId);
+    },
+    activeJobStatusMessage() {
+      const job = this.activeJob;
+      if (!job) return '';
+      if (job.statusMessage) return job.statusMessage;
+      
+      // Default messages based on status
+      switch (job.status) {
+        case 'pending': return 'Starting...';
+        case 'processing': return job.jobType === 'recipe-scrape' ? 'Extracting recipe...' : 'Processing...';
+        case 'completed': return 'Complete!';
+        case 'failed': return job.error || 'Failed';
+        default: return 'Processing...';
+      }
+    },
+    activeJobETA() {
+      if (!this.currentJobId || !this.jobStore) return null;
+      return this.jobStore.formatETA(this.currentJobId);
+    },
     availableTags() {
       return this.recipeStore.allTags;
     },
@@ -973,6 +1030,16 @@ const RecipePage = Vue.defineComponent({
     await this.loadRecipes();
     await this.recipeStore.loadTags();
     await this.checkLLMHealth();
+    
+    // Set up job event listeners
+    // **Feature: async-job-service**
+    // **Validates: Requirements 4.4, 6.3**
+    this.setupJobEventListeners();
+  },
+  
+  beforeUnmount() {
+    // Clean up job event listeners
+    this.cleanupJobEventListeners();
   },
   
   methods: {
@@ -984,14 +1051,142 @@ const RecipePage = Vue.defineComponent({
       await this.recipeStore.checkLLMHealth();
     },
     
+    // === Job Event Listener Methods ===
+    // **Feature: async-job-service**
+    // **Validates: Requirements 4.4, 6.3**
+    
+    /**
+     * Set up event listeners for job completion/failure
+     * **Validates: Requirements 4.4**
+     */
+    setupJobEventListeners() {
+      this._onJobCompleted = this.handleJobCompleted.bind(this);
+      this._onJobFailed = this.handleJobFailed.bind(this);
+      this._onJobExpired = this.handleJobExpired.bind(this);
+      
+      window.addEventListener('job-completed', this._onJobCompleted);
+      window.addEventListener('job-failed', this._onJobFailed);
+      window.addEventListener('job-expired', this._onJobExpired);
+    },
+    
+    /**
+     * Clean up job event listeners
+     */
+    cleanupJobEventListeners() {
+      if (this._onJobCompleted) {
+        window.removeEventListener('job-completed', this._onJobCompleted);
+      }
+      if (this._onJobFailed) {
+        window.removeEventListener('job-failed', this._onJobFailed);
+      }
+      if (this._onJobExpired) {
+        window.removeEventListener('job-expired', this._onJobExpired);
+      }
+    },
+    
+    /**
+     * Handle job completion event
+     * **Validates: Requirements 4.4, 5.3**
+     * @param {CustomEvent} event - Job completed event with detail { jobId, job }
+     */
+    handleJobCompleted(event) {
+      const { jobId, job } = event.detail;
+      
+      // Only handle if this is our tracked job
+      if (jobId !== this.currentJobId) return;
+      
+      console.log('[Recipe Page] Job completed:', jobId, job?.jobType);
+      
+      // Handle recipe scrape completion
+      if (job?.jobType === 'recipe-scrape' && job?.result?.recipe) {
+        this.recipeStore.scrapedRecipe = job.result.recipe;
+        this.selectedTags = job.result.recipe.suggestedTags || [];
+        this.showToast('Recipe extracted successfully!', 'success');
+      }
+      
+      // Handle image processing completion
+      if (job?.jobType === 'image-process' && job?.result?.recipe) {
+        this.recipeStore.scrapedRecipe = job.result.recipe;
+        this.selectedTags = job.result.recipe.suggestedTags || [];
+        this.showToast('Recipe extracted from image!', 'success');
+      }
+      
+      // Clear the current job ID
+      this.currentJobId = null;
+      
+      // Clear completed jobs after delay
+      // **Validates: Requirements 7.3**
+      if (this.jobStore) {
+        this.jobStore.clearCompleted(this.jobStore.clearDelay);
+      }
+    },
+    
+    /**
+     * Handle job failure event
+     * **Validates: Requirements 4.4, 6.3**
+     * @param {CustomEvent} event - Job failed event with detail { jobId, job }
+     */
+    handleJobFailed(event) {
+      const { jobId, job } = event.detail;
+      
+      // Only handle if this is our tracked job
+      if (jobId !== this.currentJobId) return;
+      
+      console.log('[Recipe Page] Job failed:', jobId, job?.error);
+      
+      // Show error message
+      const errorMessage = job?.error || 'Operation failed. Please try again.';
+      this.showToast(errorMessage, 'error');
+      
+      // Clear the current job ID
+      this.currentJobId = null;
+      
+      // Clear failed jobs after delay
+      // **Validates: Requirements 7.3**
+      if (this.jobStore) {
+        this.jobStore.clearCompleted(this.jobStore.clearDelay);
+      }
+    },
+    
+    /**
+     * Handle job expired event
+     * @param {CustomEvent} event - Job expired event with detail { jobId }
+     */
+    handleJobExpired(event) {
+      const { jobId } = event.detail;
+      
+      // Only handle if this is our tracked job
+      if (jobId !== this.currentJobId) return;
+      
+      console.log('[Recipe Page] Job expired:', jobId);
+      this.currentJobId = null;
+    },
+    
     async handleScrape() {
       if (!this.scrapeUrl) return;
       
-      const result = await this.recipeStore.scrapeRecipe(this.scrapeUrl);
+      // Use job store for tracking if available
+      // **Feature: async-job-service**
+      // **Validates: Requirements 4.1, 4.2, 4.3, 4.4, 5.3**
+      const result = await this.recipeStore.scrapeRecipeWithJobTracking(this.scrapeUrl, this.jobStore);
+      
+      if (result.jobId && this.jobStore) {
+        // Track the job for progress updates
+        this.currentJobId = result.jobId;
+        await this.jobStore.trackJob(result.jobId);
+      }
+      
       if (result.success) {
         this.scrapeUrl = '';
         // Reset save options
         this.selectedTags = [];
+        // If we got a direct recipe (no job tracking), set it
+        if (result.recipe && !result.jobId) {
+          this.selectedTags = result.recipe.suggestedTags || [];
+        }
+      } else if (!result.jobId) {
+        // Direct error (no job tracking)
+        this.showToast(result.error || 'Failed to import recipe', 'error');
       }
     },
     
@@ -1066,8 +1261,18 @@ const RecipePage = Vue.defineComponent({
         // Step 3: Close modal and process image
         this.showImageCapture = false;
         
-        // Step 4: Process the uploaded image (no retry - long operation)
-        const processResult = await this.recipeStore.processRecipeImage(urlResult.s3Key);
+        // Step 4: Process the uploaded image with job tracking
+        // **Feature: async-job-service**
+        // **Validates: Requirements 4.1, 4.2, 4.3, 4.4, 5.3**
+        const processResult = await this.recipeStore.processRecipeImageWithJobTracking(urlResult.s3Key, this.jobStore);
+        
+        if (processResult.jobId && this.jobStore) {
+          // Track the job for progress updates
+          this.currentJobId = processResult.jobId;
+          await this.jobStore.trackJob(processResult.jobId);
+          // Job completion will be handled by event listeners
+          return;
+        }
         
         if (!processResult.success) {
           throw new Error(processResult.error || 'Failed to process image');

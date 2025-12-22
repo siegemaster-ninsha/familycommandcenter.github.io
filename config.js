@@ -54,6 +54,10 @@ const CONFIG = {
       
       // Chat
       CHAT_MESSAGE: '/chat/message',
+      
+      // Jobs (Async Job Service)
+      JOBS: '/jobs',
+      
       // Membership & Invites & Spending
       FAMILY_CHILDREN: '/family-members/children',
       PARENT_INVITE: '/family-members/parents/invite',
@@ -74,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.92 - Resilient Vulture (Dec 21, 2025)',
+    VERSION: '1.0.93 - Stellar Xerus (Dec 22, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {

@@ -116,7 +116,7 @@ const useRecipeStore = Pinia.defineStore('recipes', {
     },
 
     /**
-     * Scrape a recipe from URL
+     * Scrape a recipe from URL (async with polling)
      * **Validates: Requirements 6.1, 6.2**
      * @param {string} url - Recipe URL to scrape
      * @returns {Object} Scraped recipe data (not saved)
@@ -127,10 +127,94 @@ const useRecipeStore = Pinia.defineStore('recipes', {
       this.scrapedRecipe = null;
       
       try {
-        const data = await apiService.post(`${CONFIG.API.ENDPOINTS.RECIPES}/scrape`, { url });
-        this.scrapedRecipe = data.recipe;
-        console.log('[OK] Recipe scraped:', this.scrapedRecipe?.title);
-        return { success: true, recipe: this.scrapedRecipe };
+        // Start the async scraping job
+        const startData = await apiService.post(`${CONFIG.API.ENDPOINTS.RECIPES}/scrape`, { url });
+        
+        // Check if we got a jobId (async) or direct recipe (sync fallback)
+        if (startData.jobId) {
+          const jobId = startData.jobId;
+          console.log('[OK] Scrape job started:', jobId);
+          
+          // Poll for completion
+          const result = await this.pollJobStatus(jobId);
+          
+          if (result.status === 'completed') {
+            this.scrapedRecipe = result.recipe;
+            console.log('[OK] Recipe scraped:', this.scrapedRecipe?.title);
+            return { success: true, recipe: this.scrapedRecipe };
+          } else if (result.status === 'failed') {
+            throw new Error(result.error || 'Scraping failed');
+          } else {
+            throw new Error('Scraping timed out');
+          }
+        } else if (startData.recipe) {
+          // Direct response (backward compatibility)
+          this.scrapedRecipe = startData.recipe;
+          console.log('[OK] Recipe scraped:', this.scrapedRecipe?.title);
+          return { success: true, recipe: this.scrapedRecipe };
+        } else {
+          throw new Error('Unexpected response from server');
+        }
+      } catch (error) {
+        // Map technical errors to user-friendly messages
+        const userFriendlyError = this.mapScrapeError(error.message);
+        this.scrapeError = userFriendlyError;
+        console.error('Failed to scrape recipe:', error);
+        return { success: false, error: userFriendlyError };
+      } finally {
+        this.scraping = false;
+      }
+    },
+    
+    /**
+     * Scrape a recipe from URL with job store tracking
+     * **Feature: async-job-service**
+     * **Validates: Requirements 4.1, 4.2, 4.3, 4.4, 5.3, 6.3**
+     * @param {string} url - Recipe URL to scrape
+     * @param {Object} jobStore - Optional job store for tracking progress
+     * @returns {Object} Result with jobId for tracking, or direct recipe
+     */
+    async scrapeRecipeWithJobTracking(url, jobStore = null) {
+      this.scraping = true;
+      this.scrapeError = null;
+      this.scrapedRecipe = null;
+      
+      try {
+        // Start the async scraping job
+        const startData = await apiService.post(`${CONFIG.API.ENDPOINTS.RECIPES}/scrape`, { url });
+        
+        // Check if we got a jobId (async) or direct recipe (sync fallback)
+        if (startData.jobId) {
+          const jobId = startData.jobId;
+          console.log('[OK] Scrape job started:', jobId);
+          
+          // If job store is available, let it handle polling via events
+          if (jobStore) {
+            // Return immediately with jobId - job store will handle polling
+            // The component will listen for job-completed/job-failed events
+            return { success: true, jobId };
+          }
+          
+          // Fallback: poll manually if no job store
+          const result = await this.pollJobStatus(jobId);
+          
+          if (result.status === 'completed') {
+            this.scrapedRecipe = result.recipe;
+            console.log('[OK] Recipe scraped:', this.scrapedRecipe?.title);
+            return { success: true, recipe: this.scrapedRecipe };
+          } else if (result.status === 'failed') {
+            throw new Error(result.error || 'Scraping failed');
+          } else {
+            throw new Error('Scraping timed out');
+          }
+        } else if (startData.recipe) {
+          // Direct response (backward compatibility)
+          this.scrapedRecipe = startData.recipe;
+          console.log('[OK] Recipe scraped:', this.scrapedRecipe?.title);
+          return { success: true, recipe: this.scrapedRecipe };
+        } else {
+          throw new Error('Unexpected response from server');
+        }
       } catch (error) {
         // Map technical errors to user-friendly messages
         const userFriendlyError = this.mapScrapeError(error.message);
@@ -192,11 +276,14 @@ const useRecipeStore = Pinia.defineStore('recipes', {
      * @returns {Object} Result with saved recipe
      */
     async saveRecipe(recipeData) {
-      console.log('[DEBUG] store.saveRecipe - recipeData.tags:', recipeData.tags);
+      // Deep clone to unwrap Vue reactive proxies before API/IndexedDB operations
+      const plainRecipeData = JSON.parse(JSON.stringify(recipeData));
+      console.log('[DEBUG] store.saveRecipe - plainRecipeData.tags:', plainRecipeData.tags);
+      
       // Generate a temporary local ID for offline items
       const tempId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
       const localRecipe = {
-        ...recipeData,
+        ...plainRecipeData,
         id: tempId,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -218,7 +305,7 @@ const useRecipeStore = Pinia.defineStore('recipes', {
             type: 'CREATE',
             entity: 'recipe',
             entityId: tempId,
-            data: recipeData
+            data: plainRecipeData
           });
           
           if (window.useOfflineStore) {
@@ -230,8 +317,8 @@ const useRecipeStore = Pinia.defineStore('recipes', {
       
       // Online - try to sync immediately
       try {
-        console.log('[DEBUG] store.saveRecipe - sending to API with tags:', recipeData.tags);
-        const data = await apiService.post(CONFIG.API.ENDPOINTS.RECIPES, recipeData);
+        console.log('[DEBUG] store.saveRecipe - sending to API with tags:', plainRecipeData.tags);
+        const data = await apiService.post(CONFIG.API.ENDPOINTS.RECIPES, plainRecipeData);
         console.log('[DEBUG] store.saveRecipe - server response tags:', data.recipe?.tags);
         
         if (data.recipe) {
@@ -259,7 +346,7 @@ const useRecipeStore = Pinia.defineStore('recipes', {
             type: 'CREATE',
             entity: 'recipe',
             entityId: tempId,
-            data: recipeData
+            data: plainRecipeData
           });
           
           if (window.useOfflineStore) {
@@ -572,6 +659,62 @@ const useRecipeStore = Pinia.defineStore('recipes', {
         console.log('[OK] Image processing job started:', jobId);
         
         // Poll for completion
+        this.imageProcessingStatus = 'Extracting recipe from image...';
+        const result = await this.pollJobStatus(jobId);
+        
+        if (result.status === 'completed') {
+          this.scrapedRecipe = result.recipe;
+          console.log('[OK] Recipe extracted from image:', this.scrapedRecipe?.title);
+          return { success: true, recipe: this.scrapedRecipe };
+        } else if (result.status === 'failed') {
+          throw new Error(result.error || 'Image processing failed');
+        } else {
+          throw new Error('Image processing timed out');
+        }
+      } catch (error) {
+        // Map technical errors to user-friendly messages
+        const userFriendlyError = this.mapImageProcessingError(error.message);
+        this.imageError = userFriendlyError;
+        console.error('Failed to process recipe image:', error);
+        return { success: false, error: userFriendlyError };
+      } finally {
+        this.imageProcessing = false;
+        this.imageProcessingStatus = '';
+      }
+    },
+    
+    /**
+     * Process uploaded recipe image with job store tracking
+     * **Feature: async-job-service**
+     * **Validates: Requirements 4.1, 4.2, 4.3, 4.4, 5.3, 6.3**
+     * @param {string} s3Key - S3 key of the uploaded image
+     * @param {Object} jobStore - Optional job store for tracking progress
+     * @returns {Object} Result with jobId for tracking, or direct recipe
+     */
+    async processRecipeImageWithJobTracking(s3Key, jobStore = null) {
+      this.imageProcessing = true;
+      this.imageProcessingStatus = 'Starting image processing...';
+      this.imageError = null;
+      this.scrapedRecipe = null;
+      
+      try {
+        // Start the async processing job
+        const startData = await apiService.post(`${CONFIG.API.ENDPOINTS.RECIPES}/image/process`, {
+          s3Key
+        });
+        
+        const jobId = startData.jobId;
+        console.log('[OK] Image processing job started:', jobId);
+        
+        // If job store is available, let it handle polling via events
+        if (jobStore) {
+          this.imageProcessing = false;
+          this.imageProcessingStatus = '';
+          // Return immediately with jobId - job store will handle polling
+          return { success: true, jobId };
+        }
+        
+        // Fallback: poll manually if no job store
         this.imageProcessingStatus = 'Extracting recipe from image...';
         const result = await this.pollJobStatus(jobId);
         
