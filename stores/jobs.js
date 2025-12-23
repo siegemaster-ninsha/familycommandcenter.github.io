@@ -453,6 +453,55 @@ const useJobStore = Pinia.defineStore('jobs', {
     },
     
     /**
+     * Fetch active jobs from the API
+     * Useful when returning to a page to see pending jobs
+     * @returns {Promise<{success: boolean, jobs?: Array, error?: string}>}
+     */
+    async fetchActiveJobs() {
+      this.loading = true;
+      this.error = null;
+      
+      try {
+        const data = await apiService.get('/jobs?status=pending,processing');
+        
+        if (data.success && data.data) {
+          const jobs = data.data;
+          
+          // Add each job to tracking and start polling
+          for (const job of jobs) {
+            if (!this.trackedJobs[job.jobId]) {
+              this.trackedJobs[job.jobId] = job;
+              
+              // Initialize progress history
+              if (job.progress !== undefined && job.progress !== null) {
+                this.progressHistory[job.jobId] = [{
+                  progress: job.progress,
+                  timestamp: Date.now()
+                }];
+              }
+              
+              // Start polling for active jobs
+              if (job.status === 'pending' || job.status === 'processing') {
+                this._startPolling(job.jobId);
+              }
+            }
+          }
+          
+          console.log('[Job Store] Fetched', jobs.length, 'active jobs');
+          return { success: true, jobs };
+        }
+        
+        return { success: true, jobs: [] };
+      } catch (error) {
+        console.error('[Job Store] Failed to fetch active jobs:', error);
+        this.error = error.message;
+        return { success: false, error: error.message };
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    /**
      * Reset store state
      */
     reset() {

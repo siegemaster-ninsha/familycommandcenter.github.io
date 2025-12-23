@@ -293,6 +293,88 @@ const app = createApp({
         case 'chore.deleted':
           if (msg.data?.id) this.chores = this.chores.filter(c => c.id !== msg.data.id);
           break;
+        
+        // Quicklist real-time sync
+        case 'quicklist.created': {
+          const created = msg.data?.quicklistChore;
+          if (!created) break;
+          const choresStore = window.useChoresStore ? window.useChoresStore() : null;
+          if (choresStore && !choresStore.quicklistChores.some(q => q.id === created.id)) {
+            choresStore.quicklistChores.push(created);
+          }
+          break;
+        }
+        case 'quicklist.updated':
+        case 'quicklist.scheduleUpdated': {
+          const updated = msg.data?.quicklistChore;
+          if (!updated) break;
+          const choresStore = window.useChoresStore ? window.useChoresStore() : null;
+          if (choresStore) {
+            const idx = choresStore.quicklistChores.findIndex(q => q.id === updated.id);
+            if (idx >= 0) choresStore.quicklistChores[idx] = updated;
+          }
+          break;
+        }
+        case 'quicklist.deleted': {
+          const deletedId = msg.data?.id;
+          if (!deletedId) break;
+          const choresStore = window.useChoresStore ? window.useChoresStore() : null;
+          if (choresStore) {
+            choresStore.quicklistChores = choresStore.quicklistChores.filter(q => q.id !== deletedId);
+          }
+          break;
+        }
+        
+        // Category real-time sync
+        case 'category.created': {
+          const created = msg.data?.category;
+          if (!created) break;
+          const categoriesStore = window.useCategoriesStore ? window.useCategoriesStore() : null;
+          if (categoriesStore && !categoriesStore.categories.some(c => c.id === created.id)) {
+            categoriesStore.categories.push(created);
+          }
+          break;
+        }
+        case 'category.updated': {
+          const updated = msg.data?.category;
+          if (!updated) break;
+          const categoriesStore = window.useCategoriesStore ? window.useCategoriesStore() : null;
+          if (categoriesStore) {
+            const idx = categoriesStore.categories.findIndex(c => c.id === updated.id);
+            if (idx >= 0) categoriesStore.categories[idx] = updated;
+          }
+          // Also reload quicklist to update categoryName on items
+          const choresStore = window.useChoresStore ? window.useChoresStore() : null;
+          if (choresStore) choresStore.loadQuicklistChores();
+          break;
+        }
+        case 'category.deleted': {
+          const deletedId = msg.data?.categoryId;
+          if (!deletedId) break;
+          const categoriesStore = window.useCategoriesStore ? window.useCategoriesStore() : null;
+          if (categoriesStore) {
+            categoriesStore.categories = categoriesStore.categories.filter(c => c.id !== deletedId);
+          }
+          // Reload quicklist since items may have moved to Uncategorized
+          const choresStore = window.useChoresStore ? window.useChoresStore() : null;
+          if (choresStore) choresStore.loadQuicklistChores();
+          break;
+        }
+        
+        // New day sync - reload everything
+        case 'newDay.completed': {
+          console.log('[WS] New day completed, reloading data...');
+          // Reload chores (they've been reset)
+          const choresStore = window.useChoresStore ? window.useChoresStore() : null;
+          if (choresStore) choresStore.loadChores();
+          // Reload family members (earnings may have changed)
+          const familyStore = window.useFamilyStore ? window.useFamilyStore() : null;
+          if (familyStore) familyStore.loadMembers();
+          // Show notification
+          const uiStore = window.useUIStore ? window.useUIStore() : null;
+          if (uiStore) uiStore.showSuccess('🌅 New day started on another device');
+          break;
+        }
       }
     },
     // API helper methods

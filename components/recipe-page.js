@@ -270,6 +270,76 @@ const RecipePage = Vue.defineComponent({
         </div>
       </div>
 
+      <!-- Active Jobs Section -->
+      <!-- Shows pending/processing jobs so users can track progress after returning to page -->
+      <div v-if="activeJobsList.length > 0" class="w-full">
+        <div class="w-full block rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
+          <h2 class="text-primary-custom text-[22px] font-bold leading-tight tracking-[-0.015em] flex items-center gap-2 mb-4">
+            <div v-html="Helpers.IconLibrary.getIcon('loader', 'lucide', 20, 'text-primary-custom')"></div>
+            Active Jobs
+            <span class="text-sm font-normal text-secondary-custom">({{ activeJobsList.length }})</span>
+          </h2>
+          
+          <div class="space-y-3">
+            <div 
+              v-for="job in activeJobsList" 
+              :key="job.jobId"
+              class="p-4 rounded-lg border"
+              :class="job.status === 'failed' ? 'bg-red-50 border-red-200' : 'bg-blue-50 border-blue-200'"
+            >
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 flex-1">
+                  <!-- Status icon -->
+                  <div v-if="job.status === 'failed'" v-html="Helpers.IconLibrary.getIcon('alertTriangle', 'lucide', 20, 'text-red-500')"></div>
+                  <div v-else class="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <span :class="job.status === 'failed' ? 'text-red-700' : 'text-blue-700'" class="font-medium truncate">
+                        {{ getJobDescription(job) }}
+                      </span>
+                      <span class="text-xs px-2 py-0.5 rounded-full" 
+                            :class="job.status === 'failed' ? 'bg-red-200 text-red-700' : 'bg-blue-200 text-blue-700'">
+                        {{ job.status }}
+                      </span>
+                    </div>
+                    
+                    <!-- Error message for failed jobs -->
+                    <p v-if="job.status === 'failed' && job.error" class="text-sm text-red-600 mt-1">
+                      {{ job.error }}
+                    </p>
+                    
+                    <!-- Progress bar -->
+                    <div v-if="job.progress > 0 && job.status !== 'failed'" class="mt-2">
+                      <div class="w-full bg-blue-200 rounded-full h-2">
+                        <div 
+                          class="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                          :style="{ width: job.progress + '%' }"
+                        ></div>
+                      </div>
+                      <div class="flex justify-between text-xs text-blue-600 mt-1">
+                        <span>{{ job.progress }}%</span>
+                        <span v-if="getJobETA(job.jobId)">ETA: {{ getJobETA(job.jobId) }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Dismiss button for failed jobs -->
+                <button 
+                  v-if="job.status === 'failed'"
+                  @click="dismissJob(job.jobId)"
+                  class="text-red-400 hover:text-red-600 transition-colors"
+                  title="Dismiss"
+                >
+                  <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 18, '')"></div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Saved Recipes Section -->
       <div class="w-full">
         <div class="w-full block rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
@@ -940,6 +1010,22 @@ const RecipePage = Vue.defineComponent({
     imageError() {
       return this.recipeStore.imageError;
     },
+    // List of all active jobs (pending, processing, and recently failed)
+    // Shows jobs that user can track when returning to the page
+    activeJobsList() {
+      if (!this.jobStore) return [];
+      const jobs = Object.values(this.jobStore.trackedJobs);
+      // Show pending, processing, and failed jobs (failed shown briefly for user awareness)
+      return jobs.filter(j => 
+        j.status === 'pending' || 
+        j.status === 'processing' || 
+        j.status === 'failed'
+      ).sort((a, b) => {
+        // Sort: processing first, then pending, then failed
+        const order = { processing: 0, pending: 1, failed: 2 };
+        return (order[a.status] || 3) - (order[b.status] || 3);
+      });
+    },
     // Job tracking computed properties
     // **Feature: async-job-service**
     // **Validates: Requirements 4.1, 4.4, 5.3, 6.3**
@@ -1031,6 +1117,11 @@ const RecipePage = Vue.defineComponent({
     await this.recipeStore.loadTags();
     await this.checkLLMHealth();
     
+    // Fetch any active jobs from the backend (for when user returns to page)
+    if (this.jobStore) {
+      await this.jobStore.fetchActiveJobs();
+    }
+    
     // Set up job event listeners
     // **Feature: async-job-service**
     // **Validates: Requirements 4.4, 6.3**
@@ -1054,6 +1145,48 @@ const RecipePage = Vue.defineComponent({
     // === Job Event Listener Methods ===
     // **Feature: async-job-service**
     // **Validates: Requirements 4.4, 6.3**
+    
+    /**
+     * Get human-readable description for a job
+     */
+    getJobDescription(job) {
+      if (!job) return 'Unknown job';
+      
+      // Try to get URL from metadata
+      const url = job.metadata?.url;
+      if (url) {
+        try {
+          const hostname = new URL(url).hostname.replace('www.', '');
+          return `Importing from ${hostname}`;
+        } catch {
+          return 'Importing recipe...';
+        }
+      }
+      
+      // Fallback based on job type
+      switch (job.jobType) {
+        case 'recipe-scrape': return 'Importing recipe from URL';
+        case 'image-processing': return 'Processing recipe image';
+        default: return job.jobType || 'Processing...';
+      }
+    },
+    
+    /**
+     * Get ETA for a job
+     */
+    getJobETA(jobId) {
+      if (!this.jobStore) return null;
+      return this.jobStore.formatETA(jobId);
+    },
+    
+    /**
+     * Dismiss a failed job from the list
+     */
+    dismissJob(jobId) {
+      if (this.jobStore) {
+        this.jobStore.stopTracking(jobId);
+      }
+    },
     
     /**
      * Set up event listeners for job completion/failure
