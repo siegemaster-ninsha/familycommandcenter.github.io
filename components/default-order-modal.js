@@ -225,6 +225,12 @@ const DefaultOrderModal = Vue.defineComponent({
      * Handle save button click
      */
     handleSave() {
+      // Guard against saving without a member
+      if (!this.member?.id) {
+        console.warn('[DefaultOrderModal] No member ID, skipping save');
+        return;
+      }
+      
       // Build the defaultOrderMap from current order
       const defaultOrderMap = {};
       this.orderedChores.forEach((chore, index) => {
@@ -232,7 +238,7 @@ const DefaultOrderModal = Vue.defineComponent({
       });
       
       this.$emit('save', {
-        memberId: this.member?.id,
+        memberId: this.member.id,
         defaultOrderMap
       });
     },

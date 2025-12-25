@@ -1408,6 +1408,12 @@ const app = createApp({
       const uiStore = window.useUIStore?.();
       const familyStore = window.useFamilyStore?.();
       
+      // Guard against undefined memberId (can happen if modal triggers save after closing)
+      if (!memberId) {
+        console.warn('[handleDefaultOrderSave] No memberId provided, skipping');
+        return;
+      }
+      
       if (!familyStore) {
         console.error('[handleDefaultOrderSave] Family store not available');
         return;
