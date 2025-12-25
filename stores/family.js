@@ -403,6 +403,22 @@ const useFamilyStore = Pinia.defineStore('family', {
                 : {}
             };
           }
+          
+          // Also update app.js people array (used by chore page)
+          // This ensures immediate UI update without waiting for WebSocket
+          const app = window.app;
+          if (app && app.people) {
+            const appIndex = app.people.findIndex(m => m.id === memberId);
+            if (appIndex !== -1) {
+              app.people[appIndex] = {
+                ...app.people[appIndex],
+                choreSortOrder: memberData.choreSortOrder && typeof memberData.choreSortOrder === 'object' 
+                  ? memberData.choreSortOrder 
+                  : {}
+              };
+            }
+          }
+          
           console.log('[OK] Member sort order updated:', memberId);
           return { success: true, member: memberData };
         }

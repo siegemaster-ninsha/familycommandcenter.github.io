@@ -384,6 +384,8 @@ const app = createApp({
           if (!memberId) break;
           
           console.log('[WS] Sort order updated for member:', memberId);
+          
+          // Update the family store
           const familyStore = window.useFamilyStore ? window.useFamilyStore() : null;
           if (familyStore) {
             const memberIndex = familyStore.members.findIndex(m => m.id === memberId);
@@ -394,6 +396,16 @@ const app = createApp({
                 choreSortOrder: choreSortOrder && typeof choreSortOrder === 'object' ? choreSortOrder : {}
               };
             }
+          }
+          
+          // Also update the app.js people array (used by chore page)
+          const appPeopleIndex = this.people.findIndex(m => m.id === memberId);
+          if (appPeopleIndex >= 0) {
+            this.people[appPeopleIndex] = {
+              ...this.people[appPeopleIndex],
+              choreSortOrder: choreSortOrder && typeof choreSortOrder === 'object' ? choreSortOrder : {}
+            };
+            console.log('[WS] Updated app.js people array for member:', memberId);
           }
           break;
         }
