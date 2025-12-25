@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.101 - Turbo Gorilla (Dec 25, 2025)',
+    VERSION: '1.0.102 - Incredible Raven (Dec 25, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
