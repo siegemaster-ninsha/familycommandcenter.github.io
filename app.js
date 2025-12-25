@@ -683,6 +683,9 @@ const app = createApp({
                 if (serverMember.id) existingPerson.id = serverMember.id;
                 // Always refresh board visibility from account preferences
                 existingPerson.enabledForChores = resolveEnabled(serverMember);
+                // Update sort order maps for chore priority feature
+                existingPerson.choreSortOrder = serverMember.choreSortOrder && typeof serverMember.choreSortOrder === 'object' ? serverMember.choreSortOrder : {};
+                existingPerson.defaultChoreOrder = serverMember.defaultChoreOrder && typeof serverMember.defaultChoreOrder === 'object' ? serverMember.defaultChoreOrder : {};
                 if (CONFIG.ENV.IS_DEVELOPMENT) console.log(`👥 Result for ${serverMember.name}: completedChores=${existingPerson.completedChores}`);
               } else {
                 if (CONFIG.ENV.IS_DEVELOPMENT) console.log(`👥 Adding new person from server: ${serverMember.name}`);
@@ -696,7 +699,10 @@ const app = createApp({
                   earnings: serverMember.earnings || 0,
                   completedChores: serverMember.completedChores || 0,
                   electronicsStatus: { status: 'allowed', message: 'Electronics allowed' },
-                  enabledForChores: resolveEnabled(serverMember)
+                  enabledForChores: resolveEnabled(serverMember),
+                  // Include sort order maps for chore priority feature
+                  choreSortOrder: serverMember.choreSortOrder && typeof serverMember.choreSortOrder === 'object' ? serverMember.choreSortOrder : {},
+                  defaultChoreOrder: serverMember.defaultChoreOrder && typeof serverMember.defaultChoreOrder === 'object' ? serverMember.defaultChoreOrder : {}
                 });
               }
             });
@@ -715,7 +721,10 @@ const app = createApp({
               earnings: member.earnings || 0,
               completedChores: member.completedChores || 0,
               electronicsStatus: { status: 'allowed', message: 'Electronics allowed' },
-              enabledForChores: resolveEnabled(member)
+              enabledForChores: resolveEnabled(member),
+              // Include sort order maps for chore priority feature
+              choreSortOrder: member.choreSortOrder && typeof member.choreSortOrder === 'object' ? member.choreSortOrder : {},
+              defaultChoreOrder: member.defaultChoreOrder && typeof member.defaultChoreOrder === 'object' ? member.defaultChoreOrder : {}
             }));
             if (CONFIG.ENV.IS_DEVELOPMENT) console.log('👥 Final people data:', this.people.map(p => `${p.name}: completedChores=${p.completedChores}`));
           }
