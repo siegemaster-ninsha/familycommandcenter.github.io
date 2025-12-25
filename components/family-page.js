@@ -392,6 +392,15 @@ const FamilyPage = Vue.defineComponent({
 
                       <div class="flex flex-col sm:flex-row gap-3">
                         <button
+                          v-if="$parent.currentUser?.role === 'parent' && hasMemberScheduledChores(person)"
+                          @click="$parent.openDefaultOrderModal(person)"
+                          class="flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 touch-target min-h-[44px] shadow-md hover:shadow-lg"
+                        >
+                          <div v-html="Helpers.IconLibrary.getIcon('list-ordered', 'lucide', 16, 'text-white')"></div>
+                          <span class="font-medium">Default Order</span>
+                        </button>
+
+                        <button
                           v-if="$parent.currentUser?.role === 'parent'"
                           @click="$parent.openSpendingModal(person)"
                           class="flex items-center justify-center gap-2 bg-success-600 hover:bg-success-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 touch-target min-h-[44px] shadow-md hover:shadow-lg"

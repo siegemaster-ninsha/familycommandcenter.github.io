@@ -455,6 +455,87 @@ const useFamilyStore = Pinia.defineStore('family', {
       return this.updateSortOrder(memberId, sortOrder);
     },
     
+    /**
+     * Update a family member's default chore order
+     * This determines the initial sort order when New Day creates chores from scheduled quicklist items
+     * 
+     * @param {string} memberId - Family member ID
+     * @param {Object} defaultOrderMap - Map of quicklistChoreId -> sortOrder (non-negative integers)
+     * @returns {Promise<{success: boolean, member?: Object, error?: string}>}
+     */
+    async updateDefaultOrder(memberId, defaultOrderMap) {
+      // Check if feature is available offline
+      const offlineStore = window.useOfflineStore ? window.useOfflineStore() : null;
+      if (offlineStore && !offlineStore.isFeatureAvailable('defaultOrder')) {
+        const message = offlineStore.getDisabledFeatureMessage('defaultOrder') || 'Default order management requires network connectivity';
+        console.warn('[WARN] Cannot update default order while offline');
+        if (window.useUIStore) {
+          const uiStore = window.useUIStore();
+          uiStore.showError(message);
+        }
+        return { success: false, error: message, offlineBlocked: true };
+      }
+      
+      // Find the member and store original default order for rollback
+      const member = this.members.find(m => m.id === memberId);
+      const originalDefaultOrder = member ? { ...(member.defaultChoreOrder || {}) } : {};
+      
+      // Optimistic update
+      if (member) {
+        member.defaultChoreOrder = defaultOrderMap && typeof defaultOrderMap === 'object' ? { ...defaultOrderMap } : {};
+      }
+      
+      try {
+        // URL-encode memberId to handle special characters like # in MEMBER#uuid
+        const encodedMemberId = encodeURIComponent(memberId);
+        const data = await apiService.put(
+          `${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${encodedMemberId}/default-order`,
+          { defaultOrderMap }
+        );
+        
+        // Backend returns 'familyMember' key
+        const memberData = data.familyMember || data.member;
+        if (memberData) {
+          const index = this.members.findIndex(m => m.id === memberId);
+          if (index !== -1) {
+            this.members[index] = {
+              ...this.members[index],
+              ...memberData,
+              defaultChoreOrder: memberData.defaultChoreOrder && typeof memberData.defaultChoreOrder === 'object' 
+                ? memberData.defaultChoreOrder 
+                : {}
+            };
+          }
+          
+          // Also update app.js people array
+          const app = window.app;
+          if (app && app.people) {
+            const appIndex = app.people.findIndex(m => m.id === memberId);
+            if (appIndex !== -1) {
+              app.people[appIndex] = {
+                ...app.people[appIndex],
+                defaultChoreOrder: memberData.defaultChoreOrder && typeof memberData.defaultChoreOrder === 'object' 
+                  ? memberData.defaultChoreOrder 
+                  : {}
+              };
+            }
+          }
+          
+          console.log('[OK] Member default order updated:', memberId);
+          return { success: true, member: memberData };
+        }
+        
+        return { success: false, error: 'Failed to update default order' };
+      } catch (error) {
+        // Rollback on error
+        if (member) {
+          member.defaultChoreOrder = originalDefaultOrder;
+        }
+        console.error('Failed to update default order:', error);
+        return { success: false, error: error.message };
+      }
+    },
+    
     // =============================================
     // DAILY CHORES MANAGEMENT
     // =============================================

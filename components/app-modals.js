@@ -785,6 +785,15 @@ const AppModals = Vue.defineComponent({
       @save="handleScheduleSave"
       @close="closeScheduleModal"
     ></schedule-modal>
+    
+    <!-- Default Order Modal for setting initial chore order on New Day -->
+    <default-order-modal
+      :open="showDefaultOrderModal"
+      :member="defaultOrderMember"
+      :quicklist-chores="quicklistChores"
+      @save="handleDefaultOrderSave"
+      @close="closeDefaultOrderModal"
+    ></default-order-modal>
   `,
   data() {
     return {
@@ -835,7 +844,13 @@ const AppModals = Vue.defineComponent({
     'showScheduleModal',
     'scheduleModalChore',
     'closeScheduleModal',
-    'handleScheduleSave'
+    'handleScheduleSave',
+    // Default order modal
+    'showDefaultOrderModal',
+    'defaultOrderMember',
+    'closeDefaultOrderModal',
+    'handleDefaultOrderSave',
+    'quicklistChores'
   ],
   methods: {
     // Handle category created inline in quicklist form

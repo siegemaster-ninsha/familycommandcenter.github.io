@@ -72,6 +72,9 @@ const app = createApp({
       // **Feature: weekly-chore-scheduling**
       showScheduleModal: false,
       scheduleModalChore: null,
+      // Default order modal for setting initial chore order on New Day
+      showDefaultOrderModal: false,
+      defaultOrderMember: null,
       // Assign category modal (for uncategorized quicklist chores)
       showAssignCategoryModal: false,
       assignCategoryChore: null,
@@ -419,6 +422,36 @@ const app = createApp({
           // so we just need to ensure the data is up to date.
           // The priorityChoreByMember getter will automatically recompute.
           // If needed, we could trigger a UI refresh here.
+          break;
+        }
+        
+        // Default chore order sync (for New Day initial ordering)
+        case 'member.defaultOrderUpdated': {
+          const { memberId, defaultChoreOrder } = msg.data || {};
+          if (!memberId) break;
+          
+          console.log('[WS] Default order updated for member:', memberId);
+          
+          // Update the family store
+          const familyStore = window.useFamilyStore ? window.useFamilyStore() : null;
+          if (familyStore) {
+            const memberIndex = familyStore.members.findIndex(m => m.id === memberId);
+            if (memberIndex >= 0) {
+              familyStore.members[memberIndex] = {
+                ...familyStore.members[memberIndex],
+                defaultChoreOrder: defaultChoreOrder && typeof defaultChoreOrder === 'object' ? defaultChoreOrder : {}
+              };
+            }
+          }
+          
+          // Also update the app.js people array
+          const appPeopleIndex = this.people.findIndex(m => m.id === memberId);
+          if (appPeopleIndex >= 0) {
+            this.people[appPeopleIndex] = {
+              ...this.people[appPeopleIndex],
+              defaultChoreOrder: defaultChoreOrder && typeof defaultChoreOrder === 'object' ? defaultChoreOrder : {}
+            };
+          }
           break;
         }
       }
@@ -1357,6 +1390,48 @@ const app = createApp({
     closeScheduleModal() {
       this.showScheduleModal = false;
       this.scheduleModalChore = null;
+    },
+    
+    // Default order modal methods
+    openDefaultOrderModal(member) {
+      this.defaultOrderMember = member;
+      this.showDefaultOrderModal = true;
+    },
+    
+    closeDefaultOrderModal() {
+      this.showDefaultOrderModal = false;
+      this.defaultOrderMember = null;
+    },
+    
+    // Handle default order save from modal
+    async handleDefaultOrderSave({ memberId, defaultOrderMap }) {
+      const uiStore = window.useUIStore?.();
+      const familyStore = window.useFamilyStore?.();
+      
+      if (!familyStore) {
+        console.error('[handleDefaultOrderSave] Family store not available');
+        return;
+      }
+      
+      try {
+        const result = await familyStore.updateDefaultOrder(memberId, defaultOrderMap);
+        
+        if (result.success) {
+          if (uiStore) {
+            uiStore.showSuccess('Default order saved');
+          }
+          this.closeDefaultOrderModal();
+        } else {
+          if (uiStore) {
+            uiStore.showError(result.error || 'Failed to save default order');
+          }
+        }
+      } catch (error) {
+        console.error('Failed to save default order:', error);
+        if (uiStore) {
+          uiStore.showError('Failed to save default order');
+        }
+      }
     },
     
     // Handle schedule save from modal
@@ -3026,6 +3101,9 @@ const app = createApp({
       // Schedule modal state - **Feature: weekly-chore-scheduling**
       showScheduleModal: Vue.computed(() => this.showScheduleModal),
       scheduleModalChore: Vue.computed(() => this.scheduleModalChore),
+      // Default order modal state
+      showDefaultOrderModal: Vue.computed(() => this.showDefaultOrderModal),
+      defaultOrderMember: Vue.computed(() => this.defaultOrderMember),
       // add child / invite parent modal flags
       showCreateChildModal: Vue.computed(() => this.showCreateChildModal),
       showInviteModal: Vue.computed(() => this.showInviteModal),
@@ -3082,6 +3160,10 @@ const app = createApp({
       openScheduleModal: this.openScheduleModal,
       closeScheduleModal: this.closeScheduleModal,
       handleScheduleSave: this.handleScheduleSave,
+      // Default order modal methods
+      openDefaultOrderModal: this.openDefaultOrderModal,
+      closeDefaultOrderModal: this.closeDefaultOrderModal,
+      handleDefaultOrderSave: this.handleDefaultOrderSave,
       updateQuicklistCategory: this.updateQuicklistCategory,
       deleteChore: this.deleteChore,
       reassignChore: this.reassignChore,
@@ -3249,6 +3331,11 @@ function checkAndRegisterComponents() {
   console.log('📦 Registering schedule-modal');
   if (window.ScheduleModalComponent) {
     app.component('schedule-modal', window.ScheduleModalComponent);
+  }
+
+  console.log('📦 Registering default-order-modal');
+  if (window.DefaultOrderModalComponent) {
+    app.component('default-order-modal', window.DefaultOrderModalComponent);
   }
 
   console.log('📦 Registering nav-menu');
