@@ -390,19 +390,21 @@ const useFamilyStore = Pinia.defineStore('family', {
           { sortOrder }
         );
         
-        if (data.member) {
+        // Backend returns 'familyMember' key
+        const memberData = data.familyMember || data.member;
+        if (memberData) {
           const index = this.members.findIndex(m => m.id === memberId);
           if (index !== -1) {
             this.members[index] = {
               ...this.members[index],
-              ...data.member,
-              choreSortOrder: data.member.choreSortOrder && typeof data.member.choreSortOrder === 'object' 
-                ? data.member.choreSortOrder 
+              ...memberData,
+              choreSortOrder: memberData.choreSortOrder && typeof memberData.choreSortOrder === 'object' 
+                ? memberData.choreSortOrder 
                 : {}
             };
           }
           console.log('[OK] Member sort order updated:', memberId);
-          return { success: true, member: data.member };
+          return { success: true, member: memberData };
         }
         
         return { success: false, error: 'Failed to update sort order' };
