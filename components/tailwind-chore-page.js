@@ -78,17 +78,8 @@ const ChoreCard = {
             </span>
           </div>
 
-          <!-- Right section: Priority badge + Money + expand indicator -->
+          <!-- Right section: Money + expand indicator -->
           <div class="chore-card-right-section">
-            <!-- Priority badge (only for priority chore) -->
-            <div 
-              v-if="isPriority && !chore.completed && type === 'assigned'" 
-              class="chore-priority-badge"
-            >
-              <span v-html="getIcon('zap', 12)"></span>
-              <span>Priority</span>
-            </div>
-
             <!-- Money badge (only if has amount) -->
             <div v-if="chore.amount > 0" class="chore-card-money-row">
               <sl-badge variant="primary" pill class="chore-amount">
