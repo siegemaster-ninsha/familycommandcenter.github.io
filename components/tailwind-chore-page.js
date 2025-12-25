@@ -10,22 +10,57 @@ if (window.SkeletonRegistry) {
 // Unified Chore Card Component - Shoelace Implementation with Bottom Flyout Actions
 // Tap card to show flyout action bar below the card
 // Uses slide-panel for reassign member picker
+// **Feature: chore-priority** - Supports drag-and-drop reordering for assigned chores
 const ChoreCard = {
   template: `
-    <div class="chore-card-wrapper min-w-0" :class="{ 'chore-card-wrapper--expanded': isElevated }">
+    <div 
+      class="chore-card-wrapper min-w-0" 
+      :class="{ 
+        'chore-card-wrapper--expanded': isElevated,
+        'chore-card-wrapper--dragging': isDragging,
+        'chore-card-wrapper--drag-over': isDragOver
+      }"
+      :draggable="isDraggable"
+      @dragstart="handleDragStart"
+      @dragend="handleDragEnd"
+      @dragover.prevent="handleDragOver"
+      @dragleave="handleDragLeave"
+      @drop.prevent="handleDrop"
+    >
       <sl-card
         class="chore-card"
         :class="[
           isElevated ? 'chore-card--expanded' : '',
-          chore.completed && type !== 'quicklist' ? 'chore-card--completed' : ''
+          chore.completed && type !== 'quicklist' ? 'chore-card--completed' : '',
+          isPriority && !chore.completed && type === 'assigned' ? 'chore-card--priority' : '',
+          isDragging ? 'chore-card--dragging' : ''
         ]"
         @touchstart.passive="handleTouchStart"
         @touchmove.passive="handleTouchMove"
         @click.stop="handleCardClick"
       >
         <div class="chore-card-content chore-card-split" :class="{ 'has-amount': chore.amount > 0 }">
-          <!-- Left section: Completed indicator + Name -->
+          <!-- Left section: Drag handle + Priority indicator + Completed indicator + Name -->
           <div class="chore-card-left-section">
+            <!-- Drag handle - only for assigned chores with reordering enabled -->
+            <div 
+              v-if="type === 'assigned' && enableReorder"
+              class="chore-drag-handle"
+              title="Drag to reorder"
+              @mousedown.stop
+              @touchstart.stop
+            >
+              <div v-html="getIcon('gripVertical', 16)"></div>
+            </div>
+            <!-- Priority indicator (star icon) - only for priority chore -->
+            <div 
+              v-if="isPriority && !chore.completed && type === 'assigned'" 
+              class="chore-priority-indicator"
+              title="Priority Chore"
+            >
+              <div v-html="getIcon('star', 16)"></div>
+            </div>
+
             <!-- Completed checkmark indicator (not interactive) -->
             <div 
               v-if="type !== 'quicklist' && chore.completed" 
@@ -43,8 +78,17 @@ const ChoreCard = {
             </span>
           </div>
 
-          <!-- Right section: Money + expand indicator -->
+          <!-- Right section: Priority badge + Money + expand indicator -->
           <div class="chore-card-right-section">
+            <!-- Priority badge (only for priority chore) -->
+            <div 
+              v-if="isPriority && !chore.completed && type === 'assigned'" 
+              class="chore-priority-badge"
+            >
+              <span v-html="getIcon('zap', 12)"></span>
+              <span>Priority</span>
+            </div>
+
             <!-- Money badge (only if has amount) -->
             <div v-if="chore.amount > 0" class="chore-card-money-row">
               <sl-badge variant="primary" pill class="chore-amount">
@@ -160,16 +204,24 @@ const ChoreCard = {
     chore: { type: Object, required: true },
     type: { type: String, required: true, validator: (value) => ['quicklist', 'unassigned', 'assigned'].includes(value) },
     isExpanded: { type: Boolean, default: false },
+    isPriority: { type: Boolean, default: false },  // **Feature: chore-priority** - Highlights this chore as the priority chore
     showApprovalButton: { type: Boolean, default: false },
     familyMembers: { type: Array, default: () => [] },
     Helpers: { type: Object, required: true },
+    // **Feature: chore-priority** - Drag-and-drop reordering props
+    enableReorder: { type: Boolean, default: false },  // Enable drag-and-drop reordering
     // Event handlers
     onExpand: { type: Function },
     onCollapse: { type: Function },
     onToggleComplete: { type: Function },
     onApprove: { type: Function },
     onDelete: { type: Function },
-    onReassign: { type: Function }
+    onReassign: { type: Function },
+    // **Feature: chore-priority** - Drag-and-drop event handlers
+    onDragStart: { type: Function },
+    onDragEnd: { type: Function },
+    onDragOver: { type: Function },
+    onDrop: { type: Function }
   },
   data() {
     return {
@@ -178,8 +230,17 @@ const ChoreCard = {
       didScroll: false,
       actionPage: 'default',
       isElevated: false,  // Controls z-index, delayed on collapse
-      elevationTimer: null
+      elevationTimer: null,
+      // **Feature: chore-priority** - Drag state
+      isDragging: false,
+      isDragOver: false
     };
+  },
+  computed: {
+    // **Feature: chore-priority** - Only assigned chores with reorder enabled are draggable
+    isDraggable() {
+      return this.type === 'assigned' && this.enableReorder;
+    }
   },
   watch: {
     // Handle z-index elevation with delay on collapse
@@ -268,6 +329,58 @@ const ChoreCard = {
     },
     getInitial(member) {
       return (member.displayName || member.name || '?').charAt(0).toUpperCase();
+    },
+    // **Feature: chore-priority** - Drag-and-drop handlers
+    // **Validates: Requirements 4.1**
+    handleDragStart(event) {
+      if (!this.isDraggable) return;
+      
+      this.isDragging = true;
+      
+      // Set drag data with chore ID
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', this.chore.id);
+      event.dataTransfer.setData('application/json', JSON.stringify({
+        choreId: this.chore.id,
+        choreName: this.chore.name
+      }));
+      
+      // Notify parent
+      this.onDragStart?.(this.chore, event);
+    },
+    handleDragEnd(event) {
+      this.isDragging = false;
+      this.isDragOver = false;
+      
+      // Notify parent
+      this.onDragEnd?.(this.chore, event);
+    },
+    handleDragOver(event) {
+      if (!this.isDraggable) return;
+      
+      // Only show drag-over state if this isn't the dragged item
+      const draggedChoreId = event.dataTransfer.getData('text/plain');
+      if (draggedChoreId !== this.chore.id) {
+        this.isDragOver = true;
+      }
+      
+      // Notify parent
+      this.onDragOver?.(this.chore, event);
+    },
+    handleDragLeave(_event) {
+      this.isDragOver = false;
+    },
+    handleDrop(event) {
+      this.isDragOver = false;
+      
+      // Get the dragged chore ID
+      const draggedChoreId = event.dataTransfer.getData('text/plain');
+      
+      // Don't drop on self
+      if (draggedChoreId === this.chore.id) return;
+      
+      // Notify parent with both chore IDs
+      this.onDrop?.(draggedChoreId, this.chore.id, event);
     }
   }
 };
@@ -373,28 +486,40 @@ const PersonCard = {
         </div>
       </div>
 
-      <!-- Person's chores -->
-      <div class="space-y-2 min-h-[60px]" @click.stop>
+      <!-- Person's chores (sorted by priority) with drag-and-drop reordering -->
+      <!-- **Feature: chore-priority** - Drag-and-drop reordering -->
+      <!-- **Validates: Requirements 4.1** -->
+      <div 
+        class="chore-list-container space-y-2 min-h-[60px]" 
+        :class="{ 'chore-list-container--reordering': isReordering }"
+        @click.stop
+      >
         <div v-if="!personChores || personChores.length === 0" class="text-center py-6" style="color: var(--color-text-secondary);">
           <p class="text-sm">No chores assigned</p>
           <p class="text-xs mt-1">Select a chore and tap here to assign it</p>
         </div>
 
         <chore-card
-          v-for="chore in personChores"
+          v-for="chore in sortedChores"
           :key="chore.id"
           :chore="chore"
           type="assigned"
           :is-expanded="expandedChoreId === chore.id"
+          :is-priority="chore.id === priorityChoreId"
           :show-approval-button="showApprovalButton"
           :family-members="familyMembers"
           :Helpers="Helpers"
+          :enable-reorder="enableReorder"
           :on-expand="handleChoreExpand"
           :on-collapse="handleChoreCollapse"
           :on-toggle-complete="(c, event) => onChoreToggle(c, event)"
           :on-approve="(c) => onChoreApprove(c)"
           :on-delete="(c) => onChoreDelete(c)"
           :on-reassign="handleChoreReassign"
+          :on-drag-start="handleChoreDragStart"
+          :on-drag-end="handleChoreDragEnd"
+          :on-drag-over="handleChoreDragOver"
+          :on-drop="handleChoreDrop"
         />
       </div>
     </div>
@@ -407,20 +532,85 @@ const PersonCard = {
     showApprovalButton: { type: Boolean, default: false },
     expandedChoreId: { type: String, default: null },
     Helpers: { type: Object, required: true },
+    // **Feature: chore-priority** - Enable drag-and-drop reordering
+    enableReorder: { type: Boolean, default: true },
     onAssign: { type: Function, required: true },
     onChoreExpand: { type: Function },
     onChoreCollapse: { type: Function },
     onChoreToggle: { type: Function, required: true },
     onChoreApprove: { type: Function, required: true },
     onChoreDelete: { type: Function, required: true },
-    onChoreReassign: { type: Function }
+    onChoreReassign: { type: Function },
+    // **Feature: chore-priority** - Reorder callback
+    onChoreReorder: { type: Function }
   },
   components: {
     ChoreCard
   },
+  data() {
+    return {
+      // **Feature: chore-priority** - Track reordering state
+      isReordering: false,
+      draggedChoreId: null
+    };
+  },
   computed: {
     personDisplayName() {
       return this.person.displayName || this.person.name || '';
+    },
+    /**
+     * Get the chore sort order map for this person
+     * **Feature: chore-priority**
+     * **Validates: Requirements 3.2**
+     */
+    choreSortOrder() {
+      return this.person.choreSortOrder || {};
+    },
+    /**
+     * Sort chores by priority (sort order)
+     * Chores with lower sort order appear first
+     * Chores without sort order go to the end
+     * **Feature: chore-priority**
+     * **Validates: Requirements 3.2**
+     */
+    sortedChores() {
+      if (!this.personChores || this.personChores.length === 0) {
+        return [];
+      }
+      
+      const sortOrder = this.choreSortOrder;
+      
+      // Sort by sort order (chores without order go to end with Infinity)
+      return [...this.personChores].sort((a, b) => {
+        const orderA = sortOrder[a.id] ?? Infinity;
+        const orderB = sortOrder[b.id] ?? Infinity;
+        return orderA - orderB;
+      });
+    },
+    /**
+     * Compute the priority chore ID (lowest sort order among incomplete chores)
+     * **Feature: chore-priority**
+     * **Validates: Requirements 2.1, 3.1**
+     */
+    priorityChoreId() {
+      // Use the global computePriorityChore function if available
+      if (typeof window.computePriorityChore === 'function') {
+        const priorityChore = window.computePriorityChore(this.personChores, this.choreSortOrder);
+        return priorityChore ? priorityChore.id : null;
+      }
+      
+      // Fallback: compute locally
+      const incompleteChores = (this.personChores || []).filter(c => !c.completed);
+      if (incompleteChores.length === 0) return null;
+      
+      const sortOrder = this.choreSortOrder;
+      const sorted = [...incompleteChores].sort((a, b) => {
+        const orderA = sortOrder[a.id] ?? Infinity;
+        const orderB = sortOrder[b.id] ?? Infinity;
+        return orderA - orderB;
+      });
+      
+      return sorted[0]?.id || null;
     }
   },
   methods: {
@@ -455,6 +645,61 @@ const PersonCard = {
         case 'blocked': return 'Blocked';
         default: return 'Allowed';
       }
+    },
+    // **Feature: chore-priority** - Drag-and-drop handlers
+    // **Validates: Requirements 4.1, 4.2**
+    handleChoreDragStart(chore, _event) {
+      this.isReordering = true;
+      this.draggedChoreId = chore.id;
+      console.log('[DRAG] Started dragging chore:', chore.name);
+    },
+    handleChoreDragEnd(chore, _event) {
+      this.isReordering = false;
+      this.draggedChoreId = null;
+      console.log('[DRAG] Ended dragging chore:', chore.name);
+    },
+    handleChoreDragOver(_chore, _event) {
+      // Visual feedback is handled by ChoreCard component
+    },
+    /**
+     * Handle dropping a chore onto another chore to reorder
+     * Builds new sort order and calls parent callback
+     * 
+     * @param {string} draggedChoreId - ID of the chore being dragged
+     * @param {string} targetChoreId - ID of the chore being dropped onto
+     * @param {DragEvent} event - The drop event
+     * 
+     * **Feature: chore-priority**
+     * **Validates: Requirements 4.1, 4.2**
+     */
+    handleChoreDrop(draggedChoreId, targetChoreId, _event) {
+      console.log('[DROP] Dropping chore', draggedChoreId, 'onto', targetChoreId);
+      
+      // Get current sorted order
+      const currentOrder = this.sortedChores.map(c => c.id);
+      
+      // Find indices
+      const draggedIndex = currentOrder.indexOf(draggedChoreId);
+      const targetIndex = currentOrder.indexOf(targetChoreId);
+      
+      if (draggedIndex === -1 || targetIndex === -1) {
+        console.warn('[DROP] Could not find chore indices');
+        return;
+      }
+      
+      // Remove dragged item and insert at target position
+      const newOrder = [...currentOrder];
+      newOrder.splice(draggedIndex, 1);
+      newOrder.splice(targetIndex, 0, draggedChoreId);
+      
+      console.log('[DROP] New order:', newOrder);
+      
+      // Notify parent with new order
+      this.onChoreReorder?.(this.person.id, newOrder);
+      
+      // Reset drag state
+      this.isReordering = false;
+      this.draggedChoreId = null;
     }
   }
 };
@@ -675,6 +920,7 @@ const TailwindChorePage = Vue.defineComponent({
               :show-approval-button="currentUser?.role === 'parent'"
               :expanded-chore-id="expandedChoreId"
               :Helpers="Helpers"
+              :enable-reorder="currentUser?.role === 'parent'"
               :on-assign="() => assignSelectedChore(person.displayName)"
               :on-chore-expand="handleChoreExpand"
               :on-chore-collapse="handleChoreCollapse"
@@ -682,6 +928,7 @@ const TailwindChorePage = Vue.defineComponent({
               :on-chore-approve="approveChore"
               :on-chore-delete="deleteChore"
               :on-chore-reassign="handleChoreReassign"
+              :on-chore-reorder="handleChoreReorder"
             />
           </div>
         </div>
@@ -941,6 +1188,51 @@ const TailwindChorePage = Vue.defineComponent({
         this.expandedChoreId = null;
       } catch (error) {
         console.error('Failed to reassign chore:', error);
+      }
+    },
+
+    /**
+     * Handle chore reordering via drag-and-drop
+     * Calls the family store to update sort order
+     * 
+     * @param {string} memberId - Family member ID
+     * @param {string[]} orderedChoreIds - Array of chore IDs in new order
+     * 
+     * **Feature: chore-priority**
+     * **Validates: Requirements 4.1, 4.2**
+     */
+    async handleChoreReorder(memberId, orderedChoreIds) {
+      console.log('[REORDER] Reordering chores for member:', memberId, 'New order:', orderedChoreIds);
+      
+      const useFamilyStore = window.useFamilyStore;
+      if (!useFamilyStore) {
+        console.error('[REORDER] Family store not available');
+        return;
+      }
+      
+      const familyStore = useFamilyStore();
+      const useUIStore = window.useUIStore;
+      const uiStore = useUIStore ? useUIStore() : null;
+      
+      try {
+        const result = await familyStore.reorderChores(memberId, orderedChoreIds);
+        
+        if (result.success) {
+          console.log('[REORDER] Successfully reordered chores');
+          if (uiStore) {
+            uiStore.showSuccess('Chore order updated');
+          }
+        } else {
+          console.error('[REORDER] Failed to reorder chores:', result.error);
+          if (uiStore) {
+            uiStore.showError(result.error || 'Failed to update chore order');
+          }
+        }
+      } catch (error) {
+        console.error('[REORDER] Error reordering chores:', error);
+        if (uiStore) {
+          uiStore.showError('Failed to update chore order');
+        }
       }
     }
   }

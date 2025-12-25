@@ -1120,6 +1120,170 @@ body.modal-open {
   opacity: 0.7;
 }
 
+/* ===========================================
+   PRIORITY CHORE HIGHLIGHTING
+   Visual distinction for the highest priority chore
+   **Feature: chore-priority**
+   **Validates: Requirements 3.1**
+   =========================================== */
+
+/* Priority chore state - golden glow effect */
+.chore-card--priority {
+  --border-color: var(--color-warning-500);
+
+  position: relative;
+  z-index: 5;
+}
+
+.chore-card--priority::part(base) {
+  background: linear-gradient(135deg, var(--color-warning-500), var(--color-warning-600)) !important;
+  border-color: var(--color-warning-600);
+
+  /* Golden glow shadow for priority emphasis */
+  box-shadow:
+    0 0 0 3px var(--color-warning-300),
+    0 4px 20px var(--color-warning-500),
+    0 8px 30px rgb(255 140 66 / 30%);
+}
+
+/* Priority badge styling */
+.chore-priority-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-white-overlay);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-white);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.chore-priority-badge svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+/* Priority indicator icon (star) */
+.chore-priority-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--color-white);
+}
+
+.chore-priority-indicator svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Hover state for priority chore */
+@media (hover: hover) {
+  .chore-card--priority:hover::part(base) {
+    box-shadow:
+      0 0 0 4px var(--color-warning-300),
+      0 8px 30px var(--color-warning-500),
+      0 12px 40px rgb(255 140 66 / 40%);
+  }
+}
+
+/* Priority + Completed state (completed priority chore) */
+.chore-card--priority.chore-card--completed::part(base) {
+  opacity: 0.7;
+}
+
+/* ===========================================
+   DRAG-AND-DROP REORDERING
+   Visual feedback for chore reordering
+   **Feature: chore-priority**
+   **Validates: Requirements 4.1**
+   =========================================== */
+
+/* Drag handle styling */
+.chore-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  color: var(--color-white-overlay-50);
+  cursor: grab;
+  transition: color 150ms ease, transform 150ms ease;
+  touch-action: none;
+}
+
+.chore-drag-handle:hover {
+  color: var(--color-white);
+  transform: scale(1.1);
+}
+
+.chore-drag-handle:active {
+  cursor: grabbing;
+}
+
+.chore-drag-handle svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Dragging state - the card being dragged */
+.chore-card-wrapper--dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
+}
+
+.chore-card--dragging {
+  opacity: 0.7;
+}
+
+.chore-card--dragging::part(base) {
+  box-shadow: 0 8px 30px var(--color-overlay-20);
+}
+
+/* Drag over state - the card being hovered over */
+.chore-card-wrapper--drag-over {
+  transform: translateY(4px);
+}
+
+.chore-card-wrapper--drag-over::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--color-primary-400);
+  border-radius: var(--radius-full);
+  animation: drag-indicator-pulse 1s ease-in-out infinite;
+}
+
+@keyframes drag-indicator-pulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Chore list container during reordering */
+.chore-list-container--reordering {
+  /* Subtle background to indicate reorder mode */
+  background: var(--color-surface-2);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2);
+  margin: calc(-1 * var(--space-2));
+}
+
 /* Expanded state - remove bottom border radius to connect with flyout */
 .chore-card--expanded {
   --border-radius: var(--radius-xl) var(--radius-xl) 0 0;

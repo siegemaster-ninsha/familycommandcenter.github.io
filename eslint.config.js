@@ -100,7 +100,8 @@ module.exports = [
     },
     rules: {
       // Unused variables are errors - remove them
-      'no-unused-vars': 'error',
+      // Allow underscore-prefixed args for intentionally unused callback parameters
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       'no-undef': 'error',
       // Allow redeclaring globals (pattern: define locally, export to window)
       'no-redeclare': ['error', { builtinGlobals: false }],

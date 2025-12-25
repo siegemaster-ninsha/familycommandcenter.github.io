@@ -2,6 +2,49 @@
 // Manages family members, earnings, and spending requests
 // Enhanced with offline support - caches data and falls back when offline
 
+/**
+ * Compute the priority chore for a family member
+ * 
+ * The priority chore is the incomplete chore with the lowest sort order value.
+ * Chores without a sort order are treated as having Infinity (lowest priority).
+ * 
+ * @param {Array<Object>} chores - Array of chore objects with id and completed properties
+ * @param {Object} choreSortOrder - Map of choreId -> sortOrder (integer)
+ * @returns {Object|null} The priority chore, or null if no incomplete chores exist
+ * 
+ * **Feature: chore-priority, Property 5: Priority Chore Computation**
+ * **Validates: Requirements 2.1, 2.3, 2.4**
+ */
+function computePriorityChore(chores, choreSortOrder = {}) {
+  // Handle edge cases
+  if (!Array.isArray(chores) || chores.length === 0) {
+    return null;
+  }
+
+  // Filter to incomplete chores only (Requirements 2.1, 2.3)
+  const incompleteChores = chores.filter(chore => !chore.completed);
+
+  // If all chores are completed, return null (Requirement 2.2)
+  if (incompleteChores.length === 0) {
+    return null;
+  }
+
+  // Sort by sort order (chores without order go to end with Infinity)
+  const sorted = [...incompleteChores].sort((a, b) => {
+    const orderA = choreSortOrder[a.id] ?? Infinity;
+    const orderB = choreSortOrder[b.id] ?? Infinity;
+    return orderA - orderB;
+  });
+
+  // Return the first item (lowest sort order = highest priority)
+  return sorted[0];
+}
+
+// Export for use in other modules
+if (typeof window !== 'undefined') {
+  window.computePriorityChore = computePriorityChore;
+}
+
 const useFamilyStore = Pinia.defineStore('family', {
   state: () => ({
     members: [],
@@ -63,6 +106,64 @@ const useFamilyStore = Pinia.defineStore('family', {
       };
     },
     
+    // get chore sort order for a member by ID
+    // **Feature: chore-priority**
+    // **Validates: Requirements 5.2**
+    memberChoreSortOrder: (state) => {
+      return (memberId) => {
+        const member = state.members.find(m => m.id === memberId);
+        return member?.choreSortOrder || {};
+      };
+    },
+    
+    // compute priority chore for each member
+    // Returns map of memberId → priorityChoreId
+    // **Feature: chore-priority**
+    // **Validates: Requirements 2.1**
+    priorityChoreByMember: (state) => {
+      const useChoresStore = window.useChoresStore;
+      if (!useChoresStore) {
+        return {};
+      }
+      
+      const choresStore = useChoresStore();
+      const result = {};
+      
+      state.members.forEach(member => {
+        // Get chores assigned to this member (by displayName)
+        const memberChores = (choresStore.chores || []).filter(
+          chore => chore.assignedTo === member.displayName
+        );
+        
+        // Compute priority chore using the same logic as backend
+        const priorityChore = computePriorityChore(memberChores, member.choreSortOrder || {});
+        result[member.id] = priorityChore ? priorityChore.id : null;
+      });
+      
+      return result;
+    },
+    
+    // get priority chore ID for a specific member
+    // **Feature: chore-priority**
+    // **Validates: Requirements 2.1**
+    getPriorityChoreId: (state) => {
+      return (memberId) => {
+        const useChoresStore = window.useChoresStore;
+        if (!useChoresStore) return null;
+        
+        const member = state.members.find(m => m.id === memberId);
+        if (!member) return null;
+        
+        const choresStore = useChoresStore();
+        const memberChores = (choresStore.chores || []).filter(
+          chore => chore.assignedTo === member.displayName
+        );
+        
+        const priorityChore = computePriorityChore(memberChores, member.choreSortOrder || {});
+        return priorityChore ? priorityChore.id : null;
+      };
+    },
+    
     // get total family earnings
     totalEarnings: (state) => {
       return state.members.reduce((sum, member) => sum + (member.earnings || 0), 0);
@@ -105,10 +206,11 @@ const useFamilyStore = Pinia.defineStore('family', {
           // API returns { familyMembers: [...] } - use familyMembers key only
           const familyMembers = data.familyMembers || [];
           
-          // Normalize member data to ensure dailyChores is always an array
+          // Normalize member data to ensure dailyChores and choreSortOrder are always present
           const normalizeMembers = (members) => members.map(member => ({
             ...member,
-            dailyChores: Array.isArray(member.dailyChores) ? member.dailyChores : []
+            dailyChores: Array.isArray(member.dailyChores) ? member.dailyChores : [],
+            choreSortOrder: member.choreSortOrder && typeof member.choreSortOrder === 'object' ? member.choreSortOrder : {}
           }));
           
           if (preserveOptimisticUpdates) {
@@ -169,10 +271,11 @@ const useFamilyStore = Pinia.defineStore('family', {
       try {
         const cachedMembers = await offlineStorage.getCachedFamilyMembers();
         if (cachedMembers && cachedMembers.length > 0) {
-          // Normalize member data to ensure dailyChores is always an array
+          // Normalize member data to ensure dailyChores and choreSortOrder are always present
           this.members = cachedMembers.map(member => ({
             ...member,
-            dailyChores: Array.isArray(member.dailyChores) ? member.dailyChores : []
+            dailyChores: Array.isArray(member.dailyChores) ? member.dailyChores : [],
+            choreSortOrder: member.choreSortOrder && typeof member.choreSortOrder === 'object' ? member.choreSortOrder : {}
           }));
           this.isUsingCachedData = true;
           console.log('[CACHE] Family members loaded from cache:', this.members.length);
@@ -240,6 +343,98 @@ const useFamilyStore = Pinia.defineStore('family', {
         console.error('Failed to update member:', error);
         return { success: false, error: error.message };
       }
+    },
+    
+    // =============================================
+    // CHORE SORT ORDER MANAGEMENT
+    // **Feature: chore-priority**
+    // =============================================
+    
+    /**
+     * Update a family member's chore sort order
+     * 
+     * @param {string} memberId - Family member ID
+     * @param {Object} sortOrder - Map of choreId -> sortOrder (integer)
+     * @returns {Promise<{success: boolean, member?: Object, error?: string}>}
+     * 
+     * **Feature: chore-priority**
+     * **Validates: Requirements 6.1**
+     */
+    async updateSortOrder(memberId, sortOrder) {
+      // Check if feature is available offline
+      const offlineStore = window.useOfflineStore ? window.useOfflineStore() : null;
+      if (offlineStore && !offlineStore.isFeatureAvailable('sortOrder')) {
+        const message = offlineStore.getDisabledFeatureMessage('sortOrder') || 'Sort order management requires network connectivity';
+        console.warn('[WARN] Cannot update sort order while offline');
+        if (window.useUIStore) {
+          const uiStore = window.useUIStore();
+          uiStore.showError(message);
+        }
+        return { success: false, error: message, offlineBlocked: true };
+      }
+      
+      // Find the member and store original sort order for rollback
+      const member = this.members.find(m => m.id === memberId);
+      const originalSortOrder = member ? { ...(member.choreSortOrder || {}) } : {};
+      
+      // Optimistic update
+      if (member) {
+        member.choreSortOrder = sortOrder && typeof sortOrder === 'object' ? { ...sortOrder } : {};
+      }
+      
+      try {
+        // URL-encode memberId to handle special characters like # in MEMBER#uuid
+        const encodedMemberId = encodeURIComponent(memberId);
+        const data = await apiService.put(
+          `${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${encodedMemberId}/sort-order`,
+          { sortOrder }
+        );
+        
+        if (data.member) {
+          const index = this.members.findIndex(m => m.id === memberId);
+          if (index !== -1) {
+            this.members[index] = {
+              ...this.members[index],
+              ...data.member,
+              choreSortOrder: data.member.choreSortOrder && typeof data.member.choreSortOrder === 'object' 
+                ? data.member.choreSortOrder 
+                : {}
+            };
+          }
+          console.log('[OK] Member sort order updated:', memberId);
+          return { success: true, member: data.member };
+        }
+        
+        return { success: false, error: 'Failed to update sort order' };
+      } catch (error) {
+        // Rollback on error
+        if (member) {
+          member.choreSortOrder = originalSortOrder;
+        }
+        console.error('Failed to update sort order:', error);
+        return { success: false, error: error.message };
+      }
+    },
+    
+    /**
+     * Update sort order for a member based on an ordered list of chore IDs
+     * Normalizes to contiguous 0, 1, 2... values
+     * 
+     * @param {string} memberId - Family member ID
+     * @param {string[]} orderedChoreIds - Array of chore IDs in desired order
+     * @returns {Promise<{success: boolean, member?: Object, error?: string}>}
+     * 
+     * **Feature: chore-priority**
+     * **Validates: Requirements 4.1, 4.2**
+     */
+    async reorderChores(memberId, orderedChoreIds) {
+      // Build normalized sort order map (0, 1, 2...)
+      const sortOrder = {};
+      orderedChoreIds.forEach((choreId, index) => {
+        sortOrder[choreId] = index;
+      });
+      
+      return this.updateSortOrder(memberId, sortOrder);
     },
     
     // =============================================

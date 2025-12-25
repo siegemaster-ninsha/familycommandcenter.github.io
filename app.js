@@ -375,6 +375,40 @@ const app = createApp({
           if (uiStore) uiStore.showSuccess('🌅 New day started on another device');
           break;
         }
+        
+        // Chore priority sort order sync
+        // **Feature: chore-priority**
+        // **Validates: Requirements 7.1, 7.2, 7.3**
+        case 'member.sortOrderUpdated': {
+          const { memberId, choreSortOrder } = msg.data || {};
+          if (!memberId) break;
+          
+          console.log('[WS] Sort order updated for member:', memberId);
+          const familyStore = window.useFamilyStore ? window.useFamilyStore() : null;
+          if (familyStore) {
+            const memberIndex = familyStore.members.findIndex(m => m.id === memberId);
+            if (memberIndex >= 0) {
+              // Update the member's choreSortOrder in place
+              familyStore.members[memberIndex] = {
+                ...familyStore.members[memberIndex],
+                choreSortOrder: choreSortOrder && typeof choreSortOrder === 'object' ? choreSortOrder : {}
+              };
+            }
+          }
+          break;
+        }
+        
+        case 'member.priorityChoreChanged': {
+          const { memberId, priorityChoreId } = msg.data || {};
+          if (!memberId) break;
+          
+          console.log('[WS] Priority chore changed for member:', memberId, '-> chore:', priorityChoreId);
+          // The priority chore is computed from choreSortOrder and chores,
+          // so we just need to ensure the data is up to date.
+          // The priorityChoreByMember getter will automatically recompute.
+          // If needed, we could trigger a UI refresh here.
+          break;
+        }
       }
     },
     // API helper methods
