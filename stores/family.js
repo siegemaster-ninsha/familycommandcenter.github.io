@@ -490,7 +490,7 @@ const useFamilyStore = Pinia.defineStore('family', {
         const encodedMemberId = encodeURIComponent(memberId);
         const data = await apiService.put(
           `${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${encodedMemberId}/default-order`,
-          { defaultOrderMap }
+          { defaultOrder: defaultOrderMap }
         );
         
         // Backend returns 'familyMember' key

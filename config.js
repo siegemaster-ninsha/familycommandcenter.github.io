@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.98 - Quantum Cobra (Dec 25, 2025)',
+    VERSION: '1.0.99 - Kinetic Quail (Dec 25, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
