@@ -100,13 +100,14 @@ const SlidePanel = Vue.defineComponent({
     },
     
     // Track styles - handles the sliding animation
-    // Track is 200% wide (2 pages), so each page is 50% of track
-    // To move 1 page, we translate by 50% of track width
+    // Track is 200% wide (2 pages), each page is 50% of track = 100% of container
+    // To move 1 page, we need to shift by 100% of container width
     // 
     // iOS Safari PWA: Use margin-left instead of transform for better compatibility
     // Safari has a bug where transforms inside overflow:hidden don't apply properly
     trackStyle() {
-      const translateX = -(this.activePageIndex * 50);
+      // Each page is 100% of container width, so multiply index by 100
+      const translateX = -(this.activePageIndex * 100);
       return {
         // Use margin-left for iOS Safari compatibility - transforms don't work reliably
         // inside overflow:hidden containers in iOS Safari PWA

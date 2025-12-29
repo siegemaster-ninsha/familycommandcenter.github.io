@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.113 - Kinetic Tiger (Dec 29, 2025)',
+    VERSION: '1.0.114 - Xtreme Wolf (Dec 29, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
