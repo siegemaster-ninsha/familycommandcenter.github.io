@@ -6722,3 +6722,48 @@ body.learning-hub-menu-open {
     flex-wrap: wrap;
   }
 }
+
+/* ===========================================
+   PIP-BOY THEME CRT EFFECTS
+   Fallout-inspired retro terminal visual effects
+   Requirements: 3.1, 3.2, 3.4
+   =========================================== */
+
+/* Define Pip-Boy theme variables */
+[data-theme="pipboy"] {
+  --pipboy-scanline: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgb(0 0 0 / 3%) 2px,
+    rgb(0 0 0 / 3%) 4px
+  );
+  --pipboy-phosphor-glow: rgb(20 240 20 / 40%);
+}
+
+/* Scanline overlay effect on #app container */
+[data-theme="pipboy"] #app::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: var(--pipboy-scanline);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Phosphor text glow effect for headings */
+[data-theme="pipboy"] h1,
+[data-theme="pipboy"] h2,
+[data-theme="pipboy"] h3 {
+  text-shadow: 0 0 8px var(--pipboy-phosphor-glow);
+}
+
+/* Phosphor text glow for primary text elements */
+[data-theme="pipboy"] .text-primary-custom {
+  text-shadow: 0 0 8px var(--pipboy-phosphor-glow);
+}
+
+/* Glow effect for card titles */
+[data-theme="pipboy"] .card-title {
+  text-shadow: 0 0 8px var(--pipboy-phosphor-glow);
+}

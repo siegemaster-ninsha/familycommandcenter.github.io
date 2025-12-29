@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.115 - Xtreme Urchin (Dec 29, 2025)',
+    VERSION: '1.0.116 - Invincible Nightingale (Dec 29, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
@@ -606,6 +606,20 @@ const CONFIG = {
         textPrimary: '#F3F4F6',
         textSecondary: '#D1D5DB'
       }
+    },
+    pipboy: {
+      id: 'pipboy',
+      name: 'Pip-Boy 3000',
+      description: 'Fallout-inspired retro terminal with phosphor green display',
+      colors: {
+        primary: '#14F014',
+        secondary: '#0A8A0A',
+        success: '#00FF00',
+        warning: '#FFB000',
+        error: '#FF3030',
+        textPrimary: '#14F014',
+        textSecondary: '#0D9B0D'
+      }
     }
   }
 };
@@ -787,7 +801,7 @@ window.ThemeManager = {
       return true;
     }
     // Fallback to known dark themes list
-    const darkThemes = ['darknight', 'cyberpunk', 'obsidian', 'deepforest', 'darkcrimson', 'strikingElegance', 'nocturne', 'carbon', 'tiktokPartners', 'distinction', 'historyBlockchain', 'studioSimpatico', 'boldByNature'];
+    const darkThemes = ['darknight', 'cyberpunk', 'obsidian', 'deepforest', 'darkcrimson', 'strikingElegance', 'nocturne', 'carbon', 'tiktokPartners', 'distinction', 'historyBlockchain', 'studioSimpatico', 'boldByNature', 'pipboy'];
     return darkThemes.includes(theme.id);
   },
 
@@ -1065,6 +1079,9 @@ window.ThemeManager = {
       // ===========================================
       root.style.setProperty('--color-focus-ring', theme.colors.primary);
 
+      // Set data-theme attribute for CSS targeting (enables theme-specific effects like CRT)
+      document.documentElement.setAttribute('data-theme', themeId);
+      
       console.log('🎨 Theme applied:', themeId, '(dark:', isDark, ')');
     
       // Cache critical CSS variables for iOS resume recovery
