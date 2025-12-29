@@ -321,6 +321,17 @@ const ChoreCard = {
       
       console.log('[REASSIGN] showReassignPicker called, event type:', event?.type);
       this.actionPage = 'reassign';
+      
+      // iOS Safari PWA: Force DOM repaint immediately
+      // Without this, the state changes but CSS transform doesn't update until next user interaction
+      this.$nextTick(() => {
+        // Access a layout property to force synchronous reflow
+        const slidePanel = this.$el?.querySelector('.slide-panel-track');
+        if (slidePanel) {
+          // eslint-disable-next-line no-unused-expressions
+          void slidePanel.offsetWidth;
+        }
+      });
     },
     handleReassign(member) {
       this.onReassign?.(this.chore, member);
