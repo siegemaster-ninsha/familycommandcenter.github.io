@@ -116,9 +116,11 @@ const SlidePanel = Vue.defineComponent({
   
   watch: {
     activePage(newPage, oldPage) {
+      console.log('[SLIDE-PANEL] activePage changed:', oldPage, '->', newPage);
       if (newPage !== oldPage) {
         this.previousPage = oldPage;
         this.isTransitioning = true;
+        console.log('[SLIDE-PANEL] activePageIndex:', this.activePageIndex, 'trackStyle:', JSON.stringify(this.trackStyle));
       }
     }
   },

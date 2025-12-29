@@ -320,16 +320,25 @@ const ChoreCard = {
       setTimeout(() => { this._reassignDebounce = false; }, 300);
       
       console.log('[REASSIGN] showReassignPicker called, event type:', event?.type);
+      console.log('[REASSIGN] actionPage BEFORE:', this.actionPage);
       this.actionPage = 'reassign';
+      console.log('[REASSIGN] actionPage AFTER:', this.actionPage);
       
       // iOS Safari PWA: Force DOM repaint immediately
-      // Without this, the state changes but CSS transform doesn't update until next user interaction
       this.$nextTick(() => {
-        // Access a layout property to force synchronous reflow
         const slidePanel = this.$el?.querySelector('.slide-panel-track');
         if (slidePanel) {
+          const computedTransform = window.getComputedStyle(slidePanel).transform;
+          console.log('[REASSIGN] slide-panel-track computed transform:', computedTransform);
+          console.log('[REASSIGN] slide-panel-track inline style:', slidePanel.style.transform);
+          // Force reflow
           // eslint-disable-next-line no-unused-expressions
           void slidePanel.offsetWidth;
+          // Check again after reflow
+          const afterTransform = window.getComputedStyle(slidePanel).transform;
+          console.log('[REASSIGN] After reflow, transform:', afterTransform);
+        } else {
+          console.log('[REASSIGN] ERROR: slide-panel-track not found!');
         }
       });
     },
