@@ -133,6 +133,7 @@ const ChoreCard = {
               </sl-button>
 
               <!-- Reassign button (for assigned chores) -->
+              <!-- iOS Safari PWA: @touchend.prevent ensures touch events fire reliably -->
               <sl-button 
                 v-if="type === 'assigned' || type === 'unassigned'"
                 @click="showReassignPicker($event)"
@@ -316,15 +317,10 @@ const ChoreCard = {
       // Prevent double-firing from both click and touchend
       if (this._reassignDebounce) return;
       this._reassignDebounce = true;
-      setTimeout(() => { this._reassignDebounce = false; }, 100);
+      setTimeout(() => { this._reassignDebounce = false; }, 300);
       
-      console.log('[REASSIGN] showReassignPicker called, event type:', event?.type, 'current actionPage:', this.actionPage);
+      console.log('[REASSIGN] showReassignPicker called, event type:', event?.type);
       this.actionPage = 'reassign';
-      console.log('[REASSIGN] actionPage set to:', this.actionPage);
-      // Force a repaint on iOS Safari by triggering a style recalculation
-      this.$nextTick(() => {
-        console.log('[REASSIGN] nextTick - actionPage is now:', this.actionPage);
-      });
     },
     handleReassign(member) {
       this.onReassign?.(this.chore, member);

@@ -105,7 +105,10 @@ const SlidePanel = Vue.defineComponent({
     trackStyle() {
       const translateX = -(this.activePageIndex * 50);
       return {
+        // iOS Safari PWA: Use both prefixed and standard transform
+        '-webkit-transform': `translate3d(${translateX}%, 0, 0)`,
         transform: `translate3d(${translateX}%, 0, 0)`,
+        '-webkit-transition': `transform ${this.duration}ms ${this.easing}, -webkit-transform ${this.duration}ms ${this.easing}`,
         transition: `transform ${this.duration}ms ${this.easing}`
       };
     }
