@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.103 - Luminous Falcon (Dec 25, 2025)',
+    VERSION: '1.0.104 - Adventurous Phoenix (Dec 29, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {

@@ -110,9 +110,11 @@ const ChoreCard = {
           <template #default>
             <sl-button-group class="chore-action-button-group">
               <!-- Complete/Uncomplete button -->
+              <!-- iOS Safari PWA: @touchend.prevent ensures touch events fire reliably -->
               <sl-button 
                 v-if="type !== 'quicklist'"
                 @click="handleComplete"
+                @touchend.prevent="handleComplete"
                 variant="primary"
                 :title="chore.completed ? 'Undo' : 'Done'"
               >
@@ -123,6 +125,7 @@ const ChoreCard = {
               <sl-button 
                 v-if="type === 'assigned' && showApprovalButton && chore.isPendingApproval"
                 @click="handleApprove"
+                @touchend.prevent="handleApprove"
                 variant="primary"
                 title="Approve"
               >
@@ -133,6 +136,7 @@ const ChoreCard = {
               <sl-button 
                 v-if="type === 'assigned' || type === 'unassigned'"
                 @click="showReassignPicker"
+                @touchend.prevent="showReassignPicker"
                 variant="primary"
                 title="Reassign"
               >
@@ -142,6 +146,7 @@ const ChoreCard = {
               <!-- Delete button -->
               <sl-button 
                 @click="handleDelete"
+                @touchend.prevent="handleDelete"
                 variant="primary"
                 title="Delete"
               >
@@ -154,7 +159,8 @@ const ChoreCard = {
           <template #reassign>
             <div class="chore-reassign-picker">
               <!-- Back button -->
-              <button @click="actionPage = 'default'" class="chore-action-btn chore-action-btn--back">
+              <!-- iOS Safari PWA: @touchend.prevent ensures touch events fire reliably -->
+              <button @click="actionPage = 'default'" @touchend.prevent="actionPage = 'default'" class="chore-action-btn chore-action-btn--back">
                 <div v-html="getIcon('arrowLeft', 16)"></div>
               </button>
 
@@ -163,6 +169,7 @@ const ChoreCard = {
                 v-for="member in familyMembers" 
                 :key="member.id"
                 @click="handleReassign(member)"
+                @touchend.prevent="handleReassign(member)"
                 class="avatar-chip"
                 :class="{ 'avatar-chip--current': isCurrentAssignee(member) }"
                 :disabled="isCurrentAssignee(member)"
@@ -175,6 +182,7 @@ const ChoreCard = {
               <button 
                 v-if="type === 'assigned'"
                 @click="handleReassign(null)"
+                @touchend.prevent="handleReassign(null)"
                 class="avatar-chip avatar-chip--unassigned"
               >
                 <div class="avatar-chip-circle">
