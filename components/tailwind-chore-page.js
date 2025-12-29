@@ -324,24 +324,22 @@ const ChoreCard = {
       
       // iOS Safari PWA: Force browser to apply the transform
       // Safari has a bug where transforms inside overflow:hidden don't apply
-      // until user interaction triggers a repaint. Use double-RAF pattern.
-      this.$nextTick(() => {
+      // until user interaction triggers a repaint.
+      // Use setTimeout to let Vue update the DOM first, then force repaint.
+      setTimeout(() => {
         const slidePanel = this.$el?.querySelector('.slide-panel-track');
         if (slidePanel) {
-          // Double requestAnimationFrame ensures the browser has painted
-          // the new state before we force the repaint
+          // Force a layout recalculation by reading a layout property
+          // eslint-disable-next-line no-unused-expressions
+          void slidePanel.getBoundingClientRect();
+          // Then toggle a class to force Safari to re-composite
+          slidePanel.classList.add('ios-repaint');
           requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              // Force a compositing layer refresh by toggling translateZ
-              slidePanel.style.transform = 'translate3d(-50%, 0, 1px)';
-              // eslint-disable-next-line no-unused-expressions
-              void slidePanel.offsetWidth; // Force sync reflow
-              slidePanel.style.transform = '';  // Let Vue's computed style take over
-              console.log('[REASSIGN] Forced double-RAF repaint');
-            });
+            slidePanel.classList.remove('ios-repaint');
+            console.log('[REASSIGN] Forced iOS repaint via class toggle');
           });
         }
-      });
+      }, 0);
     },
     handleReassign(member) {
       this.onReassign?.(this.chore, member);

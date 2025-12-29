@@ -5258,6 +5258,11 @@ html {
   contain: layout style;
 }
 
+/* iOS Safari PWA repaint hack - toggling this class forces a re-composite */
+.slide-panel-track.ios-repaint {
+  opacity: 0.999;
+}
+
 /* Individual page - each takes 50% of track (= 100% of container) */
 .slide-panel-page {
   flex: 0 0 50%;

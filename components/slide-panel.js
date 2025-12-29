@@ -124,23 +124,21 @@ const SlidePanel = Vue.defineComponent({
         
         // iOS Safari PWA: Force browser to apply the transform
         // Safari has a bug where transforms inside overflow:hidden don't apply
-        // until user interaction triggers a repaint
-        this.$nextTick(() => {
+        // Use setTimeout to let Vue update the DOM first, then force repaint.
+        setTimeout(() => {
           const track = this.$refs.container?.querySelector('.slide-panel-track');
           if (track) {
-            // Double requestAnimationFrame ensures the browser has painted
+            // Force a layout recalculation
+            // eslint-disable-next-line no-unused-expressions
+            void track.getBoundingClientRect();
+            // Toggle class to force Safari to re-composite
+            track.classList.add('ios-repaint');
             requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                // Force a compositing layer refresh
-                track.style.willChange = 'auto';
-                // eslint-disable-next-line no-unused-expressions
-                void track.offsetWidth;
-                track.style.willChange = 'transform';
-                console.log('[SLIDE-PANEL] Forced iOS Safari repaint');
-              });
+              track.classList.remove('ios-repaint');
+              console.log('[SLIDE-PANEL] Forced iOS Safari repaint');
             });
           }
-        });
+        }, 0);
       }
     }
   },
