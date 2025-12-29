@@ -5243,24 +5243,9 @@ html {
 .slide-panel-track {
   display: flex;
   width: 200%;
-  will-change: transform;
 
-  /* iOS Safari PWA fixes for transform animations */
-  -webkit-transform: translate3d(0, 0, 0);
-  transform: translate3d(0, 0, 0);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  -webkit-perspective: 1000px;
-  perspective: 1000px;
-
-  /* Force new compositing layer on iOS Safari - helps ensure transforms are applied immediately */
-  isolation: isolate;
-  contain: layout style;
-}
-
-/* iOS Safari PWA repaint hack - toggling this class forces a re-composite */
-.slide-panel-track.ios-repaint {
-  opacity: 0.999;
+  /* iOS Safari PWA: Use margin-left animation instead of transform
+     Transforms inside overflow:hidden containers don't work reliably in iOS Safari PWA */
 }
 
 /* Individual page - each takes 50% of track (= 100% of container) */

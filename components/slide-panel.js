@@ -102,14 +102,17 @@ const SlidePanel = Vue.defineComponent({
     // Track styles - handles the sliding animation
     // Track is 200% wide (2 pages), so each page is 50% of track
     // To move 1 page, we translate by 50% of track width
+    // 
+    // iOS Safari PWA: Use margin-left instead of transform for better compatibility
+    // Safari has a bug where transforms inside overflow:hidden don't apply properly
     trackStyle() {
       const translateX = -(this.activePageIndex * 50);
       return {
-        // iOS Safari PWA: Use both prefixed and standard transform
-        '-webkit-transform': `translate3d(${translateX}%, 0, 0)`,
-        transform: `translate3d(${translateX}%, 0, 0)`,
-        '-webkit-transition': `transform ${this.duration}ms ${this.easing}, -webkit-transform ${this.duration}ms ${this.easing}`,
-        transition: `transform ${this.duration}ms ${this.easing}`
+        // Use margin-left for iOS Safari compatibility - transforms don't work reliably
+        // inside overflow:hidden containers in iOS Safari PWA
+        'margin-left': `${translateX}%`,
+        '-webkit-transition': `margin-left ${this.duration}ms ${this.easing}`,
+        transition: `margin-left ${this.duration}ms ${this.easing}`
       };
     }
   },
@@ -121,24 +124,6 @@ const SlidePanel = Vue.defineComponent({
         this.previousPage = oldPage;
         this.isTransitioning = true;
         console.log('[SLIDE-PANEL] activePageIndex:', this.activePageIndex, 'trackStyle:', JSON.stringify(this.trackStyle));
-        
-        // iOS Safari PWA: Force browser to apply the transform
-        // Safari has a bug where transforms inside overflow:hidden don't apply
-        // Use setTimeout to let Vue update the DOM first, then force repaint.
-        setTimeout(() => {
-          const track = this.$refs.container?.querySelector('.slide-panel-track');
-          if (track) {
-            // Force a layout recalculation
-            // eslint-disable-next-line no-unused-expressions
-            void track.getBoundingClientRect();
-            // Toggle class to force Safari to re-composite
-            track.classList.add('ios-repaint');
-            requestAnimationFrame(() => {
-              track.classList.remove('ios-repaint');
-              console.log('[SLIDE-PANEL] Forced iOS Safari repaint');
-            });
-          }
-        }, 0);
       }
     }
   },
