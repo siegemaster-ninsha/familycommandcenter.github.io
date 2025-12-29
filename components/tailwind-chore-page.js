@@ -320,25 +320,26 @@ const ChoreCard = {
       setTimeout(() => { this._reassignDebounce = false; }, 300);
       
       console.log('[REASSIGN] showReassignPicker called, event type:', event?.type);
-      console.log('[REASSIGN] actionPage BEFORE:', this.actionPage);
       this.actionPage = 'reassign';
-      console.log('[REASSIGN] actionPage AFTER:', this.actionPage);
       
-      // iOS Safari PWA: Force DOM repaint immediately
+      // iOS Safari PWA: Force browser to apply the transform
+      // Safari has a bug where transforms inside overflow:hidden don't apply
+      // until user interaction triggers a repaint. Use double-RAF pattern.
       this.$nextTick(() => {
         const slidePanel = this.$el?.querySelector('.slide-panel-track');
         if (slidePanel) {
-          const computedTransform = window.getComputedStyle(slidePanel).transform;
-          console.log('[REASSIGN] slide-panel-track computed transform:', computedTransform);
-          console.log('[REASSIGN] slide-panel-track inline style:', slidePanel.style.transform);
-          // Force reflow
-          // eslint-disable-next-line no-unused-expressions
-          void slidePanel.offsetWidth;
-          // Check again after reflow
-          const afterTransform = window.getComputedStyle(slidePanel).transform;
-          console.log('[REASSIGN] After reflow, transform:', afterTransform);
-        } else {
-          console.log('[REASSIGN] ERROR: slide-panel-track not found!');
+          // Double requestAnimationFrame ensures the browser has painted
+          // the new state before we force the repaint
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              // Force a compositing layer refresh by toggling translateZ
+              slidePanel.style.transform = 'translate3d(-50%, 0, 1px)';
+              // eslint-disable-next-line no-unused-expressions
+              void slidePanel.offsetWidth; // Force sync reflow
+              slidePanel.style.transform = '';  // Let Vue's computed style take over
+              console.log('[REASSIGN] Forced double-RAF repaint');
+            });
+          });
         }
       });
     },

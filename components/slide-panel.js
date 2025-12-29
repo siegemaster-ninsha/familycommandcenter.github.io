@@ -121,6 +121,26 @@ const SlidePanel = Vue.defineComponent({
         this.previousPage = oldPage;
         this.isTransitioning = true;
         console.log('[SLIDE-PANEL] activePageIndex:', this.activePageIndex, 'trackStyle:', JSON.stringify(this.trackStyle));
+        
+        // iOS Safari PWA: Force browser to apply the transform
+        // Safari has a bug where transforms inside overflow:hidden don't apply
+        // until user interaction triggers a repaint
+        this.$nextTick(() => {
+          const track = this.$refs.container?.querySelector('.slide-panel-track');
+          if (track) {
+            // Double requestAnimationFrame ensures the browser has painted
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                // Force a compositing layer refresh
+                track.style.willChange = 'auto';
+                // eslint-disable-next-line no-unused-expressions
+                void track.offsetWidth;
+                track.style.willChange = 'transform';
+                console.log('[SLIDE-PANEL] Forced iOS Safari repaint');
+              });
+            });
+          }
+        });
       }
     }
   },
