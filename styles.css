@@ -5496,6 +5496,9 @@ html {
   transition: background 150ms ease;
   flex-shrink: 0;
   height: 32px;
+  min-height: 32px;
+  max-height: 32px;
+  align-self: center;
 }
 
 /* Hover only for non-touch devices */
@@ -5554,6 +5557,8 @@ html {
     /* Circle shape - no padding for name */
     padding: var(--space-1);
     width: 32px;
+    min-width: 32px;
+    max-width: 32px;
     justify-content: center;
   }
 
