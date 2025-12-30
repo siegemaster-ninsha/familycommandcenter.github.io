@@ -433,7 +433,7 @@ const ChoreCard = {
         top: ${rect.top}px;
         width: ${rect.width}px;
         height: ${rect.height}px;
-        opacity: 0.8;
+        opacity: 0.6;
         z-index: 10000;
         pointer-events: none;
         transform: scale(1.02);
