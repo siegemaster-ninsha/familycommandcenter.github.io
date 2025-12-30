@@ -43,8 +43,8 @@ const ChoreCard = {
               v-if="type === 'assigned' && enableReorder"
               class="chore-drag-handle"
               title="Drag to reorder"
-              @mousedown.stop.prevent="handleMouseDragStart"
-              @touchstart.stop.prevent="handleTouchDragStart"
+              @mousedown="handleMouseDragStart"
+              @touchstart="handleTouchDragStart"
             >
               <div v-html="getIcon('gripVertical', 16)"></div>
             </div>
@@ -349,10 +349,14 @@ const ChoreCard = {
     getInitial(member) {
       return (member.displayName || member.name || '?').charAt(0).toUpperCase();
     },
-    // **Feature: chore-priority** - Drag-and-drop handlers
+    // **Feature: chore-priority** - Mouse-based drag-and-drop handlers (desktop)
     // **Validates: Requirements 4.1**
-    handleDragStart(event) {
+    handleMouseDragStart(event) {
       if (!this.isDraggable) return;
+      
+      // Manually stop propagation and prevent default
+      event.stopPropagation();
+      event.preventDefault();
       
       this.isDragging = true;
       
@@ -454,6 +458,10 @@ const ChoreCard = {
     // HTML5 drag-and-drop doesn't work on touch screens
     handleTouchDragStart(event) {
       if (!this.isDraggable) return;
+      
+      // Manually stop propagation and prevent default
+      event.stopPropagation();
+      event.preventDefault();
       
       const touch = event.touches[0];
       this.isTouchDragging = true;
