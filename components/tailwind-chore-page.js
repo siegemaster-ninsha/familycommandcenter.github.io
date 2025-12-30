@@ -370,20 +370,53 @@ const ChoreCard = {
         choreName: this.chore.name
       }));
       
-      // Hide the browser's default drag feedback (Copy/X cursor)
-      // Use a canvas-based approach for better cross-browser support (Arc, Chrome, etc.)
+      // Hide the browser's default drag feedback completely
+      // Use a transparent canvas as drag image
       const canvas = document.createElement('canvas');
       canvas.width = 1;
       canvas.height = 1;
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, 1, 1);
-      // Temporarily add to DOM (required by some browsers)
       canvas.style.position = 'absolute';
       canvas.style.left = '-9999px';
       document.body.appendChild(canvas);
       event.dataTransfer.setDragImage(canvas, 0, 0);
-      // Clean up after a tick
       setTimeout(() => canvas.remove(), 0);
+      
+      // Create a visual clone like mobile does - follows the mouse cursor
+      const card = this.$el;
+      const rect = card.getBoundingClientRect();
+      const clone = card.cloneNode(true);
+      clone.style.cssText = `
+        position: fixed;
+        left: ${rect.left}px;
+        top: ${rect.top}px;
+        width: ${rect.width}px;
+        height: ${rect.height}px;
+        opacity: 0.95;
+        z-index: 10000;
+        pointer-events: none;
+        transform: scale(1.02);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        transition: none;
+      `;
+      clone.id = 'desktop-drag-clone';
+      document.body.appendChild(clone);
+      this._desktopDragClone = clone;
+      
+      // Store offset from mouse to card top-left
+      this._dragOffsetX = event.clientX - rect.left;
+      this._dragOffsetY = event.clientY - rect.top;
+      
+      // Add document-level dragover handler to move the clone
+      // (drag event doesn't provide accurate coordinates in all browsers)
+      this._desktopDragHandler = (e) => {
+        if (this._desktopDragClone && e.clientX !== 0 && e.clientY !== 0) {
+          this._desktopDragClone.style.left = `${e.clientX - this._dragOffsetX}px`;
+          this._desktopDragClone.style.top = `${e.clientY - this._dragOffsetY}px`;
+        }
+      };
+      document.addEventListener('dragover', this._desktopDragHandler);
       
       // Notify parent
       this.onDragStart?.(this.chore, event);
@@ -391,6 +424,16 @@ const ChoreCard = {
     handleDragEnd(event) {
       this.isDragging = false;
       this.isDragOver = false;
+      
+      // Clean up desktop drag clone
+      if (this._desktopDragClone) {
+        this._desktopDragClone.remove();
+        this._desktopDragClone = null;
+      }
+      if (this._desktopDragHandler) {
+        document.removeEventListener('dragover', this._desktopDragHandler);
+        this._desktopDragHandler = null;
+      }
       
       // Notify parent
       this.onDragEnd?.(this.chore, event);
