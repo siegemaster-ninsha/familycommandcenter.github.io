@@ -7743,6 +7743,96 @@ body.learning-hub-menu-open {
 }
 
 /* =============================================
+   PAGE INTERPRETATION SECTION
+   Shows what type of homework was detected
+   ============================================= */
+
+.homework-detail-interpretation-section {
+  background: var(--color-bg-secondary);
+}
+
+.homework-detail-interpretation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.homework-detail-interpretation-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.homework-detail-interpretation-topics {
+  grid-column: 1 / -1;
+}
+
+.homework-detail-interpretation-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.homework-detail-interpretation-value {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.homework-detail-topic-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.homework-detail-topic-tag {
+  display: inline-flex;
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-full);
+}
+
+.homework-detail-word-bank,
+.homework-detail-passage-context,
+.homework-detail-grading-notes {
+  padding: var(--space-3);
+  background: var(--color-neutral-50);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-3);
+}
+
+.homework-detail-word-bank-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.homework-detail-word-bank-item {
+  display: inline-flex;
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-warning-100);
+  color: var(--color-warning-800);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-sm);
+}
+
+.homework-detail-passage-summary,
+.homework-detail-grading-notes-text {
+  margin: var(--space-2) 0 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+/* =============================================
    QUESTIONS LIST
    **Validates: Requirements 8.3**
    ============================================= */

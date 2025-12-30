@@ -217,6 +217,74 @@ const HomeworkDetailView = Vue.defineComponent({
           </div>
         </section>
         
+        <!-- Page Interpretation Section (shows what type of homework was detected) -->
+        <section v-if="interpretation" class="homework-detail-section homework-detail-interpretation-section">
+          <h3 class="homework-detail-section-title">
+            <div v-html="getIcon('fileSearch', 'lucide', 18, '')"></div>
+            Homework Analysis
+          </h3>
+          
+          <div class="homework-detail-interpretation-grid">
+            <!-- Homework Type -->
+            <div class="homework-detail-interpretation-item">
+              <span class="homework-detail-interpretation-label">Type</span>
+              <span class="homework-detail-interpretation-value">{{ interpretation.homeworkType }}</span>
+            </div>
+            
+            <!-- Subject Area -->
+            <div class="homework-detail-interpretation-item">
+              <span class="homework-detail-interpretation-label">Subject</span>
+              <span class="homework-detail-interpretation-value">{{ interpretation.subjectArea }}</span>
+            </div>
+            
+            <!-- Grade Level -->
+            <div v-if="interpretation.estimatedGradeLevel" class="homework-detail-interpretation-item">
+              <span class="homework-detail-interpretation-label">Grade Level</span>
+              <span class="homework-detail-interpretation-value">{{ interpretation.estimatedGradeLevel }}</span>
+            </div>
+            
+            <!-- Topics -->
+            <div v-if="interpretation.specificTopics && interpretation.specificTopics.length > 0" class="homework-detail-interpretation-item homework-detail-interpretation-topics">
+              <span class="homework-detail-interpretation-label">Topics</span>
+              <div class="homework-detail-topic-tags">
+                <span 
+                  v-for="(topic, index) in interpretation.specificTopics" 
+                  :key="index"
+                  class="homework-detail-topic-tag"
+                >
+                  {{ topic }}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Word Bank (if present) -->
+          <div v-if="interpretation.additionalContext?.hasWordBank && interpretation.additionalContext?.wordBankItems?.length > 0" class="homework-detail-word-bank">
+            <span class="homework-detail-interpretation-label">Word Bank Used</span>
+            <div class="homework-detail-word-bank-items">
+              <span 
+                v-for="(word, index) in interpretation.additionalContext.wordBankItems" 
+                :key="index"
+                class="homework-detail-word-bank-item"
+              >
+                {{ word }}
+              </span>
+            </div>
+          </div>
+          
+          <!-- Reading Passage Context (if present) -->
+          <div v-if="interpretation.additionalContext?.hasReadingPassage && interpretation.additionalContext?.passageSummary" class="homework-detail-passage-context">
+            <span class="homework-detail-interpretation-label">Reading Passage</span>
+            <p class="homework-detail-passage-summary">{{ interpretation.additionalContext.passageSummary }}</p>
+          </div>
+          
+          <!-- Grading Notes (if present) -->
+          <div v-if="interpretation.gradingNotes" class="homework-detail-grading-notes">
+            <span class="homework-detail-interpretation-label">Grading Notes</span>
+            <p class="homework-detail-grading-notes-text">{{ interpretation.gradingNotes }}</p>
+          </div>
+        </section>
+        
         <!-- Questions Detail Section -->
         <!-- **Validates: Requirements 8.3** -->
         <section class="homework-detail-section homework-detail-questions-section">
@@ -560,6 +628,14 @@ const HomeworkDetailView = Vue.defineComponent({
      */
     gradingResult() {
       return this.job?.result || null;
+    },
+    
+    /**
+     * Get page interpretation from job result
+     * Shows what type of homework was detected and analyzed
+     */
+    interpretation() {
+      return this.gradingResult?.interpretation || null;
     },
     
     /**
