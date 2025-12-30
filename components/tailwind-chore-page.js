@@ -540,12 +540,15 @@ const ChoreCard = {
       });
       
       // If we have a drop target, trigger the drop
+      console.log('[TOUCH-DROP] _touchDropTarget:', this._touchDropTarget, 'targetChoreId:', this._touchDropTarget?.dataset?.choreId);
       if (this._touchDropTarget) {
         // Find the chore ID of the drop target by looking at Vue component
         const targetChoreId = this._touchDropTarget.__vue__?.chore?.id 
           || this._touchDropTarget.dataset?.choreId;
         
+        console.log('[TOUCH-DROP] targetChoreId:', targetChoreId, 'this.chore.id:', this.chore.id);
         if (targetChoreId && targetChoreId !== this.chore.id) {
+          console.log('[TOUCH-DROP] Calling onDrop');
           this.onDrop?.(this.chore.id, targetChoreId, event);
         }
       }
