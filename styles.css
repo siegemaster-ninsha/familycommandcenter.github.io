@@ -755,6 +755,36 @@ a[href="#main-content"] {
    RECIPE CARDS
    =========================================== */
 
+/* Recipe ingredient item colors - theme-aware */
+.ingredient-item {
+  background: var(--color-surface-1);
+  border-color: var(--color-border-card);
+  color: var(--color-text-primary);
+}
+
+.ingredient-item:hover {
+  background: var(--color-surface-2);
+  border-color: var(--color-neutral-300);
+}
+
+.ingredient-item--selected {
+  background: var(--color-success-50);
+  border-color: var(--color-success-300);
+}
+
+.ingredient-item--editing {
+  background: var(--color-primary-50);
+  border-color: var(--color-primary-300);
+}
+
+.ingredient-quantity {
+  color: var(--color-text-muted);
+}
+
+.ingredient-name {
+  color: var(--color-text-primary);
+}
+
 /* Recipe card grid - ensures consistent row heights */
 .recipe-card-grid {
   align-items: stretch;

@@ -569,12 +569,12 @@ const RecipePage = Vue.defineComponent({
                 <li
                   v-for="(ing, idx) in scaledIngredients"
                   :key="idx"
-                  class="flex items-center gap-3 p-3 rounded-lg transition-all border"
+                  class="ingredient-item flex items-center gap-3 p-3 rounded-lg transition-all border"
                   :class="editingIngredientIndex === idx 
-                    ? 'bg-blue-50 border-blue-300'
+                    ? 'ingredient-item--editing'
                     : selectedIngredients.has(idx) 
-                      ? 'bg-green-50 border-green-300' 
-                      : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'"
+                      ? 'ingredient-item--selected' 
+                      : ''"
                 >
                   <!-- Selection indicator icon (hidden during edit mode) -->
                   <!-- **Validates: Requirements 10.3, 10.4** -->
@@ -597,7 +597,11 @@ const RecipePage = Vue.defineComponent({
                     @click="startEditIngredient(idx)"
                     class="flex-1 cursor-pointer hover:text-primary-500"
                     title="Click to edit"
-                  >{{ formatIngredient(ing) }}</span>
+                  >
+                    <span class="ingredient-quantity">{{ formatIngredientQuantity(ing) }}</span>
+                    <span class="ingredient-name">{{ ing.name }}</span>
+                    <span v-if="ing.notes" class="ingredient-quantity"> ({{ ing.notes }})</span>
+                  </span>
                   
                   <!-- Ingredient edit mode - single row layout -->
                   <div v-else class="flex-1 flex flex-wrap gap-2 items-center">
@@ -1718,6 +1722,19 @@ const RecipePage = Vue.defineComponent({
         parts.push(`(${ing.notes})`);
       }
       return parts.join(' ');
+    },
+    
+    // Returns just the quantity and unit portion for separate styling
+    formatIngredientQuantity(ing) {
+      if (!ing) return '';
+      const parts = [];
+      if (ing.quantity !== null && ing.quantity !== undefined) {
+        parts.push(ing.quantity);
+      }
+      if (ing.unit) {
+        parts.push(ing.unit);
+      }
+      return parts.length > 0 ? parts.join(' ') + ' ' : '';
     },
     
     addTag() {
