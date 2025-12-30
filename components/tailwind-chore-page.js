@@ -20,6 +20,7 @@ const ChoreCard = {
         'chore-card-wrapper--dragging': isDragging,
         'chore-card-wrapper--drag-over': isDragOver
       }"
+      :style="displacementStyle"
       :data-chore-id="chore.id"
       :draggable="isDraggable"
       @dragstart="handleDragStart"
@@ -211,6 +212,7 @@ const ChoreCard = {
     Helpers: { type: Object, required: true },
     // **Feature: chore-priority** - Drag-and-drop reordering props
     enableReorder: { type: Boolean, default: false },  // Enable drag-and-drop reordering
+    dragDisplacement: { type: String, default: 'none' }, // 'up', 'down', or 'none' for live preview
     // Event handlers
     onExpand: { type: Function },
     onCollapse: { type: Function },
@@ -246,6 +248,17 @@ const ChoreCard = {
     // **Feature: chore-priority** - Only assigned chores with reorder enabled are draggable
     isDraggable() {
       return this.type === 'assigned' && this.enableReorder;
+    },
+    // Live preview displacement style during drag
+    // Uses a fixed offset that works for typical card heights (card ~56px + gap 8px = ~64px)
+    displacementStyle() {
+      const offset = 64; // Approximate card height + gap
+      if (this.dragDisplacement === 'up') {
+        return { transform: `translateY(-${offset}px)`, transition: 'transform 200ms ease-out' };
+      } else if (this.dragDisplacement === 'down') {
+        return { transform: `translateY(${offset}px)`, transition: 'transform 200ms ease-out' };
+      }
+      return { transform: 'translateY(0)', transition: 'transform 200ms ease-out' };
     }
   },
   watch: {
@@ -470,7 +483,7 @@ const ChoreCard = {
         el.classList.remove('chore-card-wrapper--touch-drag-over');
       });
       
-      // Add drag-over state to target
+      // Add drag-over state to target and notify parent for live preview
       if (targetCard) {
         const wrapper = targetCard.classList.contains('chore-card-wrapper') 
           ? targetCard 
@@ -478,9 +491,19 @@ const ChoreCard = {
         if (wrapper && wrapper !== this.$el) {
           wrapper.classList.add('chore-card-wrapper--touch-drag-over');
           this._touchDropTarget = wrapper;
+          
+          // Notify parent about hover for live preview displacement
+          // Find the target chore and trigger dragOver
+          const targetChoreId = wrapper.dataset?.choreId;
+          if (targetChoreId && targetChoreId !== this._lastHoverChoreId) {
+            this._lastHoverChoreId = targetChoreId;
+            // Create a synthetic event with the target chore info
+            this.onDragOver?.({ id: targetChoreId }, { type: 'touchdrag', targetChoreId });
+          }
         }
       } else {
         this._touchDropTarget = null;
+        this._lastHoverChoreId = null;
       }
     },
     
@@ -639,7 +662,7 @@ const PersonCard = {
         </div>
 
         <chore-card
-          v-for="chore in sortedChores"
+          v-for="(chore, index) in sortedChores"
           :key="chore.id"
           :chore="chore"
           type="assigned"
@@ -649,15 +672,16 @@ const PersonCard = {
           :family-members="familyMembers"
           :Helpers="Helpers"
           :enable-reorder="enableReorder"
+          :drag-displacement="getDragDisplacement(index)"
           :on-expand="handleChoreExpand"
           :on-collapse="handleChoreCollapse"
           :on-toggle-complete="(c, event) => onChoreToggle(c, event)"
           :on-approve="(c) => onChoreApprove(c)"
           :on-delete="(c) => onChoreDelete(c)"
           :on-reassign="handleChoreReassign"
-          :on-drag-start="handleChoreDragStart"
+          :on-drag-start="(c, e) => handleChoreDragStart(c, e, index)"
           :on-drag-end="handleChoreDragEnd"
-          :on-drag-over="handleChoreDragOver"
+          :on-drag-over="(c, e) => handleChoreDragOver(c, e, index)"
           :on-drop="handleChoreDrop"
         />
       </div>
@@ -690,7 +714,10 @@ const PersonCard = {
     return {
       // **Feature: chore-priority** - Track reordering state
       isReordering: false,
-      draggedChoreId: null
+      draggedChoreId: null,
+      // Live preview: track indices for animated displacement
+      draggedIndex: -1,
+      hoverIndex: -1
     };
   },
   computed: {
@@ -787,18 +814,60 @@ const PersonCard = {
     },
     // **Feature: chore-priority** - Drag-and-drop handlers
     // **Validates: Requirements 4.1, 4.2**
-    handleChoreDragStart(chore, _event) {
+    handleChoreDragStart(chore, _event, index) {
       this.isReordering = true;
       this.draggedChoreId = chore.id;
-      console.log('[DRAG] Started dragging chore:', chore.name);
+      this.draggedIndex = index;
+      this.hoverIndex = index;
+      console.log('[DRAG] Started dragging chore:', chore.name, 'at index', index);
     },
     handleChoreDragEnd(chore, _event) {
       this.isReordering = false;
       this.draggedChoreId = null;
+      this.draggedIndex = -1;
+      this.hoverIndex = -1;
       console.log('[DRAG] Ended dragging chore:', chore.name);
     },
-    handleChoreDragOver(_chore, _event) {
-      // Visual feedback is handled by ChoreCard component
+    handleChoreDragOver(chore, _event, index) {
+      // Update hover index for live preview displacement
+      // For touch drag, we receive the chore object and need to find the index
+      if (this.draggedIndex === -1) return;
+      
+      let hoverIdx = index;
+      if (hoverIdx === undefined) {
+        // Touch drag - find index by chore ID
+        hoverIdx = this.sortedChores.findIndex(c => c.id === chore.id);
+      }
+      
+      if (hoverIdx !== -1 && hoverIdx !== this.hoverIndex) {
+        this.hoverIndex = hoverIdx;
+      }
+    },
+    /**
+     * Calculate displacement transform for a card during drag
+     * Items between dragged and hover positions shift to make room
+     * 
+     * @param {number} index - Index of the card in sortedChores
+     * @returns {string} - 'up', 'down', or 'none'
+     */
+    getDragDisplacement(index) {
+      if (this.draggedIndex === -1 || this.hoverIndex === -1) return 'none';
+      if (index === this.draggedIndex) return 'none'; // Dragged item doesn't shift
+      
+      // Dragging downward: items between drag and hover shift UP
+      if (this.draggedIndex < this.hoverIndex) {
+        if (index > this.draggedIndex && index <= this.hoverIndex) {
+          return 'up';
+        }
+      }
+      // Dragging upward: items between hover and drag shift DOWN
+      else if (this.draggedIndex > this.hoverIndex) {
+        if (index >= this.hoverIndex && index < this.draggedIndex) {
+          return 'down';
+        }
+      }
+      
+      return 'none';
     },
     /**
      * Handle dropping a chore onto another chore to reorder
