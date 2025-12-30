@@ -506,7 +506,7 @@ const RecipePage = Vue.defineComponent({
         <template #default>
           <div class="space-y-4">
             <!-- Compact Scale Selector -->
-            <div class="scale-selector flex items-center gap-2 sm:gap-3 px-3 py-2 rounded-lg bg-gray-50 flex-wrap">
+            <div class="scale-selector flex items-center gap-2 sm:gap-3 px-3 py-2 rounded-lg flex-wrap" style="background: var(--color-surface-2);">
               <span class="text-sm text-secondary-custom whitespace-nowrap">Scale:</span>
               <div class="flex items-center gap-2">
                 <button
