@@ -323,6 +323,14 @@ const HomeworkGradingPanel = Vue.defineComponent({
   
   async mounted() {
     this.detectCameraSupport();
+    
+    // Load family members if not already loaded
+    if (this.familyStore.members.length === 0) {
+      console.log('[Homework] Loading family members...');
+      await this.familyStore.loadMembers();
+      console.log('[Homework] Family members loaded:', this.familyStore.members.length);
+    }
+    
     await this.loadSubmissions();
   },
   
