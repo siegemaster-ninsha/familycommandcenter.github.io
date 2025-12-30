@@ -410,17 +410,17 @@ const RecipePage = Vue.defineComponent({
               v-for="recipe in filteredRecipes"
               :key="recipe.id"
               @click="openRecipeModal(recipe)"
-              class="recipe-card p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md flex flex-col"
-              style="background-color: var(--color-bg-primary); border-color: var(--color-border-card);"
+              class="recipe-card p-4 rounded-xl cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 flex flex-col"
+              style="background: var(--gradient-primary); border: 2px solid var(--color-primary-600);"
             >
               <div class="flex items-start justify-between gap-2 mb-2">
-                <h3 class="font-semibold text-primary-custom line-clamp-2 flex-1">{{ recipe.title }}</h3>
+                <h3 class="font-semibold line-clamp-2 flex-1 text-white">{{ recipe.title }}</h3>
                 <!-- Source indicator: multi-image, single image, or URL -->
                 <!-- **Feature: multi-image-recipe-categories** -->
                 <!-- **Validates: Requirements 9.2** -->
                 <div 
                   v-if="recipe.sourceImageKeys?.length > 1" 
-                  class="flex-shrink-0 text-blue-500 flex items-center gap-0.5" 
+                  class="flex-shrink-0 text-white/70 flex items-center gap-0.5" 
                   :title="recipe.sourceImageKeys.length + ' photos'"
                 >
                   <div v-html="Helpers.IconLibrary.getIcon('images', 'lucide', 16, '')"></div>
@@ -428,14 +428,14 @@ const RecipePage = Vue.defineComponent({
                 </div>
                 <div 
                   v-else-if="recipe.sourceImageKeys?.length === 1 || recipe.sourceImageKey" 
-                  class="flex-shrink-0 text-blue-500" 
+                  class="flex-shrink-0 text-white/70" 
                   title="From photo"
                 >
                   <div v-html="Helpers.IconLibrary.getIcon('camera', 'lucide', 16, '')"></div>
                 </div>
                 <div 
                   v-else-if="recipe.sourceUrl" 
-                  class="flex-shrink-0 text-gray-400" 
+                  class="flex-shrink-0 text-white/50" 
                   title="From URL"
                 >
                   <div v-html="Helpers.IconLibrary.getIcon('link', 'lucide', 16, '')"></div>
@@ -445,15 +445,15 @@ const RecipePage = Vue.defineComponent({
                 <span
                   v-for="tag in recipe.tags?.slice(0, 3)"
                   :key="tag"
-                  class="tag tag-outline"
+                  class="px-2 py-0.5 rounded-full text-xs bg-white/20 text-white border border-white/30"
                 >
                   {{ tag }}
                 </span>
-                <span v-if="recipe.tags?.length > 3" class="text-xs text-secondary-custom">
+                <span v-if="recipe.tags?.length > 3" class="text-xs text-white/60">
                   +{{ recipe.tags.length - 3 }}
                 </span>
               </div>
-              <div class="flex items-center justify-between text-sm text-secondary-custom mt-auto">
+              <div class="flex items-center justify-between text-sm text-white/70 mt-auto">
                 <span>{{ recipe.ingredients?.length || 0 }} ingredients</span>
                 <span>{{ recipe.servings ? recipe.servings + ' servings' : '' }}</span>
               </div>

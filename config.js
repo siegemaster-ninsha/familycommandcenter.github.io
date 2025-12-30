@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.141 - Xtreme Eagle (Dec 30, 2025)',
+    VERSION: '1.0.142 - Zesty Gorilla (Dec 30, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
