@@ -22,12 +22,6 @@ const ChoreCard = {
       }"
       :style="displacementStyle"
       :data-chore-id="chore.id"
-      :draggable="isDraggable"
-      @dragstart="handleDragStart"
-      @dragend="handleDragEnd"
-      @dragover.prevent="handleDragOver"
-      @dragleave="handleDragLeave"
-      @drop.prevent="handleDrop"
     >
       <sl-card
         class="chore-card"
@@ -49,7 +43,7 @@ const ChoreCard = {
               v-if="type === 'assigned' && enableReorder"
               class="chore-drag-handle"
               title="Drag to reorder"
-              @mousedown.stop
+              @mousedown.stop.prevent="handleMouseDragStart"
               @touchstart.stop.prevent="handleTouchDragStart"
             >
               <div v-html="getIcon('gripVertical', 16)"></div>
@@ -362,28 +356,7 @@ const ChoreCard = {
       
       this.isDragging = true;
       
-      // Set drag data with chore ID
-      event.dataTransfer.effectAllowed = 'move';
-      event.dataTransfer.setData('text/plain', this.chore.id);
-      event.dataTransfer.setData('application/json', JSON.stringify({
-        choreId: this.chore.id,
-        choreName: this.chore.name
-      }));
-      
-      // Hide the browser's default drag feedback completely
-      // Use a transparent canvas as drag image
-      const canvas = document.createElement('canvas');
-      canvas.width = 1;
-      canvas.height = 1;
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, 1, 1);
-      canvas.style.position = 'absolute';
-      canvas.style.left = '-9999px';
-      document.body.appendChild(canvas);
-      event.dataTransfer.setDragImage(canvas, 0, 0);
-      setTimeout(() => canvas.remove(), 0);
-      
-      // Create a visual clone like mobile does - follows the mouse cursor
+      // Create a visual clone of the card to follow the mouse
       const card = this.$el;
       const rect = card.getBoundingClientRect();
       const clone = card.cloneNode(true);
@@ -400,70 +373,81 @@ const ChoreCard = {
         box-shadow: 0 8px 30px rgba(0,0,0,0.3);
         transition: none;
       `;
-      clone.id = 'desktop-drag-clone';
+      clone.id = 'mouse-drag-clone';
       document.body.appendChild(clone);
-      this._desktopDragClone = clone;
+      this._mouseDragClone = clone;
       
       // Store offset from mouse to card top-left
-      this._dragOffsetX = event.clientX - rect.left;
-      this._dragOffsetY = event.clientY - rect.top;
+      this._mouseOffsetX = event.clientX - rect.left;
+      this._mouseOffsetY = event.clientY - rect.top;
       
-      // Add document-level dragover handler to move the clone
-      // (drag event doesn't provide accurate coordinates in all browsers)
-      this._desktopDragHandler = (e) => {
-        if (this._desktopDragClone && e.clientX !== 0 && e.clientY !== 0) {
-          this._desktopDragClone.style.left = `${e.clientX - this._dragOffsetX}px`;
-          this._desktopDragClone.style.top = `${e.clientY - this._dragOffsetY}px`;
+      // Notify parent that drag started
+      this.onDragStart?.(this.chore, { type: 'mousedrag' });
+      
+      // Add document-level mouse handlers
+      this._mouseMoveHandler = this.handleMouseDragMove.bind(this);
+      this._mouseUpHandler = this.handleMouseDragEnd.bind(this);
+      document.addEventListener('mousemove', this._mouseMoveHandler);
+      document.addEventListener('mouseup', this._mouseUpHandler);
+    },
+    
+    handleMouseDragMove(event) {
+      if (!this._mouseDragClone) return;
+      
+      // Move the clone to follow the mouse
+      this._mouseDragClone.style.left = `${event.clientX - this._mouseOffsetX}px`;
+      this._mouseDragClone.style.top = `${event.clientY - this._mouseOffsetY}px`;
+      
+      // Find which card we're over (excluding the clone and the dragged card)
+      const elementsAtPoint = document.elementsFromPoint(event.clientX, event.clientY);
+      const targetCard = elementsAtPoint.find(el => {
+        if (el.id === 'mouse-drag-clone') return false;
+        if (el === this.$el || this.$el.contains(el)) return false;
+        return el.classList.contains('chore-card-wrapper') || el.closest('.chore-card-wrapper');
+      });
+      
+      // Notify parent about hover for live preview displacement
+      if (targetCard) {
+        const wrapper = targetCard.classList.contains('chore-card-wrapper') 
+          ? targetCard 
+          : targetCard.closest('.chore-card-wrapper');
+        if (wrapper && wrapper !== this.$el) {
+          const targetChoreId = wrapper.dataset?.choreId;
+          if (targetChoreId && targetChoreId !== this._lastHoverChoreId) {
+            this._lastHoverChoreId = targetChoreId;
+            // Emit custom event for parent to track hover
+            const customEvent = new CustomEvent('chore-mouse-drag-over', {
+              bubbles: true,
+              detail: { targetChoreId, draggedChoreId: this.chore.id }
+            });
+            this.$el.dispatchEvent(customEvent);
+          }
         }
-      };
-      document.addEventListener('dragover', this._desktopDragHandler);
-      
-      // Notify parent
-      this.onDragStart?.(this.chore, event);
+      }
     },
-    handleDragEnd(event) {
+    
+    handleMouseDragEnd(_event) {
+      // Clean up
+      document.removeEventListener('mousemove', this._mouseMoveHandler);
+      document.removeEventListener('mouseup', this._mouseUpHandler);
+      
+      // Remove clone
+      if (this._mouseDragClone) {
+        this._mouseDragClone.remove();
+        this._mouseDragClone = null;
+      }
+      
+      // Trigger drop using the last known hover target
+      const targetChoreId = this._lastHoverChoreId;
+      if (targetChoreId && targetChoreId !== this.chore.id) {
+        this.onDrop?.(this.chore.id, targetChoreId, null);
+      }
+      
       this.isDragging = false;
-      this.isDragOver = false;
+      this._lastHoverChoreId = null;
       
-      // Clean up desktop drag clone
-      if (this._desktopDragClone) {
-        this._desktopDragClone.remove();
-        this._desktopDragClone = null;
-      }
-      if (this._desktopDragHandler) {
-        document.removeEventListener('dragover', this._desktopDragHandler);
-        this._desktopDragHandler = null;
-      }
-      
-      // Notify parent
-      this.onDragEnd?.(this.chore, event);
-    },
-    handleDragOver(event) {
-      if (!this.isDraggable) return;
-      
-      // Only show drag-over state if this isn't the dragged item
-      const draggedChoreId = event.dataTransfer.getData('text/plain');
-      if (draggedChoreId !== this.chore.id) {
-        this.isDragOver = true;
-      }
-      
-      // Notify parent
-      this.onDragOver?.(this.chore, event);
-    },
-    handleDragLeave(_event) {
-      this.isDragOver = false;
-    },
-    handleDrop(event) {
-      this.isDragOver = false;
-      
-      // Get the dragged chore ID
-      const draggedChoreId = event.dataTransfer.getData('text/plain');
-      
-      // Don't drop on self
-      if (draggedChoreId === this.chore.id) return;
-      
-      // Notify parent with both chore IDs
-      this.onDrop?.(draggedChoreId, this.chore.id, event);
+      // Notify parent that drag ended
+      this.onDragEnd?.(this.chore, { type: 'mousedrag' });
     },
     
     // Touch-based drag-and-drop for mobile devices
@@ -770,8 +754,9 @@ const PersonCard = {
       // Live preview: track indices for animated displacement
       draggedIndex: -1,
       hoverIndex: -1,
-      // Touch drag event handler reference for cleanup
-      _touchDragOverHandler: null
+      // Drag event handler references for cleanup
+      _touchDragOverHandler: null,
+      _mouseDragOverHandler: null
     };
   },
   mounted() {
@@ -787,10 +772,26 @@ const PersonCard = {
       }
     };
     this.$el.addEventListener('chore-touch-drag-over', this._touchDragOverHandler);
+    
+    // Listen for mouse drag hover events from child ChoreCards (desktop)
+    this._mouseDragOverHandler = (event) => {
+      const { targetChoreId } = event.detail;
+      if (this.draggedIndex === -1) return;
+      
+      // Find the index of the target chore
+      const hoverIdx = this.sortedChores.findIndex(c => c.id === targetChoreId);
+      if (hoverIdx !== -1 && hoverIdx !== this.hoverIndex) {
+        this.hoverIndex = hoverIdx;
+      }
+    };
+    this.$el.addEventListener('chore-mouse-drag-over', this._mouseDragOverHandler);
   },
   beforeUnmount() {
     if (this._touchDragOverHandler) {
       this.$el.removeEventListener('chore-touch-drag-over', this._touchDragOverHandler);
+    }
+    if (this._mouseDragOverHandler) {
+      this.$el.removeEventListener('chore-mouse-drag-over', this._mouseDragOverHandler);
     }
   },
   computed: {
