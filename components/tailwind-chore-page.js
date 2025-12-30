@@ -371,10 +371,19 @@ const ChoreCard = {
       }));
       
       // Hide the browser's default drag feedback (Copy/X cursor)
-      // by setting a transparent 1x1 pixel drag image
-      const emptyImg = new Image();
-      emptyImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-      event.dataTransfer.setDragImage(emptyImg, 0, 0);
+      // Use a canvas-based approach for better cross-browser support (Arc, Chrome, etc.)
+      const canvas = document.createElement('canvas');
+      canvas.width = 1;
+      canvas.height = 1;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, 1, 1);
+      // Temporarily add to DOM (required by some browsers)
+      canvas.style.position = 'absolute';
+      canvas.style.left = '-9999px';
+      document.body.appendChild(canvas);
+      event.dataTransfer.setDragImage(canvas, 0, 0);
+      // Clean up after a tick
+      setTimeout(() => canvas.remove(), 0);
       
       // Notify parent
       this.onDragStart?.(this.chore, event);
@@ -433,7 +442,7 @@ const ChoreCard = {
         top: ${rect.top}px;
         width: ${rect.width}px;
         height: ${rect.height}px;
-        opacity: 0.6;
+        opacity: 0.95;
         z-index: 10000;
         pointer-events: none;
         transform: scale(1.02);

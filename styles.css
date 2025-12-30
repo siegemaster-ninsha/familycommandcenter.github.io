@@ -1261,12 +1261,12 @@ body.modal-open {
 
 /* Dragging state - the card being dragged */
 .chore-card-wrapper--dragging {
-  opacity: 0.5;
+  opacity: 0.95;
   transform: scale(0.98);
 }
 
 .chore-card--dragging {
-  opacity: 0.5;
+  opacity: 0.95;
 }
 
 .chore-card--dragging::part(base) {
