@@ -357,7 +357,9 @@ class OfflineStorage {
       // Clear existing chores and add new ones
       choresStore.clear();
       chores.forEach(chore => {
-        choresStore.add(chore);
+        // Convert reactive proxy to plain object for IndexedDB storage
+        const plainChore = JSON.parse(JSON.stringify(chore));
+        choresStore.add(plainChore);
       });
 
       // Update cache timestamp
@@ -419,7 +421,9 @@ class OfflineStorage {
       // Clear existing members and add new ones
       membersStore.clear();
       members.forEach(member => {
-        membersStore.add(member);
+        // Convert reactive proxy to plain object for IndexedDB storage
+        const plainMember = JSON.parse(JSON.stringify(member));
+        membersStore.add(plainMember);
       });
 
       // Update cache timestamp
@@ -482,7 +486,9 @@ class OfflineStorage {
       // Clear existing items and add new ones
       quicklistStore.clear();
       items.forEach(item => {
-        quicklistStore.add(item);
+        // Convert reactive proxy to plain object for IndexedDB storage
+        const plainItem = JSON.parse(JSON.stringify(item));
+        quicklistStore.add(plainItem);
       });
 
       // Update cache timestamp
