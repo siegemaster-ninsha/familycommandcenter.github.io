@@ -540,11 +540,8 @@ const ChoreCard = {
       });
       
       // Trigger drop using the last known hover target
-      // Use _lastHoverChoreId which persists even if finger moves off cards momentarily
       const targetChoreId = this._lastHoverChoreId;
-      console.log('[TOUCH-DROP] Using _lastHoverChoreId:', targetChoreId, 'this.chore.id:', this.chore.id);
       if (targetChoreId && targetChoreId !== this.chore.id) {
-        console.log('[TOUCH-DROP] Calling onDrop');
         this.onDrop?.(this.chore.id, targetChoreId, event);
       }
       
@@ -852,10 +849,8 @@ const PersonCard = {
       this.draggedChoreId = chore.id;
       this.draggedIndex = index;
       this.hoverIndex = index;
-      console.log('[DRAG] Started dragging chore:', chore.name, 'at index', index);
     },
     handleChoreDragEnd(chore, _event) {
-      console.log('[DRAG] Ended dragging chore:', chore.name);
       this.resetDragState();
     },
     handleChoreDragOver(chore, _event, index) {
@@ -905,14 +900,11 @@ const PersonCard = {
      * **Validates: Requirements 4.1, 4.2**
      */
     handleChoreDrop(draggedChoreId, _targetChoreId, _event) {
-      console.log('[DROP] Dropping chore', draggedChoreId, 'at hover index', this.hoverIndex);
-      
       // Use tracked indices instead of drop target (visual displacement makes drop target unreliable)
       const dragIdx = this.draggedIndex;
       const hoverIdx = this.hoverIndex;
       
       if (dragIdx === -1 || hoverIdx === -1 || dragIdx === hoverIdx) {
-        console.warn('[DROP] Invalid indices or no change needed');
         this.resetDragState();
         return;
       }
@@ -925,13 +917,22 @@ const PersonCard = {
       const [removed] = newOrder.splice(dragIdx, 1);
       newOrder.splice(hoverIdx, 0, removed);
       
-      console.log('[DROP] New order:', newOrder);
+      // Apply optimistic update directly to the person prop's choreSortOrder
+      // This ensures immediate visual update without waiting for store/API
+      const newSortOrder = {};
+      newOrder.forEach((choreId, index) => {
+        newSortOrder[choreId] = index;
+      });
       
-      // Notify parent with new order
-      this.onChoreReorder?.(this.person.id, newOrder);
+      // Directly mutate the person object to trigger immediate re-render
+      // Vue will detect this change and update sortedChores computed property
+      this.person.choreSortOrder = { ...newSortOrder };
       
-      // Reset drag state
+      // Reset drag state immediately - the optimistic update above ensures correct order
       this.resetDragState();
+      
+      // Notify parent with new order (persists to backend)
+      this.onChoreReorder?.(this.person.id, newOrder);
     },
     
     resetDragState() {
@@ -1441,8 +1442,6 @@ const TailwindChorePage = Vue.defineComponent({
      * **Validates: Requirements 4.1, 4.2**
      */
     async handleChoreReorder(memberId, orderedChoreIds) {
-      console.log('[REORDER] Reordering chores for member:', memberId, 'New order:', orderedChoreIds);
-      
       const useFamilyStore = window.useFamilyStore;
       if (!useFamilyStore) {
         console.error('[REORDER] Family store not available');
@@ -1457,7 +1456,6 @@ const TailwindChorePage = Vue.defineComponent({
         const result = await familyStore.reorderChores(memberId, orderedChoreIds);
         
         if (result.success) {
-          console.log('[REORDER] Successfully reordered chores');
           if (uiStore) {
             uiStore.showSuccess('Chore order updated');
           }
