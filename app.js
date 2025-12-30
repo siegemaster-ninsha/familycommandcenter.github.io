@@ -3387,6 +3387,22 @@ function checkAndRegisterComponents() {
     app.component('learning-hub-page', window.LearningHubPage);
   }
 
+  // Homework grading components (Task 8 & 10)
+  console.log('📦 Registering submission-card');
+  if (window.SubmissionCard) {
+    app.component('submission-card', window.SubmissionCard);
+  }
+
+  console.log('📦 Registering homework-detail-view');
+  if (window.HomeworkDetailView) {
+    app.component('homework-detail-view', window.HomeworkDetailView);
+  }
+
+  console.log('📦 Registering homework-grading-panel');
+  if (window.HomeworkGradingPanel) {
+    app.component('homework-grading-panel', window.HomeworkGradingPanel);
+  }
+
   console.log('✅ All components registered, mounting app...');
 
   // Use Pinia for state management
