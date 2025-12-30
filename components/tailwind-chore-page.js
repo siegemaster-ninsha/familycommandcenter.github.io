@@ -822,11 +822,8 @@ const PersonCard = {
       console.log('[DRAG] Started dragging chore:', chore.name, 'at index', index);
     },
     handleChoreDragEnd(chore, _event) {
-      this.isReordering = false;
-      this.draggedChoreId = null;
-      this.draggedIndex = -1;
-      this.hoverIndex = -1;
       console.log('[DRAG] Ended dragging chore:', chore.name);
+      this.resetDragState();
     },
     handleChoreDragOver(chore, _event, index) {
       // Update hover index for live preview displacement
@@ -874,31 +871,32 @@ const PersonCard = {
      * Builds new sort order and calls parent callback
      * 
      * @param {string} draggedChoreId - ID of the chore being dragged
-     * @param {string} targetChoreId - ID of the chore being dropped onto
+     * @param {string} targetChoreId - ID of the chore being dropped onto (may be inaccurate due to visual displacement)
      * @param {DragEvent} event - The drop event
      * 
      * **Feature: chore-priority**
      * **Validates: Requirements 4.1, 4.2**
      */
-    handleChoreDrop(draggedChoreId, targetChoreId, _event) {
-      console.log('[DROP] Dropping chore', draggedChoreId, 'onto', targetChoreId);
+    handleChoreDrop(draggedChoreId, _targetChoreId, _event) {
+      console.log('[DROP] Dropping chore', draggedChoreId, 'at hover index', this.hoverIndex);
+      
+      // Use tracked indices instead of drop target (visual displacement makes drop target unreliable)
+      const dragIdx = this.draggedIndex;
+      const hoverIdx = this.hoverIndex;
+      
+      if (dragIdx === -1 || hoverIdx === -1 || dragIdx === hoverIdx) {
+        console.warn('[DROP] Invalid indices or no change needed');
+        this.resetDragState();
+        return;
+      }
       
       // Get current sorted order
       const currentOrder = this.sortedChores.map(c => c.id);
       
-      // Find indices
-      const draggedIndex = currentOrder.indexOf(draggedChoreId);
-      const targetIndex = currentOrder.indexOf(targetChoreId);
-      
-      if (draggedIndex === -1 || targetIndex === -1) {
-        console.warn('[DROP] Could not find chore indices');
-        return;
-      }
-      
-      // Remove dragged item and insert at target position
+      // Remove dragged item and insert at hover position
       const newOrder = [...currentOrder];
-      newOrder.splice(draggedIndex, 1);
-      newOrder.splice(targetIndex, 0, draggedChoreId);
+      const [removed] = newOrder.splice(dragIdx, 1);
+      newOrder.splice(hoverIdx, 0, removed);
       
       console.log('[DROP] New order:', newOrder);
       
@@ -906,8 +904,14 @@ const PersonCard = {
       this.onChoreReorder?.(this.person.id, newOrder);
       
       // Reset drag state
+      this.resetDragState();
+    },
+    
+    resetDragState() {
       this.isReordering = false;
       this.draggedChoreId = null;
+      this.draggedIndex = -1;
+      this.hoverIndex = -1;
     }
   }
 };

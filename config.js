@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.126 - Heroic Otter (Dec 30, 2025)',
+    VERSION: '1.0.127 - Dynamic Cheetah (Dec 30, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
