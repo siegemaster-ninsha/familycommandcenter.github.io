@@ -1317,6 +1317,32 @@ body.modal-open {
   margin: calc(-1 * var(--space-2));
 }
 
+/* Chore list transition animations (for completed chores moving to bottom) */
+.chore-list-move {
+  transition: transform 300ms ease-out;
+}
+
+.chore-list-enter-active,
+.chore-list-leave-active {
+  transition: all 300ms ease-out;
+}
+
+.chore-list-enter-from {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.chore-list-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+/* Ensure leaving items don't affect layout during animation */
+.chore-list-leave-active {
+  position: absolute;
+  width: 100%;
+}
+
 /* Expanded state - remove bottom border radius to connect with flyout */
 .chore-card--expanded {
   --border-radius: var(--radius-xl) var(--radius-xl) 0 0;

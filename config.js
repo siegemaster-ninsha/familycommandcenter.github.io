@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.138 - Youthful Eagle (Dec 30, 2025)',
+    VERSION: '1.0.139 - Invincible Viper (Dec 30, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {

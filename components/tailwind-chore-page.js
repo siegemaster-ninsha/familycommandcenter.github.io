@@ -694,9 +694,10 @@ const PersonCard = {
 
       <!-- Person's chores (sorted by priority) with drag-and-drop reordering -->
       <!-- **Feature: chore-priority** - Drag-and-drop reordering -->
+      <!-- Completed chores animate to bottom of list -->
       <!-- **Validates: Requirements 4.1** -->
       <div 
-        class="chore-list-container space-y-2 min-h-[60px]" 
+        class="chore-list-container min-h-[60px]" 
         :class="{ 'chore-list-container--reordering': isReordering }"
         @click.stop
       >
@@ -705,29 +706,31 @@ const PersonCard = {
           <p class="text-xs mt-1">Select a chore and tap here to assign it</p>
         </div>
 
-        <chore-card
-          v-for="(chore, index) in sortedChores"
-          :key="chore.id"
-          :chore="chore"
-          type="assigned"
-          :is-expanded="expandedChoreId === chore.id"
-          :is-priority="chore.id === priorityChoreId"
-          :show-approval-button="showApprovalButton"
-          :family-members="familyMembers"
-          :Helpers="Helpers"
-          :enable-reorder="enableReorder"
-          :drag-displacement="getDragDisplacement(index)"
-          :on-expand="handleChoreExpand"
-          :on-collapse="handleChoreCollapse"
-          :on-toggle-complete="(c, event) => onChoreToggle(c, event)"
-          :on-approve="(c) => onChoreApprove(c)"
-          :on-delete="(c) => onChoreDelete(c)"
-          :on-reassign="handleChoreReassign"
-          :on-drag-start="(c, e) => handleChoreDragStart(c, e, index)"
-          :on-drag-end="handleChoreDragEnd"
-          :on-drag-over="(c, e) => handleChoreDragOver(c, e, index)"
-          :on-drop="handleChoreDrop"
-        />
+        <transition-group name="chore-list" tag="div" class="space-y-2">
+          <chore-card
+            v-for="(chore, index) in sortedChores"
+            :key="chore.id"
+            :chore="chore"
+            type="assigned"
+            :is-expanded="expandedChoreId === chore.id"
+            :is-priority="chore.id === priorityChoreId"
+            :show-approval-button="showApprovalButton"
+            :family-members="familyMembers"
+            :Helpers="Helpers"
+            :enable-reorder="enableReorder"
+            :drag-displacement="getDragDisplacement(index)"
+            :on-expand="handleChoreExpand"
+            :on-collapse="handleChoreCollapse"
+            :on-toggle-complete="(c, event) => onChoreToggle(c, event)"
+            :on-approve="(c) => onChoreApprove(c)"
+            :on-delete="(c) => onChoreDelete(c)"
+            :on-reassign="handleChoreReassign"
+            :on-drag-start="(c, e) => handleChoreDragStart(c, e, index)"
+            :on-drag-end="handleChoreDragEnd"
+            :on-drag-over="(c, e) => handleChoreDragOver(c, e, index)"
+            :on-drop="handleChoreDrop"
+          />
+        </transition-group>
       </div>
     </div>
   `,
@@ -828,8 +831,13 @@ const PersonCard = {
       
       const sortOrder = this.choreSortOrder;
       
-      // Sort by sort order (chores without order go to end with Infinity)
+      // Sort by: 1) incomplete first, completed last, 2) then by sort order
       return [...this.personChores].sort((a, b) => {
+        // Completed chores go to the bottom
+        if (a.completed !== b.completed) {
+          return a.completed ? 1 : -1;
+        }
+        // Within same completion status, sort by sort order
         const orderA = sortOrder[a.id] ?? Infinity;
         const orderB = sortOrder[b.id] ?? Infinity;
         return orderA - orderB;
