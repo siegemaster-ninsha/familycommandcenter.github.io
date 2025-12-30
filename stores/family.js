@@ -379,17 +379,20 @@ const useFamilyStore = Pinia.defineStore('family', {
       
       // Also track app.js people array for optimistic update
       const app = window.app;
-      const appMember = app?.people?.find(m => m.id === memberId);
+      const appMemberIndex = app?.people?.findIndex(m => m.id === memberId) ?? -1;
+      const appMember = appMemberIndex !== -1 ? app.people[appMemberIndex] : null;
       const appOriginalSortOrder = appMember ? { ...(appMember.choreSortOrder || {}) } : {};
       
       // Optimistic update - both Pinia store AND app.js people array
       // This ensures immediate UI feedback before API response
+      // IMPORTANT: Replace entire object to trigger Vue reactivity (nested mutations don't trigger updates)
       const newSortOrder = sortOrder && typeof sortOrder === 'object' ? { ...sortOrder } : {};
       if (member) {
         member.choreSortOrder = newSortOrder;
       }
-      if (appMember) {
-        appMember.choreSortOrder = newSortOrder;
+      if (appMember && appMemberIndex !== -1) {
+        // Replace the entire object in the array to trigger Vue reactivity
+        app.people[appMemberIndex] = { ...appMember, choreSortOrder: newSortOrder };
       }
       
       try {
@@ -436,11 +439,15 @@ const useFamilyStore = Pinia.defineStore('family', {
         return { success: false, error: 'Failed to update sort order' };
       } catch (error) {
         // Rollback on error - both Pinia store AND app.js people array
+        // IMPORTANT: Replace entire object to trigger Vue reactivity
         if (member) {
           member.choreSortOrder = originalSortOrder;
         }
-        if (appMember) {
-          appMember.choreSortOrder = appOriginalSortOrder;
+        if (app && app.people && appMemberIndex !== -1) {
+          app.people[appMemberIndex] = { 
+            ...app.people[appMemberIndex], 
+            choreSortOrder: appOriginalSortOrder 
+          };
         }
         console.error('Failed to update sort order:', error);
         return { success: false, error: error.message };
