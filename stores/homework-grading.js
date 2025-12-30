@@ -467,8 +467,74 @@ const useHomeworkGradingStore = Pinia.defineStore('homeworkGrading', {
       window.addEventListener('job-failed', this._handleJobFailed.bind(this));
       window.addEventListener('job-expired', this._handleJobExpired.bind(this));
       
+      // Start polling for active job updates
+      this._startProgressPolling();
+      
       this._jobStoreInitialized = true;
       console.log('[Homework] Job store integration initialized');
+    },
+    
+    /**
+     * Start polling for progress updates on active jobs
+     * This ensures the UI updates while jobs are processing
+     * @private
+     */
+    _startProgressPolling() {
+      // Clear any existing interval
+      if (this._progressPollInterval) {
+        clearInterval(this._progressPollInterval);
+      }
+      
+      // Poll every 2 seconds for progress updates
+      this._progressPollInterval = setInterval(() => {
+        this._syncActiveJobsFromJobStore();
+      }, 2000);
+    },
+    
+    /**
+     * Stop progress polling
+     * @private
+     */
+    _stopProgressPolling() {
+      if (this._progressPollInterval) {
+        clearInterval(this._progressPollInterval);
+        this._progressPollInterval = null;
+      }
+    },
+    
+    /**
+     * Sync active submissions with job store data
+     * Updates local submissions with latest status/progress from job store
+     * @private
+     */
+    _syncActiveJobsFromJobStore() {
+      if (!window.useJobStore) return;
+      
+      const jobStore = window.useJobStore();
+      
+      // Get all active submissions
+      const activeSubmissions = this.submissions.filter(
+        sub => sub.status === 'pending' || sub.status === 'processing'
+      );
+      
+      // Update each from job store
+      for (const submission of activeSubmissions) {
+        const trackedJob = jobStore.trackedJobs[submission.jobId];
+        
+        if (trackedJob) {
+          // Update status and progress
+          const index = this.submissions.findIndex(s => s.jobId === submission.jobId);
+          if (index !== -1) {
+            this.submissions[index] = {
+              ...this.submissions[index],
+              status: trackedJob.status,
+              progress: trackedJob.progress,
+              result: trackedJob.result,
+              error: trackedJob.error
+            };
+          }
+        }
+      }
     },
     
     /**
@@ -483,6 +549,9 @@ const useHomeworkGradingStore = Pinia.defineStore('homeworkGrading', {
       window.removeEventListener('job-completed', this._handleJobCompleted);
       window.removeEventListener('job-failed', this._handleJobFailed);
       window.removeEventListener('job-expired', this._handleJobExpired);
+      
+      // Stop progress polling
+      this._stopProgressPolling();
       
       this._jobStoreInitialized = false;
       console.log('[Homework] Job store listeners cleaned up');

@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.151 - Powerful Quail (Dec 30, 2025)',
+    VERSION: '1.0.152 - Lively Meerkat (Dec 30, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
