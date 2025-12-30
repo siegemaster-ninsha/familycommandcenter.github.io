@@ -925,15 +925,17 @@ a {
   }
 }
 
-/* Form elements */
+/* Form elements - !important needed to override Tailwind forms plugin reset */
 input, select, textarea {
   border: 1px solid var(--color-border-card);
   border-radius: var(--radius-md);
   padding: var(--space-3);
   font-family: inherit;
   font-size: var(--font-size-base);
-  background-color: var(--color-surface-1);
-  color: var(--color-text-primary);
+  /* stylelint-disable-next-line declaration-no-important -- Override Tailwind forms plugin */
+  background-color: var(--color-surface-1) !important;
+  /* stylelint-disable-next-line declaration-no-important -- Override Tailwind forms plugin */
+  color: var(--color-text-primary) !important;
   transition: border-color var(--transition-fast), background-color var(--transition-fast);
 }
 
@@ -6514,8 +6516,10 @@ body.learning-hub-menu-open {
   border: 1px solid var(--color-border-card);
   border-radius: var(--radius-lg);
   font-size: var(--font-size-base);
-  background: var(--color-bg-primary);
-  color: var(--color-text-primary);
+  /* stylelint-disable-next-line declaration-no-important -- Override Tailwind forms plugin */
+  background: var(--color-surface-1) !important;
+  /* stylelint-disable-next-line declaration-no-important -- Override Tailwind forms plugin */
+  color: var(--color-text-primary) !important;
   min-height: 44px;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }

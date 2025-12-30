@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.117 - Mighty Gazelle (Dec 29, 2025)',
+    VERSION: '1.0.118 - Fantastic Zebra (Dec 29, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
