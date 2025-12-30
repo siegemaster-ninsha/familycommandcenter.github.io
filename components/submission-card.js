@@ -109,7 +109,6 @@ const SubmissionCard = Vue.defineComponent({
         </span>
         
         <button 
-          v-if="isCompleted || isFailed"
           @click.stop="handleDelete"
           class="submission-card-delete-btn"
           title="Delete submission"
