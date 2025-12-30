@@ -188,6 +188,11 @@ const DefaultOrderModal = Vue.defineComponent({
       this.draggedIndex = index;
       event.dataTransfer.effectAllowed = 'move';
       event.dataTransfer.setData('text/plain', index.toString());
+      
+      // Hide the browser's default drag feedback (Copy/X cursor)
+      const emptyImg = new Image();
+      emptyImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+      event.dataTransfer.setDragImage(emptyImg, 0, 0);
     },
     
     handleDragEnd() {

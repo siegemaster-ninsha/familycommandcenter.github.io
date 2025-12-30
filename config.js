@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.120 - Gleaming Koala (Dec 30, 2025)',
+    VERSION: '1.0.121 - Wondrous Xerus (Dec 30, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {

@@ -351,6 +351,12 @@ const ChoreCard = {
         choreName: this.chore.name
       }));
       
+      // Hide the browser's default drag feedback (Copy/X cursor)
+      // by setting a transparent 1x1 pixel drag image
+      const emptyImg = new Image();
+      emptyImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+      event.dataTransfer.setDragImage(emptyImg, 0, 0);
+      
       // Notify parent
       this.onDragStart?.(this.chore, event);
     },
