@@ -504,9 +504,11 @@ const ChoreCard = {
           // Notify parent about hover for live preview displacement
           // Find the target chore and trigger dragOver
           const targetChoreId = wrapper.dataset?.choreId;
+          console.log('[TOUCH-DRAG] Over card with choreId:', targetChoreId, 'lastHover:', this._lastHoverChoreId);
           if (targetChoreId && targetChoreId !== this._lastHoverChoreId) {
             this._lastHoverChoreId = targetChoreId;
             // Create a synthetic event with the target chore info
+            console.log('[TOUCH-DRAG] Calling onDragOver for chore:', targetChoreId);
             this.onDragOver?.({ id: targetChoreId }, { type: 'touchdrag', targetChoreId });
           }
         }
@@ -843,9 +845,11 @@ const PersonCard = {
       if (hoverIdx === undefined) {
         // Touch drag - find index by chore ID
         hoverIdx = this.sortedChores.findIndex(c => c.id === chore.id);
+        console.log('[DRAG-OVER] Touch drag hover - chore:', chore.id, 'found at index:', hoverIdx);
       }
       
       if (hoverIdx !== -1 && hoverIdx !== this.hoverIndex) {
+        console.log('[DRAG-OVER] Updating hover index from', this.hoverIndex, 'to', hoverIdx);
         this.hoverIndex = hoverIdx;
       }
     },

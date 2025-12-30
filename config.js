@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.129 - Majestic Xerus (Dec 30, 2025)',
+    VERSION: '1.0.130 - Dazzling Quokka (Dec 30, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
