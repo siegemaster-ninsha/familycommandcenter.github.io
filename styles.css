@@ -1274,16 +1274,19 @@ body.modal-open {
 }
 
 /* Drag over state - the card being hovered over */
-.chore-card-wrapper--drag-over {
+.chore-card-wrapper--drag-over,
+.chore-card-wrapper--touch-drag-over {
   transform: translateY(4px);
 }
 
 /* Prevent child elements from triggering separate drag events (causes jitter) */
-.chore-card-wrapper--drag-over * {
+.chore-card-wrapper--drag-over *,
+.chore-card-wrapper--touch-drag-over * {
   pointer-events: none;
 }
 
-.chore-card-wrapper--drag-over::before {
+.chore-card-wrapper--drag-over::before,
+.chore-card-wrapper--touch-drag-over::before {
   content: '';
   position: absolute;
   top: -4px;

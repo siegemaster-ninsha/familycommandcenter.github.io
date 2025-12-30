@@ -20,6 +20,7 @@ const ChoreCard = {
         'chore-card-wrapper--dragging': isDragging,
         'chore-card-wrapper--drag-over': isDragOver
       }"
+      :data-chore-id="chore.id"
       :draggable="isDraggable"
       @dragstart="handleDragStart"
       @dragend="handleDragEnd"
@@ -48,7 +49,7 @@ const ChoreCard = {
               class="chore-drag-handle"
               title="Drag to reorder"
               @mousedown.stop
-              @touchstart.stop
+              @touchstart.stop.prevent="handleTouchDragStart"
             >
               <div v-html="getIcon('gripVertical', 16)"></div>
             </div>
@@ -233,7 +234,12 @@ const ChoreCard = {
       elevationTimer: null,
       // **Feature: chore-priority** - Drag state
       isDragging: false,
-      isDragOver: false
+      isDragOver: false,
+      // Touch drag state
+      isTouchDragging: false,
+      touchDragClone: null,
+      touchMoveHandler: null,
+      touchEndHandler: null
     };
   },
   computed: {
@@ -393,6 +399,127 @@ const ChoreCard = {
       
       // Notify parent with both chore IDs
       this.onDrop?.(draggedChoreId, this.chore.id, event);
+    },
+    
+    // Touch-based drag-and-drop for mobile devices
+    // HTML5 drag-and-drop doesn't work on touch screens
+    handleTouchDragStart(event) {
+      if (!this.isDraggable) return;
+      
+      const touch = event.touches[0];
+      this.isTouchDragging = true;
+      this.isDragging = true;
+      
+      // Create a visual clone of the card to follow the finger
+      const card = this.$el;
+      const rect = card.getBoundingClientRect();
+      const clone = card.cloneNode(true);
+      clone.style.cssText = `
+        position: fixed;
+        left: ${rect.left}px;
+        top: ${rect.top}px;
+        width: ${rect.width}px;
+        height: ${rect.height}px;
+        opacity: 0.8;
+        z-index: 10000;
+        pointer-events: none;
+        transform: scale(1.02);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        transition: none;
+      `;
+      clone.id = 'touch-drag-clone';
+      document.body.appendChild(clone);
+      this.touchDragClone = clone;
+      
+      // Store initial touch offset from card top-left
+      this._touchOffsetX = touch.clientX - rect.left;
+      this._touchOffsetY = touch.clientY - rect.top;
+      
+      // Notify parent that drag started
+      this.onDragStart?.(this.chore, { type: 'touchdrag' });
+      
+      // Add document-level touch handlers
+      this.touchMoveHandler = this.handleTouchDragMove.bind(this);
+      this.touchEndHandler = this.handleTouchDragEnd.bind(this);
+      document.addEventListener('touchmove', this.touchMoveHandler, { passive: false });
+      document.addEventListener('touchend', this.touchEndHandler);
+      document.addEventListener('touchcancel', this.touchEndHandler);
+    },
+    
+    handleTouchDragMove(event) {
+      if (!this.isTouchDragging || !this.touchDragClone) return;
+      
+      event.preventDefault(); // Prevent scrolling while dragging
+      
+      const touch = event.touches[0];
+      
+      // Move the clone to follow the finger
+      this.touchDragClone.style.left = `${touch.clientX - this._touchOffsetX}px`;
+      this.touchDragClone.style.top = `${touch.clientY - this._touchOffsetY}px`;
+      
+      // Find which card we're over (excluding the clone and the dragged card)
+      const elementsAtPoint = document.elementsFromPoint(touch.clientX, touch.clientY);
+      const targetCard = elementsAtPoint.find(el => {
+        if (el.id === 'touch-drag-clone') return false;
+        if (el === this.$el || this.$el.contains(el)) return false;
+        return el.classList.contains('chore-card-wrapper') || el.closest('.chore-card-wrapper');
+      });
+      
+      // Clear previous drag-over states
+      document.querySelectorAll('.chore-card-wrapper--touch-drag-over').forEach(el => {
+        el.classList.remove('chore-card-wrapper--touch-drag-over');
+      });
+      
+      // Add drag-over state to target
+      if (targetCard) {
+        const wrapper = targetCard.classList.contains('chore-card-wrapper') 
+          ? targetCard 
+          : targetCard.closest('.chore-card-wrapper');
+        if (wrapper && wrapper !== this.$el) {
+          wrapper.classList.add('chore-card-wrapper--touch-drag-over');
+          this._touchDropTarget = wrapper;
+        }
+      } else {
+        this._touchDropTarget = null;
+      }
+    },
+    
+    handleTouchDragEnd(event) {
+      if (!this.isTouchDragging) return;
+      
+      // Clean up
+      document.removeEventListener('touchmove', this.touchMoveHandler);
+      document.removeEventListener('touchend', this.touchEndHandler);
+      document.removeEventListener('touchcancel', this.touchEndHandler);
+      
+      // Remove clone
+      if (this.touchDragClone) {
+        this.touchDragClone.remove();
+        this.touchDragClone = null;
+      }
+      
+      // Clear drag-over states
+      document.querySelectorAll('.chore-card-wrapper--touch-drag-over').forEach(el => {
+        el.classList.remove('chore-card-wrapper--touch-drag-over');
+      });
+      
+      // If we have a drop target, trigger the drop
+      if (this._touchDropTarget) {
+        // Find the chore ID of the drop target by looking at Vue component
+        const targetChoreId = this._touchDropTarget.__vue__?.chore?.id 
+          || this._touchDropTarget.dataset?.choreId;
+        
+        if (targetChoreId && targetChoreId !== this.chore.id) {
+          this.onDrop?.(this.chore.id, targetChoreId, event);
+        }
+      }
+      
+      this.isTouchDragging = false;
+      this.isDragging = false;
+      this._touchDropTarget = null;
+      
+      // Notify parent that drag ended
+      this.onDragEnd?.(this.chore, { type: 'touchdrag' });
     }
   }
 };

@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.124 - Jolly Bear (Dec 30, 2025)',
+    VERSION: '1.0.125 - Vibrant Lemur (Dec 30, 2025)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
