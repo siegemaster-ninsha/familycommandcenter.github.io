@@ -516,7 +516,7 @@ const ChoreCard = {
         }
       } else {
         this._touchDropTarget = null;
-        this._lastHoverChoreId = null;
+        // Don't reset _lastHoverChoreId - keep last valid target for drop
       }
     },
     
@@ -539,23 +539,19 @@ const ChoreCard = {
         el.classList.remove('chore-card-wrapper--touch-drag-over');
       });
       
-      // If we have a drop target, trigger the drop
-      console.log('[TOUCH-DROP] _touchDropTarget:', this._touchDropTarget, 'targetChoreId:', this._touchDropTarget?.dataset?.choreId);
-      if (this._touchDropTarget) {
-        // Find the chore ID of the drop target by looking at Vue component
-        const targetChoreId = this._touchDropTarget.__vue__?.chore?.id 
-          || this._touchDropTarget.dataset?.choreId;
-        
-        console.log('[TOUCH-DROP] targetChoreId:', targetChoreId, 'this.chore.id:', this.chore.id);
-        if (targetChoreId && targetChoreId !== this.chore.id) {
-          console.log('[TOUCH-DROP] Calling onDrop');
-          this.onDrop?.(this.chore.id, targetChoreId, event);
-        }
+      // Trigger drop using the last known hover target
+      // Use _lastHoverChoreId which persists even if finger moves off cards momentarily
+      const targetChoreId = this._lastHoverChoreId;
+      console.log('[TOUCH-DROP] Using _lastHoverChoreId:', targetChoreId, 'this.chore.id:', this.chore.id);
+      if (targetChoreId && targetChoreId !== this.chore.id) {
+        console.log('[TOUCH-DROP] Calling onDrop');
+        this.onDrop?.(this.chore.id, targetChoreId, event);
       }
       
       this.isTouchDragging = false;
       this.isDragging = false;
       this._touchDropTarget = null;
+      this._lastHoverChoreId = null;
       
       // Notify parent that drag ended
       this.onDragEnd?.(this.chore, { type: 'touchdrag' });
