@@ -894,7 +894,13 @@ const PersonCard = {
       this.hoverIndex = index;
     },
     handleChoreDragEnd(chore, _event) {
-      this.resetDragState();
+      // For desktop drag, trigger the drop using tracked indices
+      // (native drop event may not fire correctly due to displacement)
+      if (this.draggedIndex !== -1 && this.hoverIndex !== -1 && this.draggedIndex !== this.hoverIndex) {
+        this.handleChoreDrop(chore.id, null, null);
+      } else {
+        this.resetDragState();
+      }
     },
     handleChoreDragOver(chore, _event, index) {
       // Update hover index for live preview displacement (desktop drag only)
