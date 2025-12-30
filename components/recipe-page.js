@@ -405,12 +405,12 @@ const RecipePage = Vue.defineComponent({
           <!-- Recipe Grid -->
           <!-- **Feature: recipe-image-capture** -->
           <!-- **Validates: Requirements 8.2** -->
-          <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div v-else class="recipe-card-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div
               v-for="recipe in filteredRecipes"
               :key="recipe.id"
               @click="openRecipeModal(recipe)"
-              class="p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md"
+              class="recipe-card p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md flex flex-col"
               style="background-color: var(--color-bg-primary); border-color: var(--color-border-card);"
             >
               <div class="flex items-start justify-between gap-2 mb-2">
@@ -441,7 +441,7 @@ const RecipePage = Vue.defineComponent({
                   <div v-html="Helpers.IconLibrary.getIcon('link', 'lucide', 16, '')"></div>
                 </div>
               </div>
-              <div class="flex flex-wrap gap-1 mb-2">
+              <div class="flex flex-wrap gap-1 mb-2 min-h-[24px]">
                 <span
                   v-for="tag in recipe.tags?.slice(0, 3)"
                   :key="tag"
@@ -453,7 +453,7 @@ const RecipePage = Vue.defineComponent({
                   +{{ recipe.tags.length - 3 }}
                 </span>
               </div>
-              <div class="flex items-center justify-between text-sm text-secondary-custom">
+              <div class="flex items-center justify-between text-sm text-secondary-custom mt-auto">
                 <span>{{ recipe.ingredients?.length || 0 }} ingredients</span>
                 <span>{{ recipe.servings ? recipe.servings + ' servings' : '' }}</span>
               </div>

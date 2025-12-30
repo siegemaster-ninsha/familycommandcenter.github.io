@@ -377,9 +377,19 @@ const useFamilyStore = Pinia.defineStore('family', {
       const member = this.members.find(m => m.id === memberId);
       const originalSortOrder = member ? { ...(member.choreSortOrder || {}) } : {};
       
-      // Optimistic update
+      // Also track app.js people array for optimistic update
+      const app = window.app;
+      const appMember = app?.people?.find(m => m.id === memberId);
+      const appOriginalSortOrder = appMember ? { ...(appMember.choreSortOrder || {}) } : {};
+      
+      // Optimistic update - both Pinia store AND app.js people array
+      // This ensures immediate UI feedback before API response
+      const newSortOrder = sortOrder && typeof sortOrder === 'object' ? { ...sortOrder } : {};
       if (member) {
-        member.choreSortOrder = sortOrder && typeof sortOrder === 'object' ? { ...sortOrder } : {};
+        member.choreSortOrder = newSortOrder;
+      }
+      if (appMember) {
+        appMember.choreSortOrder = newSortOrder;
       }
       
       try {
@@ -425,9 +435,12 @@ const useFamilyStore = Pinia.defineStore('family', {
         
         return { success: false, error: 'Failed to update sort order' };
       } catch (error) {
-        // Rollback on error
+        // Rollback on error - both Pinia store AND app.js people array
         if (member) {
           member.choreSortOrder = originalSortOrder;
+        }
+        if (appMember) {
+          appMember.choreSortOrder = appOriginalSortOrder;
         }
         console.error('Failed to update sort order:', error);
         return { success: false, error: error.message };

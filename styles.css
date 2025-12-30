@@ -751,6 +751,22 @@ a[href="#main-content"] {
   background: var(--gradient-ocean);
 }
 
+/* ===========================================
+   RECIPE CARDS
+   =========================================== */
+
+/* Recipe card grid - ensures consistent row heights */
+.recipe-card-grid {
+  align-items: stretch;
+}
+
+/* Recipe cards - consistent height with flexbox layout */
+.recipe-card {
+  min-height: 140px; /* Accommodate cards with tags */
+  display: flex;
+  flex-direction: column;
+}
+
 /* Earnings Components */
 .earnings-card {
   background: var(--color-earnings-bg);

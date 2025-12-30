@@ -7,7 +7,7 @@
 
 // IMPORTANT: This version MUST be updated with each deployment to bust the cache
 // The deploy script should update this automatically
-const CACHE_VERSION = 'v1.0.118-1767055977';
+const CACHE_VERSION = 'v1.0.119-1767101152';
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const DATA_CACHE = `data-${CACHE_VERSION}`;
 
