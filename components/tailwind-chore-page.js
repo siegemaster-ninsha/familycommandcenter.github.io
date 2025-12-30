@@ -502,14 +502,16 @@ const ChoreCard = {
           this._touchDropTarget = wrapper;
           
           // Notify parent about hover for live preview displacement
-          // Find the target chore and trigger dragOver
           const targetChoreId = wrapper.dataset?.choreId;
-          console.log('[TOUCH-DRAG] Over card with choreId:', targetChoreId, 'lastHover:', this._lastHoverChoreId);
           if (targetChoreId && targetChoreId !== this._lastHoverChoreId) {
             this._lastHoverChoreId = targetChoreId;
-            // Create a synthetic event with the target chore info
-            console.log('[TOUCH-DRAG] Calling onDragOver for chore:', targetChoreId);
-            this.onDragOver?.({ id: targetChoreId }, { type: 'touchdrag', targetChoreId });
+            // Emit custom event that bubbles up to parent PersonChoreSection
+            // This is more reliable than calling onDragOver which is bound to THIS card
+            const customEvent = new CustomEvent('chore-touch-drag-over', {
+              bubbles: true,
+              detail: { targetChoreId, draggedChoreId: this.chore.id }
+            });
+            this.$el.dispatchEvent(customEvent);
           }
         }
       } else {
@@ -728,8 +730,29 @@ const PersonCard = {
       draggedChoreId: null,
       // Live preview: track indices for animated displacement
       draggedIndex: -1,
-      hoverIndex: -1
+      hoverIndex: -1,
+      // Touch drag event handler reference for cleanup
+      _touchDragOverHandler: null
     };
+  },
+  mounted() {
+    // Listen for touch drag hover events from child ChoreCards
+    this._touchDragOverHandler = (event) => {
+      const { targetChoreId } = event.detail;
+      if (this.draggedIndex === -1) return;
+      
+      // Find the index of the target chore
+      const hoverIdx = this.sortedChores.findIndex(c => c.id === targetChoreId);
+      if (hoverIdx !== -1 && hoverIdx !== this.hoverIndex) {
+        this.hoverIndex = hoverIdx;
+      }
+    };
+    this.$el.addEventListener('chore-touch-drag-over', this._touchDragOverHandler);
+  },
+  beforeUnmount() {
+    if (this._touchDragOverHandler) {
+      this.$el.removeEventListener('chore-touch-drag-over', this._touchDragOverHandler);
+    }
   },
   computed: {
     personDisplayName() {
@@ -837,20 +860,12 @@ const PersonCard = {
       this.resetDragState();
     },
     handleChoreDragOver(chore, _event, index) {
-      // Update hover index for live preview displacement
-      // For touch drag, we receive the chore object and need to find the index
+      // Update hover index for live preview displacement (desktop drag only)
+      // Touch drag uses custom event 'chore-touch-drag-over' instead
       if (this.draggedIndex === -1) return;
       
-      let hoverIdx = index;
-      if (hoverIdx === undefined) {
-        // Touch drag - find index by chore ID
-        hoverIdx = this.sortedChores.findIndex(c => c.id === chore.id);
-        console.log('[DRAG-OVER] Touch drag hover - chore:', chore.id, 'found at index:', hoverIdx);
-      }
-      
-      if (hoverIdx !== -1 && hoverIdx !== this.hoverIndex) {
-        console.log('[DRAG-OVER] Updating hover index from', this.hoverIndex, 'to', hoverIdx);
-        this.hoverIndex = hoverIdx;
+      if (index !== undefined && index !== this.hoverIndex) {
+        this.hoverIndex = index;
       }
     },
     /**
