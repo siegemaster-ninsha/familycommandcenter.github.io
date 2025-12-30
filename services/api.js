@@ -252,6 +252,54 @@ class ApiService {
       s3Keys
     });
   }
+  
+  // === Homework Grading Methods ===
+  // **Feature: homework-grading**
+  // **Validates: Requirements 9.1**
+  
+  /**
+   * Submit homework for AI grading
+   * Creates an async job and returns the job ID immediately
+   * **Validates: Requirements 9.1**
+   * @param {string} familyMemberId - ID of the family member
+   * @param {string[]} images - Array of base64 image data URLs
+   * @returns {Promise<Object>} Job creation response with jobId
+   */
+  async submitHomework(familyMemberId, images) {
+    return this.post('/homework/grade', {
+      familyMemberId,
+      images
+    });
+  }
+  
+  /**
+   * Get all homework submissions for the account
+   * **Validates: Requirements 9.1**
+   * @returns {Promise<Object>} List of homework submission jobs
+   */
+  async getHomeworkSubmissions() {
+    return this.get('/homework/submissions');
+  }
+  
+  /**
+   * Get a specific homework submission by job ID
+   * **Validates: Requirements 9.1**
+   * @param {string} jobId - The job ID
+   * @returns {Promise<Object>} Homework submission details
+   */
+  async getHomeworkSubmission(jobId) {
+    return this.get(`/homework/submissions/${jobId}`);
+  }
+  
+  /**
+   * Delete a homework submission
+   * **Validates: Requirements 9.1**
+   * @param {string} jobId - The job ID to delete
+   * @returns {Promise<Object>} Deletion confirmation
+   */
+  async deleteHomeworkSubmission(jobId) {
+    return this.delete(`/homework/submissions/${jobId}`);
+  }
 }
 
 // Export singleton

@@ -2,6 +2,8 @@
 // Main page with sidebar navigation for learning features
 // **Feature: learning-hub-ai-chat**
 // **Validates: Requirements 1.1, 1.2, 1.3, 1.4**
+// **Feature: homework-grading**
+// **Validates: Requirements 1.1, 1.2, 1.3**
 
 const LearningHubPage = Vue.defineComponent({
   name: 'LearningHubPage',
@@ -62,6 +64,10 @@ const LearningHubPage = Vue.defineComponent({
         <!-- AI Chat Panel -->
         <ai-chat-panel v-if="activeTab === 'ai-chat'"></ai-chat-panel>
         
+        <!-- Homework Grading Panel -->
+        <!-- **Feature: homework-grading, Validates: Requirements 1.2, 1.3** -->
+        <homework-grading-panel v-else-if="activeTab === 'homework-grading'"></homework-grading-panel>
+        
         <!-- Placeholder for future tabs -->
         <div v-else class="learning-hub-placeholder">
           <div v-html="getIcon('construction', 'lucide', 48, 'text-secondary-custom')"></div>
@@ -82,10 +88,9 @@ const LearningHubPage = Vue.defineComponent({
       
       // Available tabs (extensible for future features)
       tabs: [
-        { key: 'ai-chat', label: 'AI Chat', icon: 'messageCircle' }
-        // Future tabs can be added here:
-        // { key: 'flashcards', label: 'Flashcards', icon: 'layers' },
-        // { key: 'quizzes', label: 'Quizzes', icon: 'clipboardCheck' },
+        { key: 'ai-chat', label: 'AI Chat', icon: 'messageCircle' },
+        // **Feature: homework-grading, Validates: Requirements 1.1**
+        { key: 'homework-grading', label: 'Homework Grading', icon: 'clipboardCheck' }
       ]
     };
   },
