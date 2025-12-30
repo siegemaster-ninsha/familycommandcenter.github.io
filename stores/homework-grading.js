@@ -90,8 +90,117 @@ const useHomeworkGradingStore = Pinia.defineStore('homeworkGrading', {
   
   actions: {
     /**
+     * Get presigned URLs for uploading homework images to S3
+     * @param {string[]} fileExtensions - Array of file extensions (jpg, png, heic, webp)
+     * @returns {Promise<{success: boolean, uploads?: Array, error?: string}>}
+     */
+    async getImageUploadUrls(fileExtensions) {
+      try {
+        const response = await apiService.post('/homework/image/upload-urls', {
+          fileExtensions
+        });
+        
+        if (response.success && response.data?.uploads) {
+          return { success: true, uploads: response.data.uploads };
+        }
+        
+        return { success: false, error: response.error || 'Failed to get upload URLs' };
+      } catch (error) {
+        console.error('[Homework] Failed to get upload URLs:', error);
+        return { success: false, error: this._formatError(error) };
+      }
+    },
+    
+    /**
+     * Upload an image directly to S3 using a presigned URL
+     * @param {string} uploadUrl - Presigned S3 upload URL
+     * @param {Blob} imageBlob - Image data as Blob
+     * @param {string} contentType - MIME type of the image
+     * @returns {Promise<{success: boolean, error?: string}>}
+     */
+    async uploadImageToS3(uploadUrl, imageBlob, contentType) {
+      try {
+        const response = await fetch(uploadUrl, {
+          method: 'PUT',
+          body: imageBlob,
+          headers: {
+            'Content-Type': contentType
+          }
+        });
+        
+        if (response.ok) {
+          return { success: true };
+        }
+        
+        return { success: false, error: `Upload failed: ${response.status}` };
+      } catch (error) {
+        console.error('[Homework] S3 upload failed:', error);
+        return { success: false, error: 'Failed to upload image' };
+      }
+    },
+    
+    /**
+     * Get presigned URL for viewing a homework image
+     * @param {string} s3Key - S3 key of the image
+     * @returns {Promise<{success: boolean, viewUrl?: string, error?: string}>}
+     */
+    async getImageViewUrl(s3Key) {
+      try {
+        const response = await apiService.post('/homework/image/view-url', { s3Key });
+        
+        if (response.success && response.data?.viewUrl) {
+          return { success: true, viewUrl: response.data.viewUrl };
+        }
+        
+        return { success: false, error: response.error || 'Failed to get view URL' };
+      } catch (error) {
+        console.error('[Homework] Failed to get view URL:', error);
+        return { success: false, error: this._formatError(error) };
+      }
+    },
+    
+    /**
+     * Convert a data URL to a Blob
+     * @param {string} dataUrl - Base64 data URL
+     * @returns {{blob: Blob, contentType: string}}
+     */
+    dataUrlToBlob(dataUrl) {
+      const parts = dataUrl.split(',');
+      const mimeMatch = parts[0].match(/:(.*?);/);
+      const contentType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+      const base64Data = parts[1];
+      const byteString = atob(base64Data);
+      const arrayBuffer = new ArrayBuffer(byteString.length);
+      const uint8Array = new Uint8Array(arrayBuffer);
+      
+      for (let i = 0; i < byteString.length; i++) {
+        uint8Array[i] = byteString.charCodeAt(i);
+      }
+      
+      return {
+        blob: new Blob([uint8Array], { type: contentType }),
+        contentType
+      };
+    },
+    
+    /**
+     * Get file extension from MIME type
+     * @param {string} contentType - MIME type
+     * @returns {string} File extension
+     */
+    getExtensionFromMimeType(contentType) {
+      const mimeToExt = {
+        'image/jpeg': 'jpg',
+        'image/png': 'png',
+        'image/heic': 'heic',
+        'image/webp': 'webp'
+      };
+      return mimeToExt[contentType] || 'jpg';
+    },
+    
+    /**
      * Submit homework for grading
-     * Creates a job and tracks it
+     * Uploads images to S3 first, then creates a job
      * **Validates: Requirements 2.7**
      * 
      * @param {string} memberId - Family member ID
@@ -111,10 +220,45 @@ const useHomeworkGradingStore = Pinia.defineStore('homeworkGrading', {
       this.error = null;
       
       try {
-        // Call API to create homework grading job
+        // Step 1: Convert data URLs to blobs and get extensions
+        const imageData = images.map(dataUrl => {
+          const { blob, contentType } = this.dataUrlToBlob(dataUrl);
+          const extension = this.getExtensionFromMimeType(contentType);
+          return { blob, contentType, extension };
+        });
+        
+        const extensions = imageData.map(d => d.extension);
+        
+        // Step 2: Get presigned upload URLs from backend
+        console.log('[Homework] Getting upload URLs for', extensions.length, 'images...');
+        const urlsResult = await this.getImageUploadUrls(extensions);
+        
+        if (!urlsResult.success) {
+          throw new Error(urlsResult.error || 'Failed to get upload URLs');
+        }
+        
+        // Step 3: Upload each image to S3
+        const s3Keys = [];
+        for (let i = 0; i < imageData.length; i++) {
+          const { blob, contentType } = imageData[i];
+          const { uploadUrl, s3Key } = urlsResult.uploads[i];
+          
+          console.log('[Homework] Uploading image', i + 1, 'of', imageData.length, '...');
+          const uploadResult = await this.uploadImageToS3(uploadUrl, blob, contentType);
+          
+          if (!uploadResult.success) {
+            throw new Error(`Failed to upload image ${i + 1}: ${uploadResult.error}`);
+          }
+          
+          s3Keys.push(s3Key);
+        }
+        
+        console.log('[Homework] All images uploaded, creating grading job...');
+        
+        // Step 4: Create homework grading job with S3 keys
         const response = await apiService.post('/homework/grade', {
           familyMemberId: memberId,
-          images: images
+          imageS3Keys: s3Keys
         });
         
         if (response.success && response.data) {
@@ -127,7 +271,8 @@ const useHomeworkGradingStore = Pinia.defineStore('homeworkGrading', {
             status: job.status || 'pending',
             metadata: {
               familyMemberId: memberId,
-              imageCount: images.length
+              imageCount: images.length,
+              imageS3Keys: s3Keys
             },
             createdAt: job.createdAt || new Date().toISOString()
           });

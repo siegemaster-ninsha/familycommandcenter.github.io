@@ -106,27 +106,36 @@ const HomeworkDetailView = Vue.defineComponent({
           <div class="homework-detail-image-gallery">
             <!-- Main Image Display -->
             <div class="homework-detail-main-image">
+              <!-- Loading state -->
+              <div v-if="loadingImages" class="homework-detail-image-loading">
+                <div class="homework-detail-spinner"></div>
+                <p>Loading images...</p>
+              </div>
+              <!-- Image display -->
               <img 
-                v-if="currentImage"
+                v-else-if="currentImage"
                 :src="currentImage" 
-                :alt="'Homework image ' + (currentImageIndex + 1)"
+                :alt="'Homework page ' + (currentImageIndex + 1)"
                 class="homework-detail-image"
                 @click="openImageFullscreen"
               />
               <div v-else class="homework-detail-no-image">
                 <div v-html="getIcon('imageOff', 'lucide', 48, '')"></div>
-                <p>No image available</p>
+                <p>Images not stored</p>
+                <p class="homework-detail-no-image-hint">
+                  {{ imageCount }} {{ imageCount === 1 ? 'page was' : 'pages were' }} submitted for grading
+                </p>
               </div>
             </div>
             
-            <!-- Image Navigation -->
+            <!-- Image Navigation (only show if multiple images available) -->
             <!-- **Validates: Requirements 8.5** -->
-            <div v-if="imageCount > 1" class="homework-detail-image-nav">
+            <div v-if="hasImages && imageCount > 1" class="homework-detail-image-nav">
               <button 
                 @click="previousImage"
                 :disabled="currentImageIndex === 0"
                 class="homework-detail-nav-btn"
-                aria-label="Previous image"
+                aria-label="Previous page"
               >
                 <div v-html="getIcon('chevronLeft', 'lucide', 20, '')"></div>
               </button>
@@ -138,7 +147,7 @@ const HomeworkDetailView = Vue.defineComponent({
                   @click="goToImage(index)"
                   class="homework-detail-image-indicator"
                   :class="{ 'homework-detail-image-indicator--active': index === currentImageIndex }"
-                  :aria-label="'Go to image ' + (index + 1)"
+                  :aria-label="'Go to page ' + (index + 1)"
                 ></button>
               </div>
               
@@ -146,14 +155,14 @@ const HomeworkDetailView = Vue.defineComponent({
                 @click="nextImage"
                 :disabled="currentImageIndex === imageCount - 1"
                 class="homework-detail-nav-btn"
-                aria-label="Next image"
+                aria-label="Next page"
               >
                 <div v-html="getIcon('chevronRight', 'lucide', 20, '')"></div>
               </button>
             </div>
             
-            <p class="homework-detail-image-count">
-              Image {{ currentImageIndex + 1 }} of {{ imageCount }}
+            <p v-if="hasImages" class="homework-detail-image-count">
+              Page {{ currentImageIndex + 1 }} of {{ imageCount }}
             </p>
           </div>
         </section>
@@ -344,8 +353,17 @@ const HomeworkDetailView = Vue.defineComponent({
     return {
       // Current image index for navigation
       // **Validates: Requirements 8.5**
-      currentImageIndex: 0
+      currentImageIndex: 0,
+      // Loaded image URLs from S3 (presigned URLs)
+      loadedImageUrls: [],
+      // Loading state for images
+      loadingImages: false
     };
+  },
+  
+  async mounted() {
+    // Load images when component mounts
+    await this.loadImages();
   },
   
   computed: {
@@ -501,27 +519,36 @@ const HomeworkDetailView = Vue.defineComponent({
     // =============================================
     
     /**
-     * Get images array from job metadata
+     * Get S3 keys array from job metadata
      * **Validates: Requirements 8.2**
      */
-    images() {
-      return this.job?.metadata?.imageUrls || [];
+    imageS3Keys() {
+      return this.job?.metadata?.imageS3Keys || [];
     },
     
     /**
-     * Get image count
+     * Get image count (from S3 keys or metadata count)
      */
     imageCount() {
-      return this.images.length || this.job?.metadata?.imageCount || 0;
+      if (this.imageS3Keys.length > 0) {
+        return this.imageS3Keys.length;
+      }
+      return this.job?.metadata?.imageCount || 0;
     },
     
     /**
-     * Get current image URL
+     * Check if images are available for display
+     */
+    hasImages() {
+      return this.imageS3Keys.length > 0;
+    },
+    
+    /**
+     * Get current image URL (loaded dynamically)
      * **Validates: Requirements 8.5**
      */
     currentImage() {
-      if (this.images.length === 0) return null;
-      return this.images[this.currentImageIndex] || this.images[0];
+      return this.loadedImageUrls[this.currentImageIndex] || null;
     },
     
     // =============================================
@@ -686,6 +713,49 @@ const HomeworkDetailView = Vue.defineComponent({
     },
     
     /**
+     * Load images from S3 using presigned URLs
+     * **Validates: Requirements 8.2**
+     */
+    async loadImages() {
+      const s3Keys = this.imageS3Keys;
+      
+      if (!s3Keys || s3Keys.length === 0) {
+        console.log('[HomeworkDetail] No S3 keys to load');
+        return;
+      }
+      
+      this.loadingImages = true;
+      this.loadedImageUrls = [];
+      
+      try {
+        const homeworkStore = window.useHomeworkGradingStore ? window.useHomeworkGradingStore() : null;
+        
+        if (!homeworkStore) {
+          console.error('[HomeworkDetail] Homework store not available');
+          return;
+        }
+        
+        // Load presigned URLs for each S3 key
+        for (const s3Key of s3Keys) {
+          const result = await homeworkStore.getImageViewUrl(s3Key);
+          
+          if (result.success && result.viewUrl) {
+            this.loadedImageUrls.push(result.viewUrl);
+          } else {
+            console.warn('[HomeworkDetail] Failed to get view URL for:', s3Key);
+            this.loadedImageUrls.push(null);
+          }
+        }
+        
+        console.log('[HomeworkDetail] Loaded', this.loadedImageUrls.filter(u => u).length, 'image URLs');
+      } catch (error) {
+        console.error('[HomeworkDetail] Failed to load images:', error);
+      } finally {
+        this.loadingImages = false;
+      }
+    },
+    
+    /**
      * Navigate to previous image
      * **Validates: Requirements 8.5**
      */
@@ -735,9 +805,14 @@ const HomeworkDetailView = Vue.defineComponent({
   },
   
   watch: {
-    // Reset image index when job changes
-    'job.jobId'() {
-      this.currentImageIndex = 0;
+    // Reset image index and reload images when job changes
+    'job.jobId': {
+      async handler() {
+        this.currentImageIndex = 0;
+        this.loadedImageUrls = [];
+        await this.loadImages();
+      },
+      immediate: false
     }
   }
 });
