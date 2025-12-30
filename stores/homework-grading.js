@@ -176,7 +176,12 @@ const useHomeworkGradingStore = Pinia.defineStore('homeworkGrading', {
         const response = await apiService.get('/homework/submissions');
         
         if (response.success && response.data) {
-          this.submissions = response.data;
+          // Handle both array and object with submissions property
+          const submissionsData = Array.isArray(response.data) 
+            ? response.data 
+            : (response.data.submissions || []);
+          
+          this.submissions = submissionsData;
           
           // Sort by createdAt descending (newest first)
           // **Validates: Requirements 7.7**

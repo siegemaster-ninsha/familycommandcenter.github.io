@@ -15,9 +15,9 @@ const HomeworkGradingPanel = Vue.defineComponent({
   },
   
   setup() {
-    const homeworkStore = useHomeworkGradingStore();
-    const familyStore = useFamilyStore();
-    const jobStore = useJobStore();
+    const homeworkStore = window.useHomeworkGradingStore();
+    const familyStore = window.useFamilyStore();
+    const jobStore = window.useJobStore();
     
     return { homeworkStore, familyStore, jobStore };
   },
