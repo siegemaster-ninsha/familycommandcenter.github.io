@@ -8599,3 +8599,752 @@ body.learning-hub-menu-open {
     padding: var(--space-8);
   }
 }
+
+}
+
+/* ===========================================
+   KID'S CENTER PAGE STYLES
+   Main page with sidebar navigation for kid-focused features
+   **Feature: decision-wheel**
+   **Validates: Requirements 1.1, 1.2, 1.3**
+   =========================================== */
+
+/* Main layout container */
+.kids-center-layout {
+  display: flex;
+  min-height: calc(100vh - 120px);
+  background: var(--color-bg-primary);
+}
+
+/* Mobile header - hidden on desktop */
+.kids-center-mobile-header {
+  display: none;
+}
+
+/* Sidebar navigation */
+.kids-center-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: var(--color-bg-card);
+  border-right: 1px solid var(--color-border-card);
+  display: flex;
+  flex-direction: column;
+}
+
+.kids-center-sidebar-header {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border-card);
+}
+
+.kids-center-sidebar-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+/* Navigation items */
+.kids-center-nav {
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.kids-center-nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+  width: 100%;
+  min-height: 44px;
+}
+
+.kids-center-nav-item:hover {
+  background: var(--color-bg-card-hover);
+  color: var(--color-text-primary);
+}
+
+/* Active tab state */
+.kids-center-nav-item--active {
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
+}
+
+.kids-center-nav-item--active:hover {
+  background: var(--color-primary-100);
+}
+
+/* Content panel */
+.kids-center-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-4);
+}
+
+/* Placeholder for future tabs */
+.kids-center-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  color: var(--color-text-muted);
+}
+
+/* Mobile overlay */
+.kids-center-overlay {
+  display: none;
+}
+
+/* Mobile menu button */
+.kids-center-menu-btn {
+  padding: var(--space-2);
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Mobile title */
+.kids-center-mobile-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+/* ===========================================
+   KID'S CENTER RESPONSIVE STYLES
+   =========================================== */
+
+@media (width <= 768px) {
+  /* Show mobile header */
+  .kids-center-mobile-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-bg-card);
+    border-bottom: 1px solid var(--color-border-card);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  
+  /* Stack layout vertically */
+  .kids-center-layout {
+    flex-direction: column;
+    min-height: calc(100vh - 60px);
+  }
+  
+  /* Sidebar becomes slide-out drawer */
+  .kids-center-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform var(--transition-normal);
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .kids-center-sidebar--open {
+    transform: translateX(0);
+  }
+  
+  /* Overlay when sidebar is open */
+  .kids-center-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: var(--color-overlay);
+    z-index: 99;
+  }
+  
+  /* Content takes full width */
+  .kids-center-content {
+    padding: var(--space-3);
+  }
+}
+
+/* Prevent body scroll when mobile menu is open */
+body.kids-center-menu-open {
+  overflow: hidden;
+}
+
+
+/* ===========================================
+   DECISION WHEEL PANEL STYLES
+   Interactive spinning wheel for random decisions
+   **Feature: decision-wheel**
+   **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 4.1, 4.2, 8.1, 8.2, 8.3, 8.4, 8.5, 9.1, 10.1, 10.2, 10.3, 10.4, 10.5, 12.1, 12.2, 12.4**
+   =========================================== */
+
+/* Main panel container */
+.decision-wheel-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 500px;
+}
+
+/* Two-column layout */
+.decision-wheel-layout {
+  display: flex;
+  gap: var(--space-6);
+  flex: 1;
+  min-height: 0;
+}
+
+/* ===========================================
+   OPTIONS PANEL (Left Side)
+   =========================================== */
+
+.decision-wheel-options-panel {
+  width: 320px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-card);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-card);
+  overflow: hidden;
+}
+
+.decision-wheel-options-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border-card);
+  background: var(--color-surface-1);
+}
+
+.decision-wheel-options-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.decision-wheel-add-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  min-height: 36px;
+  font-size: var(--font-size-sm);
+}
+
+/* Options List */
+.decision-wheel-options-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Empty State */
+.decision-wheel-empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.decision-wheel-empty-icon {
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-3);
+}
+
+.decision-wheel-empty-text {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.decision-wheel-empty-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* Option Item */
+.decision-wheel-option-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border-card);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-height: 48px;
+}
+
+.decision-wheel-option-item:hover {
+  background: var(--color-surface-3);
+  border-color: var(--color-primary-300);
+}
+
+.decision-wheel-option-item:focus {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Option on wheel state */
+.decision-wheel-option-item--on-wheel {
+  background: var(--color-primary-50);
+  border-color: var(--color-primary-300);
+}
+
+.decision-wheel-option-item--on-wheel:hover {
+  background: var(--color-primary-100);
+}
+
+.decision-wheel-option-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  flex: 1;
+}
+
+.decision-wheel-option-text {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.decision-wheel-option-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-success-100);
+  color: var(--color-success-700);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  flex-shrink: 0;
+}
+
+.decision-wheel-option-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.decision-wheel-option-delete:hover {
+  background: var(--color-error-50);
+  color: var(--color-error-600);
+}
+
+.decision-wheel-option-delete:focus {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* ===========================================
+   WHEEL AREA (Right Side)
+   =========================================== */
+
+.decision-wheel-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.decision-wheel-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Placeholder when < 2 options */
+.decision-wheel-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.decision-wheel-placeholder-icon {
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+}
+
+.decision-wheel-placeholder-text {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.decision-wheel-placeholder-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* SVG Wheel Container */
+.decision-wheel-canvas-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.decision-wheel-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 350px;
+  aspect-ratio: 1;
+}
+
+/* Fixed Pointer */
+.decision-wheel-pointer {
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  filter: drop-shadow(0 2px 4px rgb(0 0 0 / 20%));
+}
+
+/* SVG Wheel */
+.decision-wheel-svg {
+  width: 100%;
+  height: 100%;
+  transform-origin: center center;
+}
+
+.decision-wheel-segment {
+  transition: opacity var(--transition-fast);
+}
+
+.decision-wheel-segment--clickable {
+  cursor: pointer;
+}
+
+.decision-wheel-segment--clickable:hover {
+  opacity: 0.85;
+}
+
+.decision-wheel-segment-text {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-semibold);
+  pointer-events: none;
+}
+
+/* Removal Error Message */
+.decision-wheel-removal-error {
+  margin-top: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
+/* Spin Button */
+.decision-wheel-spin-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-8);
+  min-height: 56px;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  transition: all var(--transition-normal);
+}
+
+.decision-wheel-spin-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-xl);
+}
+
+.decision-wheel-spin-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ===========================================
+   WINNER ANNOUNCEMENT OVERLAY
+   =========================================== */
+
+.decision-wheel-winner-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-4);
+  animation: decision-wheel-fade-in 0.3s ease-out;
+}
+
+@keyframes decision-wheel-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.decision-wheel-winner-modal {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-8);
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: var(--shadow-2xl);
+  animation: decision-wheel-scale-in 0.3s ease-out;
+}
+
+@keyframes decision-wheel-scale-in {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.decision-wheel-winner-icon {
+  margin-bottom: var(--space-4);
+}
+
+.decision-wheel-trophy {
+  color: var(--color-warning-500);
+}
+
+.decision-wheel-winner-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.decision-wheel-winner-text {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary-600);
+  margin: 0 0 var(--space-6) 0;
+  padding: var(--space-4);
+  background: var(--color-primary-50);
+  border-radius: var(--radius-lg);
+}
+
+.decision-wheel-winner-dismiss {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  min-height: 48px;
+  font-size: var(--font-size-base);
+  width: 100%;
+}
+
+/* ===========================================
+   NEW OPTION FLYOUT STYLES
+   =========================================== */
+
+.decision-wheel-flyout-content {
+  padding: var(--space-4);
+}
+
+.decision-wheel-flyout-label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+.decision-wheel-flyout-input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-card);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-base);
+  background: var(--color-surface-1);
+  color: var(--color-text-primary);
+  min-height: 44px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.decision-wheel-flyout-input:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 2px var(--color-primary-overlay-10);
+}
+
+.decision-wheel-flyout-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.decision-wheel-flyout-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: var(--space-2) 0 0 0;
+}
+
+.decision-wheel-flyout-error {
+  font-size: var(--font-size-sm);
+  color: var(--color-error-600);
+  margin: var(--space-2) 0 0 0;
+}
+
+.decision-wheel-flyout-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+/* ===========================================
+   DECISION WHEEL RESPONSIVE STYLES
+   =========================================== */
+
+@media (width <= 900px) {
+  .decision-wheel-layout {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  
+  .decision-wheel-options-panel {
+    width: 100%;
+    max-height: 300px;
+  }
+  
+  .decision-wheel-main {
+    padding: var(--space-4) 0;
+  }
+  
+  .decision-wheel-display {
+    max-width: 300px;
+  }
+}
+
+@media (width <= 480px) {
+  .decision-wheel-panel {
+    min-height: 400px;
+  }
+  
+  .decision-wheel-options-panel {
+    max-height: 250px;
+  }
+  
+  .decision-wheel-options-header {
+    padding: var(--space-3);
+  }
+  
+  .decision-wheel-options-list {
+    padding: var(--space-2);
+  }
+  
+  .decision-wheel-option-item {
+    padding: var(--space-2) var(--space-3);
+  }
+  
+  .decision-wheel-display {
+    max-width: 280px;
+  }
+  
+  .decision-wheel-spin-btn {
+    padding: var(--space-3) var(--space-6);
+    min-height: 48px;
+    font-size: var(--font-size-base);
+  }
+  
+  .decision-wheel-winner-modal {
+    padding: var(--space-6);
+  }
+  
+  .decision-wheel-winner-title {
+    font-size: var(--font-size-xl);
+  }
+  
+  .decision-wheel-winner-text {
+    font-size: var(--font-size-lg);
+  }
+}
+
+/* Mobile collapsible options panel header */
+.decision-wheel-options-collapse-header {
+  display: none;
+}
+
+@media (width <= 768px) {
+  .decision-wheel-options-collapse-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-surface-1);
+    border-bottom: 1px solid var(--color-border-card);
+    cursor: pointer;
+    min-height: 44px;
+  }
+}

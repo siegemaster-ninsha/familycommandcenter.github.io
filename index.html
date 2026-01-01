@@ -369,9 +369,9 @@
                     <recipe-page></recipe-page>
                   </div>
 
-                  <!-- Learning Hub Page -->
+                  <!-- Kid's Center Page (renamed from Learning Hub) -->
                   <div v-else-if="currentPage === 'learning'">
-                    <learning-hub-page></learning-hub-page>
+                    <kids-center-page></kids-center-page>
                   </div>
 
                   <!-- Account Settings Page -->
@@ -423,6 +423,13 @@
     <script src="components/homework-detail-view.js"></script>
     <script src="components/homework-grading-panel.js"></script>
     <script src="components/learning-hub-page.js"></script>
+    
+    <!-- Kid's Center and Decision Wheel -->
+    <script src="utils/confetti.js"></script>
+    <script src="stores/decision-wheel.js"></script>
+    <script src="components/decision-wheel-panel.js"></script>
+    <script src="components/kids-center-page.js"></script>
+    
     <script src="utils/image-orientation.js"></script>
     <script src="components/image-capture-modal.js"></script>
     <script src="components/virtual-keyboard.js"></script>

@@ -132,7 +132,7 @@ const app = createApp({
         { key: 'family', label: 'Family' },
         { key: 'shopping', label: 'Shopping' },
         { key: 'recipes', label: 'Recipes' },
-        { key: 'learning', label: 'Learning' },
+        { key: 'learning', label: "Kid's Center" },
         { key: 'account', label: 'Account' }
       ],
       
@@ -3401,6 +3401,17 @@ function checkAndRegisterComponents() {
   console.log('📦 Registering homework-grading-panel');
   if (window.HomeworkGradingPanel) {
     app.component('homework-grading-panel', window.HomeworkGradingPanel);
+  }
+
+  // Kid's Center and Decision Wheel components
+  console.log('📦 Registering decision-wheel-panel');
+  if (window.DecisionWheelPanel) {
+    app.component('decision-wheel-panel', window.DecisionWheelPanel);
+  }
+
+  console.log('📦 Registering kids-center-page');
+  if (window.KidsCenterPage) {
+    app.component('kids-center-page', window.KidsCenterPage);
   }
 
   console.log('✅ All components registered, mounting app...');
