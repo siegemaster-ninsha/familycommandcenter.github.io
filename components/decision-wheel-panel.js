@@ -108,57 +108,44 @@ function randomBetween(min, max) {
  * Always spins clockwise (positive direction) with minimum 10 rotations
  * **Validates: Requirements 9.2, 9.3, 9.5**
  * 
+ * Geometry:
+ * - Pointer is at TOP of wheel, pointing down
+ * - Segments drawn starting at 0° (top), going clockwise
+ * - Segment N center is at: N * segmentAngle + segmentAngle/2
+ * - When wheel rotates clockwise by R degrees, segment at position (360-R) ends up at top
+ * - So to get segment at position P to the top, rotate by (360 - P) or equivalently (-P)
+ * 
  * @param {number} numOptions - Number of options on the wheel
  * @param {number} currentRotation - Current wheel rotation in degrees (default 0)
  * @returns {{ duration: number, finalAngle: number, winnerIndex: number }}
  */
 function calculateSpin(numOptions, currentRotation = 0) {
-  // Randomized duration between 4-7 seconds (longer for more rotations)
-  // **Validates: Requirements 9.5**
   const duration = randomBetween(SPIN_CONFIG.minDuration, SPIN_CONFIG.maxDuration);
-  
-  // Randomized number of full rotations (10-15) - always positive for clockwise spin
   const rotations = randomBetween(SPIN_CONFIG.minRotations, SPIN_CONFIG.maxRotations);
-  
-  // Randomly determine the winner
-  // **Validates: Requirements 9.3**
   const winnerIndex = Math.floor(Math.random() * numOptions);
-  
-  // Calculate segment angle
   const segmentAngle = 360 / numOptions;
   
-  // Calculate the target angle where the winning segment's center is at the top (under the pointer)
-  // Segments are drawn starting at 0 degrees (top), going clockwise
-  // Segment N spans from N*segmentAngle to (N+1)*segmentAngle
-  // The center of segment N is at N*segmentAngle + segmentAngle/2
-  // To get segment N under the pointer (at top/0 degrees), we need to rotate the wheel
-  // so that the segment's center aligns with 0 degrees
-  const targetSegmentCenter = winnerIndex * segmentAngle + segmentAngle / 2;
+  // Center of winning segment (its position on the unrotated wheel)
+  const winnerCenterAngle = winnerIndex * segmentAngle + segmentAngle / 2;
   
-  // Add some randomness within the segment to make it feel more natural
-  // Keep variation small to ensure we stay within the winning segment
+  // Add randomness within the segment
   const segmentVariation = randomBetween(-segmentAngle * 0.3, segmentAngle * 0.3);
+  const targetPosition = winnerCenterAngle + segmentVariation;
   
-  // The final absolute position we want the wheel to be at
-  // We want targetSegmentCenter to be at the top, so we rotate by that amount
-  const targetPosition = targetSegmentCenter + segmentVariation;
+  // To get segment at targetPosition to the top, we need total rotation = 360 - targetPosition
+  // (rotating clockwise moves segments clockwise, so segment at P ends up at top when rotation = 360-P)
+  const targetRotation = (360 - targetPosition + 360) % 360;
   
-  // Calculate how much additional rotation is needed from current position
-  // We need to add full rotations plus whatever extra is needed to land on target
-  const baseRotations = Math.floor(rotations) * 360;
-  
-  // Normalize current rotation to 0-360 range
+  // Calculate additional rotation needed from current position
   const normalizedCurrent = ((currentRotation % 360) + 360) % 360;
-  
-  // Calculate the extra rotation needed to go from current position to target
-  // We want to always go forward (positive), so if target is behind us, add 360
-  let extraRotation = targetPosition - normalizedCurrent;
-  if (extraRotation < 0) {
-    extraRotation += 360;
+  let additionalRotation = targetRotation - normalizedCurrent;
+  if (additionalRotation <= 0) {
+    additionalRotation += 360;
   }
   
-  // Final angle is base rotations plus the extra needed to land on winner
-  const finalAngle = baseRotations + extraRotation;
+  // Total = base rotations + additional to land on target
+  const baseRotations = Math.floor(rotations) * 360;
+  const finalAngle = baseRotations + additionalRotation;
   
   return { 
     duration: Math.round(duration), 
