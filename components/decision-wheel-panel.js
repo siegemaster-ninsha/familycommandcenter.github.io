@@ -559,9 +559,10 @@ const DecisionWheelPanel = Vue.defineComponent({
   },
   
   mounted() {
-    // Load saved options from storage on mount
-    // **Validates: Requirements 11.1, 11.2**
-    this.store.loadFromStorage();
+    // Load options from backend when authenticated, falls back to localStorage
+    // **Validates: Requirements 3.1, 3.6, 11.1, 11.2**
+    // **Feature: decision-wheel-persistence**
+    this.store.loadFromBackend();
   },
   
   watch: {

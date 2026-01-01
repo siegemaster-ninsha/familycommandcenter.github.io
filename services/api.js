@@ -300,6 +300,39 @@ class ApiService {
   async deleteHomeworkSubmission(jobId) {
     return this.delete(`/homework/submissions/${jobId}`);
   }
+  
+  // === Decision Wheel Methods ===
+  // **Feature: decision-wheel-persistence**
+  // **Validates: Requirements 3.1, 3.3, 3.4**
+  
+  /**
+   * Get all decision wheel options for the account
+   * **Validates: Requirements 3.1**
+   * @returns {Promise<Object>} List of decision wheel options
+   */
+  async getDecisionWheelOptions() {
+    return this.get('/decision-wheel/options');
+  }
+  
+  /**
+   * Create a new decision wheel option
+   * **Validates: Requirements 3.3**
+   * @param {string} text - The option text (1-50 characters)
+   * @returns {Promise<Object>} Created option
+   */
+  async createDecisionWheelOption(text) {
+    return this.post('/decision-wheel/options', { text });
+  }
+  
+  /**
+   * Delete a decision wheel option
+   * **Validates: Requirements 3.4**
+   * @param {string} id - The option ID to delete
+   * @returns {Promise<Object>} Deletion confirmation
+   */
+  async deleteDecisionWheelOption(id) {
+    return this.delete(`/decision-wheel/options/${id}`);
+  }
 }
 
 // Export singleton

@@ -2,6 +2,8 @@
 // Manages decision wheel state: options, wheel configuration, spinning, and winner
 // **Feature: decision-wheel**
 // **Validates: Requirements 4.4, 4.5, 5.2, 5.3, 6.1, 6.3, 6.4, 7.1, 7.3, 7.4, 11.1, 11.2, 11.3, 11.4**
+// **Feature: decision-wheel-persistence**
+// **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 4.1, 4.2, 4.3, 4.4, 5.1, 5.2, 5.3, 5.4**
 
 // Local storage key for persisting options
 const STORAGE_KEY = 'fcc_decision_wheel_options';
@@ -47,7 +49,13 @@ const useDecisionWheelStore = Pinia.defineStore('decisionWheel', {
     showWinner: false,
     
     // Whether to show the new option flyout
-    showNewOptionFlyout: false
+    showNewOptionFlyout: false,
+    
+    // Backend sync state
+    // **Feature: decision-wheel-persistence**
+    isLoadingFromBackend: false,
+    backendSyncEnabled: false,
+    lastSyncError: null
   }),
   
   getters: {
@@ -98,6 +106,8 @@ const useDecisionWheelStore = Pinia.defineStore('decisionWheel', {
     /**
      * Create a new decision option
      * **Validates: Requirements 4.4, 4.5**
+     * **Feature: decision-wheel-persistence**
+     * **Validates: Requirements 3.3, 5.2, 5.4**
      * 
      * @param {string} text - The option text
      * @returns {{ success: boolean, error?: string, option?: object }}
@@ -133,14 +143,64 @@ const useDecisionWheelStore = Pinia.defineStore('decisionWheel', {
       // Persist to storage
       this.saveToStorage();
       
+      // Sync with backend if authenticated (non-blocking)
+      // **Feature: decision-wheel-persistence**
+      // **Validates: Requirements 3.3, 5.2, 5.4**
+      this.syncCreateOption(trimmedText, newOption.id);
+      
       console.log('[DecisionWheel] Option created:', newOption.id);
       
       return { success: true, option: newOption };
     },
     
     /**
+     * Sync a created option to the backend
+     * **Feature: decision-wheel-persistence**
+     * **Validates: Requirements 3.3, 5.2, 5.4**
+     * 
+     * @param {string} text - The option text
+     * @param {string} localId - The local ID of the option
+     */
+    async syncCreateOption(text, localId) {
+      // Check if authenticated
+      const authStore = window.useAuthStore ? window.useAuthStore() : null;
+      if (!authStore || !authStore.isAuthenticated) {
+        console.log('[DecisionWheel] Not authenticated, skipping backend sync for create');
+        return;
+      }
+      
+      // Check if API service is available
+      if (!window.apiService) {
+        console.log('[DecisionWheel] API service not available, skipping backend sync');
+        return;
+      }
+      
+      try {
+        const response = await window.apiService.createDecisionWheelOption(text);
+        
+        if (response && response.success && response.data) {
+          // Update local option with backend ID and timestamps
+          const localOption = this.savedOptions.find(opt => opt.id === localId);
+          if (localOption) {
+            localOption.backendId = response.data.id;
+            localOption.accountId = response.data.accountId;
+            this.saveToStorage();
+          }
+          console.log('[DecisionWheel] Option synced to backend:', response.data.id);
+        }
+      } catch (error) {
+        // **Validates: Requirements 5.2, 5.4**
+        // Keep local state, log warning, don't block UI
+        console.warn('[DecisionWheel] Failed to sync option to backend:', error.message);
+        this.lastSyncError = error.message;
+      }
+    },
+    
+    /**
      * Delete a decision option
      * **Validates: Requirements 5.2, 5.3**
+     * **Feature: decision-wheel-persistence**
+     * **Validates: Requirements 3.4, 5.3, 5.4**
      * 
      * @param {string} optionId - The ID of the option to delete
      * @returns {{ success: boolean, error?: string }}
@@ -156,6 +216,10 @@ const useDecisionWheelStore = Pinia.defineStore('decisionWheel', {
         return { success: false, error: 'Option not found' };
       }
       
+      // Get the option before removing (for backend sync)
+      const option = this.savedOptions[optionIndex];
+      const backendId = option.backendId || option.id;
+      
       // Remove from saved options
       // **Validates: Requirements 5.2**
       this.savedOptions.splice(optionIndex, 1);
@@ -170,9 +234,46 @@ const useDecisionWheelStore = Pinia.defineStore('decisionWheel', {
       // Persist to storage
       this.saveToStorage();
       
+      // Sync with backend if authenticated (non-blocking)
+      // **Feature: decision-wheel-persistence**
+      // **Validates: Requirements 3.4, 5.3, 5.4**
+      this.syncDeleteOption(backendId);
+      
       console.log('[DecisionWheel] Option deleted:', optionId);
       
       return { success: true };
+    },
+    
+    /**
+     * Sync a deleted option to the backend
+     * **Feature: decision-wheel-persistence**
+     * **Validates: Requirements 3.4, 5.3, 5.4**
+     * 
+     * @param {string} optionId - The ID of the option to delete from backend
+     */
+    async syncDeleteOption(optionId) {
+      // Check if authenticated
+      const authStore = window.useAuthStore ? window.useAuthStore() : null;
+      if (!authStore || !authStore.isAuthenticated) {
+        console.log('[DecisionWheel] Not authenticated, skipping backend sync for delete');
+        return;
+      }
+      
+      // Check if API service is available
+      if (!window.apiService) {
+        console.log('[DecisionWheel] API service not available, skipping backend sync');
+        return;
+      }
+      
+      try {
+        await window.apiService.deleteDecisionWheelOption(optionId);
+        console.log('[DecisionWheel] Option deleted from backend:', optionId);
+      } catch (error) {
+        // **Validates: Requirements 5.3, 5.4**
+        // Keep option removed from local state, log warning, don't block UI
+        console.warn('[DecisionWheel] Failed to delete option from backend:', error.message);
+        this.lastSyncError = error.message;
+      }
     },
     
     /**
@@ -347,6 +448,126 @@ const useDecisionWheelStore = Pinia.defineStore('decisionWheel', {
     },
     
     /**
+     * Load options from backend API when authenticated
+     * Falls back to localStorage if not authenticated or API fails
+     * **Feature: decision-wheel-persistence**
+     * **Validates: Requirements 3.1, 3.2, 5.1**
+     */
+    async loadFromBackend() {
+      // First load from localStorage for immediate display
+      this.loadFromStorage();
+      
+      // Check if authenticated
+      const authStore = window.useAuthStore ? window.useAuthStore() : null;
+      if (!authStore || !authStore.isAuthenticated) {
+        // **Validates: Requirements 3.2**
+        console.log('[DecisionWheel] Not authenticated, using localStorage only');
+        this.backendSyncEnabled = false;
+        return;
+      }
+      
+      // Check if API service is available
+      if (!window.apiService) {
+        console.log('[DecisionWheel] API service not available, using localStorage only');
+        this.backendSyncEnabled = false;
+        return;
+      }
+      
+      this.isLoadingFromBackend = true;
+      this.lastSyncError = null;
+      
+      try {
+        // **Validates: Requirements 3.1**
+        const response = await window.apiService.getDecisionWheelOptions();
+        
+        if (response && response.success && Array.isArray(response.data)) {
+          // Convert backend options to local format
+          const backendOptions = response.data.map(opt => ({
+            id: opt.id,
+            text: opt.text,
+            createdAt: new Date(opt.createdAt).getTime(),
+            backendId: opt.id,
+            accountId: opt.accountId
+          }));
+          
+          // Merge with local options and migrate if needed
+          await this.migrateLocalOptions(backendOptions);
+          
+          this.backendSyncEnabled = true;
+          console.log('[DecisionWheel] Loaded', backendOptions.length, 'options from backend');
+        }
+      } catch (error) {
+        // **Validates: Requirements 5.1**
+        // Fall back to localStorage (already loaded above)
+        console.warn('[DecisionWheel] Failed to load from backend, using localStorage:', error.message);
+        this.lastSyncError = error.message;
+        this.backendSyncEnabled = false;
+      } finally {
+        this.isLoadingFromBackend = false;
+      }
+    },
+    
+    /**
+     * Migrate local options to backend on first sync
+     * Deduplicates by text to avoid duplicates
+     * **Feature: decision-wheel-persistence**
+     * **Validates: Requirements 4.1, 4.2, 4.3, 4.4**
+     * 
+     * @param {Array} backendOptions - Options already in the backend
+     */
+    async migrateLocalOptions(backendOptions) {
+      // Get texts from backend options for deduplication
+      const backendTexts = new Set(backendOptions.map(opt => opt.text.toLowerCase()));
+      
+      // Find local options not in backend (by text)
+      // **Validates: Requirements 4.1**
+      const localOnlyOptions = this.savedOptions.filter(
+        opt => !opt.backendId && !backendTexts.has(opt.text.toLowerCase())
+      );
+      
+      // Upload missing options to backend
+      // **Validates: Requirements 4.2**
+      const uploadedOptions = [];
+      for (const localOpt of localOnlyOptions) {
+        try {
+          const response = await window.apiService.createDecisionWheelOption(localOpt.text);
+          if (response && response.success && response.data) {
+            uploadedOptions.push({
+              id: response.data.id,
+              text: response.data.text,
+              createdAt: new Date(response.data.createdAt).getTime(),
+              backendId: response.data.id,
+              accountId: response.data.accountId
+            });
+            console.log('[DecisionWheel] Migrated local option to backend:', localOpt.text);
+          }
+        } catch (error) {
+          console.warn('[DecisionWheel] Failed to migrate option:', localOpt.text, error.message);
+        }
+      }
+      
+      // Merge backend and uploaded options, deduplicate by text
+      // **Validates: Requirements 4.3, 4.4**
+      const allBackendOptions = [...backendOptions, ...uploadedOptions];
+      const seenTexts = new Set();
+      const mergedOptions = [];
+      
+      for (const opt of allBackendOptions) {
+        const lowerText = opt.text.toLowerCase();
+        if (!seenTexts.has(lowerText)) {
+          seenTexts.add(lowerText);
+          mergedOptions.push(opt);
+        }
+      }
+      
+      // Update saved options with merged result
+      this.savedOptions = mergedOptions;
+      this.saveToStorage();
+      
+      console.log('[DecisionWheel] Migration complete, total options:', mergedOptions.length);
+    },
+    
+    /**
      * Save options to local storage
      * **Validates: Requirements 11.1**
      */
@@ -370,6 +591,9 @@ const useDecisionWheelStore = Pinia.defineStore('decisionWheel', {
       this.winner = null;
       this.showWinner = false;
       this.showNewOptionFlyout = false;
+      this.isLoadingFromBackend = false;
+      this.backendSyncEnabled = false;
+      this.lastSyncError = null;
     }
   }
 });
