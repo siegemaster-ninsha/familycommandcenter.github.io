@@ -109,9 +109,10 @@ function randomBetween(min, max) {
  * **Validates: Requirements 9.2, 9.3, 9.5**
  * 
  * @param {number} numOptions - Number of options on the wheel
+ * @param {number} currentRotation - Current wheel rotation in degrees (default 0)
  * @returns {{ duration: number, finalAngle: number, winnerIndex: number }}
  */
-function calculateSpin(numOptions) {
+function calculateSpin(numOptions, currentRotation = 0) {
   // Randomized duration between 4-7 seconds (longer for more rotations)
   // **Validates: Requirements 9.5**
   const duration = randomBetween(SPIN_CONFIG.minDuration, SPIN_CONFIG.maxDuration);
@@ -126,25 +127,38 @@ function calculateSpin(numOptions) {
   // Calculate segment angle
   const segmentAngle = 360 / numOptions;
   
-  // Calculate final angle to land on winner
-  // The pointer is at the top (0 degrees), so we need to calculate
-  // how much to rotate so the winner segment is under the pointer
-  // Always use positive rotation for consistent clockwise direction
-  const baseAngle = Math.abs(rotations) * 360;
-  
-  // Winner offset: position the middle of the winning segment at the top
-  // Segments start at 0 degrees, so segment N starts at N * segmentAngle
-  // We want the middle of segment N to be at the top (0 degrees)
-  // So we rotate by: (N * segmentAngle) + (segmentAngle / 2)
-  const winnerOffset = winnerIndex * segmentAngle + segmentAngle / 2;
+  // Calculate the target angle where the winning segment's center is at the top (under the pointer)
+  // Segments are drawn starting at 0 degrees (top), going clockwise
+  // Segment N spans from N*segmentAngle to (N+1)*segmentAngle
+  // The center of segment N is at N*segmentAngle + segmentAngle/2
+  // To get segment N under the pointer (at top/0 degrees), we need to rotate the wheel
+  // so that the segment's center aligns with 0 degrees
+  const targetSegmentCenter = winnerIndex * segmentAngle + segmentAngle / 2;
   
   // Add some randomness within the segment to make it feel more natural
   // Keep variation small to ensure we stay within the winning segment
-  const segmentVariation = randomBetween(-segmentAngle * 0.25, segmentAngle * 0.25);
+  const segmentVariation = randomBetween(-segmentAngle * 0.3, segmentAngle * 0.3);
   
-  // Final angle: base rotations + offset to land on winner
-  // Always positive to ensure clockwise rotation
-  const finalAngle = baseAngle + winnerOffset + segmentVariation;
+  // The final absolute position we want the wheel to be at
+  // We want targetSegmentCenter to be at the top, so we rotate by that amount
+  const targetPosition = targetSegmentCenter + segmentVariation;
+  
+  // Calculate how much additional rotation is needed from current position
+  // We need to add full rotations plus whatever extra is needed to land on target
+  const baseRotations = Math.floor(rotations) * 360;
+  
+  // Normalize current rotation to 0-360 range
+  const normalizedCurrent = ((currentRotation % 360) + 360) % 360;
+  
+  // Calculate the extra rotation needed to go from current position to target
+  // We want to always go forward (positive), so if target is behind us, add 360
+  let extraRotation = targetPosition - normalizedCurrent;
+  if (extraRotation < 0) {
+    extraRotation += 360;
+  }
+  
+  // Final angle is base rotations plus the extra needed to land on winner
+  const finalAngle = baseRotations + extraRotation;
   
   return { 
     duration: Math.round(duration), 
@@ -681,11 +695,20 @@ const DecisionWheelPanel = Vue.defineComponent({
       // Start the spin in the store (disables button, sets isSpinning)
       this.store.startSpin();
       
-      // Calculate spin parameters
+      // Calculate spin parameters, passing current rotation for accurate winner calculation
       const numOptions = this.store.wheelOptionCount;
-      const { duration, finalAngle, winnerIndex } = calculateSpin(numOptions);
+      const { duration, finalAngle, winnerIndex } = calculateSpin(numOptions, this.wheelRotation);
       
-      console.log('[DecisionWheel] Spin calculated:', { duration, finalAngle, winnerIndex });
+      // Add the new rotation to the current position so we always spin forward
+      const newRotation = this.wheelRotation + finalAngle;
+      
+      console.log('[DecisionWheel] Spin calculated:', { 
+        duration, 
+        finalAngle, 
+        winnerIndex,
+        currentRotation: this.wheelRotation,
+        newRotation 
+      });
       
       // Set up the animation
       this.spinDuration = duration;
@@ -693,8 +716,8 @@ const DecisionWheelPanel = Vue.defineComponent({
       
       // Use requestAnimationFrame to ensure the transition is applied
       requestAnimationFrame(() => {
-        // Apply the rotation
-        this.wheelRotation = finalAngle;
+        // Apply the rotation (additive from current position)
+        this.wheelRotation = newRotation;
         
         // Set up the completion handler
         // **Validates: Requirements 9.6**

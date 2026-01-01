@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.154 - Glorious Toucan (Jan 1, 2026)',
+    VERSION: '1.0.155 - Jubilant Penguin (Jan 1, 2026)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
