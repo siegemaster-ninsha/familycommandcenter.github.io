@@ -86,10 +86,10 @@ function getTextPosition(centerX, centerY, radius, startAngle, endAngle) {
 // Spin physics configuration
 // **Validates: Requirements 9.2, 9.3, 9.5**
 const SPIN_CONFIG = {
-  minDuration: 3000,      // 3 seconds minimum
-  maxDuration: 6000,      // 6 seconds maximum
-  minRotations: 5,        // Minimum full rotations
-  maxRotations: 10,       // Maximum full rotations
+  minDuration: 4000,      // 4 seconds minimum (longer for 10+ rotations)
+  maxDuration: 7000,      // 7 seconds maximum
+  minRotations: 10,       // Minimum 10 full rotations
+  maxRotations: 15,       // Maximum full rotations
   easingFunction: 'cubic-bezier(0.17, 0.67, 0.12, 0.99)'  // Deceleration curve
 };
 
@@ -105,17 +105,18 @@ function randomBetween(min, max) {
 
 /**
  * Calculate spin parameters for the wheel
+ * Always spins clockwise (positive direction) with minimum 10 rotations
  * **Validates: Requirements 9.2, 9.3, 9.5**
  * 
  * @param {number} numOptions - Number of options on the wheel
  * @returns {{ duration: number, finalAngle: number, winnerIndex: number }}
  */
 function calculateSpin(numOptions) {
-  // Randomized duration between 3-6 seconds
+  // Randomized duration between 4-7 seconds (longer for more rotations)
   // **Validates: Requirements 9.5**
   const duration = randomBetween(SPIN_CONFIG.minDuration, SPIN_CONFIG.maxDuration);
   
-  // Randomized number of full rotations (5-10)
+  // Randomized number of full rotations (10-15) - always positive for clockwise spin
   const rotations = randomBetween(SPIN_CONFIG.minRotations, SPIN_CONFIG.maxRotations);
   
   // Randomly determine the winner
@@ -128,7 +129,8 @@ function calculateSpin(numOptions) {
   // Calculate final angle to land on winner
   // The pointer is at the top (0 degrees), so we need to calculate
   // how much to rotate so the winner segment is under the pointer
-  const baseAngle = rotations * 360;
+  // Always use positive rotation for consistent clockwise direction
+  const baseAngle = Math.abs(rotations) * 360;
   
   // Winner offset: position the middle of the winning segment at the top
   // Segments start at 0 degrees, so segment N starts at N * segmentAngle
@@ -137,9 +139,11 @@ function calculateSpin(numOptions) {
   const winnerOffset = winnerIndex * segmentAngle + segmentAngle / 2;
   
   // Add some randomness within the segment to make it feel more natural
-  const segmentVariation = randomBetween(-segmentAngle * 0.3, segmentAngle * 0.3);
+  // Keep variation small to ensure we stay within the winning segment
+  const segmentVariation = randomBetween(-segmentAngle * 0.25, segmentAngle * 0.25);
   
   // Final angle: base rotations + offset to land on winner
+  // Always positive to ensure clockwise rotation
   const finalAngle = baseAngle + winnerOffset + segmentVariation;
   
   return { 
