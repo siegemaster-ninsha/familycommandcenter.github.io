@@ -556,7 +556,7 @@ const AppModals = Vue.defineComponent({
       <template #default>
         <!-- Amount Display -->
         <div class="mb-4">
-          <div class="text-center bg-gray-50 rounded-lg p-4 mb-4">
+          <div class="text-center rounded-lg p-4 mb-4" style="background: var(--color-surface-1);">
             <div class="text-2xl font-bold text-primary-custom">\${{ spendAmountString }}</div>
             <div class="text-sm text-secondary-custom">Amount to spend</div>
           </div>
@@ -568,19 +568,19 @@ const AppModals = Vue.defineComponent({
             v-for="number in [1,2,3,4,5,6,7,8,9]"
             :key="number"
             @click="addDigit(number)"
-            class="bg-gray-100 hover:bg-gray-200 text-primary-custom font-bold py-3 px-4 rounded-lg transition-colors"
+            class="numpad-btn text-primary-custom font-bold py-3 px-4 rounded-lg transition-colors"
           >
             {{ number }}
           </button>
           <button
             @click="addDecimal"
-            class="bg-gray-100 hover:bg-gray-200 text-primary-custom font-bold py-3 px-4 rounded-lg transition-colors"
+            class="numpad-btn text-primary-custom font-bold py-3 px-4 rounded-lg transition-colors"
           >
             .
           </button>
           <button
             @click="addDigit(0)"
-            class="bg-gray-100 hover:bg-gray-200 text-primary-custom font-bold py-3 px-4 rounded-lg transition-colors"
+            class="numpad-btn text-primary-custom font-bold py-3 px-4 rounded-lg transition-colors"
           >
             0
           </button>

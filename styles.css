@@ -526,6 +526,16 @@ a[href="#main-content"] {
   box-shadow: 0 1px 2px var(--color-overlay-6), 0 1px 3px var(--color-overlay-10);
 }
 
+/* Numpad buttons - theme-aware for spending flyout */
+.numpad-btn {
+  background: var(--color-surface-2);
+  transition: background-color var(--transition-normal);
+}
+
+.numpad-btn:hover {
+  background: var(--color-surface-3);
+}
+
 .btn-success {
   background: var(--gradient-success);
   color: white;
