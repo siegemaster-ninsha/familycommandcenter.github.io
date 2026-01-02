@@ -1,0 +1,13 @@
+# Sound Assets
+
+Place audio files here for celebrations:
+- nyan-cat.mp3 - Short Nyan Cat melody loop (3-5 seconds)
+- coin.mp3 - Coin pickup sound
+
+## Sourcing Sounds
+For royalty-free game sounds, check:
+- https://pixabay.com/sound-effects/
+- https://freesound.org/
+- https://mixkit.co/free-sound-effects/
+
+Keep files small (<100KB) for fast loading.

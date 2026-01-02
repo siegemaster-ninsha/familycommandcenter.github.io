@@ -10,17 +10,21 @@ const CoinRain = {
   // Running Mario GIF
   marioUrl: 'https://media.tenor.com/2D-MaRio-Running-gif-5930085643515150510',
   
-  // Mario coin sound effect
-  coinSoundUrl: 'https://www.myinstants.com/media/sounds/smw_coin.mp3',
+  // Mario coin sound effect - local asset preferred, CDN fallback
+  coinSoundUrl: './assets/sounds/coin.mp3',
+  coinSoundFallback: 'https://cdn.pixabay.com/audio/2022/03/10/audio_c8c8a73467.mp3',
 
   playCoinSound() {
-    try {
-      const audio = new Audio(this.coinSoundUrl);
+    const tryPlay = (url) => {
+      const audio = new Audio(url);
       audio.volume = 0.3;
-      audio.play().catch(() => {});
-    } catch {
-      // Audio failed - animation still works
-    }
+      return audio.play();
+    };
+    
+    tryPlay(this.coinSoundUrl).catch(() => {
+      // Local file missing, try CDN fallback
+      tryPlay(this.coinSoundFallback).catch(() => {});
+    });
   },
 
   rain(options = {}) {

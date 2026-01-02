@@ -7,24 +7,32 @@ const NyanCat = {
   // Nyan Cat GIF with transparent background (from GitHub Gist)
   gifUrl: 'https://gist.githubusercontent.com/brudnak/aba00c9a1c92d226f68e8ad8ba1e0a40/raw/nyan-cat.gif',
   
-  // Nyan Cat song (short clip)
-  songUrl: 'https://www.myinstants.com/media/sounds/nyan-cat-song.mp3',
+  // Nyan Cat song - local asset (add nyan-cat.mp3 to assets/sounds/)
+  // Falls back gracefully if file doesn't exist
+  songUrl: './assets/sounds/nyan-cat.mp3',
   
-  // Play the Nyan Cat song
-  playMusic(duration = 3000) {
+  // Audio clip range (in seconds)
+  songStartTime: 3,
+  songEndTime: 10,
+  
+  // Play the Nyan Cat song (ignores duration param, uses fixed clip range)
+  playMusic() {
+    if (!this.songUrl) {
+      return null;
+    }
+    
     try {
       const audio = new Audio(this.songUrl);
       audio.volume = 0.5;
-      audio.play().catch(() => {
-        // Autoplay blocked - that's fine, animation still works
-        console.log('🔇 Audio autoplay blocked by browser');
-      });
+      audio.currentTime = this.songStartTime;
+      audio.play().catch(() => {});
       
-      // Stop after duration
+      // Stop at end timestamp
+      const clipDuration = (this.songEndTime - this.songStartTime) * 1000;
       setTimeout(() => {
         audio.pause();
         audio.currentTime = 0;
-      }, duration);
+      }, clipDuration);
       
       return audio;
     } catch {
