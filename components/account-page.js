@@ -648,26 +648,33 @@ const AccountPage = Vue.defineComponent({
       const style = this.preferences.celebrationStyle;
       console.log('🎉 Previewing celebration:', style);
       
+      // Use the celebrations composable
+      const celebrations = window.useCelebrations?.();
+      if (!celebrations) {
+        console.warn('[account-page] useCelebrations not available');
+        return;
+      }
+      
       // Trigger the specific celebration based on selection
       switch (style) {
         case 'confetti':
-          this.$parent.triggerConfettiBurst?.();
+          celebrations.triggerConfettiBurst();
           break;
         case 'cannons':
-          this.$parent.triggerSideCannons?.();
+          celebrations.triggerSideCannons();
           break;
         case 'fireworks':
-          this.$parent.triggerFireworks?.();
+          celebrations.triggerFireworks();
           break;
         case 'nyancat':
-          this.$parent.triggerNyanCat?.();
+          celebrations.triggerNyanCat();
           break;
         case 'coins':
           // Preview with a fake $1 chore
-          this.$parent.triggerCoinRain?.({ amount: 1 });
+          celebrations.triggerCoinRain({ amount: 1 });
           break;
         case 'random':
-          this.$parent.triggerRandomCelebration?.({ amount: 1 });
+          celebrations.triggerRandomCelebration({ amount: 1 });
           break;
       }
     },
