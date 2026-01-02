@@ -758,15 +758,16 @@ const PersonCard = {
           <!-- Add Habit button below habits list -->
           <!-- **Validates: Requirements 1.1** -->
           <!-- iOS Safari PWA: @touchend.prevent ensures touch events fire reliably -->
-          <button 
+          <sl-button 
             @click="handleAddHabit"
             @touchend.prevent="handleAddHabit"
-            class="w-full py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
-            style="background: var(--color-surface-2); color: var(--color-primary-500); border: 1px dashed var(--color-border-card);"
+            variant="text"
+            size="medium"
+            class="add-habit-btn"
           >
-            <span v-html="getIcon('plus', 16)"></span>
+            <span v-html="getIcon('plus', 16)" slot="prefix"></span>
             Add Habit
-          </button>
+          </sl-button>
         </div>
       </div>
     </div>
