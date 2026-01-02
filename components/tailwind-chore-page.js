@@ -757,8 +757,10 @@ const PersonCard = {
           
           <!-- Add Habit button below habits list -->
           <!-- **Validates: Requirements 1.1** -->
+          <!-- iOS Safari PWA: @touchend.prevent ensures touch events fire reliably -->
           <button 
             @click="handleAddHabit"
+            @touchend.prevent="handleAddHabit"
             class="w-full py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
             style="background: var(--color-surface-2); color: var(--color-primary-500); border: 1px dashed var(--color-border-card);"
           >
@@ -958,6 +960,7 @@ const PersonCard = {
      * **Validates: Requirements 1.1**
      */
     handleAddHabit() {
+      console.log('[PersonCard] handleAddHabit called, person.id:', this.person?.id);
       this.onHabitAdd?.(this.person.id);
     },
     /**
@@ -1491,9 +1494,11 @@ const TailwindChorePage = Vue.defineComponent({
      * **Validates: Requirements 1.1**
      */
     handleHabitAdd(memberId) {
+      console.log('[ChorePage] handleHabitAdd called, memberId:', memberId);
       this.editingHabit = null;
       this.habitFlyoutMemberId = memberId;
       this.showHabitFlyout = true;
+      console.log('[ChorePage] showHabitFlyout set to:', this.showHabitFlyout);
     },
     /**
      * Open habit flyout for editing an existing habit
