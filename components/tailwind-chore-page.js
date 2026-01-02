@@ -741,21 +741,8 @@ const PersonCard = {
           <h4 class="text-sm font-semibold" style="color: var(--color-text-secondary);">Habits</h4>
         </div>
         
-        <!-- Empty state prompt -->
-        <!-- **Validates: Requirements 2.3** -->
-        <div v-if="memberHabits.length === 0" class="text-center py-4 rounded-lg" style="background: var(--color-surface-2);">
-          <p class="text-sm" style="color: var(--color-text-secondary);">No habits yet</p>
-          <button 
-            @click="handleAddHabit"
-            class="mt-2 text-sm font-medium hover:underline"
-            style="color: var(--color-primary-500);"
-          >
-            Add your first habit
-          </button>
-        </div>
-        
         <!-- Habits list -->
-        <div v-else class="space-y-2">
+        <div class="space-y-2">
           <habit-card
             v-for="habit in memberHabits"
             :key="habit.id"
