@@ -3,7 +3,8 @@
  * Manages real-time WebSocket connection for live updates across devices.
  * Handles connection, reconnection with exponential backoff, and message routing.
  * 
- * All state updates go through Pinia stores - no app.js callbacks needed.
+ * Updates both Pinia stores AND app.js arrays for backward compatibility
+ * during the migration to stores as single source of truth.
  */
 
 const useWebSocket = () => {
@@ -11,6 +12,22 @@ const useWebSocket = () => {
   let socket = null;
   let socketConnected = false;
   let socketRetryMs = 1000;
+  
+  // Callbacks for app.js state updates (backward compatibility during migration)
+  let appStateCallbacks = {
+    updateChore: null,
+    addChore: null,
+    deleteChore: null,
+    updatePerson: null
+  };
+
+  /**
+   * Register callbacks for app.js state updates
+   * @param {Object} callbacks - Object with updateChore, addChore, deleteChore, updatePerson functions
+   */
+  const onAppStateUpdate = (callbacks) => {
+    appStateCallbacks = { ...appStateCallbacks, ...callbacks };
+  };
 
   /**
    * Get the WebSocket URL with authentication token
@@ -195,9 +212,9 @@ const useWebSocket = () => {
     const created = data?.chore;
     if (!created) return;
 
+    // Update chores store
     const choresStore = window.useChoresStore?.();
     if (choresStore) {
-      // Check for optimistic temp chore that matches
       const tempIdx = choresStore.chores.findIndex(c => 
         c?.isOptimistic && 
         c.name === created.name && 
@@ -211,12 +228,18 @@ const useWebSocket = () => {
         choresStore.chores.push(created);
       }
     }
+
+    // Also update app.js for backward compatibility
+    if (appStateCallbacks.addChore) {
+      appStateCallbacks.addChore(created);
+    }
   };
 
   const handleChoreUpdated = (data) => {
     const updated = data?.chore;
     if (!updated) return;
 
+    // Update chores store
     const choresStore = window.useChoresStore?.();
     if (choresStore) {
       const idx = choresStore.chores.findIndex(c => c.id === updated.id);
@@ -226,15 +249,26 @@ const useWebSocket = () => {
         choresStore.chores.push(updated);
       }
     }
+
+    // Also update app.js for backward compatibility
+    if (appStateCallbacks.updateChore) {
+      appStateCallbacks.updateChore(updated);
+    }
   };
 
   const handleChoreDeleted = (data) => {
     const deletedId = data?.id;
     if (!deletedId) return;
 
+    // Update chores store
     const choresStore = window.useChoresStore?.();
     if (choresStore) {
       choresStore.chores = choresStore.chores.filter(c => c.id !== deletedId);
+    }
+
+    // Also update app.js for backward compatibility
+    if (appStateCallbacks.deleteChore) {
+      appStateCallbacks.deleteChore(deletedId);
     }
   };
 
@@ -360,7 +394,7 @@ const useWebSocket = () => {
 
     console.log('[WS] Sort order updated for member:', memberId);
 
-    // Update the family store only - single source of truth
+    // Update the family store
     const familyStore = window.useFamilyStore?.();
     if (familyStore) {
       const memberIndex = familyStore.members.findIndex(m => m.id === memberId);
@@ -370,6 +404,13 @@ const useWebSocket = () => {
           choreSortOrder: choreSortOrder && typeof choreSortOrder === 'object' ? choreSortOrder : {}
         };
       }
+    }
+
+    // Also update app.js for backward compatibility
+    if (appStateCallbacks.updatePerson) {
+      appStateCallbacks.updatePerson(memberId, {
+        choreSortOrder: choreSortOrder && typeof choreSortOrder === 'object' ? choreSortOrder : {}
+      });
     }
   };
 
@@ -389,7 +430,7 @@ const useWebSocket = () => {
 
     console.log('[WS] Default order updated for member:', memberId);
 
-    // Update the family store only - single source of truth
+    // Update the family store
     const familyStore = window.useFamilyStore?.();
     if (familyStore) {
       const memberIndex = familyStore.members.findIndex(m => m.id === memberId);
@@ -400,13 +441,21 @@ const useWebSocket = () => {
         };
       }
     }
+
+    // Also update app.js for backward compatibility
+    if (appStateCallbacks.updatePerson) {
+      appStateCallbacks.updatePerson(memberId, {
+        defaultChoreOrder: defaultChoreOrder && typeof defaultChoreOrder === 'object' ? defaultChoreOrder : {}
+      });
+    }
   };
 
   // Return public API
   return {
     connect,
     disconnect,
-    isConnected
+    isConnected,
+    onAppStateUpdate
   };
 };
 

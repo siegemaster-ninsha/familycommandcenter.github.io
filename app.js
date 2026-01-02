@@ -255,13 +255,49 @@ const app = createApp({
   },
   methods: {
     // WebSocket initialization - delegates to composable
-    // All state updates now go through Pinia stores (single source of truth)
+    // Updates both stores AND app.js arrays for backward compatibility
     initWebsocket() {
       const ws = window.useWebSocket?.();
       if (!ws) {
         console.warn('[app.js] useWebSocket not available');
         return;
       }
+
+      // Register callbacks for app.js state updates (backward compatibility)
+      ws.onAppStateUpdate({
+        addChore: (chore) => {
+          const tempIdx = this.chores.findIndex(c => 
+            c?.isOptimistic && 
+            c.name === chore.name && 
+            c.assignedTo === chore.assignedTo && 
+            c.amount === chore.amount && 
+            c.category === chore.category
+          );
+          if (tempIdx >= 0) {
+            this.chores[tempIdx] = chore;
+          } else if (!this.chores.some(c => c.id === chore.id)) {
+            this.chores.push(chore);
+          }
+        },
+        updateChore: (chore) => {
+          const idx = this.chores.findIndex(c => c.id === chore.id);
+          if (idx >= 0) {
+            this.chores[idx] = chore;
+          } else {
+            this.chores.push(chore);
+          }
+        },
+        deleteChore: (choreId) => {
+          this.chores = this.chores.filter(c => c.id !== choreId);
+        },
+        updatePerson: (memberId, updates) => {
+          const idx = this.people.findIndex(m => m.id === memberId);
+          if (idx >= 0) {
+            this.people[idx] = { ...this.people[idx], ...updates };
+          }
+        }
+      });
+
       ws.connect();
     },
     // API helper methods
@@ -492,6 +528,12 @@ const app = createApp({
       try {
         const response = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES);
         this.chores = response.chores || [];
+        
+        // Also sync to chores store for components that use it directly
+        const choresStore = window.useChoresStore?.();
+        if (choresStore) {
+          choresStore.chores = this.chores;
+        }
       } catch (error) {
         console.error('Failed to load chores:', error);
         this.chores = [];

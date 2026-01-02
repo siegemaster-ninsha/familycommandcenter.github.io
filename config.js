@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.173 - Tremendous Xerus (Jan 2, 2026)',
+    VERSION: '1.0.174 - Turbo Hedgehog (Jan 2, 2026)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
