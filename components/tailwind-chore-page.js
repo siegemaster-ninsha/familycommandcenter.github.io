@@ -961,7 +961,8 @@ const PersonCard = {
      * **Validates: Requirements 1.1**
      */
     handleAddHabit() {
-      console.log('[PersonCard] handleAddHabit called, person.id:', this.person?.id);
+      // Capture scroll position IMMEDIATELY at click time for flyout-panel
+      window.__flyoutScrollY = window.scrollY;
       this.onHabitAdd?.(this.person.id);
     },
     /**
@@ -970,6 +971,8 @@ const PersonCard = {
      * **Validates: Requirements 5.1**
      */
     handleHabitEdit(habit) {
+      // Capture scroll position IMMEDIATELY at click time for flyout-panel
+      window.__flyoutScrollY = window.scrollY;
       this.onHabitEdit?.(habit);
     },
     /**
@@ -1494,11 +1497,11 @@ const TailwindChorePage = Vue.defineComponent({
      * **Validates: Requirements 1.1**
      */
     handleHabitAdd(memberId) {
-      console.log('[ChorePage] handleHabitAdd called, memberId:', memberId);
+      // Capture scroll position for flyout-panel
+      window.__flyoutScrollY = window.scrollY;
       this.editingHabit = null;
       this.habitFlyoutMemberId = memberId;
       this.showHabitFlyout = true;
-      console.log('[ChorePage] showHabitFlyout set to:', this.showHabitFlyout);
     },
     /**
      * Open habit flyout for editing an existing habit
@@ -1506,6 +1509,8 @@ const TailwindChorePage = Vue.defineComponent({
      * **Validates: Requirements 5.1**
      */
     handleHabitEdit(habit) {
+      // Capture scroll position for flyout-panel
+      window.__flyoutScrollY = window.scrollY;
       this.editingHabit = habit;
       this.habitFlyoutMemberId = habit.memberId;
       this.showHabitFlyout = true;
