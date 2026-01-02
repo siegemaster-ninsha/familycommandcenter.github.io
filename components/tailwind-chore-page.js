@@ -732,6 +732,54 @@ const PersonCard = {
           />
         </transition-group>
       </div>
+
+      <!-- Habits Section -->
+      <!-- **Feature: habit-tracking** -->
+      <!-- **Validates: Requirements 2.1, 2.3** -->
+      <div class="habits-section mt-6 pt-4" style="border-top: 1px solid var(--color-border-card);" @click.stop>
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="text-sm font-semibold" style="color: var(--color-text-secondary);">Habits</h4>
+        </div>
+        
+        <!-- Empty state prompt -->
+        <!-- **Validates: Requirements 2.3** -->
+        <div v-if="memberHabits.length === 0" class="text-center py-4 rounded-lg" style="background: var(--color-surface-2);">
+          <p class="text-sm" style="color: var(--color-text-secondary);">No habits yet</p>
+          <button 
+            @click="handleAddHabit"
+            class="mt-2 text-sm font-medium hover:underline"
+            style="color: var(--color-primary-500);"
+          >
+            Add your first habit
+          </button>
+        </div>
+        
+        <!-- Habits list -->
+        <div v-else class="space-y-2">
+          <habit-card
+            v-for="habit in memberHabits"
+            :key="habit.id"
+            :habit="habit"
+            :completions="getHabitCompletions(habit.id)"
+            :is-grid-expanded="isHabitGridExpanded(habit.id)"
+            @toggle-day="handleHabitToggleDay"
+            @toggle-grid-view="handleHabitToggleGridView"
+            @edit="handleHabitEdit"
+            @delete="handleHabitDelete"
+          />
+          
+          <!-- Add Habit button below habits list -->
+          <!-- **Validates: Requirements 1.1** -->
+          <button 
+            @click="handleAddHabit"
+            class="w-full py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+            style="background: var(--color-surface-2); color: var(--color-primary-500); border: 1px dashed var(--color-border-card);"
+          >
+            <span v-html="getIcon('plus', 16)"></span>
+            Add Habit
+          </button>
+        </div>
+      </div>
     </div>
   `,
   props: {
@@ -752,10 +800,17 @@ const PersonCard = {
     onChoreDelete: { type: Function, required: true },
     onChoreReassign: { type: Function },
     // **Feature: chore-priority** - Reorder callback
-    onChoreReorder: { type: Function }
+    onChoreReorder: { type: Function },
+    // **Feature: habit-tracking** - Habit callbacks
+    onHabitAdd: { type: Function },
+    onHabitEdit: { type: Function },
+    onHabitDelete: { type: Function },
+    onHabitToggleDay: { type: Function },
+    onHabitToggleGridView: { type: Function }
   },
   components: {
-    ChoreCard
+    ChoreCard,
+    'habit-card': window.HabitCard
   },
   data() {
     return {
@@ -867,9 +922,89 @@ const PersonCard = {
       });
       
       return sorted[0]?.id || null;
+    },
+    /**
+     * Get habits for this family member from the habits store
+     * **Feature: habit-tracking**
+     * **Validates: Requirements 2.1**
+     */
+    memberHabits() {
+      const habitsStore = window.useHabitsStore?.();
+      if (!habitsStore) return [];
+      return habitsStore.habitsByMember(this.person.id) || [];
     }
   },
   methods: {
+    /**
+     * Get icon HTML using the Helpers library
+     * @param {string} iconName - Icon name
+     * @param {number} size - Icon size in pixels
+     * @returns {string} HTML string
+     */
+    getIcon(iconName, size = 16) {
+      if (this.Helpers?.IconLibrary?.getIcon) {
+        return this.Helpers.IconLibrary.getIcon(iconName, 'lucide', size, '');
+      }
+      return '';
+    },
+    /**
+     * Get completions for a habit from the habits store
+     * **Feature: habit-tracking**
+     */
+    getHabitCompletions(habitId) {
+      const habitsStore = window.useHabitsStore?.();
+      if (!habitsStore) return [];
+      return habitsStore.completions[habitId] || [];
+    },
+    /**
+     * Check if a habit's grid is expanded
+     * **Feature: habit-tracking**
+     */
+    isHabitGridExpanded(habitId) {
+      const habitsStore = window.useHabitsStore?.();
+      if (!habitsStore) return false;
+      return habitsStore.isGridExpanded(habitId);
+    },
+    /**
+     * Handle adding a new habit
+     * **Feature: habit-tracking**
+     * **Validates: Requirements 1.1**
+     */
+    handleAddHabit() {
+      this.onHabitAdd?.(this.person.id);
+    },
+    /**
+     * Handle editing a habit
+     * **Feature: habit-tracking**
+     * **Validates: Requirements 5.1**
+     */
+    handleHabitEdit(habit) {
+      this.onHabitEdit?.(habit);
+    },
+    /**
+     * Handle deleting a habit
+     * **Feature: habit-tracking**
+     * **Validates: Requirements 5.3**
+     */
+    handleHabitDelete(habit) {
+      this.onHabitDelete?.(habit);
+    },
+    /**
+     * Handle toggling a habit completion for a day
+     * **Feature: habit-tracking**
+     * **Validates: Requirements 4.1, 4.2**
+     */
+    handleHabitToggleDay(habitId, date) {
+      this.onHabitToggleDay?.(habitId, date);
+    },
+    /**
+     * Handle toggling a habit's grid view
+     * **Feature: habit-tracking**
+     * **Validates: Requirements 3.2, 3.3**
+     */
+    handleHabitToggleGridView(habitId) {
+      this.onHabitToggleGridView?.(habitId);
+    },
     handleCardClick() {
       // Only trigger assign if canAssign and not clicking on a chore
       if (this.canAssign) {
@@ -965,7 +1100,7 @@ const PersonCard = {
      * **Feature: chore-priority**
      * **Validates: Requirements 4.1, 4.2**
      */
-    handleChoreDrop(draggedChoreId, _targetChoreId, _event) {
+    handleChoreDrop(_draggedChoreId, _targetChoreId, _event) {
       // Use tracked indices instead of drop target (visual displacement makes drop target unreliable)
       const dragIdx = this.draggedIndex;
       const hoverIdx = this.hoverIndex;
@@ -1235,6 +1370,11 @@ const TailwindChorePage = Vue.defineComponent({
               :on-chore-delete="deleteChore"
               :on-chore-reassign="handleChoreReassign"
               :on-chore-reorder="handleChoreReorder"
+              :on-habit-add="handleHabitAdd"
+              :on-habit-edit="handleHabitEdit"
+              :on-habit-delete="handleHabitDeleteRequest"
+              :on-habit-toggle-day="handleHabitToggleDay"
+              :on-habit-toggle-grid-view="handleHabitToggleGridView"
             />
           </div>
         </div>
@@ -1265,6 +1405,50 @@ const TailwindChorePage = Vue.defineComponent({
       <aside class="chore-page-sidebar">
         <week-calendar-panel />
       </aside>
+      
+      <!-- Habit Flyout for create/edit -->
+      <!-- **Feature: habit-tracking** -->
+      <!-- **Validates: Requirements 1.1, 1.2, 5.1** -->
+      <habit-flyout
+        :open="showHabitFlyout"
+        :habit="editingHabit"
+        :member-id="habitFlyoutMemberId"
+        @close="closeHabitFlyout"
+        @save="handleHabitSave"
+      />
+      
+      <!-- Habit Delete Confirmation Modal -->
+      <!-- **Feature: habit-tracking** -->
+      <!-- **Validates: Requirements 5.3** -->
+      <div 
+        v-if="showHabitDeleteConfirm" 
+        class="fixed inset-0 bg-black bg-opacity-50 z-[800] overflow-y-auto modal-overlay" 
+        @click.self="cancelHabitDelete"
+      >
+        <div class="min-h-full flex items-start sm:items-center justify-center p-2 sm:p-4 py-4">
+          <div class="bg-white rounded-lg w-full max-w-sm p-6 modal-panel" style="background: var(--color-surface-1);">
+            <h3 class="text-lg font-bold mb-2" style="color: var(--color-text-primary);">Delete Habit?</h3>
+            <p class="text-sm mb-4" style="color: var(--color-text-secondary);">
+              Are you sure you want to delete "{{ habitToDelete?.name }}"? This will also remove all completion history.
+            </p>
+            <div class="flex gap-3 justify-end">
+              <button 
+                @click="cancelHabitDelete" 
+                class="btn-secondary btn-compact"
+              >
+                Cancel
+              </button>
+              <button 
+                @click="confirmHabitDelete" 
+                class="btn-error btn-compact"
+                :disabled="deletingHabit"
+              >
+                {{ deletingHabit ? 'Deleting...' : 'Delete' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   `,
   inject: [
@@ -1278,21 +1462,152 @@ const TailwindChorePage = Vue.defineComponent({
     ChoreCard,
     PersonCard,
     EarningsCard,
-    'week-calendar-panel': window.WeekCalendarPanel
+    'week-calendar-panel': window.WeekCalendarPanel,
+    'habit-flyout': window.HabitFlyout
   },
   data() {
     return {
       quicklistLoading: false,
       quicklistError: null,
-      expandedChoreId: null  // Track which chore's action panel is expanded
+      expandedChoreId: null,  // Track which chore's action panel is expanded
+      // **Feature: habit-tracking** - Habit flyout state
+      showHabitFlyout: false,
+      editingHabit: null,
+      habitFlyoutMemberId: '',
+      // **Feature: habit-tracking** - Habit delete confirmation state
+      showHabitDeleteConfirm: false,
+      habitToDelete: null,
+      deletingHabit: false
     }
   },
   // NOTE: Data is preloaded by parent app.js in loadAllData() - no need to load on mount
   // This prevents the double-load issue where data appears, then loading bar shows again
   mounted() {
     console.log('🎯 Chores page mounted with preloaded data');
+    // Load habits when page mounts
+    this.loadHabits();
   },
   methods: {
+    /**
+     * Load habits from the API
+     * **Feature: habit-tracking**
+     */
+    async loadHabits() {
+      const habitsStore = window.useHabitsStore?.();
+      if (habitsStore) {
+        await habitsStore.fetchHabits();
+      }
+    },
+    /**
+     * Open habit flyout for creating a new habit
+     * **Feature: habit-tracking**
+     * **Validates: Requirements 1.1**
+     */
+    handleHabitAdd(memberId) {
+      this.editingHabit = null;
+      this.habitFlyoutMemberId = memberId;
+      this.showHabitFlyout = true;
+    },
+    /**
+     * Open habit flyout for editing an existing habit
+     * **Feature: habit-tracking**
+     * **Validates: Requirements 5.1**
+     */
+    handleHabitEdit(habit) {
+      this.editingHabit = habit;
+      this.habitFlyoutMemberId = habit.memberId;
+      this.showHabitFlyout = true;
+    },
+    /**
+     * Close the habit flyout
+     * **Feature: habit-tracking**
+     */
+    closeHabitFlyout() {
+      this.showHabitFlyout = false;
+      this.editingHabit = null;
+      this.habitFlyoutMemberId = '';
+    },
+    /**
+     * Handle saving a habit (create or update)
+     * **Feature: habit-tracking**
+     * **Validates: Requirements 1.3, 5.2**
+     */
+    async handleHabitSave({ name, memberId, habitId, isEdit }) {
+      const habitsStore = window.useHabitsStore?.();
+      if (!habitsStore) {
+        console.error('[Habits] Store not available');
+        return;
+      }
+      
+      let result;
+      if (isEdit && habitId) {
+        result = await habitsStore.updateHabit(habitId, { name });
+      } else {
+        result = await habitsStore.createHabit(memberId, name);
+      }
+      
+      if (result.success) {
+        this.closeHabitFlyout();
+      }
+    },
+    /**
+     * Request to delete a habit (shows confirmation)
+     * **Feature: habit-tracking**
+     * **Validates: Requirements 5.3**
+     */
+    handleHabitDeleteRequest(habit) {
+      this.habitToDelete = habit;
+      this.showHabitDeleteConfirm = true;
+    },
+    /**
+     * Cancel habit deletion
+     * **Feature: habit-tracking**
+     */
+    cancelHabitDelete() {
+      this.showHabitDeleteConfirm = false;
+      this.habitToDelete = null;
+    },
+    /**
+     * Confirm and execute habit deletion
+     * **Feature: habit-tracking**
+     * **Validates: Requirements 5.4**
+     */
+    async confirmHabitDelete() {
+      if (!this.habitToDelete) return;
+      
+      this.deletingHabit = true;
+      
+      const habitsStore = window.useHabitsStore?.();
+      if (habitsStore) {
+        await habitsStore.deleteHabit(this.habitToDelete.id);
+      }
+      
+      this.deletingHabit = false;
+      this.showHabitDeleteConfirm = false;
+      this.habitToDelete = null;
+    },
+    /**
+     * Toggle habit completion for a day
+     * **Feature: habit-tracking**
+     * **Validates: Requirements 4.1, 4.2**
+     */
+    async handleHabitToggleDay(habitId, date) {
+      const habitsStore = window.useHabitsStore?.();
+      if (habitsStore) {
+        await habitsStore.toggleCompletion(habitId, date);
+      }
+    },
+    /**
+     * Toggle habit grid view between compact and expanded
+     * **Feature: habit-tracking**
+     * **Validates: Requirements 3.2, 3.3**
+     */
+    handleHabitToggleGridView(habitId) {
+      const habitsStore = window.useHabitsStore?.();
+      if (habitsStore) {
+        habitsStore.toggleGridView(habitId);
+      }
+    },
     openAddToQuicklistModal() {
       const fn = this.$parent?.openAddToQuicklistModal || this.openAddToQuicklistModal;
       if (typeof fn === 'function') fn();

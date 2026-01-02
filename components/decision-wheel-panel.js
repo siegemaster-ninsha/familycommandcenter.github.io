@@ -437,7 +437,7 @@ const DecisionWheelPanel = Vue.defineComponent({
   `,
   
   setup() {
-    const store = useDecisionWheelStore();
+    const store = window.useDecisionWheelStore();
     return { store };
   },
   

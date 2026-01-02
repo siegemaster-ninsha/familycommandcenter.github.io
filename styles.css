@@ -7017,7 +7017,7 @@ body.learning-hub-menu-open {
 .submission-card-spinner {
   width: 14px;
   height: 14px;
-  border: 2px solid currentColor;
+  border: 2px solid currentcolor;
   border-top-color: transparent;
   border-radius: var(--radius-full);
   animation: submission-card-spin 0.8s linear infinite;
@@ -7060,6 +7060,7 @@ body.learning-hub-menu-open {
   0%, 100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.6;
   }
@@ -7387,6 +7388,7 @@ body.learning-hub-menu-open {
   0%, 100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.7;
   }
@@ -7440,7 +7442,7 @@ body.learning-hub-menu-open {
 .homework-detail-step-spinner {
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid var(--color-white-alpha-30, rgb(255 255 255 / 30%));
   border-top-color: white;
   border-radius: var(--radius-full);
   animation: homework-detail-spin 0.8s linear infinite;
@@ -8461,7 +8463,7 @@ body.learning-hub-menu-open {
 .homework-submit-spinner {
   width: 18px;
   height: 18px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid var(--color-white-alpha-30, rgb(255 255 255 / 30%));
   border-top-color: white;
   border-radius: var(--radius-full);
   animation: homework-submit-spin 0.8s linear infinite;
@@ -8608,8 +8610,6 @@ body.learning-hub-menu-open {
   .homework-empty-state {
     padding: var(--space-8);
   }
-}
-
 }
 
 /* ===========================================
@@ -9069,7 +9069,7 @@ body.kids-center-menu-open {
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
-  filter: drop-shadow(0 2px 4px rgb(0 0 0 / 20%));
+  filter: drop-shadow(0 2px 4px var(--color-shadow-medium, rgb(0 0 0 / 20%)));
 }
 
 /* SVG Wheel */
@@ -9154,6 +9154,7 @@ body.kids-center-menu-open {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -9175,6 +9176,7 @@ body.kids-center-menu-open {
     transform: scale(0.9);
     opacity: 0;
   }
+
   to {
     transform: scale(1);
     opacity: 1;
@@ -9356,5 +9358,649 @@ body.kids-center-menu-open {
     border-bottom: 1px solid var(--color-border-card);
     cursor: pointer;
     min-height: 44px;
+  }
+}
+
+
+/* ===========================================
+   HABIT CARD COMPONENT
+   HabitKit-style habit tracking with pip grid
+   **Feature: habit-tracking**
+   **Validates: Requirements 2.4, 3.7**
+   =========================================== */
+
+/* Main habit card container */
+.habit-card {
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-border-card);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  transition: all var(--transition-normal);
+}
+
+.habit-card:hover {
+  border-color: var(--color-primary-300);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Expanded state - slightly more padding */
+.habit-card--grid-expanded {
+  padding: var(--space-4);
+}
+
+/* Card Header */
+.habit-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.habit-card-name {
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Card Actions */
+.habit-card-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.habit-card-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.habit-card-action-btn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text-primary);
+}
+
+.habit-card-action-btn:focus {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.habit-card-action-btn--danger:hover {
+  background: var(--color-error-50);
+  color: var(--color-error-600);
+}
+
+/* ===========================================
+   PIP GRID - Shared Styles
+   =========================================== */
+
+.habit-pip-grid {
+  display: flex;
+  gap: var(--space-1);
+}
+
+/* Individual Pip */
+.habit-pip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-neutral-200);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.habit-pip:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-sm);
+}
+
+.habit-pip:focus {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Filled pip state - completed */
+
+/* **Validates: Requirements 3.4** */
+.habit-pip--filled {
+  background: var(--color-success-500);
+}
+
+.habit-pip--filled:hover {
+  background: var(--color-success-600);
+}
+
+/* Today's pip - distinct styling */
+
+/* **Validates: Requirements 3.7** */
+.habit-pip--today {
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+}
+
+.habit-pip--today.habit-pip--filled {
+  box-shadow: 0 0 0 2px var(--color-primary-500);
+}
+
+/* ===========================================
+   COMPACT VIEW - 7 Days (Week)
+   **Validates: Requirements 3.1, 3.6**
+   =========================================== */
+
+.habit-pip-grid--week {
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+.habit-pip-grid--week .habit-pip {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+/* Day label inside compact pip */
+.habit-pip-day-label {
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  line-height: 1;
+}
+
+.habit-pip--filled .habit-pip-day-label {
+  color: var(--color-white);
+}
+
+/* ===========================================
+   EXPANDED VIEW - Full Month Calendar
+   **Validates: Requirements 3.2, 3.8**
+   =========================================== */
+
+.habit-pip-grid--month {
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Month header */
+.habit-month-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border-card);
+}
+
+.habit-month-name {
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+/* Weekday labels row */
+.habit-month-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-1);
+  text-align: center;
+}
+
+.habit-weekday-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  padding: var(--space-1) 0;
+}
+
+/* Calendar grid */
+.habit-month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-1);
+}
+
+/* Month view pip */
+.habit-pip--month {
+  width: 100%;
+  aspect-ratio: 1;
+  min-height: 28px;
+  max-height: 36px;
+}
+
+/* Day number inside month pip */
+.habit-pip-day {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  line-height: 1;
+}
+
+.habit-pip--filled .habit-pip-day {
+  color: var(--color-white);
+}
+
+/* Future dates - disabled state */
+
+/* **Validates: Requirements 3.8** */
+.habit-pip--future {
+  background: var(--color-neutral-100);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.habit-pip--future:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.habit-pip--future .habit-pip-day {
+  color: var(--color-text-muted);
+}
+
+/* Other month dates - muted */
+.habit-pip--other-month {
+  background: var(--color-neutral-100);
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.habit-pip--other-month:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.habit-pip--other-month .habit-pip-day {
+  color: var(--color-text-muted);
+}
+
+/* ===========================================
+   RESPONSIVE ADJUSTMENTS
+   =========================================== */
+
+/* Larger touch targets on mobile */
+@media (width <= 640px) {
+  .habit-pip-grid--week .habit-pip {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .habit-card-action-btn {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .habit-pip--month {
+    min-height: 32px;
+    max-height: 40px;
+  }
+}
+
+/* Very small screens */
+@media (width <= 375px) {
+  .habit-pip-grid--week .habit-pip {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .habit-pip-grid--week {
+    gap: var(--space-1);
+  }
+}
+
+/* ===========================================
+   ACCESSIBILITY - Forced Colors Mode
+   =========================================== */
+
+@media (forced-colors: active) {
+  .habit-pip {
+    border: 1px solid CanvasText;
+  }
+  
+  .habit-pip--filled {
+    background: Highlight;
+    border-color: Highlight;
+  }
+  
+  .habit-pip--today {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+  
+  .habit-card-action-btn:focus {
+    outline: 2px solid Highlight;
+  }
+}
+
+/* ===========================================
+   ANIMATION - Pip Toggle Feedback
+   =========================================== */
+
+@keyframes habit-pip-pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.15);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.habit-pip:active {
+  animation: habit-pip-pulse 0.2s ease-out;
+}
+
+/* ===========================================
+   HABIT FLYOUT COMPONENT
+   Flyout panel for creating and editing habits
+   **Feature: habit-tracking**
+   **Validates: Requirements 1.1, 1.2, 5.1, 5.5**
+   =========================================== */
+
+.habit-flyout-content {
+  padding: var(--space-4);
+}
+
+.habit-flyout-label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.habit-flyout-input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-border-card);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.habit-flyout-input:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+.habit-flyout-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* Error state for input */
+.habit-flyout-input--error {
+  border-color: var(--color-error-500);
+}
+
+.habit-flyout-input--error:focus {
+  border-color: var(--color-error-500);
+  box-shadow: 0 0 0 3px var(--color-error-100);
+}
+
+.habit-flyout-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: var(--space-2);
+}
+
+.habit-flyout-error {
+  font-size: var(--font-size-sm);
+  color: var(--color-error-600);
+  margin-top: var(--space-2);
+}
+
+.habit-flyout-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+/* Loading spinner for submit button */
+.habit-flyout-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentcolor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: habit-flyout-spin 0.75s linear infinite;
+}
+
+@keyframes habit-flyout-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive adjustments */
+@media (width <= 640px) {
+  .habit-flyout-content {
+    padding: var(--space-4);
+  }
+  
+  .habit-flyout-footer {
+    padding: var(--space-3);
+    gap: var(--space-2);
+  }
+  
+  .habit-flyout-footer button {
+    flex: 1;
+    min-height: 44px;
+  }
+}
+
+/* Accessibility - Forced Colors Mode */
+@media (forced-colors: active) {
+  .habit-flyout-input {
+    border: 1px solid CanvasText;
+  }
+  
+  .habit-flyout-input:focus {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+  
+  .habit-flyout-input--error {
+    border-color: LinkText;
+  }
+}
+
+/* ===========================================
+   HABITS SECTION STYLES
+   **Feature: habit-tracking**
+   **Validates: Requirements 2.1, 2.3, 2.4**
+   =========================================== */
+
+/* Habits section container within PersonCard */
+.habits-section {
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+}
+
+/* Section header */
+.habits-section h4 {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-3);
+}
+
+/* Empty state styling */
+.habits-section .text-center {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-2);
+}
+
+/* Add habit button (dashed border style) */
+.habits-section button[style*="dashed"] {
+  transition: all 0.2s ease;
+}
+
+.habits-section button[style*="dashed"]:hover {
+  background: var(--color-primary-50) !important;
+  border-color: var(--color-primary-400) !important;
+}
+
+.habits-section button[style*="dashed"]:focus {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Responsive adjustments */
+@media (width <= 640px) {
+  .habits-section {
+    margin-top: var(--space-4);
+    padding-top: var(--space-3);
+  }
+}
+
+/* Accessibility - Forced Colors Mode */
+@media (forced-colors: active) {
+  .habits-section button[style*="dashed"] {
+    border: 2px dashed CanvasText !important;
+  }
+  
+  .habits-section button[style*="dashed"]:focus {
+    outline: 2px solid Highlight;
+  }
+}
+
+/* ===========================================
+   NEW DAY FLYOUT COMPONENT
+   Flyout panel for starting a new day
+   Theme-aware styling using CSS custom properties
+   =========================================== */
+
+.new-day-flyout-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+/* Info cards - base styles */
+.new-day-info-card {
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  border: 1px solid;
+}
+
+/* Error variant (what will be cleared) */
+.new-day-info-card--error {
+  background: var(--color-error-50);
+  border-color: var(--color-error-200);
+}
+
+/* Success variant (what will be created) */
+.new-day-info-card--success {
+  background: var(--color-success-50);
+  border-color: var(--color-success-200);
+}
+
+/* Primary variant (what will be preserved) */
+.new-day-info-card--primary {
+  background: var(--color-primary-50);
+  border-color: var(--color-primary-200);
+}
+
+/* Info card titles */
+.new-day-info-title {
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.new-day-info-title--error {
+  color: var(--color-error-700);
+}
+
+.new-day-info-title--success {
+  color: var(--color-success-700);
+}
+
+.new-day-info-title--primary {
+  color: var(--color-primary-700);
+}
+
+/* Info card lists */
+.new-day-info-list {
+  font-size: var(--font-size-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.new-day-info-list--error {
+  color: var(--color-error-700);
+}
+
+.new-day-info-list--success {
+  color: var(--color-success-700);
+}
+
+.new-day-info-list--primary {
+  color: var(--color-primary-700);
+}
+
+.new-day-info-list strong {
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Warning text */
+.new-day-warning-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-2);
+}
+
+/* Loading spinner */
+.new-day-spinner {
+  animation: new-day-spin 0.75s linear infinite;
+}
+
+@keyframes new-day-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive adjustments */
+@media (width <= 640px) {
+  .new-day-flyout-content {
+    padding: var(--space-3);
+    gap: var(--space-3);
+  }
+  
+  .new-day-info-card {
+    padding: var(--space-3);
   }
 }

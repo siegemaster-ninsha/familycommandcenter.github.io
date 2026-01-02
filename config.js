@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.156 - Noble Toucan (Jan 1, 2026)',
+    VERSION: '1.0.157 - Resilient Meerkat (Jan 2, 2026)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {

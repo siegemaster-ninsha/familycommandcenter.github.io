@@ -195,70 +195,75 @@ const AppModals = Vue.defineComponent({
       </template>
     </flyout-panel>
 
-    <!-- New Day Confirmation Modal -->
+    <!-- New Day Confirmation Flyout -->
     <!-- _Requirements: 4.1, 4.2_ -->
-    <div v-if="showNewDayModal" class="fixed inset-0 flex items-center justify-center z-50 modal-overlay" :style="{ backgroundColor: 'rgba(0,0,0,0.5)' }">
-      <div class="bg-white rounded-lg p-6 w-96 max-w-[90vw] modal-panel">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="p-2 rounded-full" style="background: var(--color-warning-50);">
-            <div v-html="Helpers.IconLibrary.getIcon('sunrise', 'lucide', 24, '')" style="color: var(--color-warning-700);"></div>
-          </div>
-          <h3 class="text-lg font-bold text-primary-custom">Start New Day</h3>
-        </div>
-        <div class="space-y-4 mb-6">
+    <flyout-panel
+      :open="showNewDayModal"
+      @close="cancelNewDay"
+      title="Start New Day"
+      :show-footer="true"
+      :show-header-close="false"
+      width="400px"
+    >
+      <template #default>
+        <div class="new-day-flyout-content">
           <!-- What will be cleared -->
-          <div class="rounded-lg p-4" style="background: var(--color-error-50); border: 1px solid color-mix(in srgb, var(--color-error-600) 20%, white);">
-            <h4 class="font-medium mb-2 flex items-center gap-2" style="color: var(--color-error-700);">
+          <div class="new-day-info-card new-day-info-card--error">
+            <h4 class="new-day-info-title new-day-info-title--error">
               <span v-html="Helpers.IconLibrary.getIcon('trash2', 'lucide', 18, '')"></span> What will be cleared:
             </h4>
-            <ul class="text-sm space-y-1" style="color: var(--color-error-700);">
+            <ul class="new-day-info-list new-day-info-list--error">
               <li>• All <strong>completed</strong> chores will be removed</li>
               <li>• All <strong>daily chores</strong> (configured per member) will be removed</li>
             </ul>
           </div>
           <!-- What will be created -->
-          <div class="rounded-lg p-4" style="background: var(--color-success-50); border: 1px solid color-mix(in srgb, var(--color-success-600) 20%, white);">
-            <h4 class="font-medium mb-2 flex items-center gap-2" style="color: var(--color-success-700);">
+          <div class="new-day-info-card new-day-info-card--success">
+            <h4 class="new-day-info-title new-day-info-title--success">
               <span v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 18, '')"></span> What will be created:
             </h4>
-            <ul class="text-sm space-y-1" style="color: var(--color-success-700);">
+            <ul class="new-day-info-list new-day-info-list--success">
               <li>• Fresh daily chores from each member's configured list</li>
               <li>• Duplicates will be automatically skipped</li>
             </ul>
           </div>
           <!-- What will be preserved -->
-          <div class="rounded-lg p-4" style="background: var(--color-primary-50); border: 1px solid color-mix(in srgb, var(--color-primary-600) 20%, white);">
-            <h4 class="font-medium mb-2 flex items-center gap-2" style="color: var(--color-primary-700);">
+          <div class="new-day-info-card new-day-info-card--primary">
+            <h4 class="new-day-info-title new-day-info-title--primary">
               <span v-html="Helpers.IconLibrary.getIcon('shield', 'lucide', 18, '')"></span> What will be preserved:
             </h4>
-            <ul class="text-sm space-y-1" style="color: var(--color-primary-700);">
+            <ul class="new-day-info-list new-day-info-list--primary">
               <li>• All family members' <strong>earnings</strong></li>
               <li>• Non-daily incomplete chores remain on the board</li>
             </ul>
           </div>
-          <p class="text-secondary-custom text-sm">
+          <p class="new-day-warning-text">
             This action cannot be undone. Are you sure you want to start a new day?
           </p>
         </div>
-        <div class="flex gap-3">
+      </template>
+      <template #footer>
+        <div class="flyout-footer-buttons flex items-center gap-2">
           <button 
             @click="startNewDay"
+            @touchend.prevent="startNewDay"
             :disabled="newDayLoading"
-            class="flex-1 btn-warning disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            class="flex-1 btn-warning btn-compact flex items-center justify-center gap-2"
           >
-            <div v-if="newDayLoading" class="animate-spin h-4 w-4" v-html="Helpers.IconLibrary.getIcon('loader', 'lucide', 16, 'text-white')"></div>
-            {{ newDayLoading ? 'Starting New Day...' : 'Start New Day' }}
+            <div v-if="newDayLoading" class="new-day-spinner" v-html="Helpers.IconLibrary.getIcon('loader', 'lucide', 16, 'text-white')"></div>
+            {{ newDayLoading ? 'Starting...' : 'Start New Day' }}
           </button>
           <button 
             @click="cancelNewDay"
+            @touchend.prevent="cancelNewDay"
             :disabled="newDayLoading"
-            class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="btn-secondary btn-compact"
           >
             Cancel
           </button>
         </div>
-      </div>
-    </div>
+      </template>
+    </flyout-panel>
 
     <!-- Login Modal -->
     <div v-if="showLoginModal" class="fixed inset-0 flex items-center justify-center z-50 modal-overlay" :style="{ backgroundColor: 'rgba(0,0,0,0.5)' }">

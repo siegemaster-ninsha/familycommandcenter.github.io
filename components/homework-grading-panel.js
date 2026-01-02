@@ -474,7 +474,7 @@ const HomeworkGradingPanel = Vue.defineComponent({
      * @param {File[]} files - Array of files to process
      */
     async processFiles(files) {
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/heic', 'image/webp'];
+      // Allowed types: image/jpeg, image/png, image/heic, image/webp
       const maxSize = 10 * 1024 * 1024; // 10MB
       
       for (const file of files) {
