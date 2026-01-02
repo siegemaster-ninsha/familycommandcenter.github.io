@@ -1436,11 +1436,22 @@ const TailwindChorePage = Vue.defineComponent({
     </div>
   `,
   inject: [
-    'people', 'choresByPerson', 'selectedChore', 'selectedChoreId', 'selectedQuicklistChore',
-    'quicklistChores', 'categories', 'loading', 'error', 'Helpers', 'CONFIG', 'currentUser',
-    'showAddChoreModal', 'showAddToQuicklistModal',
-    'handleChoreClick', 'handleQuicklistChoreClick', 'selectionStore'
+    'Helpers', 'CONFIG'
   ],
+  setup() {
+    // Access stores directly instead of using $parent
+    const choresStore = window.useChoresStore();
+    const familyStore = window.useFamilyStore();
+    const authStore = window.useAuthStore();
+    const uiStore = window.useUIStore();
+    
+    return {
+      choresStore,
+      familyStore,
+      authStore,
+      uiStore
+    };
+  },
   mixins: [window.TouchAwareMixin || {}],
   components: {
     ChoreCard,
@@ -1457,6 +1468,42 @@ const TailwindChorePage = Vue.defineComponent({
       showHabitDeleteConfirm: false,
       habitToDelete: null,
       deletingHabit: false
+    }
+  },
+  computed: {
+    // Map store data to component properties for template access
+    // _Requirements: 7.1, 7.2_
+    // Use enabledMembers to filter out hidden members (showOnChoreBoard === false)
+    people() {
+      return this.familyStore.enabledMembers;
+    },
+    choresByPerson() {
+      return this.choresStore.choresByPerson;
+    },
+    selectedChore() {
+      return this.choresStore.selectedChore;
+    },
+    selectedChoreId() {
+      return this.choresStore.selectedChoreId;
+    },
+    selectedQuicklistChore() {
+      return this.choresStore.selectedQuicklistChore;
+    },
+    quicklistChores() {
+      return this.choresStore.quicklistChores;
+    },
+    categories() {
+      const categoriesStore = window.useCategoriesStore?.();
+      return categoriesStore?.sortedCategories || [];
+    },
+    loading() {
+      return this.choresStore.loading || this.familyStore.loading;
+    },
+    error() {
+      return this.choresStore.error || this.familyStore.error;
+    },
+    currentUser() {
+      return this.authStore.currentUser;
     }
   },
   // NOTE: Data is preloaded by parent app.js in loadAllData() - no need to load on mount
@@ -1560,40 +1607,31 @@ const TailwindChorePage = Vue.defineComponent({
       }
     },
     openAddToQuicklistModal() {
-      const fn = this.$parent?.openAddToQuicklistModal || this.openAddToQuicklistModal;
-      if (typeof fn === 'function') fn();
+      // Use UI store to open modal instead of $parent
+      this.uiStore.openModal('addToQuicklist');
     },
     openAddChoreModal() {
-      const fn = this.$parent?.openAddChoreModal || this.openAddChoreModal;
-      if (typeof fn === 'function') fn();
+      // Use UI store to open modal instead of $parent
+      this.uiStore.openModal('addChore');
     },
     showMultiAssignModal(quicklistChore) {
       console.log('🚀 showMultiAssignModal called with:', quicklistChore?.name);
-      console.log('🔍 Checking if $parent.openMultiAssignModal exists:', !!this.$parent?.openMultiAssignModal);
-
-      if (this.$parent?.openMultiAssignModal) {
-        console.log('✅ Calling $parent.openMultiAssignModal');
-        this.$parent.openMultiAssignModal(quicklistChore);
-        console.log('✅ $parent.openMultiAssignModal executed');
-      } else {
-        console.warn('❌ $parent.openMultiAssignModal method not found');
-      }
+      // Use UI store to open modal with data
+      this.uiStore.openModal('multiAssign', { quicklistChore });
     },
     // Open category management modal - Requirements 1.1
     openCategoryManagementModal() {
-      if (this.$parent?.openCategoryManagementModal) {
-        this.$parent.openCategoryManagementModal();
-      } else {
-        console.warn('❌ $parent.openCategoryManagementModal method not found');
-      }
+      // Use UI store to open modal
+      this.uiStore.openModal('categoryManagement');
     },
     
     // Handle category change for a quicklist chore
     async onQuicklistCategoryChanged({ chore, categoryId, categoryName }) {
-      if (this.$parent?.updateQuicklistCategory) {
-        await this.$parent.updateQuicklistCategory(chore, categoryId, categoryName);
-      } else {
-        console.warn('❌ $parent.updateQuicklistCategory method not found');
+      // Use chores store to update category
+      try {
+        await this.choresStore.updateQuicklistCategory?.(chore, categoryId, categoryName);
+      } catch (error) {
+        console.error('Failed to update quicklist category:', error);
       }
     },
     
@@ -1601,11 +1639,8 @@ const TailwindChorePage = Vue.defineComponent({
     // **Feature: weekly-chore-scheduling**
     // **Validates: Requirements 1.2, 1.3, 1.5**
     openScheduleModal(quicklistChore) {
-      if (this.$parent?.openScheduleModal) {
-        this.$parent.openScheduleModal(quicklistChore);
-      } else {
-        console.warn('❌ $parent.openScheduleModal method not found');
-      }
+      // Use UI store to open modal with data
+      this.uiStore.openModal('schedule', { quicklistChore });
     },
 
     // Quicklist methods
@@ -1613,7 +1648,8 @@ const TailwindChorePage = Vue.defineComponent({
       this.quicklistLoading = true;
       this.quicklistError = null;
       try {
-        await this.$parent.loadQuicklistChores();
+        // Use chores store instead of $parent
+        await this.choresStore.loadQuicklistChores();
       } catch (error) {
         this.quicklistError = error.message;
       } finally {
@@ -1623,9 +1659,8 @@ const TailwindChorePage = Vue.defineComponent({
 
     async removeFromQuicklist(quicklistId) {
       try {
-        await this.$parent.apiCall(`${this.CONFIG.API.ENDPOINTS.QUICKLIST}/${quicklistId}`, {
-          method: 'DELETE'
-        });
+        // Use API service directly instead of $parent.apiCall
+        await apiService.delete(`${this.CONFIG.API.ENDPOINTS.QUICKLIST}/${quicklistId}`);
         await this.loadQuicklistChores();
       } catch (error) {
         console.error('Failed to remove from quicklist:', error);
@@ -1652,17 +1687,13 @@ const TailwindChorePage = Vue.defineComponent({
             chore.assignedTo &&
             chore.assignedTo !== 'unassigned') {
           this.assignSelectedChore(chore.assignedTo);
-          this.selectedChoreId = null;
-          this.selectedQuicklistChore = null;
+          // Use chores store to clear selection
+          this.choresStore.clearSelection();
           return;
         }
 
-        const handler = this.selectionStore?.selectChore || this.handleChoreClick || this.$parent?.handleChoreClick;
-        if (typeof handler === 'function') {
-          handler(chore);
-        } else {
-          console.warn('handleChoreClick not available');
-        }
+        // Use chores store to select chore
+        this.choresStore.selectChore(chore);
       } finally {
         setTimeout(() => {
           chore.isSelecting = false;
@@ -1693,12 +1724,18 @@ const TailwindChorePage = Vue.defineComponent({
 
     async deleteChore(chore) {
       if (chore) {
-        await this.$parent.deleteChore(chore);
+        // Use chores store instead of $parent
+        await this.choresStore.deleteChore(chore);
       }
     },
 
     async assignSelectedChore(assignTo) {
-      await this.$parent.assignSelectedChore(assignTo);
+      // Use chores store to assign chore
+      const selectedChore = this.choresStore.selectedChore;
+      if (selectedChore) {
+        await this.choresStore.assignChore(selectedChore.id, assignTo);
+        this.choresStore.clearSelection();
+      }
     },
 
     async handleChoreCompletionToggle(chore, event) {
@@ -1712,17 +1749,18 @@ const TailwindChorePage = Vue.defineComponent({
       const newCompletedState = event && event.target ? event.target.checked : !chore.completed;
       chore.completed = newCompletedState;
 
-      await this.$parent.handleChoreCompletion(chore);
+      // Use chores store instead of $parent
+      await this.choresStore.toggleComplete(chore);
     },
 
     async approveChore(chore) {
-      await this.$parent.approveChore(chore);
+      // Use chores store instead of $parent
+      await this.choresStore.approveChore(chore);
     },
 
     openSpendModal(person) {
-      if (this.$parent.openSpendingModal) {
-        this.$parent.openSpendingModal(person);
-      }
+      // Use UI store to open modal with data
+      this.uiStore.openModal('spending', { selectedPerson: person });
     },
 
     // Chore expansion handlers for tap-to-expand action panel
@@ -1749,12 +1787,8 @@ const TailwindChorePage = Vue.defineComponent({
       }
 
       try {
-        // Use the parent app's reassignChore method (not the Pinia store)
-        if (this.$parent?.reassignChore) {
-          await this.$parent.reassignChore(chore, newAssignee);
-        } else {
-          console.warn('reassignChore method not found on parent');
-        }
+        // Use chores store to reassign chore
+        await this.choresStore.assignChore(chore.id, newAssignee);
         
         // Collapse the action panel after successful reassign
         this.expandedChoreId = null;

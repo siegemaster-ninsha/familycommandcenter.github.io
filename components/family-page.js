@@ -1,6 +1,21 @@
 // Family Page Component
 const FamilyPage = Vue.defineComponent({
   name: 'FamilyPage',
+  setup() {
+    // Access stores directly instead of using $parent
+    // _Requirements: 7.1, 7.2_
+    const familyStore = window.useFamilyStore();
+    const choresStore = window.useChoresStore();
+    const authStore = window.useAuthStore();
+    const uiStore = window.useUIStore();
+    
+    return {
+      familyStore,
+      choresStore,
+      authStore,
+      uiStore
+    };
+  },
   data() {
     return {
       expandedCards: {},
@@ -11,6 +26,19 @@ const FamilyPage = Vue.defineComponent({
     };
   },
   inject: ['allPeople', 'confirmDeletePerson'],
+  computed: {
+    // Map store data to component properties for template access
+    // _Requirements: 7.1, 7.2_
+    currentUser() {
+      return this.authStore.currentUser;
+    },
+    spendingRequests() {
+      return this.familyStore.spendingRequests;
+    },
+    quicklistChores() {
+      return this.choresStore.quicklistChores;
+    }
+  },
   template: `
     <div class="space-y-6 sm:space-y-8 pb-24 sm:pb-0">
       <!-- Family Overview -->
@@ -23,14 +51,14 @@ const FamilyPage = Vue.defineComponent({
             </h2>
             <div class="flex gap-2 sm:gap-3 flex-wrap w-full sm:w-auto">
               <button
-                @click="$parent.openCreateChildModal()"
+                @click="openCreateChildModal()"
                 class="flex items-center gap-2 bg-success-600 hover:bg-success-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center shadow-md hover:shadow-lg"
               >
                 <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16, 'text-white')"></div>
                 <span class="font-medium">Add Child</span>
               </button>
               <button
-                @click="$parent.createParentInvite()"
+                @click="createParentInvite()"
                 class="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 touch-target min-h-[48px] w-full sm:w-auto justify-center shadow-md hover:shadow-lg"
               >
                 <div v-html="Helpers.IconLibrary.getIcon('mail', 'lucide', 16, 'text-white')"></div>
@@ -109,7 +137,7 @@ const FamilyPage = Vue.defineComponent({
                           <label class="text-sm text-white text-opacity-90 font-medium min-w-[100px]">Display name</label>
                           <input
                             v-model="person.displayName"
-                            @blur="$parent.updateFamilyMemberDisplayName(person)"
+                            @blur="updateFamilyMemberDisplayName(person)"
                             class="flex-1 text-sm border rounded-lg px-3 py-2 bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 focus:ring-2 focus:ring-white focus:ring-opacity-50"
                             placeholder="Optional"
                           />
@@ -133,7 +161,7 @@ const FamilyPage = Vue.defineComponent({
                     </div>
 
                     <!-- Weekly Schedule Section (Requirements 7.1-7.4) -->
-                    <div v-if="$parent.currentUser?.role === 'parent'" class="bg-white bg-opacity-10 rounded-lg p-4">
+                    <div v-if="currentUser?.role === 'parent'" class="bg-white bg-opacity-10 rounded-lg p-4">
                       <h4 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
                         <div v-html="Helpers.IconLibrary.getIcon('calendar', 'lucide', 16, 'text-white')"></div>
                         Weekly Schedule
@@ -392,8 +420,8 @@ const FamilyPage = Vue.defineComponent({
 
                       <div class="flex flex-col sm:flex-row gap-3">
                         <button
-                          v-if="$parent.currentUser?.role === 'parent' && hasMemberScheduledChores(person)"
-                          @click="$parent.openDefaultOrderModal(person)"
+                          v-if="currentUser?.role === 'parent' && hasMemberScheduledChores(person)"
+                          @click="openDefaultOrderModal(person)"
                           class="flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 touch-target min-h-[44px] shadow-md hover:shadow-lg"
                         >
                           <div v-html="Helpers.IconLibrary.getIcon('list-ordered', 'lucide', 16, 'text-white')"></div>
@@ -401,8 +429,8 @@ const FamilyPage = Vue.defineComponent({
                         </button>
 
                         <button
-                          v-if="$parent.currentUser?.role === 'parent'"
-                          @click="$parent.openSpendingModal(person)"
+                          v-if="currentUser?.role === 'parent'"
+                          @click="openSpendingModal(person)"
                           class="flex items-center justify-center gap-2 bg-success-600 hover:bg-success-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 touch-target min-h-[44px] shadow-md hover:shadow-lg"
                         >
                           <div v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 16, 'text-white')"></div>
@@ -410,8 +438,8 @@ const FamilyPage = Vue.defineComponent({
                         </button>
 
                         <button
-                          v-if="$parent.canRemoveMember(person)"
-                          @click="$parent.removeMember(person)"
+                          v-if="canRemoveMember(person)"
+                          @click="removeMember(person)"
                           class="flex items-center justify-center gap-2 bg-error-600 hover:bg-error-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 touch-target min-h-[44px] shadow-md hover:shadow-lg"
                         >
                           <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 16, 'text-white')"></div>
@@ -426,7 +454,7 @@ const FamilyPage = Vue.defineComponent({
         </div>
 
           <!-- Spending Requests (Parents Only) -->
-          <div v-if="$parent.currentUser?.role === 'parent'" class="mt-6 sm:mt-8">
+          <div v-if="currentUser?.role === 'parent'" class="mt-6 sm:mt-8">
             <div class="w-full block rounded-lg border p-6" style="background-color: var(--color-bg-card); border-color: var(--color-border-card);">
               <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <h3 class="text-primary-custom text-xl font-bold flex items-center gap-2">
@@ -434,20 +462,20 @@ const FamilyPage = Vue.defineComponent({
                   <span>Spending Requests</span>
                 </h3>
                 <button
-                  @click="$parent.loadSpendingRequests()"
+                  @click="loadSpendingRequests()"
                   class="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 touch-target min-h-[44px] justify-center shadow-md hover:shadow-lg"
                 >
                   <div v-html="Helpers.IconLibrary.getIcon('refresh-cw', 'lucide', 16, 'text-white')"></div>
                   Refresh
                 </button>
               </div>
-              <div v-if="$parent.spendingRequests.length === 0" class="text-center py-8 text-secondary-custom">
+              <div v-if="spendingRequests.length === 0" class="text-center py-8 text-secondary-custom">
                 <div v-html="Helpers.IconLibrary.getIcon('shield', 'lucide', 48, 'mx-auto mb-3 opacity-50')" class="mx-auto mb-3 opacity-50"></div>
                 <p class="text-base font-medium">No pending requests.</p>
               </div>
               <div v-else class="space-y-3 sm:space-y-4">
                 <div
-                  v-for="req in $parent.spendingRequests"
+                  v-for="req in spendingRequests"
                   :key="req.id"
                   class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 rounded-lg border transition-colors duration-200 hover:shadow-md"
                   style="background-color: var(--color-primary-500); border-color: var(--color-primary-600);"
@@ -463,7 +491,7 @@ const FamilyPage = Vue.defineComponent({
                     </div>
                   </div>
                   <button
-                    @click="$parent.approveSpendingRequest(req.id)"
+                    @click="approveSpendingRequest(req.id)"
                     class="flex items-center gap-2 bg-success-600 hover:bg-success-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 touch-target min-h-[44px] justify-center shadow-md hover:shadow-lg self-start sm:self-center"
                   >
                     <div v-html="Helpers.IconLibrary.getIcon('check', 'lucide', 16, 'text-white')"></div>
@@ -495,7 +523,111 @@ const FamilyPage = Vue.defineComponent({
     },
     handleChoreToggle(person, event) {
       person.enabledForChores = event.target.checked;
-      this.$parent.updateMemberChoresEnabled(person);
+      this.familyStore.updateMemberChoresEnabled(person);
+    },
+
+    // =============================================
+    // STORE DELEGATION METHODS
+    // These methods delegate to stores instead of $parent
+    // _Requirements: 7.1, 7.2_
+    // =============================================
+
+    /**
+     * Open the create child modal
+     */
+    openCreateChildModal() {
+      this.uiStore.openModal('createChild');
+    },
+
+    /**
+     * Create a parent invite
+     */
+    async createParentInvite() {
+      try {
+        const result = await this.familyStore.createParentInvite();
+        if (result.success) {
+          this.uiStore.openModal('parentInvite', { token: result.token });
+        } else {
+          this.uiStore.showError(result.error || 'Failed to create invite');
+        }
+      } catch (error) {
+        console.error('Failed to create parent invite:', error);
+        this.uiStore.showError('Failed to create invite');
+      }
+    },
+
+    /**
+     * Update family member display name
+     */
+    async updateFamilyMemberDisplayName(person) {
+      try {
+        await this.familyStore.updateMember(person.id, { displayName: person.displayName });
+      } catch (error) {
+        console.error('Failed to update display name:', error);
+        this.uiStore.showError('Failed to update display name');
+      }
+    },
+
+    /**
+     * Open the default order modal for a member
+     */
+    openDefaultOrderModal(person) {
+      this.uiStore.openModal('defaultOrder', { person });
+    },
+
+    /**
+     * Open the spending modal for a member
+     */
+    openSpendingModal(person) {
+      this.uiStore.openModal('spending', { selectedPerson: person });
+    },
+
+    /**
+     * Check if a member can be removed
+     */
+    canRemoveMember(person) {
+      // Parents can remove children, but not themselves or other parents
+      const currentUser = this.currentUser;
+      if (!currentUser || currentUser.role !== 'parent') return false;
+      if (person.role === 'parent') return false;
+      return true;
+    },
+
+    /**
+     * Remove a family member
+     */
+    async removeMember(person) {
+      // Open confirmation modal
+      this.uiStore.openModal('deletePerson', { personToDelete: person });
+    },
+
+    /**
+     * Load spending requests
+     */
+    async loadSpendingRequests() {
+      try {
+        await this.familyStore.loadSpendingRequests();
+      } catch (error) {
+        console.error('Failed to load spending requests:', error);
+        this.uiStore.showError('Failed to load spending requests');
+      }
+    },
+
+    /**
+     * Approve a spending request
+     */
+    async approveSpendingRequest(requestId) {
+      try {
+        const result = await this.familyStore.approveSpendingRequest(requestId);
+        if (result.success) {
+          this.uiStore.showSuccess('Spending request approved');
+        } else {
+          this.uiStore.showError(result.error || 'Failed to approve request');
+        }
+      } catch (error) {
+        console.error('Failed to approve spending request:', error);
+        this.uiStore.showError('Failed to approve request');
+      }
     },
 
     // =============================================
@@ -508,7 +640,7 @@ const FamilyPage = Vue.defineComponent({
      */
     getDailyChoresForMember(person) {
       const dailyChoreIds = person.dailyChores || [];
-      const quicklistChores = this.$parent.quicklistChores || [];
+      const quicklistChores = this.quicklistChores || [];
       
       // Map IDs to full quicklist chore objects, filtering out missing ones
       return dailyChoreIds
@@ -522,7 +654,7 @@ const FamilyPage = Vue.defineComponent({
      */
     getAvailableQuicklistChores(person) {
       const dailyChoreIds = person.dailyChores || [];
-      const quicklistChores = this.$parent.quicklistChores || [];
+      const quicklistChores = this.quicklistChores || [];
       
       return quicklistChores.filter(qc => !dailyChoreIds.includes(qc.id));
     },
@@ -706,7 +838,7 @@ const FamilyPage = Vue.defineComponent({
      * @returns {Object} Grouped scheduled chores { pattern: [chores] }
      */
     getMemberScheduledChores(person) {
-      const quicklistChores = this.$parent.quicklistChores || [];
+      const quicklistChores = this.quicklistChores || [];
       const memberId = person.id;
       
       // Find all quicklist chores where this member has days scheduled

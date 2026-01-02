@@ -64,12 +64,38 @@ const UnassignedSection = Vue.defineComponent({
       </div>
     </div>
   `,
-  inject: ['choresByPerson', 'showAddChoreModal', 'assignSelectedChore', 'selectedChore', 'handleChoreClick', 'openAddChoreModal', 'selectionStore', 'Helpers'],
+  inject: ['Helpers'],
+  setup() {
+    // Access stores directly instead of using $parent
+    // _Requirements: 7.1, 7.2_
+    const choresStore = window.useChoresStore();
+    const uiStore = window.useUIStore();
+    
+    return {
+      choresStore,
+      uiStore
+    };
+  },
+  computed: {
+    // Map store data to component properties
+    choresByPerson() {
+      return this.choresStore.choresByPerson;
+    },
+    selectedChore() {
+      return this.choresStore.selectedChore;
+    },
+    selectedChoreId() {
+      return this.choresStore.selectedChoreId;
+    },
+    selectedQuicklistChore() {
+      return this.choresStore.selectedQuicklistChore;
+    }
+  },
   methods: {
     getChoreClasses(chore) {
       const baseClasses = "flex items-center gap-3 sm:gap-4 px-3 sm:px-4 min-h-[96px] sm:min-h-[72px] py-4 sm:py-2 justify-between mb-3 sm:mb-2 rounded-lg shadow-sm cursor-pointer border-l-4 transition-all duration-200 touch-target";
       const categoryClasses = this.getCategoryStyle(chore.category).background;
-      const selected = this.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, chore) || false;
+      const selected = this.Helpers?.isChoreSelected?.(this.selectedChoreId, this.selectedQuicklistChore, chore) || false;
       const selectedClasses = selected ? "ring-4 ring-opacity-75 transform scale-105" : "hover:shadow-md hover:scale-102 active:scale-95";
       // Note: ring color is applied via inline style in the template for theme support
       
@@ -77,7 +103,7 @@ const UnassignedSection = Vue.defineComponent({
     },
 
     isChoreSelected(chore) {
-      return this.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, chore) || false;
+      return this.Helpers?.isChoreSelected?.(this.selectedChoreId, this.selectedQuicklistChore, chore) || false;
     },
 
     getCategoryStyle(category) {
@@ -111,15 +137,27 @@ const UnassignedSection = Vue.defineComponent({
       return this.Helpers?.getCategoryLabel?.(category) || '';
     },
 
-    
+    openAddChoreModal() {
+      // Use UI store to open modal
+      this.uiStore.openModal('addChore');
+    },
+
+    assignSelectedChore(assignTo) {
+      // Use chores store to assign chore
+      const selectedChore = this.choresStore.selectedChore;
+      if (selectedChore) {
+        this.choresStore.assignChore(selectedChore.id, assignTo);
+        this.choresStore.clearSelection();
+      }
+    },
 
     selectChore(chore, event) {
-      console.log('selectChore called for:', chore.name, 'Current selectedChoreId:', this.$parent.selectedChoreId);
+      console.log('selectChore called for:', chore.name, 'Current selectedChoreId:', this.selectedChoreId);
       
       // Special case: If we have a different chore selected and we click on a chore that's assigned to someone,
       // assign the selected chore to that person
-      if (this.$parent.selectedChore && 
-          this.$parent.selectedChoreId !== chore.id && 
+      if (this.selectedChore && 
+          this.selectedChoreId !== chore.id && 
           chore.assignedTo && 
           chore.assignedTo !== 'unassigned') {
         console.log('Assigning selected chore to:', chore.assignedTo);
@@ -128,15 +166,9 @@ const UnassignedSection = Vue.defineComponent({
       }
       
       if (event && event.type === 'touchend') event.preventDefault();
-      const handler = this.selectionStore?.selectChore || this.handleChoreClick || this.$parent?.handleChoreClick;
-      if (typeof handler === 'function') {
-        handler(chore);
-      } else {
-        console.warn('handleChoreClick not available');
-      }
-    },
-
-
+      // Use chores store to select chore
+      this.choresStore.selectChore(chore);
+    }
   }
 });
 

@@ -1039,7 +1039,12 @@ const ShoppingPage = Vue.defineComponent({
         await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS_INITIALIZE, {
           method: 'POST'
         });
-        await this.$parent.loadShoppingQuickItems();
+        // Use shopping store instead of $parent
+        // _Requirements: 7.1, 7.2_
+        const shoppingStore = window.useShoppingStore?.();
+        if (shoppingStore) {
+          await shoppingStore.loadQuickItems();
+        }
       } catch (error) {
         console.error('Error initializing quick items:', error);
         alert('Error loading default items: ' + (error?.message || 'unknown error'));
@@ -1056,7 +1061,12 @@ const ShoppingPage = Vue.defineComponent({
           method: 'POST',
           body: JSON.stringify(this.newStore)
         });
-        await this.$parent.loadStores();
+        // Use shopping store instead of $parent
+        // _Requirements: 7.1, 7.2_
+        const shoppingStore = window.useShoppingStore?.();
+        if (shoppingStore) {
+          await shoppingStore.loadStores();
+        }
         this.newStore = { name: '' };
         this.showAddStoreModal = false;
         this.showSuccessMessage('Store added successfully!');
@@ -1074,7 +1084,12 @@ const ShoppingPage = Vue.defineComponent({
         await this.apiCall(`${CONFIG.API.ENDPOINTS.STORES}/${storeId}`, {
           method: 'DELETE'
         });
-        await this.$parent.loadStores();
+        // Use shopping store instead of $parent
+        // _Requirements: 7.1, 7.2_
+        const shoppingStore = window.useShoppingStore?.();
+        if (shoppingStore) {
+          await shoppingStore.loadStores();
+        }
       } catch (error) {
         console.error('Error removing store:', error);
         alert('Error removing store: ' + (error?.message || 'unknown error'));

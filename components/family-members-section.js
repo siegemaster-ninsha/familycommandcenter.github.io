@@ -64,8 +64,8 @@ const FamilyMembersSection = Vue.defineComponent({
                   />
                 </div>
                 <button
-                  v-if="$parent.currentUser?.role === 'parent' && chore.isPendingApproval"
-                  @click.stop="$parent.approveChore(chore)"
+                  v-if="currentUser?.role === 'parent' && chore.isPendingApproval"
+                  @click.stop="approveChore(chore)"
                   class="px-2 py-1 text-xs rounded btn-success"
                 >Approve</button>
               </div>
@@ -82,13 +82,46 @@ const FamilyMembersSection = Vue.defineComponent({
 
     </div>
   `,
-  inject: [
-    'choresByPerson', 'people', 'assignSelectedChore', 'handleChoreClick', 'selectionStore', 'Helpers'
-  ],
+  inject: ['Helpers'],
+  setup() {
+    // Access stores directly instead of using $parent
+    // _Requirements: 7.1, 7.2_
+    const choresStore = window.useChoresStore();
+    const familyStore = window.useFamilyStore();
+    const authStore = window.useAuthStore();
+    
+    return {
+      choresStore,
+      familyStore,
+      authStore
+    };
+  },
+  computed: {
+    // Map store data to component properties
+    choresByPerson() {
+      return this.choresStore.choresByPerson;
+    },
+    // Use enabledMembers to filter out hidden members (showOnChoreBoard === false)
+    people() {
+      return this.familyStore.enabledMembers;
+    },
+    selectedChore() {
+      return this.choresStore.selectedChore;
+    },
+    selectedChoreId() {
+      return this.choresStore.selectedChoreId;
+    },
+    selectedQuicklistChore() {
+      return this.choresStore.selectedQuicklistChore;
+    },
+    currentUser() {
+      return this.authStore.currentUser;
+    }
+  },
   methods: {
     getDropZoneClasses() {
       const baseClasses = "bg-white rounded-lg shadow-sm border transition-all duration-200";
-      const highlightClasses = this.$parent.selectedChore ? "ring-2 ring-success-600 ring-opacity-50 bg-success-50" : "";
+      const highlightClasses = this.selectedChore ? "ring-2 ring-success-600 ring-opacity-50 bg-success-50" : "";
       
       return `${baseClasses} ${highlightClasses}`;
     },
@@ -96,14 +129,14 @@ const FamilyMembersSection = Vue.defineComponent({
     getChoreClasses(chore) {
       const baseClasses = "flex items-center gap-3 sm:gap-4 px-3 sm:px-4 min-h-[88px] sm:min-h-[72px] py-3 sm:py-2 justify-between mb-3 sm:mb-2 rounded-lg shadow-sm cursor-pointer border-l-4 transition-all duration-200 touch-target";
       const categoryClasses = this.getCategoryStyle(chore.category).background;
-      const selected = this.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, chore) || false;
+      const selected = this.Helpers?.isChoreSelected?.(this.selectedChoreId, this.selectedQuicklistChore, chore) || false;
       const selectedClasses = selected ? "ring-4 ring-opacity-75 transform scale-105" : "hover:shadow-md hover:scale-102 active:scale-95";
       // Ring color applied via inline style in template for theme support
       return `${baseClasses} ${categoryClasses} ${selectedClasses}`;
     },
 
     isChoreSelected(chore) {
-      return window.Helpers?.isChoreSelected?.(this.$parent?.selectedChoreId, this.$parent?.selectedQuicklistChore, chore) || false;
+      return window.Helpers?.isChoreSelected?.(this.selectedChoreId, this.selectedQuicklistChore, chore) || false;
     },
 
     getCategoryStyle(category) {
@@ -137,33 +170,39 @@ const FamilyMembersSection = Vue.defineComponent({
       return this.Helpers?.getCategoryLabel?.(category) || '';
     },
 
+    assignSelectedChore(assignTo) {
+      // Use chores store to assign chore
+      const selectedChore = this.choresStore.selectedChore;
+      if (selectedChore) {
+        this.choresStore.assignChore(selectedChore.id, assignTo);
+        this.choresStore.clearSelection();
+      }
+    },
+
     selectChore(chore, event) {
-      console.log('🎯 selectChore called for:', chore.name, 'Current selectedChoreId:', this.$parent.selectedChoreId);
+      console.log('🎯 selectChore called for:', chore.name, 'Current selectedChoreId:', this.selectedChoreId);
       console.log('🎯 Event type:', event.type, 'Event target:', event.target.tagName);
       console.trace('🎯 selectChore call stack');
-      if (this.$parent.selectedChore && this.$parent.selectedChoreId !== chore.id && chore.assignedTo && chore.assignedTo !== 'unassigned') {
+      if (this.selectedChore && this.selectedChoreId !== chore.id && chore.assignedTo && chore.assignedTo !== 'unassigned') {
         console.log('Assigning selected chore to:', chore.assignedTo);
         this.assignSelectedChore(chore.assignedTo);
         return;
       }
       if (event && event.type === 'touchend') event.preventDefault();
-      const handler = this.selectionStore?.selectChore || this.handleChoreClick || this.$parent?.handleChoreClick;
-      if (typeof handler === 'function') {
-        handler(chore);
-      } else {
-        console.warn('handleChoreClick not available');
-      }
+      // Use chores store to select chore
+      this.choresStore.selectChore(chore);
     },
 
     async handleChoreCompletionChange(chore, event) {
       console.log('🔲 Checkbox changed for chore:', chore.name, 'to:', event.target.checked);
       chore.completed = event.target.checked;
-      await this.$parent.handleChoreCompletion(chore);
+      // Use chores store instead of $parent
+      await this.choresStore.toggleComplete(chore);
     },
 
-    async handleChoreCompletion(chore) {
-      // Use the parent's optimized method instead of duplicating logic
-      await this.$parent.handleChoreCompletion(chore);
+    async approveChore(chore) {
+      // Use chores store instead of $parent
+      await this.choresStore.approveChore(chore);
     }
   }
 });

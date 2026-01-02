@@ -63,14 +63,22 @@ const AppErrorState = Vue.defineComponent({
 });
 
 // Selection Info Component (disabled per UX request)
+// _Requirements: 7.1, 7.2_ - Uses choresStore instead of $parent
 const AppSelectionInfo = Vue.defineComponent({
   name: 'AppSelectionInfo',
   template: `<div></div>`,
   inject: ['loading', 'error', 'selectedChore'],
+  setup() {
+    // Access chores store directly instead of using $parent
+    const choresStore = window.useChoresStore?.();
+    return { choresStore };
+  },
   methods: {
     clearSelection() {
-      this.$parent.selectedChoreId = null;
-      this.$parent.selectedQuicklistChore = null;
+      // Use chores store instead of $parent
+      if (this.choresStore) {
+        this.choresStore.clearSelection();
+      }
     }
   }
 });

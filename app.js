@@ -73,8 +73,7 @@ const app = createApp({
       },
       // Multi-assignment modal for quicklist chores
       showMultiAssignModal: false,
-      selectedQuicklistChore: null,
-      multiAssignSelectedMembers: [],
+      // selectedQuicklistChore and multiAssignSelectedMembers moved to chores store
       // Category management modal
       showCategoryManagementModal: false,
       // Schedule modal for weekly chore scheduling
@@ -124,14 +123,12 @@ const app = createApp({
     },
 
     // Existing data
-      chores: [],
-      selectedChoreId: null, // Changed from selectedChore to selectedChoreId
-      // selectedQuicklistChore defined above in multi-assignment modal section
+      // NOTE: chores, quicklistChores, selectedChoreId moved to choresStore
+      // Components should use useChoresStore() instead of $parent references
       showConfetti: false,
       confettiPieces: [],
       showSuccessMessageFlag: false,
       completedChoreMessage: '',
-      quicklistChores: [],
       // Mobile nav state
       mobileNavOpen: false,
       // Nav items (extensible)
@@ -158,39 +155,8 @@ const app = createApp({
     }
   },
   computed: {
-    choresByPerson() {
-      const grouped = {
-        unassigned: []
-      };
-      
-      // Add each person to the grouped object
-      if (Array.isArray(this.people)) {
-        this.people.forEach(person => {
-          if (person && person.name) {
-            grouped[person.name] = [];
-          }
-        });
-      }
-      
-      // Group chores by assigned person
-      if (Array.isArray(this.chores)) {
-        this.chores.forEach(chore => {
-          if (chore && chore.assignedTo) {
-            if (grouped[chore.assignedTo]) {
-              grouped[chore.assignedTo].push(chore);
-            } else {
-              // If assignedTo person doesn't exist, put it in unassigned
-              grouped.unassigned.push(chore);
-            }
-          } else {
-            // If chore doesn't have assignedTo, put it in unassigned
-            grouped.unassigned.push(chore);
-          }
-        });
-      }
-      
-      return grouped;
-    },
+    // NOTE: choresByPerson moved to choresStore.choresByPerson
+    // Components should use useChoresStore().choresByPerson instead
     
     // Legacy computed properties for backward compatibility with API calls
     earnings() {
@@ -209,23 +175,9 @@ const app = createApp({
       return statusObj;
     },
     
-    // Get the selected chore object from the ID
-    selectedChore() {
-      if (this.selectedQuicklistChore) {
-        return this.selectedQuicklistChore;
-      }
-      
-      if (this.selectedChoreId) {
-        if (!Array.isArray(this.chores)) {
-          console.warn('Chores is not an array:', this.chores);
-          return null;
-        }
-        
-        return this.chores.find(chore => chore && chore.id === this.selectedChoreId) || null;
-      }
-      
-      return null;
-    },
+    // NOTE: selectedChore moved to choresStore.selectedChore
+    // Components should use useChoresStore().selectedChore instead
+    
     // whether any modal is currently open (used to lock/unlock body scroll on mobile)
     isAnyModalOpen() {
       return (
@@ -251,11 +203,52 @@ const app = createApp({
       }
       // Return a default object if store is not available
       return { isOnline: true };
+    },
+    
+    // ============================================
+    // BRIDGE COMPUTED PROPERTIES: Expose stores for watchers
+    // These computed properties allow the bridge watchers to observe
+    // store state changes and sync them to legacy app.js properties.
+    // 
+    // **Feature: app-js-refactoring**
+    // **Validates: Requirements 8.1, 8.2**
+    // ============================================
+    
+    // NOTE: $choresStore bridge removed - chore state now lives exclusively in choresStore
+    // Components should use useChoresStore() directly
+    
+    // Expose family store for bridge watchers
+    $familyStore() {
+      if (typeof window !== 'undefined' && window.useFamilyStore) {
+        return window.useFamilyStore();
+      }
+      // Return a default object if store is not available
+      return { members: [] };
+    },
+    
+    // Expose auth store for bridge watchers
+    $authStore() {
+      if (typeof window !== 'undefined' && window.useAuthStore) {
+        return window.useAuthStore();
+      }
+      // Return a default object if store is not available
+      return { isAuthenticated: false, currentUser: null };
+    },
+    
+    // Expose UI store for bridge watchers
+    // **Feature: app-js-refactoring**
+    // **Validates: Requirements 8.1, 8.2**
+    $uiStore() {
+      if (typeof window !== 'undefined' && window.useUIStore) {
+        return window.useUIStore();
+      }
+      // Return a default object if store is not available
+      return { currentPage: 'chores' };
     }
   },
   methods: {
     // WebSocket initialization - delegates to composable
-    // Updates both stores AND app.js arrays for backward compatibility
+    // WebSocket now updates stores directly, no app.js state updates needed
     initWebsocket() {
       const ws = window.useWebSocket?.();
       if (!ws) {
@@ -263,33 +256,9 @@ const app = createApp({
         return;
       }
 
-      // Register callbacks for app.js state updates (backward compatibility)
+      // NOTE: Chore-related callbacks removed - WebSocket composable updates stores directly
+      // Only family member updates still need app.js bridge for backward compatibility
       ws.onAppStateUpdate({
-        addChore: (chore) => {
-          const tempIdx = this.chores.findIndex(c => 
-            c?.isOptimistic && 
-            c.name === chore.name && 
-            c.assignedTo === chore.assignedTo && 
-            c.amount === chore.amount && 
-            c.category === chore.category
-          );
-          if (tempIdx >= 0) {
-            this.chores[tempIdx] = chore;
-          } else if (!this.chores.some(c => c.id === chore.id)) {
-            this.chores.push(chore);
-          }
-        },
-        updateChore: (chore) => {
-          const idx = this.chores.findIndex(c => c.id === chore.id);
-          if (idx >= 0) {
-            this.chores[idx] = chore;
-          } else {
-            this.chores.push(chore);
-          }
-        },
-        deleteChore: (choreId) => {
-          this.chores = this.chores.filter(c => c.id !== choreId);
-        },
         updatePerson: (memberId, updates) => {
           const idx = this.people.findIndex(m => m.id === memberId);
           if (idx >= 0) {
@@ -498,14 +467,17 @@ const app = createApp({
       } catch (e) {
         console.warn('account settings load failed; proceeding with defaults', e);
       }
+      
+      // Get stores for loading data
+      const choresStore = window.useChoresStore?.();
         
         // Load remaining data in parallel
         await Promise.all([
-          // Core chore page data
-          this.loadChores(),
+          // Core chore page data - now uses choresStore
+          choresStore?.loadChores(),
           this.loadEarnings(),
           this.loadElectronicsStatus(),
-          this.loadQuicklistChores(),
+          choresStore?.loadQuicklistChores(),
           this.loadFamilyMembers(),
           this.loadCategories(),
           
@@ -524,21 +496,8 @@ const app = createApp({
       }
     },
     
-    async loadChores() {
-      try {
-        const response = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES);
-        this.chores = response.chores || [];
-        
-        // Also sync to chores store for components that use it directly
-        const choresStore = window.useChoresStore?.();
-        if (choresStore) {
-          choresStore.chores = this.chores;
-        }
-      } catch (error) {
-        console.error('Failed to load chores:', error);
-        this.chores = [];
-      }
-    },
+    // NOTE: loadChores moved to choresStore.loadChores()
+    // Components should use useChoresStore().loadChores() instead
     
     async loadFamilyMembers(preserveOptimisticUpdates = false) {
       try {
@@ -675,8 +634,12 @@ const app = createApp({
       const person = this.people.find(p => p.name === personName);
       if (!person) return;
 
+      // Get chores from store
+      const choresStore = window.useChoresStore?.();
+      const chores = choresStore?.chores || [];
+
       // Count incomplete electronics chores for this person
-      const incompleteElectronicsChores = this.chores.filter(chore => 
+      const incompleteElectronicsChores = chores.filter(chore => 
         chore.assignedTo === personName && 
         chore.category === 'game' && 
         !chore.completed
@@ -690,15 +653,8 @@ const app = createApp({
       };
     },
     
-    async loadQuicklistChores() {
-      try {
-        const response = await this.apiCall(CONFIG.API.ENDPOINTS.QUICKLIST);
-        this.quicklistChores = response.quicklistChores || [];
-      } catch (error) {
-        console.error('Failed to load quicklist chores:', error);
-        this.quicklistChores = [];
-      }
-    },
+    // NOTE: loadQuicklistChores moved to choresStore.loadQuicklistChores()
+    // Components should use useChoresStore().loadQuicklistChores() instead
 
     async loadCategories() {
       try {
@@ -804,17 +760,23 @@ const app = createApp({
     
 
     
-    // Chore selection methods
+    // Chore selection methods - now delegate to chores store
     handleChoreClick(chore) {
       if (CONFIG.ENV.IS_DEVELOPMENT) console.log('Chore clicked:', chore.name);
       
+      const choresStore = window.useChoresStore?.();
+      if (!choresStore) {
+        console.warn('Chores store not available');
+        return;
+      }
+      
       // If the same chore is clicked again, deselect it
-      if (this.selectedChoreId === chore.id) {
-        this.selectedChoreId = null;
+      if (choresStore.selectedChoreId === chore.id) {
+        choresStore.selectedChoreId = null;
         if (CONFIG.ENV.IS_DEVELOPMENT) console.log('Deselected chore');
       } else {
-        this.selectedChoreId = chore.id;
-        this.selectedQuicklistChore = null; // Clear quicklist selection
+        choresStore.selectedChoreId = chore.id;
+        choresStore.selectedQuicklistChore = null; // Clear quicklist selection
         if (CONFIG.ENV.IS_DEVELOPMENT) console.log('Selected chore:', chore.name);
       }
     },
@@ -822,13 +784,19 @@ const app = createApp({
     handleQuicklistChoreClick(chore) {
       if (CONFIG.ENV.IS_DEVELOPMENT) console.log('Quicklist chore clicked:', chore.name);
       
+      const choresStore = window.useChoresStore?.();
+      if (!choresStore) {
+        console.warn('Chores store not available');
+        return;
+      }
+      
       // If the same quicklist chore is clicked again, deselect it
-      if (this.selectedQuicklistChore && this.selectedQuicklistChore.id === chore.id) {
-        this.selectedQuicklistChore = null;
+      if (choresStore.selectedQuicklistChore && choresStore.selectedQuicklistChore.id === chore.id) {
+        choresStore.selectedQuicklistChore = null;
         if (CONFIG.ENV.IS_DEVELOPMENT) console.log('Deselected quicklist chore');
       } else {
-        this.selectedQuicklistChore = { ...chore, isNewFromQuicklist: true };
-        this.selectedChoreId = null; // Clear regular chore selection
+        choresStore.selectedQuicklistChore = { ...chore, isNewFromQuicklist: true };
+        choresStore.selectedChoreId = null; // Clear regular chore selection
         if (CONFIG.ENV.IS_DEVELOPMENT) console.log('Selected quicklist chore:', chore.name);
       }
     },
@@ -1059,126 +1027,8 @@ const app = createApp({
       this.showDeletePersonModal = true;
     },
     
-    // Chore management methods
-    async addChore() {
-      if (this.newChore.name.trim() && this.newChore.amount >= 0) {
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🚀 Adding new chore:', this.newChore.name);
-        
-        // Check if this is a detailed chore
-        if (this.newChore.isDetailed) {
-          // Open details modal instead of creating immediately
-          this.openChoreDetailsModal({
-            name: this.newChore.name.trim(),
-            amount: this.newChore.amount,
-            category: this.newChore.category
-          }, 'unassigned', false);
-          // Close the original add chore modal
-          this.cancelAddChore();
-          return;
-        }
-        
-        // Store original state for potential rollback
-        const originalChores = [...this.chores];
-        const originalQuicklistChores = [...this.quicklistChores];
-        const choreData = {
-          name: this.newChore.name.trim(),
-          amount: this.newChore.amount,
-          category: this.newChore.category,
-          assignedTo: 'unassigned',
-          completed: false,
-          isDetailed: false,
-          details: ''
-        };
-        
-        try {
-          // OPTIMISTIC UPDATE: Add chore to UI immediately
-          const tempChore = {
-            id: `temp-chore-${Date.now()}`,
-            ...choreData,
-            isOptimistic: true
-          };
-          this.chores.push(tempChore);
-          
-          // Also add to quicklist optimistically if requested
-          let tempQuicklistChore = null;
-          if (this.newChore.addToQuicklist) {
-            tempQuicklistChore = {
-              id: `temp-quicklist-${Date.now()}`,
-              name: choreData.name,
-              amount: choreData.amount,
-              category: choreData.category,
-              isOptimistic: true
-            };
-            this.quicklistChores.push(tempQuicklistChore);
-          }
-          
-          // Close modal immediately for instant feedback
-          this.cancelAddChore();
-          
-          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✨ Optimistic UI updated - chore added');
-          
-          // Make API call in background
-          const response = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
-            method: 'POST',
-            body: JSON.stringify(choreData)
-          });
-          
-          // Update the temporary chore with real data from server
-          const choreIndex = this.chores.findIndex(c => c.id === tempChore.id);
-          if (choreIndex !== -1) {
-            this.chores[choreIndex] = {
-              ...response.chore,
-              isOptimistic: false
-            };
-          }
-          
-          // Also add to quicklist if requested
-          if (this.newChore.addToQuicklist && tempQuicklistChore) {
-            const quicklistData = {
-              name: choreData.name,
-              amount: choreData.amount,
-              category: choreData.category
-            };
-            
-            const quicklistResponse = await this.apiCall(CONFIG.API.ENDPOINTS.QUICKLIST, {
-              method: 'POST',
-              body: JSON.stringify(quicklistData)
-            });
-            
-            // Update the temporary quicklist chore with real data
-            const quicklistIndex = this.quicklistChores.findIndex(c => c.id === tempQuicklistChore.id);
-            if (quicklistIndex !== -1) {
-              this.quicklistChores[quicklistIndex] = {
-                ...quicklistResponse.quicklistChore,
-                isOptimistic: false
-              };
-            }
-          }
-          
-          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Server confirmed chore creation');
-          
-          // Refresh electronics status in background if this was an electronics chore
-          if (choreData.category === 'game') {
-            this.loadElectronicsStatus().catch(error => {
-              console.warn('Failed to refresh electronics status:', error);
-            });
-          }
-          
-        } catch (error) {
-          console.error('❌ Chore creation failed, rolling back optimistic update:', error);
-          
-          // ROLLBACK: Restore original state
-          this.chores = originalChores;
-          this.quicklistChores = originalQuicklistChores;
-          
-          // Reopen modal with original data
-          this.showAddChoreModal = true;
-          
-          // Show error message
-          this.showSuccessMessage(`❌ Failed to add "${choreData.name}". Please try again.`);
-        }
-      }
-    },
+    // NOTE: addChore moved to choresStore.createChore()
+    // Components should use useChoresStore().createChore() instead
     
     cancelAddChore() {
       this.showAddChoreModal = false;
@@ -1186,11 +1036,17 @@ const app = createApp({
     },
     
     async addToQuicklist() {
+      const choresStore = window.useChoresStore?.();
+      if (!choresStore) {
+        console.error('Chores store not available');
+        return;
+      }
+      
       if (this.newQuicklistChore.name.trim() && this.newQuicklistChore.amount >= 0) {
         if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🚀 Optimistically adding to quicklist:', this.newQuicklistChore.name);
         
         // Store original state for potential rollback
-        const originalQuicklistChores = [...this.quicklistChores];
+        const originalQuicklistChores = [...choresStore.quicklistChores];
         const quicklistData = {
           name: this.newQuicklistChore.name.trim(),
           amount: this.newQuicklistChore.amount,
@@ -1207,7 +1063,7 @@ const app = createApp({
             ...quicklistData,
             isOptimistic: true
           };
-          this.quicklistChores.push(tempQuicklistChore);
+          choresStore.quicklistChores.push(tempQuicklistChore);
           
           // Close modal immediately for instant feedback
           this.cancelAddToQuicklist();
@@ -1221,9 +1077,9 @@ const app = createApp({
           });
           
           // Update the temporary quicklist chore with real data from server
-          const quicklistIndex = this.quicklistChores.findIndex(c => c.id === tempQuicklistChore.id);
+          const quicklistIndex = choresStore.quicklistChores.findIndex(c => c.id === tempQuicklistChore.id);
           if (quicklistIndex !== -1) {
-            this.quicklistChores[quicklistIndex] = {
+            choresStore.quicklistChores[quicklistIndex] = {
               ...response.quicklistChore,
               isOptimistic: false
             };
@@ -1235,7 +1091,7 @@ const app = createApp({
           console.error('❌ Quicklist creation failed, rolling back optimistic update:', error);
           
           // ROLLBACK: Restore original state
-          this.quicklistChores = originalQuicklistChores;
+          choresStore.quicklistChores.splice(0, choresStore.quicklistChores.length, ...originalQuicklistChores);
           
           // Reopen modal with original data
           this.showAddToQuicklistModal = true;
@@ -1253,30 +1109,34 @@ const app = createApp({
 
     // Multi-assignment modal methods for quicklist chores
     openMultiAssignModal(quicklistChore) {
+      const choresStore = window.useChoresStore?.();
       if (CONFIG.ENV.IS_DEVELOPMENT) {
         console.log('🎯 Parent showMultiAssignModal called with:', quicklistChore?.name);
         console.log('📊 Current modal state before:', {
           showMultiAssignModal: this.showMultiAssignModal,
-          selectedQuicklistChore: this.selectedQuicklistChore?.name || 'none'
+          selectedQuicklistChore: choresStore?.selectedQuicklistChore?.name || 'none'
         });
       }
 
-      this.selectedQuicklistChore = quicklistChore;
+      if (choresStore) {
+        choresStore.selectQuicklistChore(quicklistChore);
+        choresStore.clearMemberSelection();
+      }
       this.showMultiAssignModal = true;
-      // Reset selected members when opening modal
-      this.multiAssignSelectedMembers = [];
 
       if (CONFIG.ENV.IS_DEVELOPMENT) console.log('📊 Modal state after:', {
         showMultiAssignModal: this.showMultiAssignModal,
-        selectedQuicklistChore: this.selectedQuicklistChore?.name || 'none',
-        multiAssignSelectedMembers: this.multiAssignSelectedMembers
+        selectedQuicklistChore: choresStore?.selectedQuicklistChore?.name || 'none',
+        multiAssignSelectedMembers: choresStore?.multiAssignSelectedMembers || []
       });
     },
 
     cancelMultiAssignment() {
       this.showMultiAssignModal = false;
-      this.selectedQuicklistChore = null;
-      this.multiAssignSelectedMembers = [];
+      const choresStore = window.useChoresStore?.();
+      if (choresStore) {
+        choresStore.clearSelection();
+      }
     },
 
     // Category management modal methods
@@ -1351,12 +1211,18 @@ const app = createApp({
     },
     
     // Handle schedule save from modal
-    // Makes API call directly since this.quicklistChores is the source of truth in app.js
+    // Uses chores store for quicklist data
     async handleScheduleSave({ quicklistId, schedule }) {
       const uiStore = window.useUIStore?.();
+      const choresStore = window.useChoresStore?.();
       
-      // Verify the quicklist chore exists in our local data
-      const quicklistChore = this.quicklistChores.find(c => c.id === quicklistId);
+      if (!choresStore) {
+        console.error('[handleScheduleSave] Chores store not available');
+        return;
+      }
+      
+      // Verify the quicklist chore exists in store
+      const quicklistChore = choresStore.quicklistChores.find(c => c.id === quicklistId);
       if (!quicklistChore) {
         console.error('[handleScheduleSave] Quicklist chore not found:', quicklistId);
         if (uiStore) {
@@ -1366,20 +1232,19 @@ const app = createApp({
       }
       
       try {
-        // Make API call directly to update schedule
-        const encodedQuicklistId = encodeURIComponent(quicklistId);
-        await this.apiCall(`${CONFIG.API.ENDPOINTS.QUICKLIST}/${encodedQuicklistId}/schedule`, {
-          method: 'PUT',
-          body: JSON.stringify({ schedule })
-        });
+        // Use chores store action to update schedule
+        const result = await choresStore.updateQuicklistFullSchedule(quicklistId, schedule);
         
-        // Update local state optimistically
-        quicklistChore.schedule = schedule;
-        
-        if (uiStore) {
-          uiStore.showSuccess('Schedule updated successfully');
+        if (result.success) {
+          if (uiStore) {
+            uiStore.showSuccess('Schedule updated successfully');
+          }
+          this.closeScheduleModal();
+        } else {
+          if (uiStore) {
+            uiStore.showError(result.error || 'Failed to update schedule');
+          }
         }
-        this.closeScheduleModal();
       } catch (error) {
         console.error('Failed to save schedule:', error);
         if (uiStore) {
@@ -1421,7 +1286,10 @@ const app = createApp({
     },
 
     async confirmMultiAssignment() {
-      if (!this.selectedQuicklistChore || this.multiAssignSelectedMembers.length === 0) {
+      const choresStore = window.useChoresStore?.();
+      const familyStore = window.useFamilyStore?.();
+      
+      if (!choresStore || !choresStore.selectedQuicklistChore || choresStore.multiAssignSelectedMembers.length === 0) {
         return;
       }
 
@@ -1430,14 +1298,15 @@ const app = createApp({
         this.$refs.appModalsComponent.multiAssignLoading = true;
       }
 
-      const selectedMembers = this.multiAssignSelectedMembers;
-      const quicklistChore = this.selectedQuicklistChore;
+      const selectedMembers = choresStore.multiAssignSelectedMembers;
+      const quicklistChore = choresStore.selectedQuicklistChore;
+      const people = familyStore?.members || this.people;
       const results = [];
 
       try {
         // Create all assignments in parallel for better performance
         const assignmentPromises = selectedMembers.map(async (memberId) => {
-          const member = this.people.find(p => p.id === memberId);
+          const member = people.find(p => p.id === memberId);
           if (!member) return { memberId, success: false, error: 'Member not found' };
 
           // Use displayName with fallback to name for backward compatibility
@@ -1505,6 +1374,13 @@ const app = createApp({
     },
 
     async assignQuicklistChoreToMember(quicklistChore, memberName) {
+      // Use chores store for state management
+      const choresStore = window.useChoresStore?.();
+      if (!choresStore) {
+        console.error('Chores store not available');
+        throw new Error('Chores store not available');
+      }
+
       // Create optimistic chore with temp ID
       const tempId = `temp-${Date.now()}-${Math.random()}`;
       const newChore = {
@@ -1519,8 +1395,8 @@ const app = createApp({
         isOptimistic: true
       };
 
-      // Add optimistic chore to UI immediately
-      this.chores.push(newChore);
+      // Add optimistic chore to store immediately
+      choresStore.chores.push(newChore);
       if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✨ Optimistic UI updated - quicklist chore added for', memberName);
 
       // Update electronics status optimistically if needed
@@ -1544,9 +1420,9 @@ const app = createApp({
         });
 
         // Update the optimistic chore with real data from server
-        const choreIndex = this.chores.findIndex(c => c.id === tempId);
+        const choreIndex = choresStore.chores.findIndex(c => c.id === tempId);
         if (choreIndex !== -1) {
-          this.chores[choreIndex] = {
+          choresStore.chores[choreIndex] = {
             ...response.chore,
             isOptimistic: false
           };
@@ -1554,9 +1430,9 @@ const app = createApp({
         if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Server confirmed quicklist chore creation for', memberName);
       } catch (error) {
         // Rollback optimistic update on error
-        const choreIndex = this.chores.findIndex(c => c.id === tempId);
+        const choreIndex = choresStore.chores.findIndex(c => c.id === tempId);
         if (choreIndex !== -1) {
-          this.chores.splice(choreIndex, 1);
+          choresStore.chores.splice(choreIndex, 1);
         }
         console.error('Failed to create quicklist chore:', error);
         throw error;
@@ -1583,6 +1459,14 @@ const app = createApp({
         this.choreDetailsForm.details = '';
       }
 
+      // Get stores
+      const choresStore = window.useChoresStore?.();
+      if (!choresStore) {
+        console.error('Chores store not available');
+        this.showSuccessMessage(`❌ Failed to create chore. Please try again.`);
+        return;
+      }
+
       try {
         if (this.choreDetailsForm.isNewFromQuicklist) {
           // Create new chore from quicklist with details
@@ -1602,12 +1486,12 @@ const app = createApp({
             body: JSON.stringify(choreData)
           });
           
-          // Add to local chores array
-          this.chores.push(response.chore);
+          // Add to chores store
+          choresStore.chores.push(response.chore);
           
           // Clear selections
-          this.selectedChoreId = null;
-          this.selectedQuicklistChore = null;
+          choresStore.selectedChoreId = null;
+          choresStore.selectedQuicklistChore = null;
           
         } else {
           // Handle regular chore creation with details
@@ -1626,8 +1510,8 @@ const app = createApp({
             body: JSON.stringify(choreData)
           });
           
-          // Add to local chores array
-          this.chores.push(response.chore);
+          // Add to chores store
+          choresStore.chores.push(response.chore);
           
           // Also add to quicklist if requested
           if (this.newChore.addToQuicklist) {
@@ -1643,7 +1527,7 @@ const app = createApp({
               body: JSON.stringify(quicklistData)
             });
             
-            this.quicklistChores.push(quicklistResponse.quicklistChore);
+            choresStore.quicklistChores.push(quicklistResponse.quicklistChore);
           }
         }
         
@@ -1672,13 +1556,17 @@ const app = createApp({
     // New Day functionality
     // _Requirements: 4.1, 4.2, 6.3_
     async startNewDay() {
+      // Get chores store for state access
+      const choresStore = window.useChoresStore?.();
+      
       try {
         this.newDayLoading = true;
         if (CONFIG.ENV.IS_DEVELOPMENT) {
+          const chores = choresStore?.chores || [];
           console.log('🌅 Starting new day...');
           console.log('📊 Current state before new day:');
-          console.log('  - Chores count:', this.chores.length);
-          console.log('  - Chores:', this.chores.map(c => `${c.name} (${c.assignedTo})`));
+          console.log('  - Chores count:', chores.length);
+          console.log('  - Chores:', chores.map(c => `${c.name} (${c.assignedTo})`));
           console.log('  - People completed chores:', this.people.map(p => `${p.name}: ${p.completedChores}`));
         }
         
@@ -1696,9 +1584,10 @@ const app = createApp({
         await this.loadAllData();
         
         if (CONFIG.ENV.IS_DEVELOPMENT) {
+          const choresAfter = choresStore?.chores || [];
           console.log('📊 State after reload:');
-          console.log('  - Chores count:', this.chores.length);
-          console.log('  - Chores:', this.chores.map(c => `${c.name} (${c.assignedTo})`));
+          console.log('  - Chores count:', choresAfter.length);
+          console.log('  - Chores:', choresAfter.map(c => `${c.name} (${c.assignedTo})`));
           console.log('  - People completed chores:', this.people.map(p => `${p.name}: ${p.completedChores}`));
         }
         
@@ -1769,14 +1658,17 @@ const app = createApp({
       this.isAuthenticated = false;
       this.currentUser = null;
       
-      // Clear all data since user is no longer authenticated
-      this.chores = [];
-      this.people = [];
-      this.quicklistChores = [];
+      // Clear chores store data
+      const choresStore = window.useChoresStore?.();
+      if (choresStore) {
+        choresStore.chores = [];
+        choresStore.quicklistChores = [];
+        choresStore.selectedChoreId = null;
+        choresStore.selectedQuicklistChore = null;
+      }
       
-      // Clear any ongoing operations
-      this.selectedChoreId = null;
-      this.selectedQuicklistChore = null;
+      // Clear family data
+      this.people = [];
       
       // if an invite token is present, guide to signup instead of login
       try {
@@ -1967,14 +1859,17 @@ const app = createApp({
         this.accountSettings = null;
         this.accountId = null;
         
-        // Clear all data since user is no longer authenticated
-        this.chores = [];
-        this.people = [];
-        this.quicklistChores = [];
+        // Clear chores store data
+        const choresStore = window.useChoresStore?.();
+        if (choresStore) {
+          choresStore.chores = [];
+          choresStore.quicklistChores = [];
+          choresStore.selectedChoreId = null;
+          choresStore.selectedQuicklistChore = null;
+        }
         
-        // Clear any ongoing operations
-        this.selectedChoreId = null;
-        this.selectedQuicklistChore = null;
+        // Clear family data
+        this.people = [];
         
         // Reset to default theme on logout
         if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎨 Resetting to default theme on logout');
@@ -2046,216 +1941,17 @@ const app = createApp({
     
 
     
-    // Instant delete with optimistic updates
-    async deleteChore(chore) {
-      if (!chore || !chore.id) {
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.warn('Invalid chore for deletion');
-        return;
-      }
-      
-      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🚀 Optimistically deleting chore:', chore.name);
-      
-      // Store original state for potential rollback
-      const originalChores = [...this.chores];
-      const originalEarnings = this.people.map(p => ({ name: p.name, earnings: p.earnings, completedChores: p.completedChores }));
-      
-      try {
-        // OPTIMISTIC UPDATE: Remove chore immediately from UI
-        const choreIndex = this.chores.findIndex(c => c.id === chore.id);
-        if (choreIndex !== -1) {
-          this.chores.splice(choreIndex, 1);
-        }
-        
-        // If chore was completed and assigned, update earnings optimistically
-        if (chore.completed && chore.assignedTo && chore.assignedTo !== 'unassigned') {
-          const person = this.people.find(p => p.name === chore.assignedTo);
-          if (person) {
-            person.earnings = Math.max(0, person.earnings - (chore.amount || 0));
-            person.completedChores = Math.max(0, (person.completedChores || 0) - 1);
-          }
-        }
-        
-        // Clear selection if deleted chore was selected
-        if (this.selectedChoreId === chore.id) {
-          this.selectedChoreId = null;
-          this.selectedQuicklistChore = null;
-        }
-        
-        // OPTIMISTIC ELECTRONICS STATUS UPDATE: Update electronics status if this was an electronics chore
-        if (chore.category === 'game' && chore.assignedTo && chore.assignedTo !== 'unassigned') {
-          this.updateElectronicsStatusOptimistically(chore.assignedTo);
-        }
-        
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✨ Optimistic UI updated - chore deleted');
-        
-        // Make API call in background
-        await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}`, {
-          method: 'DELETE'
-        });
-        
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Server confirmed chore deletion');
-        
-        // Refresh data in background (non-blocking) to ensure consistency
-        Promise.all([
-          this.loadEarnings(),
-          this.loadElectronicsStatus(),
-          this.loadFamilyMembers(true) // Preserve optimistic updates
-        ]).catch(error => {
-          console.warn('Background data refresh failed:', error);
-        });
-        
-      } catch (error) {
-        console.error('❌ Chore deletion failed, rolling back optimistic update:', error);
-        
-        // ROLLBACK: Restore original state
-        this.chores = originalChores;
-        
-        // Restore original earnings
-        originalEarnings.forEach(original => {
-          const person = this.people.find(p => p.name === original.name);
-          if (person) {
-            person.earnings = original.earnings;
-            person.completedChores = original.completedChores;
-          }
-        });
-        
-        // Show error message
-        this.showSuccessMessage(`Failed to delete "${chore.name}". Please try again.`);
-      }
-    },
+    // NOTE: deleteChore moved to choresStore.deleteChore()
+    // Components should use useChoresStore().deleteChore() instead
     
-    async handleChoreCompletion(chore) {
-      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🚀 Optimistically handling chore completion for:', chore.name, 'Current state:', chore.completed);
-      
-      const requireApproval = !!this.accountSettings?.preferences?.requireApproval;
-      
-      // Store original state for potential rollback
-      const originalCompleted = chore.completed;
-      const originalSnapshots = this.people.map(p => ({ name: p.name, earnings: p.earnings, completedChores: p.completedChores }));
-      
-      try {
-        // OPTIMISTIC UPDATE when assigned
-        if (chore.assignedTo && chore.assignedTo !== 'unassigned') {
-          const person = this.people.find(p => p.name === chore.assignedTo);
-          if (person) {
-            if (requireApproval) {
-              // with approval required, only adjust completed count, do not change earnings
-              if (chore.completed) {
-                person.completedChores = (person.completedChores || 0) + 1;
-              } else {
-                person.completedChores = Math.max(0, (person.completedChores || 0) - 1);
-              }
-            } else {
-              // immediate earnings change when approval not required
-              if (chore.completed) {
-                person.earnings += chore.amount || 0;
-                person.completedChores = (person.completedChores || 0) + 1;
-              } else {
-                person.earnings = Math.max(0, person.earnings - (chore.amount || 0));
-                person.completedChores = Math.max(0, (person.completedChores || 0) - 1);
-              }
-            }
-            
-            if (chore.category === 'game') {
-              this.updateElectronicsStatusOptimistically(person.name);
-            }
-          }
-        }
-        
-        if (chore.completed) {
-          this.triggerConfetti(chore);
-          this.showSuccessMessage(requireApproval ? `"${chore.name}" marked complete. Pending parent approval.` : `Great job! "${chore.name}" completed!`);
-        } else {
-          this.showSuccessMessageFlag = false;
-          this.completedChoreMessage = '';
-        }
-        
-        await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/complete`, {
-          method: 'PUT',
-          body: JSON.stringify({ completed: chore.completed })
-        });
-        
-        // refresh to ensure consistency
-        Promise.all([
-          this.loadEarnings(),
-          this.loadElectronicsStatus(),
-          this.loadFamilyMembers(true)
-        ]).catch(error => console.warn('Background data refresh failed:', error));
-      } catch (error) {
-        console.error('❌ Chore completion failed, rolling back optimistic update:', error);
-        chore.completed = originalCompleted;
-        originalSnapshots.forEach(original => {
-          const person = this.people.find(p => p.name === original.name);
-          if (person) {
-            person.earnings = original.earnings;
-            person.completedChores = original.completedChores;
-          }
-        });
-        this.showSuccessMessageFlag = false;
-        this.completedChoreMessage = '';
-        this.showSuccessMessage(`Failed to update "${chore.name}". Please try again.`);
-      }
-    },
+    // NOTE: handleChoreCompletion moved to choresStore.toggleComplete()
+    // Components should use useChoresStore().toggleComplete() instead
+    
+    // NOTE: approveChore moved to choresStore.approveChore()
+    // Components should use useChoresStore().approveChore() instead
 
-    async approveChore(chore) {
-      if (!chore || !chore.id) return;
-      try {
-        await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/approve`, { method: 'PUT' });
-        // update local chore instance if present
-        chore.isPendingApproval = false;
-        chore.approved = true;
-        // reload earnings since approval transfers money
-        await this.loadEarnings();
-        await this.loadFamilyMembers(true);
-        this.showSuccessMessage(`Approved "${chore.name}"`);
-      } catch (error) {
-        console.error('failed to approve chore', error);
-        this.showSuccessMessage('Failed to approve chore');
-      }
-    },
-
-    // Reassign a chore to a different family member (or unassign)
-    async reassignChore(chore, newAssignee) {
-      if (!chore || !chore.id) {
-        console.warn('No chore provided for reassignment');
-        return { success: false };
-      }
-
-      // Don't reassign to same person
-      if (chore.assignedTo === newAssignee) {
-        return { success: true };
-      }
-
-      const originalAssignedTo = chore.assignedTo;
-      const choreIndex = this.chores.findIndex(c => c.id === chore.id);
-
-      try {
-        // Optimistic update
-        if (choreIndex !== -1) {
-          this.chores[choreIndex].assignedTo = newAssignee;
-        }
-
-        // Make API call
-        await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/assign`, {
-          method: 'PUT',
-          body: JSON.stringify({ assignedTo: newAssignee })
-        });
-
-        if (CONFIG.ENV.IS_DEVELOPMENT) {
-          console.log('[OK] Chore reassigned:', chore.name, 'to:', newAssignee || 'unassigned');
-        }
-
-        return { success: true };
-      } catch (error) {
-        // Rollback on error
-        if (choreIndex !== -1) {
-          this.chores[choreIndex].assignedTo = originalAssignedTo;
-        }
-        console.error('Failed to reassign chore:', error);
-        this.showSuccessMessage(`Failed to reassign "${chore.name}"`);
-        return { success: false, error: error.message };
-      }
-    },
+    // NOTE: reassignChore moved to choresStore.assignChore()
+    // Components should use useChoresStore().assignChore() instead
     
     triggerConfetti(chore = null) {
       // Delegate to celebrations composable
@@ -2314,7 +2010,16 @@ const app = createApp({
 
     // Add method for click-to-assign functionality with optimistic updates
     async assignSelectedChore(assignTo) {
-      if (!this.selectedChore) {
+      // Get chores store
+      const choresStore = window.useChoresStore?.();
+      if (!choresStore) {
+        console.error('Chores store not available');
+        return;
+      }
+      
+      const selectedChore = choresStore.selectedChore;
+      
+      if (!selectedChore) {
         if (CONFIG.ENV.IS_DEVELOPMENT) console.warn('No chore selected for assignment');
         return;
       }
@@ -2324,28 +2029,28 @@ const app = createApp({
         return;
       }
       
-      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🚀 Optimistically assigning chore:', this.selectedChore.name, 'to:', assignTo);
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🚀 Optimistically assigning chore:', selectedChore.name, 'to:', assignTo);
       
       // Store original state for potential rollback
-      const originalChores = [...this.chores];
-      const selectedChore = { ...this.selectedChore };
+      const originalChores = [...choresStore.chores];
+      const selectedChoreCopy = { ...selectedChore };
       
       try {
-        if (this.selectedChore.isNewFromQuicklist) {
+        if (selectedChore.isNewFromQuicklist) {
           // Check if this quicklist chore requires details
-          const quicklistChore = this.quicklistChores.find(qc => qc.name === this.selectedChore.name);
+          const quicklistChore = choresStore.quicklistChores.find(qc => qc.name === selectedChore.name);
           if (quicklistChore && quicklistChore.isDetailed) {
             // Open details modal for detailed quicklist chore
-            this.openChoreDetailsModal(this.selectedChore, assignTo, true);
+            this.openChoreDetailsModal(selectedChore, assignTo, true);
             return;
           }
           
           // OPTIMISTIC UPDATE: Add new chore immediately to UI
           const newChore = {
             id: `temp-${Date.now()}`, // Temporary ID
-            name: this.selectedChore.name,
-            amount: this.selectedChore.amount || 0,
-            category: this.selectedChore.category || 'regular',
+            name: selectedChore.name,
+            amount: selectedChore.amount || 0,
+            category: selectedChore.category || 'regular',
             assignedTo: assignTo,
             completed: false,
             isDetailed: false,
@@ -2353,12 +2058,12 @@ const app = createApp({
             isOptimistic: true // Flag to identify optimistic updates
           };
           
-          // Add to chores array immediately for instant UI update
-          this.chores.push(newChore);
+          // Add to chores store immediately for instant UI update
+          choresStore.chores.push(newChore);
           
           // Clear selection immediately for instant feedback
-          this.selectedChoreId = null;
-          this.selectedQuicklistChore = null;
+          choresStore.selectedChoreId = null;
+          choresStore.selectedQuicklistChore = null;
           
           // OPTIMISTIC ELECTRONICS STATUS UPDATE: Update electronics status if this is an electronics chore
           if (newChore.category === 'game') {
@@ -2382,9 +2087,9 @@ const app = createApp({
           });
           
           // Update the temporary chore with real data from server
-          const choreIndex = this.chores.findIndex(c => c.id === newChore.id);
+          const choreIndex = choresStore.chores.findIndex(c => c.id === newChore.id);
           if (choreIndex !== -1) {
-            this.chores[choreIndex] = {
+            choresStore.chores[choreIndex] = {
               ...response.chore,
               isOptimistic: false
             };
@@ -2394,18 +2099,18 @@ const app = createApp({
           
         } else {
           // OPTIMISTIC UPDATE: Move existing chore immediately
-          const choreIndex = this.chores.findIndex(c => c.id === this.selectedChore.id);
-          const oldAssignedTo = this.chores[choreIndex]?.assignedTo;
+          const choreIndex = choresStore.chores.findIndex(c => c.id === selectedChore.id);
+          const oldAssignedTo = choresStore.chores[choreIndex]?.assignedTo;
           if (choreIndex !== -1) {
             // Update assignment immediately for instant UI feedback
-            this.chores[choreIndex] = {
-              ...this.chores[choreIndex],
+            choresStore.chores[choreIndex] = {
+              ...choresStore.chores[choreIndex],
               assignedTo: assignTo,
               isOptimistic: true
             };
             
             // OPTIMISTIC ELECTRONICS STATUS UPDATE: Update electronics status for both old and new assignees if this is an electronics chore
-            if (this.chores[choreIndex].category === 'game') {
+            if (choresStore.chores[choreIndex].category === 'game') {
               if (oldAssignedTo && oldAssignedTo !== 'unassigned') {
                 this.updateElectronicsStatusOptimistically(oldAssignedTo);
               }
@@ -2416,20 +2121,20 @@ const app = createApp({
           }
           
           // Clear selection immediately for instant feedback
-          this.selectedChoreId = null;
-          this.selectedQuicklistChore = null;
+          choresStore.selectedChoreId = null;
+          choresStore.selectedQuicklistChore = null;
           
           if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✨ Optimistic UI updated - chore moved');
           
           // Now make API call in background
-          const response = await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${selectedChore.id}/assign`, {
+          const response = await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${selectedChoreCopy.id}/assign`, {
             method: 'PUT',
             body: JSON.stringify({ assignedTo: assignTo })
           });
           
           // Update with server response
           if (choreIndex !== -1) {
-            this.chores[choreIndex] = {
+            choresStore.chores[choreIndex] = {
               ...response.chore,
               isOptimistic: false
             };
@@ -2451,12 +2156,12 @@ const app = createApp({
         console.error('❌ Assignment failed, rolling back optimistic update:', error);
         
         // ROLLBACK: Restore original state
-        this.chores = originalChores;
-        this.selectedChoreId = selectedChore.isNewFromQuicklist ? null : selectedChore.id;
-        this.selectedQuicklistChore = selectedChore.isNewFromQuicklist ? selectedChore : null;
+        choresStore.chores = originalChores;
+        choresStore.selectedChoreId = selectedChoreCopy.isNewFromQuicklist ? null : selectedChoreCopy.id;
+        choresStore.selectedQuicklistChore = selectedChoreCopy.isNewFromQuicklist ? selectedChoreCopy : null;
         
         // Show user-friendly error message
-        this.showSuccessMessage(`❌ Failed to assign "${selectedChore.name}". Please try again.`);
+        this.showSuccessMessage(`❌ Failed to assign "${selectedChoreCopy.name}". Please try again.`);
       }
     },
 
@@ -2599,12 +2304,90 @@ const app = createApp({
         document.body.classList.remove('modal-open');
       }
     },
-    selectedChoreId() {
-      // Verbose selection tracking removed - use browser DevTools if needed
-    },
     
     showSuccessMessageFlag() {
       // Verbose flag tracking removed - use browser DevTools if needed
+    },
+    
+    // ============================================
+    // BRIDGE WATCHERS: Sync store state to legacy app.js properties
+    // These watchers maintain backward compatibility during migration
+    // by syncing Pinia store state to app.js data properties.
+    // Components not yet migrated can continue using $parent references.
+    // 
+    // **Feature: app-js-refactoring**
+    // **Validates: Requirements 8.1, 8.2**
+    // ============================================
+    
+    // NOTE: Chores bridge watchers removed - chore state now lives exclusively in choresStore
+    // Components should use useChoresStore() directly
+    
+    // Bridge: Sync familyStore.members → this.people
+    '$familyStore.members': {
+      deep: true,
+      handler(newMembers) {
+        if (Array.isArray(newMembers)) {
+          this.people = newMembers;
+          if (CONFIG.ENV.IS_DEVELOPMENT) {
+            console.log('🔄 [Bridge] familyStore.members → app.people synced:', newMembers.length, 'members');
+          }
+        }
+      }
+    },
+    
+    // Bridge: Sync authStore.isAuthenticated → this.isAuthenticated
+    '$authStore.isAuthenticated': {
+      handler(newVal) {
+        this.isAuthenticated = newVal;
+        if (CONFIG.ENV.IS_DEVELOPMENT) {
+          console.log('🔄 [Bridge] authStore.isAuthenticated → app.isAuthenticated synced:', newVal);
+        }
+      }
+    },
+    
+    // Bridge: Sync authStore.currentUser → this.currentUser
+    '$authStore.currentUser': {
+      deep: true,
+      handler(newUser) {
+        this.currentUser = newUser;
+        if (CONFIG.ENV.IS_DEVELOPMENT) {
+          console.log('🔄 [Bridge] authStore.currentUser → app.currentUser synced:', newUser?.displayName || newUser?.name || 'null');
+        }
+      }
+    },
+    
+    // Bridge: Sync uiStore.currentPage → this.currentPage
+    // **Feature: app-js-refactoring**
+    // **Validates: Requirements 8.1, 8.2**
+    '$uiStore.currentPage': {
+      handler(newPage) {
+        if (newPage && newPage !== this.currentPage) {
+          this.currentPage = newPage;
+          if (CONFIG.ENV.IS_DEVELOPMENT) {
+            console.log('🔄 [Bridge] uiStore.currentPage → app.currentPage synced:', newPage);
+          }
+        }
+      }
+    },
+    
+    // Reverse Bridge: Sync this.people → familyStore.members
+    // This ensures the family store is populated when app.js loads data from API
+    // **Feature: app-js-refactoring**
+    // **Validates: Requirements 8.1, 8.2**
+    people: {
+      deep: true,
+      handler(newPeople) {
+        if (Array.isArray(newPeople) && window.useFamilyStore) {
+          const familyStore = window.useFamilyStore();
+          // Only sync if the store has different data (avoid infinite loops)
+          if (JSON.stringify(familyStore.members) !== JSON.stringify(newPeople)) {
+            familyStore.members = newPeople;
+            if (CONFIG.ENV.IS_DEVELOPMENT) {
+              console.log('🔄 [Bridge] app.people → familyStore.members synced:', newPeople.length, 'members');
+            }
+          }
+        }
+      }
     }
   },
   
@@ -2746,44 +2529,60 @@ const app = createApp({
       loading: Vue.computed(() => this.loading),
       error: Vue.computed(() => this.error),
       selectedChore: Vue.computed(() => {
-        // First check if we have a selectedQuicklistChore (for quicklist assignments)
-        if (this.selectedQuicklistChore) {
-          return this.selectedQuicklistChore;
-        }
-        // Then check if we have a selectedChoreId (for regular chores)
-        if (this.selectedChoreId) {
-          return this.chores.find(c => c.id === this.selectedChoreId) || null;
-        }
-        return null;
+        // Use chores store for selection state
+        const store = window.useChoresStore?.();
+        return store?.selectedChore || null;
       }),
-      selectedChoreId: Vue.toRef(this, 'selectedChoreId'),
-      selectedQuicklistChore: Vue.toRef(this, 'selectedQuicklistChore'),
+      selectedChoreId: Vue.computed(() => {
+        const store = window.useChoresStore?.();
+        return store?.selectedChoreId || null;
+      }),
+      selectedQuicklistChore: Vue.computed(() => {
+        const store = window.useChoresStore?.();
+        return store?.selectedQuicklistChore || null;
+      }),
       // lightweight selection store for centralized selection handling
       selectionStore: {
         state: {
           selectedChore: Vue.computed(() => {
-        if (this.selectedChoreId) {
-          return this.chores.find(c => c.id === this.selectedChoreId) || null;
-        }
-        return this.selectedQuicklistChore || null;
-      }),
-          selectedChoreId: Vue.toRef(this, 'selectedChoreId'),
-          selectedQuicklistChore: Vue.toRef(this, 'selectedQuicklistChore')
+            const store = window.useChoresStore?.();
+            return store?.selectedChore || null;
+          }),
+          selectedChoreId: Vue.computed(() => {
+            const store = window.useChoresStore?.();
+            return store?.selectedChoreId || null;
+          }),
+          selectedQuicklistChore: Vue.computed(() => {
+            const store = window.useChoresStore?.();
+            return store?.selectedQuicklistChore || null;
+          })
         },
         selectChore: (chore) => this.handleChoreClick(chore),
         selectQuicklist: (quickChore) => this.handleQuicklistChoreClick(quickChore),
-        clear: () => { this.selectedChoreId = null; this.selectedQuicklistChore = null; }
+        clear: () => {
+          const store = window.useChoresStore?.();
+          if (store) {
+            store.selectedChoreId = null;
+            store.selectedQuicklistChore = null;
+          }
+        }
       },
       showSuccessMessageFlag: Vue.computed(() => this.showSuccessMessageFlag),
       completedChoreMessage: Vue.computed(() => this.completedChoreMessage),
       showConfetti: Vue.computed(() => this.showConfetti),
       confettiPieces: Vue.computed(() => this.confettiPieces),
-      quicklistChores: Vue.computed(() => this.quicklistChores || []),
+      quicklistChores: Vue.computed(() => {
+        const store = window.useChoresStore?.();
+        return store?.quicklistChores || [];
+      }),
       categories: Vue.computed(() => {
         const categoriesStore = window.useCategoriesStore ? window.useCategoriesStore() : null;
         return categoriesStore ? categoriesStore.sortedCategories : [];
       }),
-      choresByPerson: Vue.computed(() => this.choresByPerson || {}),
+      choresByPerson: Vue.computed(() => {
+        const store = window.useChoresStore?.();
+        return store?.choresByPerson || {};
+      }),
       // expose only members enabled for chores on chores page by default; family page iterates over same array but includes toggle to change flag
       // filtered list for boards (Chores page)
       people: Vue.computed(() => (this.people || []).filter(p => p.enabledForChores !== false)),
@@ -2827,7 +2626,10 @@ const app = createApp({
       showSpendingModal: Vue.computed(() => this.showSpendingModal),
       showChoreDetailsModal: Vue.computed(() => this.showChoreDetailsModal),
       showMultiAssignModal: Vue.computed(() => this.showMultiAssignModal),
-      multiAssignSelectedMembers: Vue.toRef(this, 'multiAssignSelectedMembers'),
+      multiAssignSelectedMembers: Vue.computed(() => {
+        const store = window.useChoresStore?.();
+        return store?.multiAssignSelectedMembers || [];
+      }),
       showCategoryManagementModal: Vue.computed(() => this.showCategoryManagementModal),
       // Schedule modal state - **Feature: weekly-chore-scheduling**
       showScheduleModal: Vue.computed(() => this.showScheduleModal),

@@ -1,4 +1,5 @@
 // Navigation Menu Component (Hamburger)
+// _Requirements: 7.1, 7.2_ - Uses uiStore instead of $parent
 const NavMenu = Vue.defineComponent({
   name: 'NavMenu',
   props: {
@@ -11,6 +12,11 @@ const NavMenu = Vue.defineComponent({
         { key: 'account', label: 'Account' },
       ])
     }
+  },
+  setup() {
+    // Access UI store directly instead of using $parent
+    const uiStore = window.useUIStore?.();
+    return { uiStore };
   },
   data() {
     return {
@@ -28,7 +34,12 @@ const NavMenu = Vue.defineComponent({
   methods: {
     toggle() { this.open = !this.open; },
     go(page) {
-      try { this.$parent.setCurrentPage(page); } catch { /* ignore navigation errors */ }
+      // Use UI store to set current page instead of $parent
+      try {
+        if (this.uiStore) {
+          this.uiStore.setCurrentPage(page);
+        }
+      } catch { /* ignore navigation errors */ }
       this.open = false;
     },
     onOutsideClick(e) {

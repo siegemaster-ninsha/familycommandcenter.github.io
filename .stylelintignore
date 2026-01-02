@@ -1,0 +1,8 @@
+# Test coverage output - auto-generated files
+coverage/
+
+# Node modules
+node_modules/
+
+# Build output
+dist/

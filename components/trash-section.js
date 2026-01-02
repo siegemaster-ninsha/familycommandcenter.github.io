@@ -1,4 +1,5 @@
 // Trash Section Component
+// _Requirements: 7.1, 7.2_ - Uses choresStore instead of $parent
 const TrashSection = Vue.defineComponent({
   name: 'TrashSection',
   template: `
@@ -23,16 +24,32 @@ const TrashSection = Vue.defineComponent({
     </div>
   `,
   inject: ['selectedChore'],
+  setup() {
+    // Access chores store directly instead of using $parent
+    const choresStore = window.useChoresStore?.();
+    return { choresStore };
+  },
+  computed: {
+    // Get selected chore from store
+    storeSelectedChore() {
+      return this.choresStore?.selectedChore || null;
+    }
+  },
   methods: {
     async deleteSelectedChore() {
-      if (!this.$parent.selectedChore || this.$parent.selectedChore.isNewFromQuicklist) {
-        this.$parent.selectedChoreId = null;
-        this.$parent.selectedQuicklistChore = null;
+      const chore = this.storeSelectedChore || this.selectedChore;
+      if (!chore || chore.isNewFromQuicklist) {
+        // Clear selection using store
+        if (this.choresStore) {
+          this.choresStore.clearSelection();
+        }
         return;
       }
       
-      // Use parent's optimized delete method
-      await this.$parent.deleteChore(this.$parent.selectedChore);
+      // Use chores store's delete method
+      if (this.choresStore) {
+        await this.choresStore.deleteChore(chore);
+      }
     }
   }
 });

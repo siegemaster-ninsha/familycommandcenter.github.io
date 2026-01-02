@@ -1,6 +1,21 @@
 // App Modals Component
 const AppModals = Vue.defineComponent({
   name: 'AppModals',
+  setup() {
+    // Access stores directly instead of using $parent
+    // _Requirements: 4.2, 4.3, 7.1, 7.2_
+    const familyStore = window.useFamilyStore();
+    const authStore = window.useAuthStore();
+    const uiStore = window.useUIStore();
+    const choresStore = window.useChoresStore();
+    
+    return {
+      familyStore,
+      authStore,
+      uiStore,
+      choresStore
+    };
+  },
   template: `
     <!-- Add to Quicklist Flyout -->
     <flyout-panel
@@ -199,7 +214,7 @@ const AppModals = Vue.defineComponent({
     <!-- **Feature: habit-tracking** -->
     <flyout-panel
       :open="showHabitFlyout"
-      @close="$parent.closeHabitFlyout"
+      @close="closeHabitFlyout"
       :title="editingHabit ? 'Edit Habit' : 'New Habit'"
       :show-footer="true"
       :show-header-close="false"
@@ -210,7 +225,7 @@ const AppModals = Vue.defineComponent({
             <label class="block text-sm font-medium text-primary-custom mb-1">Habit Name</label>
             <input
               v-model="habitForm.name"
-              @keydown.enter="$parent.submitHabitForm"
+              @keydown.enter="submitHabitForm"
               type="text"
               class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               style="border-color: var(--color-border-card)"
@@ -227,16 +242,16 @@ const AppModals = Vue.defineComponent({
       <template #footer>
         <div class="flyout-footer-buttons flex items-center gap-2">
           <button 
-            @click="$parent.submitHabitForm"
-            @touchend.prevent="$parent.submitHabitForm"
+            @click="submitHabitForm"
+            @touchend.prevent="submitHabitForm"
             :disabled="habitFormSubmitting"
             class="flex-1 btn-primary btn-compact px-3 py-1.5 text-sm"
           >
             {{ habitFormSubmitting ? 'Saving...' : (editingHabit ? 'Save' : 'Create Habit') }}
           </button>
           <button 
-            @click="$parent.closeHabitFlyout"
-            @touchend.prevent="$parent.closeHabitFlyout"
+            @click="closeHabitFlyout"
+            @touchend.prevent="closeHabitFlyout"
             class="btn-secondary btn-compact px-3 py-1.5 text-sm"
           >
             Cancel
@@ -681,12 +696,12 @@ const AppModals = Vue.defineComponent({
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-primary-custom mb-1">Username</label>
-            <input v-model="$parent.childForm.username" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Enter a username">
+            <input v-model="childForm.username" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Enter a username">
           </div>
           <div>
             <label class="block text-sm font-medium text-primary-custom mb-1">Password</label>
             <div class="relative">
-              <input :type="showChildPassword ? 'text' : 'password'" v-model="$parent.childForm.password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 pr-10" placeholder="Enter a password">
+              <input :type="showChildPassword ? 'text' : 'password'" v-model="childForm.password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 pr-10" placeholder="Enter a password">
               <button type="button" @click="showChildPassword = !showChildPassword" class="absolute inset-y-0 right-2 text-gray-500 hover:text-gray-700 flex items-center">
                 <div v-if="showChildPassword" v-html="Helpers.IconLibrary.getIcon('eyeOff', 'lucide', 20, 'text-gray-500')"></div>
                 <div v-else v-html="Helpers.IconLibrary.getIcon('eye', 'lucide', 20, 'text-gray-500')"></div>
@@ -695,11 +710,11 @@ const AppModals = Vue.defineComponent({
           </div>
           <div>
             <label class="block text-sm font-medium text-primary-custom mb-1">Display Name (optional)</label>
-            <input v-model="$parent.childForm.displayName" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="e.g., Sam">
+            <input v-model="childForm.displayName" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="e.g., Sam">
           </div>
         </div>
         <div class="flex gap-3 mt-6">
-          <button @click="$parent.createChild" class="flex-1 btn-success">Create</button>
+          <button @click="createChild" class="flex-1 btn-success">Create</button>
           <button @click="closeCreateChildModal" class="flex-1 bg-gray-100 text-primary-custom py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
         </div>
       </div>
@@ -716,7 +731,7 @@ const AppModals = Vue.defineComponent({
         </div>
         <p class="text-sm text-secondary-custom mb-3">Share this link with the parent you want to invite. It will be valid for 7 days.</p>
         <div class="bg-gray-50 rounded p-3 text-xs break-all mb-3">{{ getInviteLink() }}</div>
-        <div class="text-xs text-secondary-custom mb-4">Expires: {{ new Date($parent.inviteData.expiresAt).toLocaleString() }}</div>
+        <div class="text-xs text-secondary-custom mb-4">Expires: {{ inviteExpiresAt }}</div>
         <div class="flex gap-3">
           <button @click="shareInvite()" class="flex-1 btn-secondary">Share</button>
           <button @click="copyInviteLink()" class="flex-1 btn-secondary">Copy Link</button>
@@ -909,7 +924,88 @@ const AppModals = Vue.defineComponent({
     'handleDefaultOrderSave',
     'quicklistChores'
   ],
+  computed: {
+    // Map store data to component properties for template access
+    // _Requirements: 4.2, 4.3, 7.1, 7.2_
+    childForm() {
+      return this.familyStore.childForm;
+    },
+    inviteData() {
+      return this.familyStore.inviteData;
+    },
+    inviteExpiresAt() {
+      const expiresAt = this.familyStore.inviteData?.expiresAt;
+      return expiresAt ? new Date(expiresAt).toLocaleString() : '';
+    },
+    inviteToken() {
+      return this.familyStore.inviteData?.token || '';
+    },
+    currentUser() {
+      return this.authStore.currentUser;
+    },
+    accountSettings() {
+      return this.authStore.accountSettings;
+    }
+  },
   methods: {
+    // =============================================
+    // STORE DELEGATION METHODS
+    // These methods delegate to stores instead of $parent
+    // _Requirements: 4.2, 4.3, 7.1, 7.2_
+    // =============================================
+
+    /**
+     * Close the habit flyout
+     * **Feature: habit-tracking**
+     */
+    closeHabitFlyout() {
+      // Call the injected method from parent (still needed for now)
+      // This will be fully migrated when habits store is complete
+      if (this.$root?.closeHabitFlyout) {
+        this.$root.closeHabitFlyout();
+      }
+    },
+
+    /**
+     * Submit the habit form
+     * **Feature: habit-tracking**
+     */
+    submitHabitForm() {
+      // Call the injected method from parent (still needed for now)
+      if (this.$root?.submitHabitForm) {
+        this.$root.submitHabitForm();
+      }
+    },
+
+    /**
+     * Create a child account
+     */
+    async createChild() {
+      const result = await this.familyStore.createChild(this.childForm);
+      if (result.success) {
+        this.uiStore.showSuccess('Child account created');
+        this.familyStore.resetChildForm();
+        this.closeCreateChildModal();
+      } else {
+        this.uiStore.showError(result.error || 'Failed to create child account');
+      }
+    },
+
+    /**
+     * Update quicklist chore category
+     */
+    async updateQuicklistCategory(chore, categoryId, categoryName) {
+      try {
+        await this.choresStore.updateQuicklistChore(chore.id, { 
+          categoryId: categoryId || null, 
+          categoryName: categoryName || '' 
+        });
+      } catch (error) {
+        console.error('Failed to update quicklist category:', error);
+        this.uiStore.showError('Failed to update category');
+      }
+    },
+
     // Handle category created inline in quicklist form
     onQuicklistCategoryCreated(category) {
       console.log('[OK] Category created inline:', category.name);
@@ -932,14 +1028,12 @@ const AppModals = Vue.defineComponent({
       this.selectedQuicklistChore.categoryId = categoryId || null;
       this.selectedQuicklistChore.categoryName = categoryName;
       
-      // Call parent method to persist the change
-      if (this.$parent?.updateQuicklistCategory) {
-        await this.$parent.updateQuicklistCategory(
-          this.selectedQuicklistChore,
-          categoryId,
-          categoryName
-        );
-      }
+      // Call store method to persist the change
+      await this.updateQuicklistCategory(
+        this.selectedQuicklistChore,
+        categoryId,
+        categoryName
+      );
     },
     getCategoryLabel(category) {
       switch(category) {
@@ -973,7 +1067,7 @@ const AppModals = Vue.defineComponent({
       }
     },
     getInviteLink() {
-      const token = this.$parent?.inviteData?.token || '';
+      const token = this.inviteToken || '';
       const url = new URL(window.location.href);
       // build a link that preserves the repo/site path (important for GitHub Pages project sites)
       url.search = '';
@@ -990,7 +1084,7 @@ const AppModals = Vue.defineComponent({
       }
     },
     getInviteText() {
-      const familyName = this.$parent?.accountSettings?.profile?.familyName || this.$parent?.currentUser?.name || 'a family';
+      const familyName = this.accountSettings?.profile?.familyName || this.currentUser?.name || 'a family';
       const link = this.getInviteLink();
       return `You've been invited to join ${familyName}'s family on Family Command Center!\n\nAccept your invite: ${link}`;
     },

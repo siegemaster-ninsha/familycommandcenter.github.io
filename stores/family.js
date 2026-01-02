@@ -174,6 +174,28 @@ const useFamilyStore = Pinia.defineStore('family', {
       return state.members.reduce((sum, member) => sum + (member.completedChores || 0), 0);
     },
     
+    // get earnings by member name (for backward compatibility with app.js)
+    // Returns object keyed by displayName with earnings value
+    // _Requirements: 2.1, 2.4_
+    earnings: (state) => {
+      const earningsObj = {};
+      state.members.forEach(member => {
+        earningsObj[member.displayName || member.name] = member.earnings || 0;
+      });
+      return earningsObj;
+    },
+    
+    // get electronics status by member name (for backward compatibility with app.js)
+    // Returns object keyed by displayName with electronicsStatus value
+    // _Requirements: 2.1, 2.4_
+    electronicsStatus: (state) => {
+      const statusObj = {};
+      state.members.forEach(member => {
+        statusObj[member.displayName || member.name] = member.electronicsStatus || { status: 'allowed', message: 'Electronics allowed' };
+      });
+      return statusObj;
+    },
+    
     // get children only
     children: (state) => {
       return state.members.filter(member => member.role === 'child');
@@ -728,25 +750,19 @@ const useFamilyStore = Pinia.defineStore('family', {
     // update member chore board visibility
     async updateMemberChoresEnabled(member) {
       try {
-        const authStore = window.useAuthStore ? window.useAuthStore() : null;
-        const accountId = authStore?.accountId;
-        
-        if (!accountId) {
-          console.error('Account ID not available');
-          return { success: false, error: 'Account ID not available' };
-        }
-        
         // optimistic update
         const originalValue = member.showOnChoreBoard;
         member.showOnChoreBoard = !member.showOnChoreBoard;
         
         try {
+          // URL-encode memberId to handle special characters like # in MEMBER#uuid
+          const encodedMemberId = encodeURIComponent(member.id);
           await apiService.put(
-            `${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${accountId}/${member.id}`,
+            `${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${encodedMemberId}`,
             { showOnChoreBoard: member.showOnChoreBoard }
           );
           
-          console.log('[OK] Member chore board visibility updated:', member.name);
+          console.log('[OK] Member chore board visibility updated:', member.displayName);
           return { success: true };
         } catch (error) {
           // rollback on error
@@ -924,6 +940,53 @@ const useFamilyStore = Pinia.defineStore('family', {
     async loadEarnings() {
       // earnings are part of family members, so just reload members
       await this.loadMembers();
+    },
+    
+    // load electronics status for all members
+    // _Requirements: 2.3_
+    async loadElectronicsStatus() {
+      try {
+        // Load electronics status for each member individually
+        for (const member of this.members) {
+          try {
+            const memberName = member.displayName || member.name;
+            const response = await apiService.get(`${CONFIG.API.ENDPOINTS.ELECTRONICS_STATUS}/${memberName}`);
+            member.electronicsStatus = response;
+          } catch (error) {
+            console.error(`Failed to load electronics status for ${member.displayName || member.name}:`, error);
+            member.electronicsStatus = { status: 'allowed', message: 'Electronics allowed' };
+          }
+        }
+        console.log('[OK] Electronics status loaded for all members');
+      } catch (error) {
+        console.error('Failed to load electronics status:', error);
+      }
+    },
+    
+    // Optimistically update electronics status for a member based on current chores
+    // Uses chores store to check for incomplete electronics chores
+    // _Requirements: 2.3_
+    updateElectronicsStatusOptimistically(memberName) {
+      const member = this.members.find(m => (m.displayName || m.name) === memberName);
+      if (!member) return;
+
+      // Get chores from chores store
+      const choresStore = window.useChoresStore?.();
+      const chores = choresStore?.chores || [];
+
+      // Count incomplete electronics chores for this member
+      const incompleteElectronicsChores = chores.filter(chore => 
+        chore.assignedTo === memberName && 
+        chore.category === 'game' && 
+        !chore.completed
+      );
+
+      const allowed = incompleteElectronicsChores.length === 0;
+      
+      member.electronicsStatus = {
+        status: allowed ? 'allowed' : 'blocked',
+        message: allowed ? 'Electronics allowed' : `${incompleteElectronicsChores.length} electronics task${incompleteElectronicsChores.length > 1 ? 's' : ''} remaining`
+      };
     },
     
     // update earnings for a specific member (optimistic, uses displayName)

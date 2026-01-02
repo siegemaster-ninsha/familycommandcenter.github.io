@@ -7,30 +7,9 @@ const useUIStore = Pinia.defineStore('ui', {
     currentPage: 'chores',
     mobileNavOpen: false,
     
-    // Modals
-    modals: {
-      login: false,
-      signup: false,
-      confirm: false,
-      addChore: false,
-      addToQuicklist: false,
-      choreDetails: false,
-      multiAssign: false,
-      addPerson: false,
-      deletePerson: false,
-      createChild: false,
-      invite: false,
-      newDay: false,
-      spending: false
-    },
-    
-    // Modal data (context for modals)
-    modalData: {
-      personToDelete: null,
-      selectedPerson: null,
-      selectedQuicklistChore: null,
-      inviteData: { token: '', expiresAt: null }
-    },
+    // Modal registry - each modal: { isOpen: false, data: null }
+    // This pattern allows dynamic modal registration and per-modal data storage
+    modals: {},
     
     // Loading states
     loading: false,
@@ -49,24 +28,29 @@ const useUIStore = Pinia.defineStore('ui', {
   }),
   
   getters: {
-    // check if any modal is open
-    hasAnyModalOpen: (state) => {
-      return Object.values(state.modals).some(isOpen => isOpen === true);
-    },
-    
-    // get specific modal state
+    // Check if a specific modal is open
     isModalOpen: (state) => {
-      return (modalName) => state.modals[modalName] === true;
+      return (modalName) => state.modals[modalName]?.isOpen || false;
     },
     
-    // get open modals list
+    // Get data associated with a specific modal
+    getModalData: (state) => {
+      return (modalName) => state.modals[modalName]?.data || null;
+    },
+    
+    // Check if any modal is open (for body scroll locking)
+    hasAnyModalOpen: (state) => {
+      return Object.values(state.modals).some(modal => modal?.isOpen === true);
+    },
+    
+    // Get list of currently open modals
     openModals: (state) => {
-      return Object.keys(state.modals).filter(name => state.modals[name] === true);
+      return Object.keys(state.modals).filter(name => state.modals[name]?.isOpen === true);
     }
   },
   
   actions: {
-    // navigation
+    // Navigation
     setCurrentPage(page) {
       this.currentPage = page;
       this.mobileNavOpen = false;
@@ -81,43 +65,41 @@ const useUIStore = Pinia.defineStore('ui', {
       this.mobileNavOpen = false;
     },
     
-    // modal management
+    // Modal management with registry pattern
     openModal(modalName, data = null) {
-      if (Object.prototype.hasOwnProperty.call(this.modals, modalName)) {
-        this.modals[modalName] = true;
-        
-        // store modal-specific data if provided
-        if (data) {
-          this.modalData = { ...this.modalData, ...data };
-        }
-        
-        console.log('[UI] Modal opened:', modalName);
-      } else {
-        console.warn(`Modal "${modalName}" not found in registry`);
+      // Capture scroll position for flyout panels
+      if (typeof window !== 'undefined') {
+        window.__flyoutScrollY = window.scrollY;
       }
+      
+      // Initialize modal entry if it doesn't exist (dynamic registration)
+      if (!this.modals[modalName]) {
+        this.modals[modalName] = { isOpen: false, data: null };
+      }
+      
+      this.modals[modalName].isOpen = true;
+      this.modals[modalName].data = data;
+      
+      console.log('[UI] Modal opened:', modalName, data ? 'with data' : '');
     },
     
     closeModal(modalName) {
-      if (Object.prototype.hasOwnProperty.call(this.modals, modalName)) {
-        this.modals[modalName] = false;
+      if (this.modals[modalName]) {
+        this.modals[modalName].isOpen = false;
+        this.modals[modalName].data = null;
         console.log('[UI] Modal closed:', modalName);
       }
     },
     
     closeAllModals() {
-      Object.keys(this.modals).forEach(key => {
-        this.modals[key] = false;
+      Object.keys(this.modals).forEach(name => {
+        this.modals[name].isOpen = false;
+        this.modals[name].data = null;
       });
-      this.modalData = {
-        personToDelete: null,
-        selectedPerson: null,
-        selectedQuicklistChore: null,
-        inviteData: { token: '', expiresAt: null }
-      };
       console.log('[UI] All modals closed');
     },
     
-    // specific modal helpers (for backwards compatibility)
+    // Specific modal helpers (for backwards compatibility)
     showLoginModal() {
       this.openModal('login');
     },
@@ -138,7 +120,7 @@ const useUIStore = Pinia.defineStore('ui', {
       this.openModal('deletePerson', { personToDelete: person });
     },
     
-    // loading state
+    // Loading state
     setLoading(isLoading, message = '') {
       this.loading = isLoading;
       this.loadingMessage = message;
@@ -152,7 +134,7 @@ const useUIStore = Pinia.defineStore('ui', {
       this.setLoading(false, '');
     },
     
-    // error handling
+    // Error handling
     setError(error) {
       this.error = error;
       console.error('[ERROR] Error:', error);
@@ -167,7 +149,7 @@ const useUIStore = Pinia.defineStore('ui', {
       this.error = message;
       console.error('[ERROR]', message);
       
-      // auto-clear after duration
+      // Auto-clear after duration
       if (duration > 0) {
         setTimeout(() => {
           this.clearError();
@@ -175,12 +157,12 @@ const useUIStore = Pinia.defineStore('ui', {
       }
     },
     
-    // success messages
+    // Success messages
     showSuccess(message, duration = 3000) {
       this.successMessage = message;
       this.showSuccessMessage = true;
       
-      // auto-hide after duration
+      // Auto-hide after duration
       if (duration > 0) {
         setTimeout(() => {
           this.hideSuccess();
@@ -197,11 +179,11 @@ const useUIStore = Pinia.defineStore('ui', {
       }, 300);
     },
     
-    // confetti
+    // Confetti
     triggerConfetti() {
       this.showConfetti = true;
       
-      // generate confetti pieces
+      // Generate confetti pieces
       const pieces = [];
       for (let i = 0; i < 50; i++) {
         pieces.push({
@@ -213,7 +195,7 @@ const useUIStore = Pinia.defineStore('ui', {
       }
       this.confettiPieces = pieces;
       
-      // auto-hide after animation
+      // Auto-hide after animation
       setTimeout(() => {
         this.hideConfetti();
       }, 4000);
@@ -226,7 +208,7 @@ const useUIStore = Pinia.defineStore('ui', {
       this.confettiPieces = [];
     },
     
-    // reset all UI state
+    // Reset all UI state
     reset() {
       this.closeAllModals();
       this.clearError();
@@ -237,8 +219,7 @@ const useUIStore = Pinia.defineStore('ui', {
   }
 });
 
-// export for use in components
+// Export for use in components
 if (typeof window !== 'undefined') {
   window.useUIStore = useUIStore;
 }
-

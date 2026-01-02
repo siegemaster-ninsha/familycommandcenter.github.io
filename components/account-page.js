@@ -1,6 +1,13 @@
 // Account Page Component
+// _Requirements: 7.1, 7.2_ - Uses authStore instead of $parent
 const AccountPage = Vue.defineComponent({
   name: 'AccountPage',
+  setup() {
+    // Access auth store directly instead of using $parent
+    const authStore = window.useAuthStore?.();
+    const uiStore = window.useUIStore?.();
+    return { authStore, uiStore };
+  },
   template: `
     <div class="space-y-6">
       <!-- Account Overview -->
@@ -19,12 +26,12 @@ const AccountPage = Vue.defineComponent({
               <p class="text-sm text-secondary-custom">{{ currentUser?.email || 'user@example.com' }}</p>
             </div>
             <button 
-              @click="$parent.handleLogout()"
-              :disabled="$parent.authLoading"
-              :class="['btn-error ml-2', $parent.authLoading && 'loading']"
-              :title="$parent.authLoading ? 'Signing out...' : 'Sign Out'"
+              @click="handleLogout()"
+              :disabled="authLoading"
+              :class="['btn-error ml-2', authLoading && 'loading']"
+              :title="authLoading ? 'Signing out...' : 'Sign Out'"
             >
-              <div v-if="$parent.authLoading" class="animate-spin h-4 w-4" v-html="Helpers.IconLibrary.getIcon('loader', 'lucide', 16, 'text-white')"></div>
+              <div v-if="authLoading" class="animate-spin h-4 w-4" v-html="Helpers.IconLibrary.getIcon('loader', 'lucide', 16, 'text-white')"></div>
               <span v-else>Sign Out</span>
             </button>
           </div>
@@ -640,6 +647,15 @@ const AccountPage = Vue.defineComponent({
   computed: {
     isChild() {
       return this.currentUser?.role === 'child';
+    },
+    // Computed property to access authLoading from store
+    // _Requirements: 7.1, 7.2_
+    authLoading() {
+      return this.authStore?.authLoading || false;
+    },
+    // Get account settings from auth store
+    storeAccountSettings() {
+      return this.authStore?.accountSettings || this.accountSettings;
     }
   },
   methods: {
@@ -710,7 +726,10 @@ const AccountPage = Vue.defineComponent({
         // Save to backend if available
         if (this.accountId) {
           try {
-            await window.SettingsClient.updatePreferences(this.accountId, this.preferences, { ifMatch: this.$parent.accountSettings?.updatedAt });
+            // Use auth store account settings instead of $parent
+            // _Requirements: 7.1, 7.2_
+            const accountSettings = this.storeAccountSettings;
+            await window.SettingsClient.updatePreferences(this.accountId, this.preferences, { ifMatch: accountSettings?.updatedAt });
             console.log('✅ Preferences auto-saved to backend');
           } catch (e) {
             console.warn('Failed to auto-save preferences to backend:', e);
@@ -742,10 +761,13 @@ const AccountPage = Vue.defineComponent({
         // Save to backend if available
         if (this.accountId) {
           try {
+            // Use auth store account settings instead of $parent
+            // _Requirements: 7.1, 7.2_
+            const accountSettings = this.storeAccountSettings;
             await window.SettingsClient.updateProfile(this.accountId, {
               displayName: this.profileForm.name,
               familyName: this.profileForm.familyName
-            }, { ifMatch: this.$parent.accountSettings?.updatedAt });
+            }, { ifMatch: accountSettings?.updatedAt });
             console.log('✅ Profile auto-saved to backend');
           } catch (e) {
             console.warn('Failed to auto-save profile to backend:', e);
@@ -780,10 +802,14 @@ const AccountPage = Vue.defineComponent({
     },
 
     async reloadAccountSettings() {
-      // Trigger parent to reload account settings
+      // Reload account settings using auth store instead of $parent
+      // _Requirements: 7.1, 7.2_
       try {
-        await this.$parent.loadAccountSettings();
-        if (this.accountSettings) {
+        if (this.authStore) {
+          await this.authStore.loadAccountSettings();
+        }
+        const accountSettings = this.storeAccountSettings;
+        if (accountSettings) {
           this.syncAccountSettings();
         }
       } catch (error) {
@@ -843,7 +869,11 @@ const AccountPage = Vue.defineComponent({
           });
 
           if (response.ok) {
-            await this.$parent.loadAccountSettings(); // Reload account settings
+            // Reload account settings using auth store instead of $parent
+            // _Requirements: 7.1, 7.2_
+            if (this.authStore) {
+              await this.authStore.loadAccountSettings();
+            }
             this.showSuccessMessage('Profile updated successfully!');
           } else {
             throw new Error('Failed to update profile');
@@ -866,7 +896,11 @@ const AccountPage = Vue.defineComponent({
           });
 
           if (response.ok) {
-            await this.$parent.loadAccountSettings(); // Reload account settings
+            // Reload account settings using auth store instead of $parent
+            // _Requirements: 7.1, 7.2_
+            if (this.authStore) {
+              await this.authStore.loadAccountSettings();
+            }
             // Try updating again
             await this.updateProfile();
             return;
@@ -923,12 +957,17 @@ const AccountPage = Vue.defineComponent({
             }
             
             // Use the correct endpoint to update profile fields as part of account settings
+            // Use auth store account settings instead of $parent
+            // _Requirements: 7.1, 7.2_
             try {
+              const accountSettings = this.storeAccountSettings;
               await window.SettingsClient.updateProfile(this.accountId, {
                 displayName: this.profileForm.name,
                 familyName: this.profileForm.familyName
-              }, { ifMatch: this.$parent.accountSettings?.updatedAt });
-              await this.$parent.loadAccountSettings();
+              }, { ifMatch: accountSettings?.updatedAt });
+              if (this.authStore) {
+                await this.authStore.loadAccountSettings();
+              }
               console.log('✅ Profile saved to backend');
             } catch (e) {
               console.warn('Failed to save profile to backend, using localStorage', e);
@@ -968,9 +1007,14 @@ const AccountPage = Vue.defineComponent({
               headers.Authorization = authHeader;
             }
             
+            // Use auth store account settings instead of $parent
+            // _Requirements: 7.1, 7.2_
             try {
-              await window.SettingsClient.updatePreferences(this.accountId, this.preferences, { ifMatch: this.$parent.accountSettings?.updatedAt });
-              await this.$parent.loadAccountSettings();
+              const accountSettings = this.storeAccountSettings;
+              await window.SettingsClient.updatePreferences(this.accountId, this.preferences, { ifMatch: accountSettings?.updatedAt });
+              if (this.authStore) {
+                await this.authStore.loadAccountSettings();
+              }
               console.log('✅ Preferences saved to backend');
             } catch (e) {
               console.warn('Failed to save preferences to backend, using localStorage', e);
@@ -1072,9 +1116,14 @@ const AccountPage = Vue.defineComponent({
               headers.Authorization = authHeader;
             }
             
+            // Use auth store account settings instead of $parent
+            // _Requirements: 7.1, 7.2_
             try {
-              await window.SettingsClient.updatePreferences(this.accountId, this.preferences, { ifMatch: this.$parent.accountSettings?.updatedAt });
-              await this.$parent.loadAccountSettings();
+              const accountSettings = this.storeAccountSettings;
+              await window.SettingsClient.updatePreferences(this.accountId, this.preferences, { ifMatch: accountSettings?.updatedAt });
+              if (this.authStore) {
+                await this.authStore.loadAccountSettings();
+              }
               console.log('✅ Preferences saved to backend');
             } catch (e) {
               console.warn('Failed to save preferences to backend, using localStorage', e);
@@ -1286,8 +1335,19 @@ const AccountPage = Vue.defineComponent({
     },
     
     showSuccessMessage(message) {
-      // Use the parent's showSuccessMessage method
-      this.$parent.showSuccessMessage(message);
+      // Use ToastService instead of $parent
+      // _Requirements: 7.1, 7.2_
+      if (window.ToastService) {
+        window.ToastService.success(message);
+      }
+    },
+    
+    // Handle logout using auth store instead of $parent
+    // _Requirements: 7.1, 7.2_
+    async handleLogout() {
+      if (this.authStore) {
+        await this.authStore.handleLogout();
+      }
     }
   }
 });

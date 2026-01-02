@@ -171,6 +171,29 @@ module.exports = [
       sourceType: 'module'
     }
   },
+  // Test files use ES modules (Vitest)
+  {
+    files: ['**/*.test.js', '**/*.property.test.js', 'test/**/*.js', 'vitest.config.js'],
+    languageOptions: {
+      sourceType: 'module',
+      globals: {
+        describe: 'readonly',
+        it: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        vi: 'readonly',
+        test: 'readonly',
+        global: 'readonly'
+      }
+    },
+    rules: {
+      // Disable store rule for test files
+      'design-tokens/require-pinia-store': 'off'
+    }
+  },
   // Files with conditional module exports
   {
     files: ['config.js', 'utils/ingredientFormatter.js', 'widgets/dad-joke-widget.js'],
