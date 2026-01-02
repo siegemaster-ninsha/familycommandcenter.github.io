@@ -6,6 +6,46 @@
  */
 
 const Confetti = {
+  // Pop sound for firework bursts
+  popSoundUrl: './assets/sounds/pop.mp3',
+  popSoundFallback: 'https://cdn.pixabay.com/audio/2022/03/10/audio_5e4c1c1b5e.mp3',
+  
+  // Audio pool for overlapping pops
+  audioPool: [],
+  audioPoolSize: 5,
+  audioPoolIndex: 0,
+  
+  /**
+   * Initialize audio pool for pop sounds
+   */
+  initAudioPool() {
+    if (this.audioPool.length > 0) return;
+    
+    for (let i = 0; i < this.audioPoolSize; i++) {
+      const audio = new Audio(this.popSoundUrl);
+      audio.volume = 0.2;
+      audio.preload = 'auto';
+      // Try to load, fallback on error
+      audio.onerror = () => {
+        audio.src = this.popSoundFallback;
+      };
+      this.audioPool.push(audio);
+    }
+  },
+  
+  /**
+   * Play a pop sound using the audio pool
+   */
+  playPop() {
+    this.initAudioPool();
+    
+    const audio = this.audioPool[this.audioPoolIndex];
+    this.audioPoolIndex = (this.audioPoolIndex + 1) % this.audioPoolSize;
+    
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+  },
+  
   /**
    * Check if canvas-confetti library is available
    * @returns {boolean}
@@ -38,6 +78,7 @@ const Confetti = {
       ...options
     });
 
+    this.playPop();
     console.log('[Confetti] Burst triggered');
   },
 
@@ -80,11 +121,14 @@ const Confetti = {
         particleCount,
         origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
       });
+      this.playPop();
+      
       window.confetti({
         ...defaults,
         particleCount,
         origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
       });
+      this.playPop();
     }, 250);
 
     // Also fire a big center burst immediately
@@ -94,6 +138,7 @@ const Confetti = {
       origin: { x: 0.5, y: 0.5 },
       zIndex: 10000
     });
+    this.playPop();
 
     console.log('[Confetti] Celebration triggered');
   },
@@ -115,6 +160,7 @@ const Confetti = {
       origin: { x: 0, y: 0.6 },
       zIndex: 10000
     });
+    this.playPop();
 
     // Right cannon
     window.confetti({
@@ -124,6 +170,7 @@ const Confetti = {
       origin: { x: 1, y: 0.6 },
       zIndex: 10000
     });
+    this.playPop();
 
     console.log('[Confetti] Cannons fired');
   }
