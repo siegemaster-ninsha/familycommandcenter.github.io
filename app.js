@@ -3358,6 +3358,16 @@ function checkAndRegisterComponents() {
     app.component('schedule-modal', window.ScheduleModalComponent);
   }
 
+  console.log('📦 Registering habit-flyout');
+  if (window.HabitFlyout) {
+    app.component('habit-flyout', window.HabitFlyout);
+  }
+
+  console.log('📦 Registering habit-card');
+  if (window.HabitCard) {
+    app.component('habit-card', window.HabitCard);
+  }
+
   console.log('📦 Registering default-order-modal');
   if (window.DefaultOrderModalComponent) {
     app.component('default-order-modal', window.DefaultOrderModalComponent);

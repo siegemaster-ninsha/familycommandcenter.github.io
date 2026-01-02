@@ -7,6 +7,11 @@
 const HabitFlyout = Vue.defineComponent({
   name: 'HabitFlyout',
   
+  // Register flyout-panel locally to ensure it's available
+  components: {
+    'flyout-panel': window.FlyoutPanel
+  },
+  
   props: {
     // Whether the flyout is open
     open: {
@@ -129,6 +134,7 @@ const HabitFlyout = Vue.defineComponent({
     open: {
       immediate: true,
       handler(isOpen) {
+        console.log('[HabitFlyout] open changed to:', isOpen);
         if (isOpen) {
           // Initialize form based on mode
           if (this.isEditMode) {

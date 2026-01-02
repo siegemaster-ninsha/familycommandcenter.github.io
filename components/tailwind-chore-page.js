@@ -1453,8 +1453,7 @@ const TailwindChorePage = Vue.defineComponent({
     ChoreCard,
     PersonCard,
     EarningsCard,
-    'week-calendar-panel': window.WeekCalendarPanel,
-    'habit-flyout': window.HabitFlyout
+    'week-calendar-panel': window.WeekCalendarPanel
   },
   data() {
     return {
