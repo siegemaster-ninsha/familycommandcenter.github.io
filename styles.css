@@ -9724,8 +9724,10 @@ body.kids-center-menu-open {
 
 /* Habits section container within PersonCard */
 .habits-section {
+  display: block;
   margin-top: var(--space-6);
   padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border-card);
 }
 
 /* Section header */

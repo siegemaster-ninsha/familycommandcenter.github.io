@@ -701,7 +701,7 @@ const PersonCard = {
         :class="{ 'chore-list-container--reordering': isReordering }"
         @click.stop
       >
-        <div v-if="!personChores || personChores.length === 0" class="text-center py-6" style="color: var(--color-text-secondary);">
+        <div v-if="(!personChores || personChores.length === 0) && (!memberHabits || memberHabits.length === 0)" class="text-center py-6" style="color: var(--color-text-secondary);">
           <p class="text-sm">No chores assigned</p>
           <p class="text-xs mt-1">Select a chore and tap here to assign it</p>
         </div>
@@ -736,13 +736,13 @@ const PersonCard = {
       <!-- Habits Section -->
       <!-- **Feature: habit-tracking** -->
       <!-- **Validates: Requirements 2.1, 2.3** -->
-      <div class="habits-section mt-6 pt-4" style="border-top: 1px solid var(--color-border-card);" @click.stop>
+      <div class="habits-section" @click.stop>
         <div class="flex items-center justify-between mb-3">
           <h4 class="text-sm font-semibold" style="color: var(--color-text-secondary);">Habits</h4>
         </div>
         
-        <!-- Habits list -->
-        <div class="space-y-2">
+        <!-- Habits list - using transition-group like chores for consistent iOS rendering -->
+        <transition-group name="habit-list" tag="div" class="space-y-2">
           <habit-card
             v-for="habit in memberHabits"
             :key="habit.id"
@@ -760,6 +760,7 @@ const PersonCard = {
           <!-- iOS Safari PWA: @touchend.prevent ensures touch events fire reliably -->
           <!-- Using native button for reliable event handling (sl-button has issues in nested components) -->
           <button 
+            key="add-habit-btn"
             @click="handleAddHabit"
             @touchend.prevent="handleAddHabit"
             type="button"
@@ -768,7 +769,7 @@ const PersonCard = {
             <span v-html="getIcon('plus', 16)"></span>
             Add Habit
           </button>
-        </div>
+        </transition-group>
       </div>
     </div>
   `,
@@ -799,8 +800,8 @@ const PersonCard = {
     onHabitToggleGridView: { type: Function }
   },
   components: {
-    ChoreCard,
-    'habit-card': window.HabitCard
+    ChoreCard
+    // Note: habit-card is registered globally in app.js
   },
   data() {
     return {
