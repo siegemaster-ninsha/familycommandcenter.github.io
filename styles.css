@@ -8622,8 +8622,14 @@ body.learning-hub-menu-open {
 /* Main layout container */
 .kids-center-layout {
   display: flex;
+  flex-direction: row; /* Explicitly set horizontal layout */
   min-height: calc(100vh - 120px);
   background: var(--color-bg-primary);
+  
+  /* Break out of the constrained parent container */
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  position: relative;
 }
 
 /* Mobile header - hidden on desktop */
@@ -8755,10 +8761,12 @@ body.learning-hub-menu-open {
     z-index: 10;
   }
   
-  /* Stack layout vertically */
+  /* Stack layout vertically and reset breakout */
   .kids-center-layout {
     flex-direction: column;
     min-height: calc(100vh - 60px);
+    width: 100%;
+    margin-left: 0;
   }
   
   /* Sidebar becomes slide-out drawer */

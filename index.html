@@ -324,7 +324,7 @@
                   <!-- New Day Button - _Requirements: 4.4_ -->
                   <div class="flex items-center gap-3" v-if="currentPage === 'chores'">
                     <button
-                      @click="offlineStore.isOnline ? (window.__flyoutScrollY = window.scrollY, showNewDayModal = true) : null"
+                      @click="openNewDayModal"
                       :disabled="!offlineStore.isOnline"
                       class="btn-warning flex items-center gap-2 px-3 sm:px-4 py-3 sm:py-2 min-h-[48px] touch-target disabled:opacity-50 disabled:cursor-not-allowed"
                       :title="offlineStore.isOnline ? 'Start a new day - clears all chores while preserving earnings' : 'Starting a new day requires an internet connection'"

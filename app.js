@@ -1845,6 +1845,16 @@ const app = createApp({
       this.showNewDayModal = false;
     },
 
+    // Open New Day modal with scroll position capture
+    openNewDayModal() {
+      if (!this.offlineStore.isOnline) {
+        return;
+      }
+      // Capture scroll position for flyout-panel
+      window.__flyoutScrollY = window.scrollY;
+      this.showNewDayModal = true;
+    },
+
     // Page navigation
     setCurrentPage(page) {
       this.currentPage = page;
