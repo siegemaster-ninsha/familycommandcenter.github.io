@@ -1400,58 +1400,6 @@ const TailwindChorePage = Vue.defineComponent({
         <week-calendar-panel />
       </aside>
       
-      <!-- Habit Flyout for create/edit -->
-      <!-- **Feature: habit-tracking** -->
-      <!-- **Validates: Requirements 1.1, 1.2, 5.1** -->
-      <flyout-panel
-        :open="showHabitFlyout"
-        @close="closeHabitFlyout"
-        :title="editingHabit ? 'Edit Habit' : 'New Habit'"
-        :show-footer="true"
-        :show-header-close="false"
-      >
-        <template #default>
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-primary-custom mb-1">Habit Name</label>
-              <input
-                ref="habitNameInput"
-                v-model="habitFormName"
-                @keydown.enter="submitHabitForm"
-                type="text"
-                class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                style="border-color: var(--color-border-card)"
-                placeholder="e.g., Read 30 minutes"
-                maxlength="100"
-              />
-              <p class="text-xs text-secondary-custom mt-1">{{ habitFormName.length }}/100 characters</p>
-            </div>
-            <div v-if="habitFormError" class="rounded-lg p-3" style="background: var(--color-error-50); border: 1px solid var(--color-error-600);">
-              <p class="text-sm" style="color: var(--color-error-700);">{{ habitFormError }}</p>
-            </div>
-          </div>
-        </template>
-        <template #footer>
-          <div class="flyout-footer-buttons flex items-center gap-2">
-            <button 
-              @click="submitHabitForm"
-              @touchend.prevent="submitHabitForm"
-              :disabled="habitFormSubmitting"
-              class="flex-1 btn-primary btn-compact px-3 py-1.5 text-sm"
-            >
-              {{ habitFormSubmitting ? 'Saving...' : (editingHabit ? 'Save' : 'Create Habit') }}
-            </button>
-            <button 
-              @click="closeHabitFlyout"
-              @touchend.prevent="closeHabitFlyout"
-              class="btn-secondary btn-compact px-3 py-1.5 text-sm"
-            >
-              Cancel
-            </button>
-          </div>
-        </template>
-      </flyout-panel>
-      
       <!-- Habit Delete Confirmation Modal -->
       <!-- **Feature: habit-tracking** -->
       <!-- **Validates: Requirements 5.3** -->
@@ -1504,14 +1452,6 @@ const TailwindChorePage = Vue.defineComponent({
       quicklistLoading: false,
       quicklistError: null,
       expandedChoreId: null,  // Track which chore's action panel is expanded
-      // **Feature: habit-tracking** - Habit flyout state
-      showHabitFlyout: false,
-      editingHabit: null,
-      habitFlyoutMemberId: '',
-      // **Feature: habit-tracking** - Habit form state (inline flyout)
-      habitFormName: '',
-      habitFormError: '',
-      habitFormSubmitting: false,
       // **Feature: habit-tracking** - Habit delete confirmation state
       showHabitDeleteConfirm: false,
       habitToDelete: null,
@@ -1538,107 +1478,26 @@ const TailwindChorePage = Vue.defineComponent({
     },
     /**
      * Open habit flyout for creating a new habit
+     * Calls parent app.js method which renders the flyout in app-modals.js
      * **Feature: habit-tracking**
      * **Validates: Requirements 1.1**
      */
     handleHabitAdd(memberId) {
-      // Capture scroll position for flyout-panel
-      window.__flyoutScrollY = window.scrollY;
-      this.editingHabit = null;
-      this.habitFlyoutMemberId = memberId;
-      // Reset form state
-      this.habitFormName = '';
-      this.habitFormError = '';
-      this.habitFormSubmitting = false;
-      this.showHabitFlyout = true;
+      // Call parent app method to open the habit flyout
+      if (this.$root?.openHabitFlyout) {
+        this.$root.openHabitFlyout(memberId, null);
+      }
     },
     /**
      * Open habit flyout for editing an existing habit
+     * Calls parent app.js method which renders the flyout in app-modals.js
      * **Feature: habit-tracking**
      * **Validates: Requirements 5.1**
      */
     handleHabitEdit(habit) {
-      // Capture scroll position for flyout-panel
-      window.__flyoutScrollY = window.scrollY;
-      this.editingHabit = habit;
-      this.habitFlyoutMemberId = habit.memberId;
-      // Pre-fill form with existing habit name
-      this.habitFormName = habit.name || '';
-      this.habitFormError = '';
-      this.habitFormSubmitting = false;
-      this.showHabitFlyout = true;
-    },
-    /**
-     * Close the habit flyout
-     * **Feature: habit-tracking**
-     */
-    closeHabitFlyout() {
-      this.showHabitFlyout = false;
-      this.editingHabit = null;
-      this.habitFlyoutMemberId = '';
-      this.habitFormName = '';
-      this.habitFormError = '';
-      this.habitFormSubmitting = false;
-    },
-    /**
-     * Submit the habit form (create or update)
-     * **Feature: habit-tracking**
-     * **Validates: Requirements 1.3, 5.2**
-     */
-    async submitHabitForm() {
-      // Validate
-      const trimmedName = this.habitFormName.trim();
-      if (!trimmedName) {
-        this.habitFormError = 'Habit name is required';
-        return;
-      }
-      
-      this.habitFormSubmitting = true;
-      this.habitFormError = '';
-      
-      const habitsStore = window.useHabitsStore?.();
-      if (!habitsStore) {
-        this.habitFormError = 'Store not available';
-        this.habitFormSubmitting = false;
-        return;
-      }
-      
-      let result;
-      if (this.editingHabit) {
-        result = await habitsStore.updateHabit(this.editingHabit.id, { name: trimmedName });
-      } else {
-        result = await habitsStore.createHabit(this.habitFlyoutMemberId, trimmedName);
-      }
-      
-      this.habitFormSubmitting = false;
-      
-      if (result.success) {
-        this.closeHabitFlyout();
-      } else {
-        this.habitFormError = result.error || 'Failed to save habit';
-      }
-    },
-    /**
-     * Handle saving a habit (create or update) - legacy method for habit-flyout component
-     * **Feature: habit-tracking**
-     * **Validates: Requirements 1.3, 5.2**
-     */
-    async handleHabitSave({ name, memberId, habitId, isEdit }) {
-      const habitsStore = window.useHabitsStore?.();
-      if (!habitsStore) {
-        console.error('[Habits] Store not available');
-        return;
-      }
-      
-      let result;
-      if (isEdit && habitId) {
-        result = await habitsStore.updateHabit(habitId, { name });
-      } else {
-        result = await habitsStore.createHabit(memberId, name);
-      }
-      
-      if (result.success) {
-        this.closeHabitFlyout();
+      // Call parent app method to open the habit flyout in edit mode
+      if (this.$root?.openHabitFlyout) {
+        this.$root.openHabitFlyout(habit.memberId, habit);
       }
     },
     /**

@@ -43,6 +43,15 @@ const app = createApp({
         addToQuicklist: false,
         isDetailed: false
       },
+      // **Feature: habit-tracking** - Habit flyout state
+      showHabitFlyout: false,
+      habitFlyoutMemberId: '',
+      editingHabit: null,
+      habitForm: {
+        name: ''
+      },
+      habitFormError: '',
+      habitFormSubmitting: false,
       showAddToQuicklistModal: false,
       newQuicklistChore: {
         name: '',
@@ -526,6 +535,57 @@ const app = createApp({
     },
     closeAddChoreModal() {
       this.showAddChoreModal = false;
+    },
+    // **Feature: habit-tracking** - Habit flyout methods
+    openHabitFlyout(memberId, habit = null) {
+      window.__flyoutScrollY = window.scrollY;
+      console.log('🎯 openHabitFlyout - captured scroll:', window.__flyoutScrollY);
+      this.habitFlyoutMemberId = memberId;
+      this.editingHabit = habit;
+      this.habitForm.name = habit ? habit.name : '';
+      this.habitFormError = '';
+      this.habitFormSubmitting = false;
+      this.showHabitFlyout = true;
+    },
+    closeHabitFlyout() {
+      this.showHabitFlyout = false;
+      this.habitFlyoutMemberId = '';
+      this.editingHabit = null;
+      this.habitForm.name = '';
+      this.habitFormError = '';
+      this.habitFormSubmitting = false;
+    },
+    async submitHabitForm() {
+      const trimmedName = this.habitForm.name.trim();
+      if (!trimmedName) {
+        this.habitFormError = 'Habit name is required';
+        return;
+      }
+      
+      this.habitFormSubmitting = true;
+      this.habitFormError = '';
+      
+      const habitsStore = window.useHabitsStore?.();
+      if (!habitsStore) {
+        this.habitFormError = 'Store not available';
+        this.habitFormSubmitting = false;
+        return;
+      }
+      
+      let result;
+      if (this.editingHabit) {
+        result = await habitsStore.updateHabit(this.editingHabit.id, { name: trimmedName });
+      } else {
+        result = await habitsStore.createHabit(this.habitFlyoutMemberId, trimmedName);
+      }
+      
+      this.habitFormSubmitting = false;
+      
+      if (result.success) {
+        this.closeHabitFlyout();
+      } else {
+        this.habitFormError = result.error || 'Failed to save habit';
+      }
     },
     openAddToQuicklistModal() {
       window.__flyoutScrollY = window.scrollY;
@@ -3114,6 +3174,13 @@ const app = createApp({
       // Modal state computed values (readonly)
       showAddToQuicklistModal: Vue.computed(() => this.showAddToQuicklistModal),
       showAddChoreModal: Vue.computed(() => this.showAddChoreModal),
+      // **Feature: habit-tracking** - Habit flyout state
+      showHabitFlyout: Vue.computed(() => this.showHabitFlyout),
+      habitFlyoutMemberId: Vue.computed(() => this.habitFlyoutMemberId),
+      editingHabit: Vue.computed(() => this.editingHabit),
+      habitForm: Vue.toRef(this, 'habitForm'),
+      habitFormError: Vue.computed(() => this.habitFormError),
+      habitFormSubmitting: Vue.computed(() => this.habitFormSubmitting),
       showAddPersonModal: Vue.computed(() => this.showAddPersonModal),
       showDeletePersonModal: Vue.computed(() => this.showDeletePersonModal),
       showNewDayModal: Vue.computed(() => this.showNewDayModal),
@@ -3356,11 +3423,6 @@ function checkAndRegisterComponents() {
   console.log('📦 Registering schedule-modal');
   if (window.ScheduleModalComponent) {
     app.component('schedule-modal', window.ScheduleModalComponent);
-  }
-
-  console.log('📦 Registering habit-flyout');
-  if (window.HabitFlyout) {
-    app.component('habit-flyout', window.HabitFlyout);
   }
 
   console.log('📦 Registering habit-card');

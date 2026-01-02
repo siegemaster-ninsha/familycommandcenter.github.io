@@ -195,6 +195,56 @@ const AppModals = Vue.defineComponent({
       </template>
     </flyout-panel>
 
+    <!-- Habit Flyout for create/edit -->
+    <!-- **Feature: habit-tracking** -->
+    <flyout-panel
+      :open="showHabitFlyout"
+      @close="$parent.closeHabitFlyout"
+      :title="editingHabit ? 'Edit Habit' : 'New Habit'"
+      :show-footer="true"
+      :show-header-close="false"
+    >
+      <template #default>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-primary-custom mb-1">Habit Name</label>
+            <input
+              v-model="habitForm.name"
+              @keydown.enter="$parent.submitHabitForm"
+              type="text"
+              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              style="border-color: var(--color-border-card)"
+              placeholder="e.g., Read 30 minutes"
+              maxlength="100"
+            />
+            <p class="text-xs text-secondary-custom mt-1">{{ habitForm.name.length }}/100 characters</p>
+          </div>
+          <div v-if="habitFormError" class="rounded-lg p-3" style="background: var(--color-error-50); border: 1px solid var(--color-error-600);">
+            <p class="text-sm" style="color: var(--color-error-700);">{{ habitFormError }}</p>
+          </div>
+        </div>
+      </template>
+      <template #footer>
+        <div class="flyout-footer-buttons flex items-center gap-2">
+          <button 
+            @click="$parent.submitHabitForm"
+            @touchend.prevent="$parent.submitHabitForm"
+            :disabled="habitFormSubmitting"
+            class="flex-1 btn-primary btn-compact px-3 py-1.5 text-sm"
+          >
+            {{ habitFormSubmitting ? 'Saving...' : (editingHabit ? 'Save' : 'Create Habit') }}
+          </button>
+          <button 
+            @click="$parent.closeHabitFlyout"
+            @touchend.prevent="$parent.closeHabitFlyout"
+            class="btn-secondary btn-compact px-3 py-1.5 text-sm"
+          >
+            Cancel
+          </button>
+        </div>
+      </template>
+    </flyout-panel>
+
     <!-- New Day Confirmation Flyout -->
     <!-- _Requirements: 4.1, 4.2_ -->
     <flyout-panel
@@ -831,6 +881,8 @@ const AppModals = Vue.defineComponent({
     'showSpendingModal', 'selectedPerson', 'spendAmount', 'spendAmountString',
     'showLoginModal', 'showSignupModal', 'showConfirmModal', 'authForm', 'authError', 'authLoading',
     'showMultiAssignModal', 'selectedQuicklistChore', 'multiAssignSelectedMembers',
+    // **Feature: habit-tracking** - Habit flyout
+    'showHabitFlyout', 'habitFlyoutMemberId', 'editingHabit', 'habitForm', 'habitFormError', 'habitFormSubmitting',
     'addChore', 'cancelAddChore', 'addPerson', 'cancelAddPerson',
     'addToQuicklist', 'cancelAddToQuicklist', 'startNewDay', 'cancelNewDay',
     'executeDeletePerson', 'cancelDeletePerson',
