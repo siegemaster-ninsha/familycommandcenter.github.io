@@ -758,16 +758,16 @@ const PersonCard = {
           <!-- Add Habit button below habits list -->
           <!-- **Validates: Requirements 1.1** -->
           <!-- iOS Safari PWA: @touchend.prevent ensures touch events fire reliably -->
-          <sl-button 
+          <!-- Using native button for reliable event handling (sl-button has issues in nested components) -->
+          <button 
             @click="handleAddHabit"
             @touchend.prevent="handleAddHabit"
-            variant="text"
-            size="medium"
+            type="button"
             class="add-habit-btn"
           >
-            <span v-html="getIcon('plus', 16)" slot="prefix"></span>
+            <span v-html="getIcon('plus', 16)"></span>
             Add Habit
-          </sl-button>
+          </button>
         </div>
       </div>
     </div>
