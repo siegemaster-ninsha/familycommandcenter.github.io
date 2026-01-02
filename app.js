@@ -154,11 +154,7 @@ const app = createApp({
       accountId: null,
       
       loading: true,
-      error: null,
-      // realtime
-      socket: null,
-      socketConnected: false,
-      socketRetryMs: 1000
+      error: null
     }
   },
   computed: {
@@ -258,212 +254,55 @@ const app = createApp({
     }
   },
   methods: {
+    // WebSocket initialization - delegates to composable
     initWebsocket() {
-      try {
-        if (this.socket) {
-          try { this.socket.close(); } catch { /* ignore close errors */ }
-          this.socket = null;
-        }
-        const token = authService.idToken || authService.accessToken;
-        if (!token) return;
-        const wsBase = (CONFIG.API.WS_BASE || CONFIG.API.BASE_URL).replace('https://', 'wss://');
-        const stage = CONFIG.API.STAGE || 'dev';
-        const url = wsBase.replace(/\/$/, '') + `/${stage}?token=${encodeURIComponent(token)}`;
-        const s = new WebSocket(url);
-        this.socket = s;
-        s.onopen = () => { this.socketConnected = true; this.socketRetryMs = 1000; };
-        s.onclose = () => { this.socketConnected = false; const d = Math.min(this.socketRetryMs, 30000); setTimeout(() => this.initWebsocket(), d); this.socketRetryMs *= 2; };
-        s.onerror = () => { try { s.close(); } catch { /* ignore */ } };
-        s.onmessage = (e) => {
-          try { const msg = JSON.parse(e.data); this.handleRealtimeMessage(msg); } catch { /* ignore parse errors */ }
-        };
-      } catch (e) { console.warn('ws init failed', e); }
-    },
-    handleRealtimeMessage(msg) {
-      if (!msg || !msg.type) return;
-      switch (msg.type) {
-        case 'chore.created': {
-          const created = msg.data?.chore;
-          if (!created) break;
-          // if an optimistic temp chore exists that matches this server-created chore, replace it
-          const tempIdx = this.chores.findIndex(c => c?.isOptimistic && c.name === created.name && c.assignedTo === created.assignedTo && c.amount === created.amount && c.category === created.category);
-          if (tempIdx >= 0) {
-            this.chores[tempIdx] = created;
-            break;
-          }
-          // otherwise add only if we don't already have this id
-          if (!this.chores.some(c => c.id === created.id)) this.chores.push(created);
-          break;
-        }
-        case 'chore.updated': {
-          const updated = msg.data?.chore;
-          if (!updated) break;
-          const i = this.chores.findIndex(c => c.id === updated.id);
-          if (i >= 0) this.chores[i] = updated; else this.chores.push(updated);
-          break;
-        }
-        case 'chore.deleted':
-          if (msg.data?.id) this.chores = this.chores.filter(c => c.id !== msg.data.id);
-          break;
-        
-        // Quicklist real-time sync
-        case 'quicklist.created': {
-          const created = msg.data?.quicklistChore;
-          if (!created) break;
-          const choresStore = window.useChoresStore ? window.useChoresStore() : null;
-          if (choresStore && !choresStore.quicklistChores.some(q => q.id === created.id)) {
-            choresStore.quicklistChores.push(created);
-          }
-          break;
-        }
-        case 'quicklist.updated':
-        case 'quicklist.scheduleUpdated': {
-          const updated = msg.data?.quicklistChore;
-          if (!updated) break;
-          const choresStore = window.useChoresStore ? window.useChoresStore() : null;
-          if (choresStore) {
-            const idx = choresStore.quicklistChores.findIndex(q => q.id === updated.id);
-            if (idx >= 0) choresStore.quicklistChores[idx] = updated;
-          }
-          break;
-        }
-        case 'quicklist.deleted': {
-          const deletedId = msg.data?.id;
-          if (!deletedId) break;
-          const choresStore = window.useChoresStore ? window.useChoresStore() : null;
-          if (choresStore) {
-            choresStore.quicklistChores = choresStore.quicklistChores.filter(q => q.id !== deletedId);
-          }
-          break;
-        }
-        
-        // Category real-time sync
-        case 'category.created': {
-          const created = msg.data?.category;
-          if (!created) break;
-          const categoriesStore = window.useCategoriesStore ? window.useCategoriesStore() : null;
-          if (categoriesStore && !categoriesStore.categories.some(c => c.id === created.id)) {
-            categoriesStore.categories.push(created);
-          }
-          break;
-        }
-        case 'category.updated': {
-          const updated = msg.data?.category;
-          if (!updated) break;
-          const categoriesStore = window.useCategoriesStore ? window.useCategoriesStore() : null;
-          if (categoriesStore) {
-            const idx = categoriesStore.categories.findIndex(c => c.id === updated.id);
-            if (idx >= 0) categoriesStore.categories[idx] = updated;
-          }
-          // Also reload quicklist to update categoryName on items
-          const choresStore = window.useChoresStore ? window.useChoresStore() : null;
-          if (choresStore) choresStore.loadQuicklistChores();
-          break;
-        }
-        case 'category.deleted': {
-          const deletedId = msg.data?.categoryId;
-          if (!deletedId) break;
-          const categoriesStore = window.useCategoriesStore ? window.useCategoriesStore() : null;
-          if (categoriesStore) {
-            categoriesStore.categories = categoriesStore.categories.filter(c => c.id !== deletedId);
-          }
-          // Reload quicklist since items may have moved to Uncategorized
-          const choresStore = window.useChoresStore ? window.useChoresStore() : null;
-          if (choresStore) choresStore.loadQuicklistChores();
-          break;
-        }
-        
-        // New day sync - reload everything
-        case 'newDay.completed': {
-          console.log('[WS] New day completed, reloading data...');
-          // Reload chores (they've been reset)
-          const choresStore = window.useChoresStore ? window.useChoresStore() : null;
-          if (choresStore) choresStore.loadChores();
-          // Reload family members (earnings may have changed)
-          const familyStore = window.useFamilyStore ? window.useFamilyStore() : null;
-          if (familyStore) familyStore.loadMembers();
-          // Show notification
-          const uiStore = window.useUIStore ? window.useUIStore() : null;
-          if (uiStore) uiStore.showSuccess('🌅 New day started on another device');
-          break;
-        }
-        
-        // Chore priority sort order sync
-        // **Feature: chore-priority**
-        // **Validates: Requirements 7.1, 7.2, 7.3**
-        case 'member.sortOrderUpdated': {
-          const { memberId, choreSortOrder } = msg.data || {};
-          if (!memberId) break;
-          
-          console.log('[WS] Sort order updated for member:', memberId);
-          
-          // Update the family store
-          const familyStore = window.useFamilyStore ? window.useFamilyStore() : null;
-          if (familyStore) {
-            const memberIndex = familyStore.members.findIndex(m => m.id === memberId);
-            if (memberIndex >= 0) {
-              // Update the member's choreSortOrder in place
-              familyStore.members[memberIndex] = {
-                ...familyStore.members[memberIndex],
-                choreSortOrder: choreSortOrder && typeof choreSortOrder === 'object' ? choreSortOrder : {}
-              };
-            }
-          }
-          
-          // Also update the app.js people array (used by chore page)
-          const appPeopleIndex = this.people.findIndex(m => m.id === memberId);
-          if (appPeopleIndex >= 0) {
-            this.people[appPeopleIndex] = {
-              ...this.people[appPeopleIndex],
-              choreSortOrder: choreSortOrder && typeof choreSortOrder === 'object' ? choreSortOrder : {}
-            };
-            console.log('[WS] Updated app.js people array for member:', memberId);
-          }
-          break;
-        }
-        
-        case 'member.priorityChoreChanged': {
-          const { memberId, priorityChoreId } = msg.data || {};
-          if (!memberId) break;
-          
-          console.log('[WS] Priority chore changed for member:', memberId, '-> chore:', priorityChoreId);
-          // The priority chore is computed from choreSortOrder and chores,
-          // so we just need to ensure the data is up to date.
-          // The priorityChoreByMember getter will automatically recompute.
-          // If needed, we could trigger a UI refresh here.
-          break;
-        }
-        
-        // Default chore order sync (for New Day initial ordering)
-        case 'member.defaultOrderUpdated': {
-          const { memberId, defaultChoreOrder } = msg.data || {};
-          if (!memberId) break;
-          
-          console.log('[WS] Default order updated for member:', memberId);
-          
-          // Update the family store
-          const familyStore = window.useFamilyStore ? window.useFamilyStore() : null;
-          if (familyStore) {
-            const memberIndex = familyStore.members.findIndex(m => m.id === memberId);
-            if (memberIndex >= 0) {
-              familyStore.members[memberIndex] = {
-                ...familyStore.members[memberIndex],
-                defaultChoreOrder: defaultChoreOrder && typeof defaultChoreOrder === 'object' ? defaultChoreOrder : {}
-              };
-            }
-          }
-          
-          // Also update the app.js people array
-          const appPeopleIndex = this.people.findIndex(m => m.id === memberId);
-          if (appPeopleIndex >= 0) {
-            this.people[appPeopleIndex] = {
-              ...this.people[appPeopleIndex],
-              defaultChoreOrder: defaultChoreOrder && typeof defaultChoreOrder === 'object' ? defaultChoreOrder : {}
-            };
-          }
-          break;
-        }
+      const ws = window.useWebSocket?.();
+      if (!ws) {
+        console.warn('[app.js] useWebSocket not available');
+        return;
       }
+
+      // Register callbacks for app-level state updates
+      ws.onAppStateUpdate({
+        addChore: (chore) => {
+          // Check for optimistic temp chore that matches
+          const tempIdx = this.chores.findIndex(c => 
+            c?.isOptimistic && 
+            c.name === chore.name && 
+            c.assignedTo === chore.assignedTo && 
+            c.amount === chore.amount && 
+            c.category === chore.category
+          );
+          if (tempIdx >= 0) {
+            this.chores[tempIdx] = chore;
+          } else if (!this.chores.some(c => c.id === chore.id)) {
+            this.chores.push(chore);
+          }
+        },
+        updateChore: (chore) => {
+          const idx = this.chores.findIndex(c => c.id === chore.id);
+          if (idx >= 0) {
+            this.chores[idx] = chore;
+          } else {
+            this.chores.push(chore);
+          }
+        },
+        deleteChore: (choreId) => {
+          this.chores = this.chores.filter(c => c.id !== choreId);
+        },
+        updatePerson: (memberId, updates) => {
+          const idx = this.people.findIndex(m => m.id === memberId);
+          if (idx >= 0) {
+            this.people[idx] = { ...this.people[idx], ...updates };
+            if (CONFIG?.ENV?.IS_DEVELOPMENT) {
+              console.log('[WS] Updated app.js people array for member:', memberId);
+            }
+          }
+        }
+      });
+
+      // Connect
+      ws.connect();
     },
     // API helper methods
     async apiCall(endpoint, options = {}) {
