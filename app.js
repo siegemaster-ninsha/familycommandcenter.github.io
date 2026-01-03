@@ -24,9 +24,6 @@ const app = createApp({
       // _Requirements: 8.4_
       // ============================================
       
-      // Page navigation
-      currentPage: 'chores', // Default to chores page
-      
       // Mobile nav state
       mobileNavOpen: false,
       
@@ -59,6 +56,11 @@ const app = createApp({
     },
     offlineStore() {
       return window.useOfflineStore?.() || { isOnline: true };
+    },
+    // Page navigation - reads from uiStore so nav-menu updates work
+    currentPage() {
+      const uiStore = window.useUIStore?.();
+      return uiStore?.currentPage || 'chores';
     }
   },
   methods: {
@@ -748,9 +750,12 @@ const app = createApp({
       uiStore?.openModal('newDay');
     },
 
-    // Page navigation
+    // Page navigation - delegates to uiStore
     setCurrentPage(page) {
-      this.currentPage = page;
+      const uiStore = window.useUIStore?.();
+      if (uiStore) {
+        uiStore.setCurrentPage(page);
+      }
       if (CONFIG.ENV.IS_DEVELOPMENT) console.log('📄 Switched to page:', page);
     },
 
