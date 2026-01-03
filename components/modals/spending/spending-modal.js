@@ -2,13 +2,13 @@
 // _Requirements: 10.1, 10.2, 10.3, 10.4_
 const SpendingModal = Vue.defineComponent({
   name: 'SpendingModal',
-  
+
   setup() {
     const uiStore = window.useUIStore();
     const familyStore = window.useFamilyStore();
     return { uiStore, familyStore };
   },
-  
+
   data() {
     return {
       spendAmount: 0,
@@ -16,7 +16,7 @@ const SpendingModal = Vue.defineComponent({
       isSubmitting: false
     };
   },
-  
+
   computed: {
     isOpen() {
       return this.uiStore?.modals?.spending?.isOpen || false;
@@ -28,7 +28,7 @@ const SpendingModal = Vue.defineComponent({
       return this.selectedPerson?.earnings || 0;
     }
   },
-  
+
   watch: {
     isOpen(newVal) {
       if (newVal) {
@@ -38,7 +38,7 @@ const SpendingModal = Vue.defineComponent({
       }
     }
   },
-  
+
   template: `
     <!-- Spending Flyout -->
     <!-- _Requirements: 10.1, 10.2, 10.3, 10.4_ -->
@@ -63,7 +63,7 @@ const SpendingModal = Vue.defineComponent({
             <div class="text-sm text-secondary-custom">Amount to spend</div>
           </div>
         </div>
-        
+
         <!-- Number Pad -->
         <div class="grid grid-cols-3 gap-2">
           <button
@@ -114,7 +114,7 @@ const SpendingModal = Vue.defineComponent({
       </template>
     </flyout-panel>
   `,
-  
+
   methods: {
     addDigit(n) {
       if (this.spendAmountString === '0') {
@@ -124,48 +124,49 @@ const SpendingModal = Vue.defineComponent({
       }
       this.updateAmount();
     },
-    
+
     addDecimal() {
       if (!this.spendAmountString.includes('.')) {
         this.spendAmountString += '.';
         this.updateAmount();
       }
     },
-    
+
     clearAmount() {
       this.spendAmountString = '0';
       this.spendAmount = 0;
     },
-    
+
     updateAmount() {
       const amount = parseFloat(this.spendAmountString);
       this.spendAmount = isNaN(amount) ? 0 : Number(amount);
     },
-    
+
     async handleConfirmSpending() {
       if (this.isSubmitting) return;
       if (this.spendAmount <= 0 || this.spendAmount > this.maxAmount) return;
       if (!this.selectedPerson) return;
-      
+
       this.isSubmitting = true;
-      
+
       try {
         const personName = this.selectedPerson.displayName || this.selectedPerson.name;
         const spentAmount = this.spendAmount;
-        
+
         // Make API call to deduct earnings
         const api = window.useApi();
         await api.put(
           `${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${encodeURIComponent(personName)}/earnings`,
           { amount: Number(spentAmount), operation: 'subtract' }
         );
-        
-        // Reload earnings
-        await this.familyStore?.loadEarnings();
-        
+
+        // Optimistically update earnings instead of reloading all members
+        // This avoids showing skeleton loading state
+        this.familyStore?.updateMemberEarnings(personName, -spentAmount, 0);
+
         // Show success
         this.uiStore?.showSuccess(`${personName} spent $${spentAmount.toFixed(2)}!`);
-        
+
         this.handleClose();
       } catch (error) {
         console.error('Failed to process spending:', error);
@@ -174,7 +175,7 @@ const SpendingModal = Vue.defineComponent({
         this.isSubmitting = false;
       }
     },
-    
+
     handleClose() {
       this.uiStore?.closeModal('spending');
       this.clearAmount();
