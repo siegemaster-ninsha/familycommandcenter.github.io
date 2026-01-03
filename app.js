@@ -47,9 +47,16 @@ const app = createApp({
     }
   },
   computed: {
-    // NOTE: All computed property bridges removed - components now use stores directly
-    // Components should use useChoresStore(), useFamilyStore(), useAuthStore(), useUIStore() directly
-    // _Requirements: 8.6_
+    // Template-required computed properties - these are needed by index.html template
+    // Components should use stores directly, but the main template needs these
+    isAuthenticated() {
+      const authStore = window.useAuthStore?.();
+      return authStore?.isAuthenticated || false;
+    },
+    currentUser() {
+      const authStore = window.useAuthStore?.();
+      return authStore?.currentUser || null;
+    }
   },
   methods: {
     // WebSocket initialization - delegates to composable
