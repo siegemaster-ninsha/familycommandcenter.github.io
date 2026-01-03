@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.212 - Brilliant Lemur (Jan 3, 2026)',
+    VERSION: '1.0.213 - Cheerful Elephant (Jan 3, 2026)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
@@ -1086,6 +1086,9 @@ window.ThemeManager = {
     
       // Cache critical CSS variables for iOS resume recovery
       this._cacheCSSVariables();
+      
+      // Hide the pre-Vue loading screen now that theme is applied
+      this._hideLoadingScreen();
     } catch (e) {
       console.error('Failed to apply theme CSS variables:', e);
       this._applyFallbackColors();
@@ -1113,6 +1116,20 @@ window.ThemeManager = {
       localStorage.setItem('fcc_css_variables', JSON.stringify(criticalVars));
     } catch (e) {
       console.warn('Failed to cache CSS variables:', e);
+    }
+  },
+
+  // Hide the pre-Vue loading screen after theme is applied
+  _hideLoadingScreen() {
+    const loadingScreen = document.getElementById('app-loading-screen');
+    if (loadingScreen) {
+      loadingScreen.classList.add('fade-out');
+      document.body.classList.remove('app-loading');
+      // Remove from DOM after fade animation
+      setTimeout(() => {
+        loadingScreen.remove();
+      }, 300);
+      console.log('🎨 Loading screen hidden');
     }
   },
 

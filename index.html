@@ -248,6 +248,44 @@
     </script>
   </head>
   <body>
+    <!-- Pre-Vue Loading Screen - Shows until theme is loaded -->
+    <div id="app-loading-screen" style="
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1a1a2e;
+      transition: opacity 0.3s ease-out;
+    ">
+      <div style="text-align: center; color: #e0e0e0;">
+        <div style="
+          width: 48px;
+          height: 48px;
+          border: 3px solid rgba(255,255,255,0.1);
+          border-top-color: #4A90E2;
+          border-radius: 50%;
+          animation: app-loading-spin 0.8s linear infinite;
+          margin: 0 auto 16px;
+        "></div>
+        <div style="font-family: Inter, sans-serif; font-size: 14px; opacity: 0.7;">Loading...</div>
+      </div>
+    </div>
+    <style>
+      @keyframes app-loading-spin {
+        to { transform: rotate(360deg); }
+      }
+      /* Hide body scroll while loading */
+      body.app-loading { overflow: hidden; }
+      /* Fade out animation for loading screen */
+      #app-loading-screen.fade-out {
+        opacity: 0;
+        pointer-events: none;
+      }
+    </style>
+    <script>document.body.classList.add('app-loading');</script>
+    
     <!-- Skip Link for Keyboard Navigation (WCAG 2.4.1) -->
     <a href="#main-content" class="skip-link">Skip to main content</a>
     

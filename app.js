@@ -2236,6 +2236,8 @@ const app = createApp({
         authStore.isAuthenticated = false;
       }
       this.loading = false;
+      // Ensure loading screen is hidden even on error
+      ThemeManager.initializeTheme();
     }
   },
 
