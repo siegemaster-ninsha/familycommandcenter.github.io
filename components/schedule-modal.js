@@ -204,12 +204,17 @@ const ScheduleModal = Vue.defineComponent({
       return this.quicklistChore || this.choresStore?.scheduleModalChore || null;
     },
     // Get family members from familyStore if not provided via prop
+    // Filter out any undefined/null members to prevent template errors
     // _Requirements: 6.2_
     members() {
+      let memberList = [];
       if (this.familyMembers && this.familyMembers.length > 0) {
-        return this.familyMembers;
+        memberList = this.familyMembers;
+      } else {
+        memberList = this.familyStore?.enabledMembers || [];
       }
-      return this.familyStore?.enabledMembers || [];
+      // Filter out undefined/null members
+      return memberList.filter(m => m && m.id);
     },
     modalTitle() {
       const choreName = this.scheduleChore?.name || 'Chore';

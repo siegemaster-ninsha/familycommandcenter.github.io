@@ -173,6 +173,8 @@ const DefaultOrderModal = Vue.defineComponent({
       
       const memberId = this.orderMember.id;
       return this.allQuicklistChores.filter(chore => {
+        // Filter out undefined/null chores
+        if (!chore || !chore.id) return false;
         const schedule = chore.schedule || {};
         const memberDays = schedule[memberId];
         return memberDays && Array.isArray(memberDays) && memberDays.length > 0;

@@ -347,6 +347,8 @@ const ChoreCard = {
       return this.chore.assignedTo === member.displayName;
     },
     getInitial(member) {
+      // Defensive check - member may be undefined
+      if (!member) return '?';
       return (member.displayName || member.name || '?').charAt(0).toUpperCase();
     },
     // **Feature: chore-priority** - Mouse-based drag-and-drop handlers (desktop)
@@ -665,6 +667,7 @@ const QuicklistChoreCard = {
 const PersonCard = {
   template: `
     <div
+      v-if="person"
       class="person-card border-2 rounded-xl p-6 transition-all duration-200 shadow-lg hover:shadow-xl min-w-0"
       :class="[canAssign ? 'cursor-pointer hover:scale-102' : '']"
       :style="{ 
@@ -853,6 +856,8 @@ const PersonCard = {
   },
   computed: {
     personDisplayName() {
+      // Defensive check - person may be undefined during initial render
+      if (!this.person) return '';
       return this.person.displayName || this.person.name || '';
     },
     /**
@@ -861,6 +866,8 @@ const PersonCard = {
      * **Validates: Requirements 3.2**
      */
     choreSortOrder() {
+      // Defensive check - person may be undefined during initial render
+      if (!this.person) return {};
       return this.person.choreSortOrder || {};
     },
     /**
@@ -920,6 +927,8 @@ const PersonCard = {
      * **Validates: Requirements 2.1**
      */
     memberHabits() {
+      // Defensive check - person may be undefined during initial render
+      if (!this.person) return [];
       const habitsStore = window.useHabitsStore?.();
       if (!habitsStore) return [];
       return habitsStore.habitsByMember(this.person.id) || [];
@@ -1143,6 +1152,7 @@ const PersonCard = {
 const EarningsCard = {
   template: `
     <div
+      v-if="person"
       class="border-2 rounded-xl p-6 cursor-pointer hover:shadow-xl hover:scale-102 transition-all duration-200 shadow-lg select-none"
       style="background-color: var(--color-primary-500); border-color: var(--color-primary-600); -webkit-tap-highlight-color: transparent;"
       @touchstart.passive="handleTouchStart"
@@ -1151,14 +1161,14 @@ const EarningsCard = {
     >
       <div class="flex items-center justify-between">
         <div class="flex flex-col">
-          <h3 class="font-bold text-white text-xl">{{ person.displayName || person.name }}</h3>
+          <h3 class="font-bold text-white text-xl">{{ personDisplayName }}</h3>
           <p class="text-sm text-white text-opacity-90">Total Earnings</p>
           <p class="text-xs text-white text-opacity-80 mt-1">
             {{ completedChoresCount }} chores completed
           </p>
         </div>
         <div class="text-right">
-          <p class="text-4xl font-bold text-white">\${{ person.earnings.toFixed(2) }}</p>
+          <p class="text-4xl font-bold text-white">\${{ personEarnings }}</p>
         </div>
       </div>
     </div>
@@ -1175,7 +1185,16 @@ const EarningsCard = {
     };
   },
   computed: {
+    personDisplayName() {
+      if (!this.person) return '';
+      return this.person.displayName || this.person.name || '';
+    },
+    personEarnings() {
+      if (!this.person || typeof this.person.earnings !== 'number') return '0.00';
+      return this.person.earnings.toFixed(2);
+    },
     completedChoresCount() {
+      if (!this.person) return 0;
       return this.person.completedChores || 0;
     }
   },

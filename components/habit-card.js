@@ -29,6 +29,7 @@ const HabitCard = Vue.defineComponent({
   
   template: `
     <div 
+      v-if="habit"
       class="habit-card" 
       :class="{ 'habit-card--grid-expanded': isGridExpanded }"
     >

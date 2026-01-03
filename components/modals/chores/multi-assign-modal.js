@@ -4,28 +4,22 @@
  * 
  * _Requirements: 11.1, 11.2, 11.3, 11.4_
  * - 11.1: Located at components/modals/chores/multi-assign-modal.js
- * - 11.2: Access visibility state via injected prop (showMultiAssignModal)
- * - 11.3: Access data via injected props (selectedQuicklistChore, multiAssignSelectedMembers, people)
- * - 11.4: Delegate actions to choresStore.toggleMemberSelection and injected methods
+ * - 11.2: Access visibility state via uiStore
+ * - 11.3: Access data via choresStore and familyStore
+ * - 11.4: Delegate actions to choresStore methods
  */
 const MultiAssignModal = Vue.defineComponent({
   name: 'MultiAssignModal',
   
   setup() {
-    // Access choresStore for toggleMemberSelection
+    // Access stores directly instead of inject
     const choresStore = window.useChoresStore?.();
-    return { choresStore };
+    const familyStore = window.useFamilyStore?.();
+    const uiStore = window.useUIStore?.();
+    const categoriesStore = window.useCategoriesStore?.();
+    
+    return { choresStore, familyStore, uiStore, categoriesStore };
   },
-  
-  inject: [
-    'showMultiAssignModal', 
-    'selectedQuicklistChore', 
-    'multiAssignSelectedMembers', 
-    'people',
-    'categoriesStore',
-    'confirmMultiAssignment', 
-    'cancelMultiAssignment'
-  ],
   
   data() {
     return {
@@ -33,21 +27,53 @@ const MultiAssignModal = Vue.defineComponent({
     };
   },
   
+  computed: {
+    // Get modal visibility from uiStore
+    showMultiAssignModal() {
+      return this.uiStore?.isModalOpen?.('multiAssign') || false;
+    },
+    // Get selected quicklist chore from choresStore
+    selectedQuicklistChore() {
+      return this.choresStore?.selectedQuicklistChore || null;
+    },
+    // Get selected members from choresStore
+    multiAssignSelectedMembers() {
+      return this.choresStore?.multiAssignSelectedMembers || [];
+    },
+    // Get enabled family members from familyStore
+    // Filter out undefined/null members to prevent template errors
+    people() {
+      const members = this.familyStore?.enabledMembers || [];
+      return members.filter(m => m && m.id);
+    },
+    // Get categories from categoriesStore
+    categories() {
+      return this.categoriesStore?.categories || [];
+    }
+  },
+  
   methods: {
     /**
      * Handle confirm multi-assignment action with touchend support
-     * Wrapper method for Vue event modifiers
+     * Uses choresStore directly
      */
-    handleConfirmMultiAssignment() {
-      this.confirmMultiAssignment?.();
+    async handleConfirmMultiAssignment() {
+      if (!this.choresStore || !this.selectedQuicklistChore) return;
+      
+      this.multiAssignLoading = true;
+      try {
+        await this.choresStore.confirmMultiAssignment();
+      } finally {
+        this.multiAssignLoading = false;
+      }
     },
     
     /**
      * Handle cancel action with touchend support
-     * Wrapper method for Vue event modifiers
+     * Uses choresStore directly
      */
     handleCancelMultiAssignment() {
-      this.cancelMultiAssignment?.();
+      this.choresStore?.cancelMultiAssignment();
     },
     
     /**
@@ -67,7 +93,7 @@ const MultiAssignModal = Vue.defineComponent({
       if (!this.selectedQuicklistChore) return;
       
       const categoryName = categoryId 
-        ? this.categoriesStore?.categories?.find(c => c.id === categoryId)?.name || ''
+        ? this.categories?.find(c => c.id === categoryId)?.name || ''
         : '';
       
       console.log('[OK] Updating quicklist chore category:', {
@@ -75,10 +101,6 @@ const MultiAssignModal = Vue.defineComponent({
         categoryId,
         categoryName
       });
-      
-      // Update local state immediately for responsive UI
-      this.selectedQuicklistChore.categoryId = categoryId || null;
-      this.selectedQuicklistChore.categoryName = categoryName;
       
       // Call store method to persist the change
       try {
@@ -146,7 +168,7 @@ const MultiAssignModal = Vue.defineComponent({
         <div class="mb-4 p-3 rounded-lg" style="background: var(--color-surface-2); border: 1px solid var(--color-border-card);">
           <category-selector
             :model-value="selectedQuicklistChore?.categoryId || ''"
-            :categories="categoriesStore?.categories || []"
+            :categories="categories"
             label="Category"
             @update:model-value="updateQuicklistChoreCategory"
             @category-created="onQuicklistCategoryCreated"

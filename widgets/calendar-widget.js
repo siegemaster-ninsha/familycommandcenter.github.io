@@ -181,9 +181,10 @@ const CalendarWidget = {
       return authStore?.isParent ?? true;
     },
     
-    // Watch for accountId from root app
+    // Watch for accountId from auth store (more reliable than $root)
     rootAccountId() {
-      return this.$root?.accountId;
+      const authStore = window.useAuthStore?.();
+      return authStore?.accountId || this.$root?.accountId;
     },
     
     // Month view computed properties
@@ -277,7 +278,8 @@ const CalendarWidget = {
     async onRefresh() {
       // Wait for auth to be ready before making API calls
       const authHeader = window.authService?.getAuthHeader?.();
-      const accountId = this.$root?.accountId;
+      const authStore = window.useAuthStore?.();
+      const accountId = authStore?.accountId || this.$root?.accountId;
       
       if (!authHeader || !accountId) {
         console.log('CalendarWidget: Waiting for auth...', { hasAuth: !!authHeader, hasAccountId: !!accountId });
