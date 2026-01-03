@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.177 - Wonderful Panda (Jan 2, 2026)',
+    VERSION: '1.0.178 - Playful Badger (Jan 2, 2026)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {

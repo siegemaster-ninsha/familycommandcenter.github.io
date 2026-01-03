@@ -1177,12 +1177,8 @@ const AppModals = Vue.defineComponent({
       }
     },
     toggleMemberSelection(personId) {
-      const index = this.multiAssignSelectedMembers.indexOf(personId);
-      if (index > -1) {
-        this.multiAssignSelectedMembers.splice(index, 1);
-      } else {
-        this.multiAssignSelectedMembers.push(personId);
-      }
+      // Delegate to chores store - multiAssignSelectedMembers is managed there
+      this.choresStore.toggleMemberSelection(personId);
     }
   }
 });
