@@ -20,7 +20,7 @@ const AppModals = Vue.defineComponent({
     <!-- Add to Quicklist Flyout -->
     <flyout-panel
       :open="showAddToQuicklistModal"
-      @close="cancelAddToQuicklist"
+      @close="handleCancelAddToQuicklist"
       title="Add to Quicklist"
       :show-footer="true"
       :show-header-close="false"
@@ -138,7 +138,7 @@ const AppModals = Vue.defineComponent({
     <!-- Add Chore Flyout -->
     <flyout-panel
       :open="showAddChoreModal"
-      @close="cancelAddChore"
+      @close="handleCancelAddChore"
       title="Add New Chore"
       :show-footer="true"
       :show-header-close="false"
@@ -264,7 +264,7 @@ const AppModals = Vue.defineComponent({
     <!-- _Requirements: 4.1, 4.2_ -->
     <flyout-panel
       :open="showNewDayModal"
-      @close="cancelNewDay"
+      @close="handleCancelNewDay"
       title="Start New Day"
       :show-footer="true"
       :show-header-close="false"
@@ -561,7 +561,7 @@ const AppModals = Vue.defineComponent({
     <!-- Chore Details Flyout -->
     <flyout-panel
       :open="showChoreDetailsModal"
-      @close="cancelChoreDetails"
+      @close="handleCancelChoreDetails"
       title="Add Chore Details"
       :show-footer="true"
       :show-header-close="false"
@@ -612,7 +612,7 @@ const AppModals = Vue.defineComponent({
     <!-- Spending Flyout -->
     <flyout-panel
       :open="showSpendingModal"
-      @close="closeSpendingModal"
+      @close="handleCloseSpendingModal"
       :show-footer="true"
       :show-header-close="false"
       width="380px"

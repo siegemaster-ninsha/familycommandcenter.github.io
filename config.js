@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.180 - Optimistic Iguana (Jan 2, 2026)',
+    VERSION: '1.0.181 - Lively Aardvark (Jan 2, 2026)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
