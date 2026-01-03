@@ -4998,6 +4998,7 @@ html {
 /* Dropdown wrapper in quicklist cards */
 .chore-card-actions-row .dropdown-wrapper {
   display: inline-flex;
+  position: relative;
 }
 
 /* Category dropdown button styling */
@@ -5020,7 +5021,7 @@ html {
   color: var(--color-primary-600);
 }
 
-/* Dropdown panel styling - no scrollbar, show all items */
+/* Dropdown panel styling - stable positioning, no jitter */
 .chore-card-actions-row sl-dropdown::part(panel) {
   z-index: 9999;
   background: var(--color-surface-3);
@@ -5030,6 +5031,8 @@ html {
   max-height: none;
   overflow: visible;
   border: 1px solid var(--color-border-card);
+  /* Prevent jittering by disabling pointer events on panel background */
+  pointer-events: auto;
 }
 
 /* Menu styling - no scroll, show all categories */
@@ -5043,6 +5046,8 @@ html {
 .chore-card-actions-row sl-dropdown sl-menu::part(base) {
   max-height: none;
   overflow: visible;
+  /* Ensure menu captures pointer events */
+  pointer-events: auto;
 }
 
 /* Menu item styling */
@@ -5051,6 +5056,8 @@ html {
   font-size: var(--font-size-sm);
   color: var(--color-text-primary);
   transition: background 150ms ease;
+  /* Ensure items capture pointer events */
+  pointer-events: auto;
 }
 
 .chore-card-actions-row sl-dropdown sl-menu-item::part(base):hover {
@@ -5071,6 +5078,18 @@ html {
 /* Ensure menu is visible when open */
 .chore-card-actions-row sl-dropdown[open] sl-menu {
   display: block;
+}
+
+/* Prevent hover state changes from causing repositioning */
+.chore-card-actions-row sl-dropdown[open] {
+  /* Lock the trigger in place while open */
+  position: relative;
+}
+
+/* Ensure the hoisted panel stays stable */
+sl-dropdown[hoist]::part(panel) {
+  /* Use fixed positioning strategy for stability */
+  will-change: transform;
 }
 
 /* Selected chore card state */

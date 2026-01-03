@@ -146,8 +146,10 @@ const QuicklistSection = Vue.defineComponent({
                         class="dropdown-wrapper"
                       >
                         <sl-dropdown 
-                          :hoist="true" 
+                          hoist
                           placement="bottom-start"
+                          distance="4"
+                          stay-open-on-select="false"
                         >
                           <button
                             slot="trigger"
