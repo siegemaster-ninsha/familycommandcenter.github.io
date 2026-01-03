@@ -1,0 +1,5 @@
+# Auth Modals
+# This directory contains authentication-related modal components:
+# - login-modal.js
+# - signup-modal.js
+# - confirm-modal.js

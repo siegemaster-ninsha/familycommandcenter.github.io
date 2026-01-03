@@ -2647,6 +2647,62 @@ function checkAndRegisterComponents() {
   console.log('📦 Registering trash-section');
   app.component('trash-section', window.TrashSectionComponent);
   
+  // Auth Modal Components - must be registered before app-modals
+  // _Requirements: 16.3, 16.4_
+  console.log('📦 Registering login-modal');
+  if (window.LoginModalComponent) {
+    app.component('login-modal', window.LoginModalComponent);
+  }
+  
+  console.log('📦 Registering signup-modal');
+  if (window.SignupModalComponent) {
+    app.component('signup-modal', window.SignupModalComponent);
+  }
+  
+  console.log('📦 Registering confirm-modal');
+  if (window.ConfirmModalComponent) {
+    app.component('confirm-modal', window.ConfirmModalComponent);
+  }
+  
+  // Chore Modal Components - must be registered before app-modals
+  // _Requirements: 4.5, 5.5, 6.5, 11.5, 16.3, 16.4_
+  console.log('📦 Registering add-chore-modal');
+  if (window.AddChoreModalComponent) {
+    app.component('add-chore-modal', window.AddChoreModalComponent);
+  }
+  
+  console.log('📦 Registering chore-details-modal');
+  if (window.ChoreDetailsModalComponent) {
+    app.component('chore-details-modal', window.ChoreDetailsModalComponent);
+  }
+  
+  console.log('📦 Registering add-to-quicklist-modal');
+  if (window.AddToQuicklistModalComponent) {
+    app.component('add-to-quicklist-modal', window.AddToQuicklistModalComponent);
+  }
+  
+  console.log('📦 Registering multi-assign-modal');
+  if (window.MultiAssignModalComponent) {
+    app.component('multi-assign-modal', window.MultiAssignModalComponent);
+  }
+  
+  // Family Modal Components - must be registered before app-modals
+  // _Requirements: 7.5, 8.5, 9.5, 16.3, 16.4_
+  console.log('📦 Registering create-child-modal');
+  if (window.CreateChildModalComponent) {
+    app.component('create-child-modal', window.CreateChildModalComponent);
+  }
+  
+  console.log('📦 Registering invite-parent-modal');
+  if (window.InviteParentModalComponent) {
+    app.component('invite-parent-modal', window.InviteParentModalComponent);
+  }
+  
+  console.log('📦 Registering delete-person-modal');
+  if (window.DeletePersonModalComponent) {
+    app.component('delete-person-modal', window.DeletePersonModalComponent);
+  }
+  
   console.log('📦 Registering app-modals');
   app.component('app-modals', window.AppModalsComponent);
   
