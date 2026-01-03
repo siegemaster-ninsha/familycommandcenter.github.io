@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.198 - Quantum Hedgehog (Jan 2, 2026)',
+    VERSION: '1.0.199 - Quantum Dragon (Jan 2, 2026)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {

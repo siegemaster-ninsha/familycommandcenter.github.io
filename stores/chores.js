@@ -827,7 +827,10 @@ const useChoresStore = Pinia.defineStore('chores', {
       
       try {
         // Make API call to update schedule
-        const encodedQuicklistId = encodeURIComponent(quicklistId);
+        // Use serverId (real backend ID) if available, otherwise use id
+        // This handles optimistically created items that have temp IDs
+        const apiId = quicklistChore.serverId || quicklistChore.id;
+        const encodedQuicklistId = encodeURIComponent(apiId);
         const response = await apiService.put(
           `${CONFIG.API.ENDPOINTS.QUICKLIST}/${encodedQuicklistId}/schedule`,
           { memberId, days }
@@ -886,9 +889,13 @@ const useChoresStore = Pinia.defineStore('chores', {
           ...Object.keys(schedule || {})
         ]);
         
+        // Use serverId (real backend ID) if available, otherwise use id
+        // This handles optimistically created items that have temp IDs
+        const apiId = quicklistChore.serverId || quicklistChore.id;
+        
         for (const memberId of memberIds) {
           const days = schedule[memberId] || [];
-          const encodedQuicklistId = encodeURIComponent(quicklistId);
+          const encodedQuicklistId = encodeURIComponent(apiId);
           await apiService.put(
             `${CONFIG.API.ENDPOINTS.QUICKLIST}/${encodedQuicklistId}/schedule`,
             { memberId, days }
