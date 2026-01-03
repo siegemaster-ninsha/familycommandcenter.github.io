@@ -355,12 +355,16 @@ class OfflineStorage {
       };
 
       // Clear existing chores and add new ones
-      choresStore.clear();
-      chores.forEach(chore => {
-        // Convert reactive proxy to plain object for IndexedDB storage
-        const plainChore = JSON.parse(JSON.stringify(chore));
-        choresStore.add(plainChore);
-      });
+      const clearRequest = choresStore.clear();
+      clearRequest.onsuccess = () => {
+        // Only add chores after clear completes
+        chores.forEach(chore => {
+          // Convert reactive proxy to plain object for IndexedDB storage
+          const plainChore = JSON.parse(JSON.stringify(chore));
+          // Use put instead of add to handle any edge cases with existing keys
+          choresStore.put(plainChore);
+        });
+      };
 
       // Update cache timestamp
       metadataStore.put({
