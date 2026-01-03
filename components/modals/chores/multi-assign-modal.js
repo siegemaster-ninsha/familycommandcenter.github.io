@@ -82,10 +82,7 @@ const MultiAssignModal = Vue.defineComponent({
       
       // Call store method to persist the change
       try {
-        await this.choresStore?.updateQuicklistChore(this.selectedQuicklistChore.id, { 
-          categoryId: categoryId || null, 
-          categoryName: categoryName 
-        });
+        await this.choresStore?.updateQuicklistCategory(this.selectedQuicklistChore, categoryId, categoryName);
       } catch (error) {
         console.error('Failed to update quicklist category:', error);
       }
