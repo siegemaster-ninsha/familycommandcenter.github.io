@@ -236,7 +236,6 @@ const useWebSocket = () => {
   };
 
   const handleChoreUpdated = (data) => {
-    console.log('[WS handleChoreUpdated] Received', { data });
     const updated = data?.chore;
     if (!updated) return;
 
@@ -244,7 +243,6 @@ const useWebSocket = () => {
     const choresStore = window.useChoresStore?.();
     if (choresStore) {
       const idx = choresStore.chores.findIndex(c => c.id === updated.id);
-      console.log('[WS handleChoreUpdated] Updating store', { choreId: updated.id, idx, completed: updated.completed });
       if (idx >= 0) {
         choresStore.chores[idx] = updated;
       } else {
@@ -254,7 +252,6 @@ const useWebSocket = () => {
 
     // Also update app.js for backward compatibility
     if (appStateCallbacks.updateChore) {
-      console.log('[WS handleChoreUpdated] Calling appStateCallbacks.updateChore');
       appStateCallbacks.updateChore(updated);
     }
   };

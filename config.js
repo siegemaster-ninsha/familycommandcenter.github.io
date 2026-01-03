@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.188 - Adventurous Elephant (Jan 2, 2026)',
+    VERSION: '1.0.189 - Nimble Toucan (Jan 2, 2026)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
