@@ -56,6 +56,9 @@ const app = createApp({
     currentUser() {
       const authStore = window.useAuthStore?.();
       return authStore?.currentUser || null;
+    },
+    offlineStore() {
+      return window.useOfflineStore?.() || { isOnline: true };
     }
   },
   methods: {

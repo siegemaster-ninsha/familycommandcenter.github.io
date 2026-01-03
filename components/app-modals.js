@@ -6,19 +6,62 @@ const AppModals = Vue.defineComponent({
   name: 'AppModals',
   setup() {
     const uiStore = window.useUIStore?.();
-    return { uiStore };
+    const choresStore = window.useChoresStore?.();
+    const familyStore = window.useFamilyStore?.();
+    return { uiStore, choresStore, familyStore };
   },
-  // Inject values for already-extracted modals (category, schedule, default-order)
-  inject: [
-    'showCategoryManagementModal', 'closeCategoryManagementModal',
-    'showScheduleModal', 'scheduleModalChore', 'closeScheduleModal', 'handleScheduleSave',
-    'showDefaultOrderModal', 'defaultOrderMember', 'closeDefaultOrderModal',
-    'handleDefaultOrderSave', 'quicklistChores', 'people'
-  ],
   computed: {
+    // Modal visibility - from uiStore
+    showCategoryManagementModal() {
+      return this.uiStore?.isModalOpen('categoryManagement') || false;
+    },
+    showScheduleModal() {
+      return this.uiStore?.isModalOpen('schedule') || false;
+    },
+    showDefaultOrderModal() {
+      return this.uiStore?.isModalOpen('defaultOrder') || false;
+    },
+    // Modal data - from stores
+    scheduleModalChore() {
+      return this.choresStore?.scheduleModalChore || null;
+    },
+    defaultOrderMember() {
+      return this.familyStore?.defaultOrderMember || null;
+    },
+    quicklistChores() {
+      return this.choresStore?.quicklistChores || [];
+    },
+    people() {
+      return this.familyStore?.members || [];
+    },
     effectiveScheduleModalChore() {
       const modalData = this.uiStore?.getModalData('schedule');
       return modalData?.quicklistChore || this.scheduleModalChore;
+    }
+  },
+  methods: {
+    closeCategoryManagementModal() {
+      this.uiStore?.closeModal('categoryManagement');
+    },
+    closeScheduleModal() {
+      this.choresStore?.closeScheduleModal();
+    },
+    closeDefaultOrderModal() {
+      this.familyStore?.closeDefaultOrderModal();
+    },
+    async handleScheduleSave(data) {
+      // Delegate to app.js method via vueApp
+      const vueApp = window.vueApp;
+      if (vueApp?.handleScheduleSave) {
+        await vueApp.handleScheduleSave(data);
+      }
+    },
+    async handleDefaultOrderSave(data) {
+      // Delegate to app.js method via vueApp
+      const vueApp = window.vueApp;
+      if (vueApp?.handleDefaultOrderSave) {
+        await vueApp.handleDefaultOrderSave(data);
+      }
     }
   },
 
