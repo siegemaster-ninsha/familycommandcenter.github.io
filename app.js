@@ -1362,9 +1362,9 @@ const app = createApp({
         if (failed.length > 0) {
           console.error('Some assignments failed:', failed);
           if (successful.length === 0) {
-            this.showErrorMessage(`❌ Failed to assign "${quicklistChore.name}" to any family members`);
+            this.showSuccessMessage(`❌ Failed to assign "${quicklistChore.name}" to any family members`);
           } else {
-            this.showErrorMessage(`⚠️ Assigned to ${successful.length} members, but ${failed.length} assignment${failed.length !== 1 ? 's' : ''} failed`);
+            this.showSuccessMessage(`⚠️ Assigned to ${successful.length} members, but ${failed.length} assignment${failed.length !== 1 ? 's' : ''} failed`);
           }
         }
 
@@ -1373,7 +1373,7 @@ const app = createApp({
 
       } catch (error) {
         console.error('Unexpected error in confirmMultiAssignment:', error);
-        this.showErrorMessage('❌ An unexpected error occurred while assigning chores');
+        this.showSuccessMessage('❌ An unexpected error occurred while assigning chores');
       } finally {
         // Reset loading state on the modal component if available
         if (this.$refs.appModalsComponent) {
