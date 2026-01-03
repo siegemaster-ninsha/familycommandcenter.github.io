@@ -3,26 +3,48 @@
 const SpendingModal = Vue.defineComponent({
   name: 'SpendingModal',
   
-  // Inject props from parent (preserves existing contracts)
-  // _Requirements: 10.2, 10.3, 10.4_
-  inject: [
-    'showSpendingModal',
-    'selectedPerson',
-    'spendAmount',
-    'spendAmountString',
-    'addDigit',
-    'addDecimal',
-    'clearSpendAmount',
-    'confirmSpending',
-    'closeSpendingModal'
-  ],
+  setup() {
+    const uiStore = window.useUIStore();
+    const familyStore = window.useFamilyStore();
+    return { uiStore, familyStore };
+  },
+  
+  data() {
+    return {
+      spendAmount: 0,
+      spendAmountString: '0',
+      isSubmitting: false
+    };
+  },
+  
+  computed: {
+    isOpen() {
+      return this.uiStore?.modals?.spending?.isOpen || false;
+    },
+    selectedPerson() {
+      return this.uiStore?.modals?.spending?.data?.selectedPerson || null;
+    },
+    maxAmount() {
+      return this.selectedPerson?.earnings || 0;
+    }
+  },
+  
+  watch: {
+    isOpen(newVal) {
+      if (newVal) {
+        // Reset form when opening
+        this.spendAmount = 0;
+        this.spendAmountString = '0';
+      }
+    }
+  },
   
   template: `
     <!-- Spending Flyout -->
     <!-- _Requirements: 10.1, 10.2, 10.3, 10.4_ -->
     <flyout-panel
-      :open="showSpendingModal"
-      @close="handleCloseSpendingModal"
+      :open="isOpen"
+      @close="handleClose"
       :show-footer="true"
       :show-header-close="false"
       width="380px"
@@ -47,25 +69,25 @@ const SpendingModal = Vue.defineComponent({
           <button
             v-for="number in [1,2,3,4,5,6,7,8,9]"
             :key="number"
-            @click="handleAddDigit(number)"
+            @click="addDigit(number)"
             class="numpad-btn text-primary-custom font-bold py-3 px-4 rounded-lg transition-colors"
           >
             {{ number }}
           </button>
           <button
-            @click="handleAddDecimal"
+            @click="addDecimal"
             class="numpad-btn text-primary-custom font-bold py-3 px-4 rounded-lg transition-colors"
           >
             .
           </button>
           <button
-            @click="handleAddDigit(0)"
+            @click="addDigit(0)"
             class="numpad-btn text-primary-custom font-bold py-3 px-4 rounded-lg transition-colors"
           >
             0
           </button>
           <button
-            @click="handleClearSpendAmount"
+            @click="clearAmount"
             class="font-bold py-3 px-4 rounded-lg transition-colors"
             style="background: var(--color-error-50); color: var(--color-error-700);"
           >
@@ -76,16 +98,14 @@ const SpendingModal = Vue.defineComponent({
       <template #footer>
         <div class="flyout-footer-buttons flex items-center gap-2">
           <button
-            @click="handleConfirmSpending"
-            @touchend.prevent="handleConfirmSpending"
-            :disabled="spendAmount <= 0 || spendAmount > selectedPerson?.earnings"
+            @click.stop="handleConfirmSpending"
+            :disabled="isSubmitting || spendAmount <= 0 || spendAmount > maxAmount"
             class="flex-1 btn-error btn-compact px-3 py-1.5 text-sm disabled:bg-[color:var(--color-neutral-300)] disabled:cursor-not-allowed"
           >
-            Spend Money
+            {{ isSubmitting ? 'Processing...' : 'Spend Money' }}
           </button>
           <button
-            @click="handleCloseSpendingModal"
-            @touchend.prevent="handleCloseSpendingModal"
+            @click.stop="handleClose"
             class="btn-secondary btn-compact px-3 py-1.5 text-sm"
           >
             Close
@@ -96,22 +116,68 @@ const SpendingModal = Vue.defineComponent({
   `,
   
   methods: {
-    // Wrapper methods for numpad actions
-    // _Requirements: 10.4_
-    handleAddDigit(n) {
-      this.addDigit?.(n);
+    addDigit(n) {
+      if (this.spendAmountString === '0') {
+        this.spendAmountString = String(n);
+      } else {
+        this.spendAmountString += String(n);
+      }
+      this.updateAmount();
     },
-    handleAddDecimal() {
-      this.addDecimal?.();
+    
+    addDecimal() {
+      if (!this.spendAmountString.includes('.')) {
+        this.spendAmountString += '.';
+        this.updateAmount();
+      }
     },
-    handleClearSpendAmount() {
-      this.clearSpendAmount?.();
+    
+    clearAmount() {
+      this.spendAmountString = '0';
+      this.spendAmount = 0;
     },
-    handleConfirmSpending() {
-      this.confirmSpending?.();
+    
+    updateAmount() {
+      const amount = parseFloat(this.spendAmountString);
+      this.spendAmount = isNaN(amount) ? 0 : Number(amount);
     },
-    handleCloseSpendingModal() {
-      this.closeSpendingModal?.();
+    
+    async handleConfirmSpending() {
+      if (this.isSubmitting) return;
+      if (this.spendAmount <= 0 || this.spendAmount > this.maxAmount) return;
+      if (!this.selectedPerson) return;
+      
+      this.isSubmitting = true;
+      
+      try {
+        const personName = this.selectedPerson.displayName || this.selectedPerson.name;
+        const spentAmount = this.spendAmount;
+        
+        // Make API call to deduct earnings
+        const api = window.useApi();
+        await api.put(
+          `${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${encodeURIComponent(personName)}/earnings`,
+          { amount: Number(spentAmount), operation: 'subtract' }
+        );
+        
+        // Reload earnings
+        await this.familyStore?.loadEarnings();
+        
+        // Show success
+        this.uiStore?.showSuccess(`${personName} spent $${spentAmount.toFixed(2)}!`);
+        
+        this.handleClose();
+      } catch (error) {
+        console.error('Failed to process spending:', error);
+        this.uiStore?.showError('Failed to process spending');
+      } finally {
+        this.isSubmitting = false;
+      }
+    },
+    
+    handleClose() {
+      this.uiStore?.closeModal('spending');
+      this.clearAmount();
     }
   }
 });
