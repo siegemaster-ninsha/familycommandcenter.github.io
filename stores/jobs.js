@@ -398,6 +398,7 @@ const useJobStore = Pinia.defineStore('jobs', {
      */
     _handleStatusChange(jobId, previousStatus, newStatus, job) {
       console.log('[Job Store] Job status changed:', jobId, previousStatus, '->', newStatus);
+      console.log('[Job Store] Job data for event:', { jobType: job?.jobType, hasResult: !!job?.result, resultKeys: job?.result ? Object.keys(job.result) : [] });
       
       // Stop polling on completion or failure
       if (newStatus === 'completed' || newStatus === 'failed') {
@@ -465,7 +466,8 @@ const useJobStore = Pinia.defineStore('jobs', {
         const data = await apiService.get('/jobs?status=pending,processing');
         
         if (data.success && data.data) {
-          const jobs = data.data;
+          // Backend returns { jobs: [...], count: N }
+          const jobs = data.data.jobs || [];
           
           // Add each job to tracking and start polling
           for (const job of jobs) {

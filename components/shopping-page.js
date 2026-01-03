@@ -807,8 +807,7 @@ const ShoppingPage = Vue.defineComponent({
   },
   inject: [
     // Shopping data now comes from Pinia store via setup()
-    // shared api helper
-    'apiCall',
+    // NOTE: apiCall removed - use window.useApi() composable instead
     // app loading state for top-level loading gate
     'loading',
     // global utilities and helpers
@@ -975,11 +974,9 @@ const ShoppingPage = Vue.defineComponent({
       this.quickActionLoading = true;
       try {
         if (this.editMode && this.editingQuickItem) {
-          // Update existing quick item - still use API directly for quick items
-          await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS}/${this.editingQuickItem.id}`, {
-            method: 'PUT',
-            body: JSON.stringify(this.editingQuickItem)
-          });
+          // Update existing quick item - use useApi composable
+          const api = window.useApi();
+          await api.put(`${CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS}/${this.editingQuickItem.id}`, this.editingQuickItem);
           this.showSuccessMessage('Quick item updated successfully!');
         } else {
           // Add new quick item
@@ -1006,9 +1003,9 @@ const ShoppingPage = Vue.defineComponent({
     async addQuickItemToList(quickItemId) {
       this.quickActionLoading = true;
       try {
-        await this.apiCall(`${CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS}/${quickItemId}/add-to-list`, {
-          method: 'POST'
-        });
+        // Use useApi composable
+        const api = window.useApi();
+        await api.post(`${CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS}/${quickItemId}/add-to-list`, {});
         // Reload items from store
         await this.shoppingStore.loadItems();
         this.showSuccessMessage('Item added to shopping list!');
@@ -1036,9 +1033,9 @@ const ShoppingPage = Vue.defineComponent({
     async initializeQuickItems() {
       this.quickLoading = true;
       try {
-        await this.apiCall(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS_INITIALIZE, {
-          method: 'POST'
-        });
+        // Use useApi composable
+        const api = window.useApi();
+        await api.post(CONFIG.API.ENDPOINTS.SHOPPING_QUICK_ITEMS_INITIALIZE, {});
         // Use shopping store instead of $parent
         // _Requirements: 7.1, 7.2_
         const shoppingStore = window.useShoppingStore?.();
@@ -1057,10 +1054,9 @@ const ShoppingPage = Vue.defineComponent({
     async addStore() {
       this.storeLoading = true;
       try {
-        await this.apiCall(CONFIG.API.ENDPOINTS.STORES, {
-          method: 'POST',
-          body: JSON.stringify(this.newStore)
-        });
+        // Use useApi composable
+        const api = window.useApi();
+        await api.post(CONFIG.API.ENDPOINTS.STORES, this.newStore);
         // Use shopping store instead of $parent
         // _Requirements: 7.1, 7.2_
         const shoppingStore = window.useShoppingStore?.();
@@ -1081,9 +1077,9 @@ const ShoppingPage = Vue.defineComponent({
     async removeStore(storeId) {
       if (!confirm('Are you sure you want to remove this store?')) return;
       try {
-        await this.apiCall(`${CONFIG.API.ENDPOINTS.STORES}/${storeId}`, {
-          method: 'DELETE'
-        });
+        // Use useApi composable
+        const api = window.useApi();
+        await api.delete(`${CONFIG.API.ENDPOINTS.STORES}/${storeId}`);
         // Use shopping store instead of $parent
         // _Requirements: 7.1, 7.2_
         const shoppingStore = window.useShoppingStore?.();

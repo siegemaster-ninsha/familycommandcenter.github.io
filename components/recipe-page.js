@@ -325,14 +325,14 @@ const RecipePage = Vue.defineComponent({
                   </div>
                 </div>
                 
-                <!-- Dismiss button for failed jobs -->
+                <!-- Delete/Abandon button for all jobs -->
                 <button 
-                  v-if="job.status === 'failed'"
-                  @click="dismissJob(job.jobId)"
-                  class="text-red-400 hover:text-red-600 transition-colors"
-                  title="Dismiss"
+                  @click="abandonJob(job.jobId)"
+                  :class="job.status === 'failed' ? 'text-red-400 hover:text-red-600' : 'text-gray-400 hover:text-red-500'"
+                  class="transition-colors p-1"
+                  :title="job.status === 'failed' ? 'Dismiss' : 'Abandon job'"
                 >
-                  <div v-html="Helpers.IconLibrary.getIcon('x', 'lucide', 18, '')"></div>
+                  <div v-html="Helpers.IconLibrary.getIcon('trash2', 'lucide', 18, '')"></div>
                 </button>
               </div>
             </div>
@@ -1193,6 +1193,25 @@ const RecipePage = Vue.defineComponent({
     },
     
     /**
+     * Abandon/delete a job - stops tracking locally and deletes from backend
+     */
+    async abandonJob(jobId) {
+      if (!this.jobStore) return;
+      
+      // Stop tracking locally first for immediate UI feedback
+      this.jobStore.stopTracking(jobId);
+      
+      // Also delete from backend so it doesn't show up again
+      try {
+        await apiService.delete(`/jobs/${jobId}`);
+        console.log('[RecipePage] Job abandoned:', jobId);
+      } catch (error) {
+        // Job may have already expired or been deleted - that's fine
+        console.log('[RecipePage] Job delete failed (may already be gone):', error.message);
+      }
+    },
+    
+    /**
      * Set up event listeners for job completion/failure
      * **Validates: Requirements 4.4**
      */
@@ -1230,9 +1249,13 @@ const RecipePage = Vue.defineComponent({
       const { jobId, job } = event.detail;
       
       // Only handle if this is our tracked job
-      if (jobId !== this.currentJobId) return;
+      if (jobId !== this.currentJobId) {
+        console.log('[Recipe Page] Ignoring job completion - not our job:', jobId, 'expected:', this.currentJobId);
+        return;
+      }
       
-      console.log('[Recipe Page] Job completed:', jobId, job?.jobType);
+      console.log('[Recipe Page] Job completed:', jobId, 'type:', job?.jobType, 'hasResult:', !!job?.result);
+      console.log('[Recipe Page] Job result:', job?.result);
       
       // Handle recipe scrape completion
       if (job?.jobType === 'recipe-scrape' && job?.result?.recipe) {
@@ -1241,11 +1264,23 @@ const RecipePage = Vue.defineComponent({
         this.showToast('Recipe extracted successfully!', 'success');
       }
       
-      // Handle image processing completion
-      if (job?.jobType === 'image-process' && job?.result?.recipe) {
-        this.recipeStore.scrapedRecipe = job.result.recipe;
-        this.selectedTags = job.result.recipe.suggestedTags || [];
+      // Handle image processing completion (jobType is 'image-processing')
+      if (job?.jobType === 'image-processing' && job?.result) {
+        // Result is the recipe directly, not wrapped in { recipe: ... }
+        const recipe = job.result;
+        console.log('[Recipe Page] Setting scrapedRecipe:', recipe?.title);
+        this.recipeStore.scrapedRecipe = recipe;
+        this.selectedTags = recipe.suggestedTags || [];
         this.showToast('Recipe extracted from image!', 'success');
+      }
+      
+      // Handle multi-image processing completion
+      if (job?.jobType === 'multi-image-processing' && job?.result) {
+        const recipe = job.result;
+        console.log('[Recipe Page] Setting scrapedRecipe from multi-image:', recipe?.title);
+        this.recipeStore.scrapedRecipe = recipe;
+        this.selectedTags = recipe.suggestedTags || [];
+        this.showToast('Recipe extracted from images!', 'success');
       }
       
       // Clear the current job ID

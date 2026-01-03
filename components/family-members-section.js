@@ -20,8 +20,8 @@ const FamilyMembersSection = Vue.defineComponent({
             <h3 class="text-primary-custom text-lg sm:text-[20px] font-bold leading-tight tracking-[-0.015em]">{{ person.displayName || person.name }}</h3>
             <div class="flex items-center gap-2">
               <div class="text-xs px-2 py-1 rounded-full"
-                   :style="person.electronicsStatus.status === 'allowed' ? { background: 'var(--color-success-50)', color: 'var(--color-success-700)' } : { background: 'var(--color-error-50)', color: 'var(--color-error-700)' }">
-                {{ person.electronicsStatus.message }}
+                   :style="(person.electronicsStatus?.status || 'allowed') === 'allowed' ? { background: 'var(--color-success-50)', color: 'var(--color-success-700)' } : { background: 'var(--color-error-50)', color: 'var(--color-error-700)' }">
+                {{ person.electronicsStatus?.message || 'Electronics allowed' }}
               </div>
             </div>
           </div>

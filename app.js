@@ -18,24 +18,17 @@ if (window.initializeApiService) {
 const app = createApp({
   data() {
     return {
-      // Authentication state
-      isAuthenticated: false,
-      currentUser: null,
-      showLoginModal: false,
-      showSignupModal: false,
-      showConfirmModal: false,
-      authForm: {
-        mode: 'parent',
-        email: '',
-        username: '',
-        password: '',
-        name: '',
-        confirmationCode: ''
-      },
-      authError: null,
-      authLoading: false,
+      // NOTE: Authentication state moved to authStore
+      // Components should use useAuthStore() instead
+      // - isAuthenticated, currentUser, accountId, accountSettings
+      // - authForm, authError, authLoading
+      // - showLoginModal, showSignupModal, showConfirmModal (now in uiStore modal registry)
       
-      showAddChoreModal: false,
+      // NOTE: Modal boolean flags moved to uiStore modal registry
+      // Components should use useUIStore().openModal(name) / closeModal(name) instead
+      // Modal state is now accessed via computed properties that delegate to uiStore
+      // _Requirements: 4.5_
+      
       newChore: {
         name: '',
         amount: 0,
@@ -44,7 +37,7 @@ const app = createApp({
         isDetailed: false
       },
       // **Feature: habit-tracking** - Habit flyout state
-      showHabitFlyout: false,
+      // NOTE: showHabitFlyout moved to uiStore modal registry
       habitFlyoutMemberId: '',
       editingHabit: null,
       habitForm: {
@@ -52,7 +45,6 @@ const app = createApp({
       },
       habitFormError: '',
       habitFormSubmitting: false,
-      showAddToQuicklistModal: false,
       newQuicklistChore: {
         name: '',
         amount: 0,
@@ -61,8 +53,7 @@ const app = createApp({
         isDetailed: false,
         defaultDetails: ''
       },
-      // New modal for chore details
-      showChoreDetailsModal: false,
+      // Chore details form data (modal state in uiStore)
       choreDetailsForm: {
         name: '',
         details: '',
@@ -71,42 +62,27 @@ const app = createApp({
         assignedTo: '',
         isNewFromQuicklist: false,
       },
-      // Multi-assignment modal for quicklist chores
-      showMultiAssignModal: false,
       // selectedQuicklistChore and multiAssignSelectedMembers moved to chores store
-      // Category management modal
-      showCategoryManagementModal: false,
-      // Schedule modal for weekly chore scheduling
-      // **Feature: weekly-chore-scheduling**
-      showScheduleModal: false,
+      // Schedule modal data - **Feature: weekly-chore-scheduling**
       scheduleModalChore: null,
-      // Default order modal for setting initial chore order on New Day
-      showDefaultOrderModal: false,
+      // Default order modal data
       defaultOrderMember: null,
-      // Assign category modal (for uncategorized quicklist chores)
-      showAssignCategoryModal: false,
+      // Assign category modal data
       assignCategoryChore: null,
       assignCategorySelectedId: '',
-      // Person management
-      people: [],
-      // manual add person removed
-      showAddPersonModal: false,
+      // Person management - NOTE: people array moved to familyStore.members
+      // Components should use useFamilyStore().members instead
       newPerson: { name: '' },
-      showDeletePersonModal: false,
       personToDelete: null,
       // Child creation & parent invites
-      showCreateChildModal: false,
       childForm: { username: '', password: '', displayName: '' },
-      showInviteModal: false,
       inviteData: { token: '', expiresAt: null },
-      pendingInviteToken: null,
-      // Spending requests (for parents)
-      spendingRequests: [],
+      // NOTE: pendingInviteToken moved to authStore.pendingInviteToken
+      // Spending requests - NOTE: moved to familyStore.spendingRequests
+      // Components should use useFamilyStore().spendingRequests instead
       // New Day functionality
-      showNewDayModal: false,
       newDayLoading: false,
-      // Spending modal
-      showSpendingModal: false,
+      // Spending modal data
       selectedPerson: null,
       spendAmount: 0,
       spendAmountString: '0',
@@ -146,9 +122,8 @@ const app = createApp({
       // These are kept for backward compatibility but delegate to the store
       // shoppingItems, shoppingQuickItems, stores - accessed via computed properties
       
-      // Account page data (preloaded for instant page switching)
-      accountSettings: null,
-      accountId: null,
+      // NOTE: accountSettings and accountId moved to authStore
+      // Components should use useAuthStore().accountSettings and useAuthStore().accountId instead
       
       loading: true,
       error: null
@@ -158,42 +133,321 @@ const app = createApp({
     // NOTE: choresByPerson moved to choresStore.choresByPerson
     // Components should use useChoresStore().choresByPerson instead
     
-    // Legacy computed properties for backward compatibility with API calls
-    earnings() {
-      const earningsObj = {};
-      this.people.forEach(person => {
-        earningsObj[person.name] = person.earnings;
-      });
-      return earningsObj;
-    },
-    
-    electronicsStatus() {
-      const statusObj = {};
-      this.people.forEach(person => {
-        statusObj[person.name] = person.electronicsStatus;
-      });
-      return statusObj;
-    },
+    // NOTE: earnings and electronicsStatus moved to familyStore
+    // Components should use useFamilyStore().earnings and useFamilyStore().electronicsStatus instead
     
     // NOTE: selectedChore moved to choresStore.selectedChore
     // Components should use useChoresStore().selectedChore instead
     
+    // ============================================
+    // AUTH STATE COMPUTED PROPERTIES
+    // These delegate to authStore for backward compatibility
+    // _Requirements: 3.1, 3.2, 3.5_
+    // ============================================
+    isAuthenticated() {
+      return this.$authStore?.isAuthenticated || false;
+    },
+    currentUser() {
+      return this.$authStore?.currentUser || null;
+    },
+    accountId() {
+      return this.$authStore?.accountId || null;
+    },
+    accountSettings() {
+      return this.$authStore?.accountSettings || null;
+    },
+    authForm() {
+      return this.$authStore?.authForm || {
+        mode: 'parent',
+        email: '',
+        username: '',
+        password: '',
+        name: '',
+        confirmationCode: ''
+      };
+    },
+    authError() {
+      return this.$authStore?.authError || null;
+    },
+    authLoading() {
+      return this.$authStore?.authLoading || false;
+    },
+    pendingInviteToken: {
+      get() {
+        return this.$authStore?.pendingInviteToken || null;
+      },
+      set(value) {
+        if (this.$authStore) {
+          this.$authStore.pendingInviteToken = value;
+        }
+      }
+    },
+    // Auth modal state - now from uiStore modal registry
+    showLoginModal: {
+      get() {
+        return this.$uiStore?.isModalOpen?.('login') || false;
+      },
+      set(value) {
+        if (this.$uiStore) {
+          if (value) {
+            this.$uiStore.openModal('login');
+          } else {
+            this.$uiStore.closeModal('login');
+          }
+        }
+      }
+    },
+    showSignupModal: {
+      get() {
+        return this.$uiStore?.isModalOpen?.('signup') || false;
+      },
+      set(value) {
+        if (this.$uiStore) {
+          if (value) {
+            this.$uiStore.openModal('signup');
+          } else {
+            this.$uiStore.closeModal('signup');
+          }
+        }
+      }
+    },
+    showConfirmModal: {
+      get() {
+        return this.$uiStore?.isModalOpen?.('confirm') || false;
+      },
+      set(value) {
+        if (this.$uiStore) {
+          if (value) {
+            this.$uiStore.openModal('confirm');
+          } else {
+            this.$uiStore.closeModal('confirm');
+          }
+        }
+      }
+    },
+    
+    // ============================================
+    // MODAL STATE COMPUTED PROPERTIES
+    // These delegate to uiStore modal registry for backward compatibility
+    // _Requirements: 4.1, 4.2, 4.3, 4.5_
+    // ============================================
+    showAddChoreModal: {
+      get() {
+        return this.$uiStore?.isModalOpen?.('addChore') || false;
+      },
+      set(value) {
+        if (this.$uiStore) {
+          if (value) {
+            this.$uiStore.openModal('addChore');
+          } else {
+            this.$uiStore.closeModal('addChore');
+          }
+        }
+      }
+    },
+    showAddToQuicklistModal: {
+      get() {
+        return this.$uiStore?.isModalOpen?.('addToQuicklist') || false;
+      },
+      set(value) {
+        if (this.$uiStore) {
+          if (value) {
+            this.$uiStore.openModal('addToQuicklist');
+          } else {
+            this.$uiStore.closeModal('addToQuicklist');
+          }
+        }
+      }
+    },
+    showChoreDetailsModal: {
+      get() {
+        return this.$uiStore?.isModalOpen?.('choreDetails') || false;
+      },
+      set(value) {
+        if (this.$uiStore) {
+          if (value) {
+            this.$uiStore.openModal('choreDetails');
+          } else {
+            this.$uiStore.closeModal('choreDetails');
+          }
+        }
+      }
+    },
+    showMultiAssignModal: {
+      get() {
+        return this.$uiStore?.isModalOpen?.('multiAssign') || false;
+      },
+      set(value) {
+        if (this.$uiStore) {
+          if (value) {
+            this.$uiStore.openModal('multiAssign');
+          } else {
+            this.$uiStore.closeModal('multiAssign');
+          }
+        }
+      }
+    },
+    showCategoryManagementModal: {
+      get() {
+        return this.$uiStore?.isModalOpen?.('categoryManagement') || false;
+      },
+      set(value) {
+        if (this.$uiStore) {
+          if (value) {
+            this.$uiStore.openModal('categoryManagement');
+          } else {
+            this.$uiStore.closeModal('categoryManagement');
+          }
+        }
+      }
+    },
+    showScheduleModal: {
+      get() {
+        return this.$uiStore?.isModalOpen?.('schedule') || false;
+      },
+      set(value) {
+        if (this.$uiStore) {
+          if (value) {
+            this.$uiStore.openModal('schedule');
+          } else {
+            this.$uiStore.closeModal('schedule');
+          }
+        }
+      }
+    },
+    showDefaultOrderModal: {
+      get() {
+        return this.$uiStore?.isModalOpen?.('defaultOrder') || false;
+      },
+      set(value) {
+        if (this.$uiStore) {
+          if (value) {
+            this.$uiStore.openModal('defaultOrder');
+          } else {
+            this.$uiStore.closeModal('defaultOrder');
+          }
+        }
+      }
+    },
+    showAssignCategoryModal: {
+      get() {
+        return this.$uiStore?.isModalOpen?.('assignCategory') || false;
+      },
+      set(value) {
+        if (this.$uiStore) {
+          if (value) {
+            this.$uiStore.openModal('assignCategory');
+          } else {
+            this.$uiStore.closeModal('assignCategory');
+          }
+        }
+      }
+    },
+    showAddPersonModal: {
+      get() {
+        return this.$uiStore?.isModalOpen?.('addPerson') || false;
+      },
+      set(value) {
+        if (this.$uiStore) {
+          if (value) {
+            this.$uiStore.openModal('addPerson');
+          } else {
+            this.$uiStore.closeModal('addPerson');
+          }
+        }
+      }
+    },
+    showDeletePersonModal: {
+      get() {
+        return this.$uiStore?.isModalOpen?.('deletePerson') || false;
+      },
+      set(value) {
+        if (this.$uiStore) {
+          if (value) {
+            this.$uiStore.openModal('deletePerson');
+          } else {
+            this.$uiStore.closeModal('deletePerson');
+          }
+        }
+      }
+    },
+    showCreateChildModal: {
+      get() {
+        return this.$uiStore?.isModalOpen?.('createChild') || false;
+      },
+      set(value) {
+        if (this.$uiStore) {
+          if (value) {
+            this.$uiStore.openModal('createChild');
+          } else {
+            this.$uiStore.closeModal('createChild');
+          }
+        }
+      }
+    },
+    showInviteModal: {
+      get() {
+        return this.$uiStore?.isModalOpen?.('invite') || false;
+      },
+      set(value) {
+        if (this.$uiStore) {
+          if (value) {
+            this.$uiStore.openModal('invite');
+          } else {
+            this.$uiStore.closeModal('invite');
+          }
+        }
+      }
+    },
+    showNewDayModal: {
+      get() {
+        return this.$uiStore?.isModalOpen?.('newDay') || false;
+      },
+      set(value) {
+        if (this.$uiStore) {
+          if (value) {
+            this.$uiStore.openModal('newDay');
+          } else {
+            this.$uiStore.closeModal('newDay');
+          }
+        }
+      }
+    },
+    showSpendingModal: {
+      get() {
+        return this.$uiStore?.isModalOpen?.('spending') || false;
+      },
+      set(value) {
+        if (this.$uiStore) {
+          if (value) {
+            this.$uiStore.openModal('spending');
+          } else {
+            this.$uiStore.closeModal('spending');
+          }
+        }
+      }
+    },
+    // **Feature: habit-tracking** - Habit flyout modal state
+    showHabitFlyout: {
+      get() {
+        return this.$uiStore?.isModalOpen?.('habitFlyout') || false;
+      },
+      set(value) {
+        if (this.$uiStore) {
+          if (value) {
+            this.$uiStore.openModal('habitFlyout');
+          } else {
+            this.$uiStore.closeModal('habitFlyout');
+          }
+        }
+      }
+    },
+    
     // whether any modal is currently open (used to lock/unlock body scroll on mobile)
+    // Now delegates to uiStore.hasAnyModalOpen
+    // _Requirements: 4.4, 4.5_
     isAnyModalOpen() {
-      return (
-        this.showAddToQuicklistModal ||
-        this.showAddChoreModal ||
-        this.showAddPersonModal ||
-        this.showDeletePersonModal ||
-        this.showNewDayModal ||
-        this.showSpendingModal ||
-        this.showChoreDetailsModal ||
-        this.showLoginModal ||
-        this.showSignupModal ||
-        this.showConfirmModal ||
-        this.showInviteModal ||
-        this.showCreateChildModal
-      );
+      return this.$uiStore?.hasAnyModalOpen || false;
     },
     // Offline store for checking network status
     // _Requirements: 4.4_
@@ -217,14 +471,8 @@ const app = createApp({
     // NOTE: $choresStore bridge removed - chore state now lives exclusively in choresStore
     // Components should use useChoresStore() directly
     
-    // Expose family store for bridge watchers
-    $familyStore() {
-      if (typeof window !== 'undefined' && window.useFamilyStore) {
-        return window.useFamilyStore();
-      }
-      // Return a default object if store is not available
-      return { members: [] };
-    },
+    // NOTE: $familyStore bridge removed - family state now lives exclusively in familyStore
+    // Components should use useFamilyStore() directly
     
     // Expose auth store for bridge watchers
     $authStore() {
@@ -256,103 +504,50 @@ const app = createApp({
         return;
       }
 
-      // NOTE: Chore-related callbacks removed - WebSocket composable updates stores directly
-      // Only family member updates still need app.js bridge for backward compatibility
+      // NOTE: All WebSocket callbacks now update stores directly
+      // Family member updates are handled by the WebSocket composable updating familyStore
       ws.onAppStateUpdate({
         updatePerson: (memberId, updates) => {
-          const idx = this.people.findIndex(m => m.id === memberId);
-          if (idx >= 0) {
-            this.people[idx] = { ...this.people[idx], ...updates };
+          const familyStore = window.useFamilyStore?.();
+          if (familyStore) {
+            const idx = familyStore.members.findIndex(m => m.id === memberId);
+            if (idx >= 0) {
+              familyStore.members[idx] = { ...familyStore.members[idx], ...updates };
+            }
           }
         }
       });
 
       ws.connect();
     },
-    // API helper methods
-    async apiCall(endpoint, options = {}) {
-      try {
-        const url = CONFIG.getApiUrl(endpoint);
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log(`🌐 Making API call to: ${url}`);
-        
-        // add authentication header if user is logged in
-        const authHeader = authService.getAuthHeader();
-        const headers = {
-          'Content-Type': 'application/json',
-          ...(this.accountId && { 'X-Account-Id': this.accountId }),
-          ...options.headers
-        };
-        
-        if (authHeader) headers.Authorization = authHeader;
-        
-        const response = await fetch(url, {
-          headers,
-          ...options
-        });
-        
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log(`📡 Response status: ${response.status} for ${endpoint}`);
-        
-        // handle authentication errors
-        if (response.status === 401) {
-          console.warn('Authentication required or token expired');
-          await this.handleAuthenticationRequired();
-          throw new Error('Authentication required');
-        }
-        
-        if (!response.ok) {
-          let errorMessage = `API call failed: ${response.status} ${response.statusText}`;
-          
-          // Try to get more detailed error from response body
-          try {
-            const errorData = await response.json();
-            if (errorData.error) {
-              errorMessage += ` - ${errorData.error}`;
-            }
-          } catch (e) {
-            // Ignore parsing errors for error responses
-          }
-          
-          throw new Error(`${errorMessage} for ${endpoint}`);
-        }
-        
-        const data = await response.json();
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log(`✅ API call successful for ${endpoint}:`, data);
-        return data;
-      } catch (error) {
-        console.error(`❌ API Error for ${endpoint}:`, error);
-        
-        // Add more specific error handling
-        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-          throw new Error(`Network error: Unable to connect to the API. Please check your internet connection and API configuration.`);
-        }
-        
-        throw error;
-      }
-    },
+    
+    // NOTE: apiCall method removed - use useApi() composable instead
+    // All API calls now use the useApi composable for consistent authentication headers
+    // and error handling. Components should call: const api = window.useApi(); api.call(endpoint, options)
+    // _Requirements: 5.5_
 
     // modal open/close helpers (standardized)
-    // Each open method captures scroll position for flyout-panel to use
+    // Each open method uses uiStore.openModal() which captures scroll position
+    // _Requirements: 4.2, 4.3, 4.5_
     openAddChoreModal() {
-      window.__flyoutScrollY = window.scrollY;
-      console.log('🎯 openAddChoreModal - captured scroll:', window.__flyoutScrollY);
-      this.showAddChoreModal = true;
+      this.$uiStore?.openModal('addChore');
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎯 openAddChoreModal via uiStore');
     },
     closeAddChoreModal() {
-      this.showAddChoreModal = false;
+      this.$uiStore?.closeModal('addChore');
     },
     // **Feature: habit-tracking** - Habit flyout methods
     openHabitFlyout(memberId, habit = null) {
-      window.__flyoutScrollY = window.scrollY;
-      console.log('🎯 openHabitFlyout - captured scroll:', window.__flyoutScrollY);
       this.habitFlyoutMemberId = memberId;
       this.editingHabit = habit;
       this.habitForm.name = habit ? habit.name : '';
       this.habitFormError = '';
       this.habitFormSubmitting = false;
-      this.showHabitFlyout = true;
+      this.$uiStore?.openModal('habitFlyout');
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎯 openHabitFlyout via uiStore');
     },
     closeHabitFlyout() {
-      this.showHabitFlyout = false;
+      this.$uiStore?.closeModal('habitFlyout');
       this.habitFlyoutMemberId = '';
       this.editingHabit = null;
       this.habitForm.name = '';
@@ -392,52 +587,28 @@ const app = createApp({
       }
     },
     openAddToQuicklistModal() {
-      window.__flyoutScrollY = window.scrollY;
-      console.log('🎯 openAddToQuicklistModal - captured scroll:', window.__flyoutScrollY);
-      this.showAddToQuicklistModal = true;
+      this.$uiStore?.openModal('addToQuicklist');
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎯 openAddToQuicklistModal via uiStore');
     },
     closeAddToQuicklistModal() {
-      this.showAddToQuicklistModal = false;
+      this.$uiStore?.closeModal('addToQuicklist');
     },
     closeCreateChildModal() {
-      this.showCreateChildModal = false;
+      this.$uiStore?.closeModal('createChild');
     },
     closeInviteModal() {
-      this.showInviteModal = false;
+      this.$uiStore?.closeModal('invite');
     },
 
     // Cache for /auth/me response to avoid duplicate API calls
-    _authMeCache: null,
+    // NOTE: _authMeCache moved to authStore._authMeCache
     
     async refreshCurrentUser() {
-      try {
-        const me = await authService.getCurrentUser();
-        if (me) {
-          this.currentUser = me;
-        }
-        // enrich with server-side account and role when missing
-        if (!this.currentUser?.role || !this.currentUser?.accountId) {
-          try {
-            // Use cached response if available (prevents duplicate /auth/me calls)
-            let res = this._authMeCache;
-            if (!res) {
-              res = await this.apiCall(CONFIG.API.ENDPOINTS.AUTH_ME);
-              this._authMeCache = res; // Cache for subsequent calls
-            } else if (CONFIG.ENV.IS_DEVELOPMENT) {
-              console.log('👤 Using cached /auth/me response');
-            }
-            if (res && (res.accountId || res.role)) {
-              this.currentUser = { ...this.currentUser, role: res.role || this.currentUser?.role, memberships: res.memberships };
-              this.accountId = res.accountId || this.accountId;
-            }
-          } catch (e) {
-            // ignore if /auth/me unavailable
-          }
-        } else {
-          this.accountId = this.currentUser.accountId || this.accountId;
-        }
-      } catch (e) {
-        console.warn('Failed to refresh current user', e);
+      // Delegate to authStore
+      // _Requirements: 3.3, 3.5_
+      const authStore = window.useAuthStore?.();
+      if (authStore) {
+        await authStore.refreshCurrentUser();
       }
     },
     
@@ -470,23 +641,26 @@ const app = createApp({
       
       // Get stores for loading data
       const choresStore = window.useChoresStore?.();
+      const familyStore = window.useFamilyStore?.();
+      
+      // Load family members first (electronics status depends on members being loaded)
+      await familyStore?.loadMembers();
+      
+      // Load remaining data in parallel
+      // Note: loadEarnings just reloads members, so we skip it since members are already loaded
+      await Promise.all([
+        // Core chore page data - now uses choresStore
+        choresStore?.loadChores(),
+        familyStore?.loadElectronicsStatus(),
+        choresStore?.loadQuicklistChores(),
+        this.loadCategories(),
         
-        // Load remaining data in parallel
-        await Promise.all([
-          // Core chore page data - now uses choresStore
-          choresStore?.loadChores(),
-          this.loadEarnings(),
-          this.loadElectronicsStatus(),
-          choresStore?.loadQuicklistChores(),
-          this.loadFamilyMembers(),
-          this.loadCategories(),
-          
-          // Shopping page data
-          this.loadShoppingItems(),
-          this.loadShoppingQuickItems(),
-          this.loadStores()
-        ]);
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ All application data loaded successfully');
+        // Shopping page data
+        this.loadShoppingItems(),
+        this.loadShoppingQuickItems(),
+        this.loadStores()
+      ]);
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ All application data loaded successfully');
       } catch (error) {
         console.error('❌ Failed to load data:', error);
         this.error = `Failed to load data: ${error.message}. Please check your connection and API configuration.`;
@@ -499,159 +673,17 @@ const app = createApp({
     // NOTE: loadChores moved to choresStore.loadChores()
     // Components should use useChoresStore().loadChores() instead
     
-    async loadFamilyMembers(preserveOptimisticUpdates = false) {
-      try {
-        if (CONFIG.ENV.IS_DEVELOPMENT) {
-          console.log('👥 Loading family members, preserveOptimisticUpdates:', preserveOptimisticUpdates);
-          console.log('[debug] BEFORE loadFamilyMembers() people:', (this.people || []).map(p => ({ name: p.name, userId: p.userId, role: p.role, enabledForChores: p.enabledForChores })));
-        }
-        const response = await this.apiCall(CONFIG.API.ENDPOINTS.FAMILY_MEMBERS);
-        if (CONFIG.ENV.IS_DEVELOPMENT) {
-          console.log('👥 Family members API response count:', (response?.familyMembers || []).length);
-          console.log('[debug] server familyMembers snapshot:', (response.familyMembers || []).map(m => ({ name: m.name, userId: m.userId, role: m.role, completedChores: m.completedChores })));
-        }
-        
-        if (response.familyMembers && response.familyMembers.length > 0) {
-          // optionally filter for chores view based on account settings preferences
-          const membersChoresEnabled = this.accountSettings?.preferences?.membersChoresEnabled || {};
-          const resolveEnabled = (member) => {
-            // Prefer stable userId when available; fallback to name
-            if (member && member.userId && Object.prototype.hasOwnProperty.call(membersChoresEnabled, member.userId)) {
-              const val = membersChoresEnabled[member.userId] !== false;
-              if (CONFIG.ENV.IS_DEVELOPMENT) console.debug('[Visibility] resolve', { member: member.name, userId: member.userId, via: 'userId', value: val });
-              return val;
-            }
-            if (member && member.name && Object.prototype.hasOwnProperty.call(membersChoresEnabled, member.name)) {
-              const val = membersChoresEnabled[member.name] !== false;
-              if (CONFIG.ENV.IS_DEVELOPMENT) console.debug('[Visibility] resolve', { member: member.name, via: 'name', value: val });
-              return val;
-            }
-            if (CONFIG.ENV.IS_DEVELOPMENT) console.debug('[Visibility] resolve', { member: member?.name, via: 'default', value: true });
-            return true;
-          };
-          if (preserveOptimisticUpdates) {
-            if (CONFIG.ENV.IS_DEVELOPMENT) console.log('👥 Merging with optimistic updates...');
-            // Merge server data with existing optimistic updates
-            response.familyMembers.forEach(serverMember => {
-              const existingPerson = this.people.find(p => p.name === serverMember.name);
-              if (existingPerson) {
-                if (CONFIG.ENV.IS_DEVELOPMENT) console.log(`👥 Merging ${serverMember.name}: existing completedChores=${existingPerson.completedChores}, server completedChores=${serverMember.completedChores}`);
-                // Preserve optimistic completedChores count, but update other fields
-                existingPerson.earnings = serverMember.earnings || 0;
-                // Keep the existing completedChores if it's higher (optimistic update)
-                existingPerson.completedChores = Math.max(existingPerson.completedChores || 0, serverMember.completedChores || 0);
-                if (serverMember.id) existingPerson.id = serverMember.id;
-                // Always refresh board visibility from account preferences
-                existingPerson.enabledForChores = resolveEnabled(serverMember);
-                // Update sort order maps for chore priority feature
-                existingPerson.choreSortOrder = serverMember.choreSortOrder && typeof serverMember.choreSortOrder === 'object' ? serverMember.choreSortOrder : {};
-                existingPerson.defaultChoreOrder = serverMember.defaultChoreOrder && typeof serverMember.defaultChoreOrder === 'object' ? serverMember.defaultChoreOrder : {};
-                if (CONFIG.ENV.IS_DEVELOPMENT) console.log(`👥 Result for ${serverMember.name}: completedChores=${existingPerson.completedChores}`);
-              } else {
-                if (CONFIG.ENV.IS_DEVELOPMENT) console.log(`👥 Adding new person from server: ${serverMember.name}`);
-                // New person from server
-                this.people.push({
-                  id: serverMember.id || serverMember.name.toLowerCase(),
-                  name: serverMember.name,
-                  displayName: serverMember.displayName || serverMember.name,
-                  userId: serverMember.userId || null,
-                  role: serverMember.role || null,
-                  earnings: serverMember.earnings || 0,
-                  completedChores: serverMember.completedChores || 0,
-                  electronicsStatus: { status: 'allowed', message: 'Electronics allowed' },
-                  enabledForChores: resolveEnabled(serverMember),
-                  // Include sort order maps for chore priority feature
-                  choreSortOrder: serverMember.choreSortOrder && typeof serverMember.choreSortOrder === 'object' ? serverMember.choreSortOrder : {},
-                  defaultChoreOrder: serverMember.defaultChoreOrder && typeof serverMember.defaultChoreOrder === 'object' ? serverMember.defaultChoreOrder : {}
-                });
-              }
-            });
-          } else {
-            if (CONFIG.ENV.IS_DEVELOPMENT) {
-              console.log('👥 Full refresh - replacing all family member data');
-              console.log('👥 Server data:', response.familyMembers.map(m => `${m.displayName || m.name}: completedChores=${m.completedChores}`));
-            }
-            // Normal full refresh - replace all data
-            this.people = response.familyMembers.map(member => ({
-              id: member.id || (member.displayName || member.name || '').toLowerCase(),
-              name: member.displayName || member.name,
-              displayName: member.displayName || member.name,
-              userId: member.userId || null,
-              role: member.role || null,
-              earnings: member.earnings || 0,
-              completedChores: member.completedChores || 0,
-              electronicsStatus: { status: 'allowed', message: 'Electronics allowed' },
-              enabledForChores: resolveEnabled(member),
-              // Include sort order maps for chore priority feature
-              choreSortOrder: member.choreSortOrder && typeof member.choreSortOrder === 'object' ? member.choreSortOrder : {},
-              defaultChoreOrder: member.defaultChoreOrder && typeof member.defaultChoreOrder === 'object' ? member.defaultChoreOrder : {}
-            }));
-            if (CONFIG.ENV.IS_DEVELOPMENT) console.log('👥 Final people data:', this.people.map(p => `${p.name}: completedChores=${p.completedChores}`));
-          }
-        } else {
-          // backend returned no family members; show empty state without synthesizing placeholders
-          this.people = [];
-        }
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('[debug] AFTER loadFamilyMembers() people:', (this.people || []).map(p => ({ name: p.name, userId: p.userId, role: p.role, enabledForChores: p.enabledForChores, completedChores: p.completedChores })));
-      } catch (error) {
-        console.error('Failed to load family members:', error);
-        // Don't clear people array on error, keep existing
-      }
-    },
+    // NOTE: loadFamilyMembers moved to familyStore.loadMembers()
+    // Components should use useFamilyStore().loadMembers() instead
     
-    async loadEarnings() {
-      try {
-        const response = await this.apiCall(CONFIG.API.ENDPOINTS.EARNINGS);
-        
-        // Update earnings for each person
-        this.people.forEach(person => {
-          person.earnings = response.earnings[person.name] || 0;
-        });
-      } catch (error) {
-        console.error('Failed to load earnings:', error);
-      }
-    },
+    // NOTE: loadEarnings moved to familyStore.loadEarnings()
+    // Components should use useFamilyStore().loadEarnings() instead
     
-    async loadElectronicsStatus() {
-      try {
-        // Load electronics status for each person individually
-        for (const person of this.people) {
-          try {
-            const response = await this.apiCall(`${CONFIG.API.ENDPOINTS.ELECTRONICS_STATUS}/${person.name}`);
-            person.electronicsStatus = response;
-          } catch (error) {
-            console.error(`Failed to load electronics status for ${person.name}:`, error);
-            person.electronicsStatus = { status: 'allowed', message: 'Electronics allowed' };
-          }
-        }
-      } catch (error) {
-        console.error('Failed to load electronics status:', error);
-      }
-    },
+    // NOTE: loadElectronicsStatus moved to familyStore.loadElectronicsStatus()
+    // Components should use useFamilyStore().loadElectronicsStatus() instead
 
-    // Optimistically update electronics status for a person based on current chores
-    updateElectronicsStatusOptimistically(personName) {
-      const person = this.people.find(p => p.name === personName);
-      if (!person) return;
-
-      // Get chores from store
-      const choresStore = window.useChoresStore?.();
-      const chores = choresStore?.chores || [];
-
-      // Count incomplete electronics chores for this person
-      const incompleteElectronicsChores = chores.filter(chore => 
-        chore.assignedTo === personName && 
-        chore.category === 'game' && 
-        !chore.completed
-      );
-
-      const allowed = incompleteElectronicsChores.length === 0;
-      
-      person.electronicsStatus = {
-        status: allowed ? 'allowed' : 'blocked',
-        message: allowed ? 'Electronics allowed' : `${incompleteElectronicsChores.length} electronics task${incompleteElectronicsChores.length > 1 ? 's' : ''} remaining`
-      };
-    },
+    // NOTE: updateElectronicsStatusOptimistically moved to familyStore.updateElectronicsStatusOptimistically()
+    // Components should use useFamilyStore().updateElectronicsStatusOptimistically() instead
     
     // NOTE: loadQuicklistChores moved to choresStore.loadQuicklistChores()
     // Components should use useChoresStore().loadQuicklistChores() instead
@@ -669,43 +701,11 @@ const app = createApp({
     },
 
     async loadUserTheme() {
-      try {
-        // PWA optimization: localStorage is source of truth for current device
-        // Apply localStorage theme immediately (no flash, works offline)
-        const localTheme = localStorage.getItem('selectedTheme') || 'default';
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎨 Applying localStorage theme:', localTheme);
-        ThemeManager.applyTheme(localTheme);
-        
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎨 Loading account settings (for caching, not theme override)...');
-        const headerAccountId = this.accountId || this.accountSettings?.accountId || null;
-        let response;
-        try {
-          response = await window.SettingsClient.get(headerAccountId, { ifNoneMatch: this.accountSettings?.updatedAt });
-        } catch (e) {
-          console.warn('SettingsClient.get failed, falling back to apiCall', e?.message || e);
-          response = await this.apiCall(CONFIG.API.ENDPOINTS.ACCOUNT_SETTINGS);
-        }
-        
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎨 Account settings response:', response);
-        
-        // Cache the account settings to avoid duplicate API calls in loadAllData()
-        if (response) {
-          this.accountSettings = response;
-          this.accountId = response.accountId || this.accountId;
-        }
-        
-        // NOTE: We do NOT overwrite localStorage theme with backend theme
-        // localStorage is the source of truth for the current device
-        // Backend theme is only used for initial setup on new devices (when localStorage is empty)
-        const backendTheme = response?.theme || response?.userTheme;
-        if (backendTheme && backendTheme !== localTheme) {
-          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎨 Backend theme differs from local:', backendTheme, 'vs', localTheme, '- keeping local');
-        }
-      } catch (error) {
-        console.error('Failed to load user theme:', error);
-        // Fallback: ensure theme is applied even on error
-        const fallbackTheme = localStorage.getItem('selectedTheme') || 'default';
-        ThemeManager.applyTheme(fallbackTheme);
+      // Delegate to authStore
+      // _Requirements: 3.3, 3.5_
+      const authStore = window.useAuthStore?.();
+      if (authStore) {
+        await authStore.loadUserTheme();
       }
     },
 
@@ -730,31 +730,11 @@ const app = createApp({
 
     // Account page data loading methods
     async loadAccountSettings() {
-      try {
-        // Skip if account settings are already loaded (e.g., by loadUserTheme())
-        // This prevents duplicate API calls during initialization
-        if (this.accountSettings && this.accountId) {
-          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('⚙️ Account settings already loaded, skipping API call');
-          return;
-        }
-        
-        const headerAccountId = this.accountId || this.accountSettings?.accountId || null;
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('⚙️ Loading account settings...', { headerAccountId });
-        const response = await this.apiCall(CONFIG.API.ENDPOINTS.ACCOUNT_SETTINGS);
-        this.accountSettings = response;
-        this.accountId = response?.accountId || null;
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('⚙️ Account settings loaded meta', {
-          apiAccountId: this.accountSettings?.accountId,
-          updatedAt: this.accountSettings?.updatedAt,
-          prefKeys: Object.keys(this.accountSettings?.preferences || {}),
-          membersChoresEnabled: this.accountSettings?.preferences?.membersChoresEnabled || {}
-        });
-        // Theme sync is now handled exclusively in loadUserTheme() to avoid duplicate applies
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Account settings loaded:', this.accountSettings);
-      } catch (error) {
-        console.error('Failed to load account settings:', error);
-        this.accountSettings = null;
-        this.accountId = null;
+      // Delegate to authStore
+      // _Requirements: 3.3, 3.5_
+      const authStore = window.useAuthStore?.();
+      if (authStore) {
+        await authStore.loadAccountSettings();
       }
     },
     
@@ -807,7 +787,7 @@ const app = createApp({
     },
     
     cancelAddPerson() {
-      this.showAddPersonModal = false;
+      this.$uiStore?.closeModal('addPerson');
       this.newPerson = { name: '', displayName: '' };
     },
 
@@ -818,33 +798,40 @@ const app = createApp({
       try {
         // require user-linked member to update profile; disallow for legacy/manual rows
         if (!person?.userId) return;
-        await this.apiCall(CONFIG.API.ENDPOINTS.FAMILY_MEMBERS, {
-          method: 'POST',
-          body: JSON.stringify({ userId: person.userId, displayName: person.displayName || person.name, name: person.displayName || person.name })
-        });
-        await this.loadFamilyMembers(false);
+        const api = window.useApi();
+        await api.post(CONFIG.API.ENDPOINTS.FAMILY_MEMBERS, { userId: person.userId, displayName: person.displayName || person.name, name: person.displayName || person.name });
+        // Reload family members from familyStore
+        const familyStore = window.useFamilyStore?.();
+        if (familyStore) {
+          await familyStore.loadMembers(false);
+        }
       } catch (e) {
         console.warn('failed to update display name', e);
       }
     },
     async updateMemberChoresEnabled(person) {
       try {
+        const authStore = window.useAuthStore?.();
+        
         // Ensure we know the account first
         if (!this.accountId && !this.accountSettings?.accountId) {
           try { await this.loadAccountSettings(); } catch { /* ignore - will use defaults */ }
         }
 
-        // Optimistically update local state
+        // Optimistically update local state via authStore
         const prefs = this.accountSettings?.preferences || {};
         const current = { ...(prefs.membersChoresEnabled || {}) };
         const enabled = !!person.enabledForChores;
         // Write both userId and name keys for stability across backfills
         if (person.userId) current[person.userId] = enabled;
         if (person.name) current[person.name] = enabled;
-        this.accountSettings = {
-          ...(this.accountSettings || {}),
-          preferences: { ...prefs, membersChoresEnabled: current }
-        };
+        
+        if (authStore) {
+          authStore.accountSettings = {
+            ...(authStore.accountSettings || {}),
+            preferences: { ...prefs, membersChoresEnabled: current }
+          };
+        }
 
         const accountId = this.accountId || this.accountSettings?.accountId;
         if (!accountId) {
@@ -863,11 +850,14 @@ const app = createApp({
           // fallback to bulk partial update
           res = await window.SettingsClient.updatePreferences(accountId, { membersChoresEnabled: current }, { ifMatch: this.accountSettings?.updatedAt });
         }
-        // Sync local cache with server echo
-        if (res && res.preferences) {
-          this.accountSettings.preferences = res.preferences;
-          this.accountSettings.updatedAt = res.updatedAt || this.accountSettings.updatedAt;
-          if (CONFIG.ENV.IS_DEVELOPMENT) console.debug('[Visibility] persist done', { updatedAt: this.accountSettings.updatedAt, after: res.preferences?.membersChoresEnabled || {} });
+        // Sync local cache with server echo via authStore
+        if (res && res.preferences && authStore) {
+          authStore.accountSettings = {
+            ...authStore.accountSettings,
+            preferences: res.preferences,
+            updatedAt: res.updatedAt || authStore.accountSettings?.updatedAt
+          };
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.debug('[Visibility] persist done', { updatedAt: authStore.accountSettings.updatedAt, after: res.preferences?.membersChoresEnabled || {} });
         }
       } catch (e) {
         console.warn('failed to persist member chores enabled', e);
@@ -879,53 +869,68 @@ const app = createApp({
       const ownerUserId = this.accountSettings?.userId;
       return person?.userId ? person.userId !== ownerUserId : true;
     },
+    // NOTE: removeMember now delegates to familyStore.removeMember()
     async removeMember(person) {
-      try {
-        if (!confirm(`Remove ${person.displayName || person.name} from this account?`)) return;
-        // prefer membership removal by userId if available, else remove by family member name only
-        if (person.userId) {
-          await this.apiCall(`/family-members/memberships/${encodeURIComponent(person.userId)}`, { method: 'DELETE' });
-        } else {
-          await this.apiCall(`/family-members/by-name/${encodeURIComponent(person.name)}`, { method: 'DELETE' });
-        }
-        // refresh
-        await this.loadFamilyMembers(false);
-      } catch (e) {
-        alert(e?.message || 'Failed to remove member');
+      const familyStore = window.useFamilyStore?.();
+      if (!familyStore) {
+        console.error('Family store not available');
+        return;
+      }
+      
+      if (!confirm(`Remove ${person.displayName || person.name} from this account?`)) return;
+      
+      const result = await familyStore.removeMember(person.id);
+      if (!result.success) {
+        alert(result.error || 'Failed to remove member');
       }
     },
     
     // Child management
+    // _Requirements: 4.2, 4.3, 4.5_
     openCreateChildModal() {
+      const familyStore = window.useFamilyStore?.();
+      if (familyStore) {
+        familyStore.resetChildForm();
+      }
       this.childForm = { username: '', password: '', displayName: '' };
-      this.showCreateChildModal = true;
+      this.$uiStore?.openModal('createChild');
     },
+    // NOTE: createChild now delegates to familyStore.createChild()
     async createChild() {
       if (!this.childForm.username || !this.childForm.password) return;
-      try {
-        await this.apiCall(CONFIG.API.ENDPOINTS.FAMILY_CHILDREN, {
-          method: 'POST',
-          body: JSON.stringify({ username: this.childForm.username, password: this.childForm.password, displayName: this.childForm.displayName })
-        });
-        // refresh family members to reflect the new child immediately
-        await this.loadFamilyMembers(false);
-        this.showCreateChildModal = false;
+      
+      const familyStore = window.useFamilyStore?.();
+      if (!familyStore) {
+        console.error('Family store not available');
+        return;
+      }
+      
+      const result = await familyStore.createChild({
+        username: this.childForm.username,
+        password: this.childForm.password,
+        displayName: this.childForm.displayName
+      });
+      
+      if (result.success) {
+        this.$uiStore?.closeModal('createChild');
         this.childForm = { username: '', password: '', displayName: '' };
         alert('Child account created. Share the username and password with your child.');
-      } catch (e) {
-        console.error('Failed to create child', e);
-        alert('Failed to create child');
+      } else {
+        console.error('Failed to create child', result.error);
+        alert(result.error || 'Failed to create child');
       }
     },
     
     // Parent invites
+    // _Requirements: 4.2, 4.3, 4.5_
     async createParentInvite() {
       try {
         // lock scroll for iOS safari during modal
         document.body.classList.add('modal-open');
-        const res = await this.apiCall(CONFIG.API.ENDPOINTS.PARENT_INVITE, { method: 'POST', body: JSON.stringify({}) });
+        const api = window.useApi();
+        const res = await api.post(CONFIG.API.ENDPOINTS.PARENT_INVITE, {});
         this.inviteData = res;
-        this.showInviteModal = true;
+        this.$uiStore?.openModal('invite');
       } catch (e) {
         console.error('Failed to create invite', e);
         alert('Failed to create invite');
@@ -944,7 +949,8 @@ const app = createApp({
           this.showSignupForm();
           return;
         }
-        await this.apiCall(CONFIG.API.ENDPOINTS.PARENT_ACCEPT_INVITE, { method: 'POST', body: JSON.stringify({ token }) });
+        const api = window.useApi();
+        await api.post(CONFIG.API.ENDPOINTS.PARENT_ACCEPT_INVITE, { token });
         await this.refreshCurrentUser();
         await this.loadAllData();
         alert('Invite accepted. You now have access to this account.');
@@ -955,49 +961,54 @@ const app = createApp({
       }
     },
     
-    // Spending requests (parent approval)
+    // NOTE: Spending requests now delegate to familyStore
     async loadSpendingRequests() {
-      try {
-        const res = await this.apiCall(CONFIG.API.ENDPOINTS.SPEND_REQUESTS);
-        this.spendingRequests = res?.requests || [];
-      } catch (e) {
-        console.warn('Failed to load spending requests', e);
+      const familyStore = window.useFamilyStore?.();
+      if (familyStore) {
+        await familyStore.loadSpendingRequests();
       }
     },
     async approveSpendingRequest(requestId) {
-      try {
-        await this.apiCall(`${CONFIG.API.ENDPOINTS.SPEND_REQUESTS}/${encodeURIComponent(requestId)}/approve`, { method: 'POST' });
-        await this.loadEarnings();
-        await this.loadSpendingRequests();
-      } catch (e) {
-        console.error('Failed to approve request', e);
+      const familyStore = window.useFamilyStore?.();
+      if (familyStore) {
+        const result = await familyStore.approveSpendingRequest(requestId);
+        if (!result.success) {
+          console.error('Failed to approve request', result.error);
+        }
       }
     },
     
+    // _Requirements: 4.2, 4.3, 4.5_
     confirmDeletePerson(person) {
       this.personToDelete = person;
-      this.showDeletePersonModal = true;
+      this.$uiStore?.openModal('deletePerson');
     },
     
     async performDeletePerson() {
       if (this.personToDelete) {
+        const familyStore = window.useFamilyStore?.();
+        const api = window.useApi();
+        
         try {
           const name = this.personToDelete.name;
           const userId = this.personToDelete.userId;
+          const memberId = this.personToDelete.id;
           if (CONFIG.ENV.IS_DEVELOPMENT) console.log(`🗑️ Removing person via modal: name=${name}, userId=${userId || 'none'}`);
 
           // if we know the Cognito userId, remove the account membership first to prevent auto re-creation
           if (userId) {
-            await this.apiCall(`/family-members/memberships/${encodeURIComponent(userId)}`, { method: 'DELETE' });
+            await api.delete(`/family-members/memberships/${encodeURIComponent(userId)}`);
           } else {
             // fallback: delete the family member card by visible name
-            await this.apiCall(`/family-members/by-name/${encodeURIComponent(name)}`, { method: 'DELETE' });
+            await api.delete(`/family-members/by-name/${encodeURIComponent(name)}`);
           }
 
           if (CONFIG.ENV.IS_DEVELOPMENT) console.log(`✅ Removal complete for: ${name}`);
 
-          // Remove person from local array
-          this.people = this.people.filter(p => p.id !== this.personToDelete.id);
+          // Remove person from familyStore
+          if (familyStore) {
+            familyStore.members = familyStore.members.filter(p => p.id !== memberId);
+          }
 
           // Reload data to ensure both pages reflect removal
           await this.loadAllData();
@@ -1007,7 +1018,7 @@ const app = createApp({
         }
 
         this.personToDelete = null;
-        this.showDeletePersonModal = false;
+        this.$uiStore?.closeModal('deletePerson');
       }
     },
     
@@ -1019,19 +1030,19 @@ const app = createApp({
     
     cancelDeletePerson() {
       this.personToDelete = null;
-      this.showDeletePersonModal = false;
+      this.$uiStore?.closeModal('deletePerson');
     },
     
     showDeletePersonModalFor(person) {
       this.personToDelete = person;
-      this.showDeletePersonModal = true;
+      this.$uiStore?.openModal('deletePerson');
     },
     
     // NOTE: addChore moved to choresStore.createChore()
     // Components should use useChoresStore().createChore() instead
     
     cancelAddChore() {
-      this.showAddChoreModal = false;
+      this.$uiStore?.closeModal('addChore');
       this.newChore = { name: '', amount: 0, category: 'regular', addToQuicklist: false, isDetailed: false };
     },
     
@@ -1070,11 +1081,9 @@ const app = createApp({
           
           if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✨ Optimistic UI updated - quicklist item added');
           
-          // Make API call in background
-          const response = await this.apiCall(CONFIG.API.ENDPOINTS.QUICKLIST, {
-            method: 'POST',
-            body: JSON.stringify(quicklistData)
-          });
+          // Make API call in background using useApi composable
+          const api = window.useApi();
+          const response = await api.post(CONFIG.API.ENDPOINTS.QUICKLIST, quicklistData);
           
           // Update the temporary quicklist chore with real data from server
           const quicklistIndex = choresStore.quicklistChores.findIndex(c => c.id === tempQuicklistChore.id);
@@ -1094,7 +1103,7 @@ const app = createApp({
           choresStore.quicklistChores.splice(0, choresStore.quicklistChores.length, ...originalQuicklistChores);
           
           // Reopen modal with original data
-          this.showAddToQuicklistModal = true;
+          this.$uiStore?.openModal('addToQuicklist');
           
           // Show error message
           this.showSuccessMessage(`❌ Failed to add "${quicklistData.name}" to quicklist. Please try again.`);
@@ -1103,15 +1112,16 @@ const app = createApp({
     },
     
     cancelAddToQuicklist() {
-      this.showAddToQuicklistModal = false;
+      this.$uiStore?.closeModal('addToQuicklist');
       this.newQuicklistChore = { name: '', amount: 0, category: 'regular', categoryId: '', isDetailed: false, defaultDetails: '' };
     },
 
     // Multi-assignment modal methods for quicklist chores
+    // _Requirements: 4.2, 4.3, 4.5_
     openMultiAssignModal(quicklistChore) {
       const choresStore = window.useChoresStore?.();
       if (CONFIG.ENV.IS_DEVELOPMENT) {
-        console.log('🎯 Parent showMultiAssignModal called with:', quicklistChore?.name);
+        console.log('🎯 Parent openMultiAssignModal called with:', quicklistChore?.name);
         console.log('📊 Current modal state before:', {
           showMultiAssignModal: this.showMultiAssignModal,
           selectedQuicklistChore: choresStore?.selectedQuicklistChore?.name || 'none'
@@ -1122,7 +1132,7 @@ const app = createApp({
         choresStore.selectQuicklistChore(quicklistChore);
         choresStore.clearMemberSelection();
       }
-      this.showMultiAssignModal = true;
+      this.$uiStore?.openModal('multiAssign');
 
       if (CONFIG.ENV.IS_DEVELOPMENT) console.log('📊 Modal state after:', {
         showMultiAssignModal: this.showMultiAssignModal,
@@ -1132,7 +1142,7 @@ const app = createApp({
     },
 
     cancelMultiAssignment() {
-      this.showMultiAssignModal = false;
+      this.$uiStore?.closeModal('multiAssign');
       const choresStore = window.useChoresStore?.();
       if (choresStore) {
         choresStore.clearSelection();
@@ -1140,36 +1150,37 @@ const app = createApp({
     },
 
     // Category management modal methods
-    // _Requirements: 1.1_
+    // _Requirements: 1.1, 4.2, 4.3, 4.5_
     openCategoryManagementModal() {
-      this.showCategoryManagementModal = true;
+      this.$uiStore?.openModal('categoryManagement');
     },
     
     closeCategoryManagementModal() {
-      this.showCategoryManagementModal = false;
+      this.$uiStore?.closeModal('categoryManagement');
     },
     
     // Schedule modal methods
     // **Feature: weekly-chore-scheduling**
-    // **Validates: Requirements 1.2, 1.3, 1.5**
+    // **Validates: Requirements 1.2, 1.3, 1.5, 4.2, 4.3, 4.5**
     openScheduleModal(quicklistChore) {
       this.scheduleModalChore = quicklistChore;
-      this.showScheduleModal = true;
+      this.$uiStore?.openModal('schedule');
     },
     
     closeScheduleModal() {
-      this.showScheduleModal = false;
+      this.$uiStore?.closeModal('schedule');
       this.scheduleModalChore = null;
     },
     
     // Default order modal methods
+    // _Requirements: 4.2, 4.3, 4.5_
     openDefaultOrderModal(member) {
       this.defaultOrderMember = member;
-      this.showDefaultOrderModal = true;
+      this.$uiStore?.openModal('defaultOrder');
     },
     
     closeDefaultOrderModal() {
-      this.showDefaultOrderModal = false;
+      this.$uiStore?.closeModal('defaultOrder');
       this.defaultOrderMember = null;
     },
     
@@ -1258,13 +1269,11 @@ const app = createApp({
       if (!chore) return;
       
       try {
-        // Update the quicklist chore with the new category
-        await this.apiCall(`${CONFIG.API.ENDPOINTS.QUICKLIST}/${chore.id}`, {
-          method: 'PUT',
-          body: JSON.stringify({
-            categoryId: categoryId || null,
-            categoryName: categoryName
-          })
+        // Update the quicklist chore with the new category using useApi composable
+        const api = window.useApi();
+        await api.put(`${CONFIG.API.ENDPOINTS.QUICKLIST}/${chore.id}`, {
+          categoryId: categoryId || null,
+          categoryName: categoryName
         });
         
         // Reload quicklist to reflect changes
@@ -1300,7 +1309,7 @@ const app = createApp({
 
       const selectedMembers = choresStore.multiAssignSelectedMembers;
       const quicklistChore = choresStore.selectedQuicklistChore;
-      const people = familyStore?.members || this.people;
+      const people = familyStore?.members || [];
       const results = [];
 
       try {
@@ -1401,11 +1410,14 @@ const app = createApp({
 
       // Update electronics status optimistically if needed
       if (newChore.category === 'game') {
-        this.updateElectronicsStatusOptimistically(memberName);
+        const familyStore = window.useFamilyStore?.();
+        if (familyStore) {
+          familyStore.updateElectronicsStatusOptimistically(memberName);
+        }
       }
 
       try {
-        // Make API call to create the chore
+        // Make API call to create the chore using useApi composable
         const choreData = {
           name: newChore.name,
           amount: newChore.amount,
@@ -1414,10 +1426,8 @@ const app = createApp({
           completed: false
         };
 
-        const response = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
-          method: 'POST',
-          body: JSON.stringify(choreData)
-        });
+        const api = window.useApi();
+        const response = await api.post(CONFIG.API.ENDPOINTS.CHORES, choreData);
 
         // Update the optimistic chore with real data from server
         const choreIndex = choresStore.chores.findIndex(c => c.id === tempId);
@@ -1440,6 +1450,7 @@ const app = createApp({
     },
 
     // Chore details modal methods
+    // _Requirements: 4.2, 4.3, 4.5_
     openChoreDetailsModal(choreData, assignedTo = '', isNewFromQuicklist = false) {
       this.choreDetailsForm = {
         name: choreData.name,
@@ -1450,7 +1461,7 @@ const app = createApp({
         isNewFromQuicklist: isNewFromQuicklist,
         quicklistChoreId: choreData.id
       };
-      this.showChoreDetailsModal = true;
+      this.$uiStore?.openModal('choreDetails');
     },
 
     async confirmChoreDetails() {
@@ -1467,6 +1478,9 @@ const app = createApp({
         return;
       }
 
+      // Get API service
+      const api = window.useApi();
+
       try {
         if (this.choreDetailsForm.isNewFromQuicklist) {
           // Create new chore from quicklist with details
@@ -1480,11 +1494,8 @@ const app = createApp({
             isDetailed: true
           };
           
-          // Create the chore with details
-          const response = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
-            method: 'POST',
-            body: JSON.stringify(choreData)
-          });
+          // Create the chore with details using useApi composable
+          const response = await api.post(CONFIG.API.ENDPOINTS.CHORES, choreData);
           
           // Add to chores store
           choresStore.chores.push(response.chore);
@@ -1505,10 +1516,7 @@ const app = createApp({
             isDetailed: true
           };
           
-          const response = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
-            method: 'POST',
-            body: JSON.stringify(choreData)
-          });
+          const response = await api.post(CONFIG.API.ENDPOINTS.CHORES, choreData);
           
           // Add to chores store
           choresStore.chores.push(response.chore);
@@ -1522,10 +1530,7 @@ const app = createApp({
               isDetailed: true
             };
             
-            const quicklistResponse = await this.apiCall(CONFIG.API.ENDPOINTS.QUICKLIST, {
-              method: 'POST',
-              body: JSON.stringify(quicklistData)
-            });
+            const quicklistResponse = await api.post(CONFIG.API.ENDPOINTS.QUICKLIST, quicklistData);
             
             choresStore.quicklistChores.push(quicklistResponse.quicklistChore);
           }
@@ -1541,7 +1546,7 @@ const app = createApp({
     },
 
     cancelChoreDetails() {
-      this.showChoreDetailsModal = false;
+      this.$uiStore?.closeModal('choreDetails');
       this.choreDetailsForm = {
         name: '',
         details: '',
@@ -1558,23 +1563,24 @@ const app = createApp({
     async startNewDay() {
       // Get chores store for state access
       const choresStore = window.useChoresStore?.();
+      const familyStore = window.useFamilyStore?.();
       
       try {
         this.newDayLoading = true;
         if (CONFIG.ENV.IS_DEVELOPMENT) {
           const chores = choresStore?.chores || [];
+          const members = familyStore?.members || [];
           console.log('🌅 Starting new day...');
           console.log('📊 Current state before new day:');
           console.log('  - Chores count:', chores.length);
           console.log('  - Chores:', chores.map(c => `${c.name} (${c.assignedTo})`));
-          console.log('  - People completed chores:', this.people.map(p => `${p.name}: ${p.completedChores}`));
+          console.log('  - People completed chores:', members.map(p => `${p.name}: ${p.completedChores}`));
         }
         
-        const response = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES_NEW_DAY, {
-          method: 'POST',
-          body: JSON.stringify({
-            dailyChores: [] // Could be extended later to include predefined daily chores
-          })
+        // Use useApi composable for API call
+        const api = window.useApi();
+        const response = await api.post(CONFIG.API.ENDPOINTS.CHORES_NEW_DAY, {
+          dailyChores: [] // Could be extended later to include predefined daily chores
         });
         
         if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ New day API response:', response);
@@ -1585,10 +1591,11 @@ const app = createApp({
         
         if (CONFIG.ENV.IS_DEVELOPMENT) {
           const choresAfter = choresStore?.chores || [];
+          const membersAfter = familyStore?.members || [];
           console.log('📊 State after reload:');
           console.log('  - Chores count:', choresAfter.length);
           console.log('  - Chores:', choresAfter.map(c => `${c.name} (${c.assignedTo})`));
-          console.log('  - People completed chores:', this.people.map(p => `${p.name}: ${p.completedChores}`));
+          console.log('  - People completed chores:', membersAfter.map(p => `${p.name}: ${p.completedChores}`));
         }
         
         // Parse summary from enhanced response format
@@ -1622,7 +1629,7 @@ const app = createApp({
         
         this.showSuccessMessage(`🌅 New day started! ${detailMessage}. Earnings preserved.`);
         
-        this.showNewDayModal = false;
+        this.$uiStore?.closeModal('newDay');
       } catch (error) {
         console.error('❌ Failed to start new day:', error);
         this.showSuccessMessage(`❌ Failed to start new day: ${error.message}`);
@@ -1632,17 +1639,16 @@ const app = createApp({
     },
 
     cancelNewDay() {
-      this.showNewDayModal = false;
+      this.$uiStore?.closeModal('newDay');
     },
 
     // Open New Day modal with scroll position capture
+    // _Requirements: 4.2, 4.3, 4.5_
     openNewDayModal() {
       if (!this.offlineStore.isOnline) {
         return;
       }
-      // Capture scroll position for flyout-panel
-      window.__flyoutScrollY = window.scrollY;
-      this.showNewDayModal = true;
+      this.$uiStore?.openModal('newDay');
     },
 
     // Page navigation
@@ -1655,8 +1661,13 @@ const app = createApp({
     // Authentication and user management
     async handleAuthenticationRequired() {
       if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🔒 Authentication required - clearing auth state');
-      this.isAuthenticated = false;
-      this.currentUser = null;
+      
+      // Clear auth state via authStore
+      const authStore = window.useAuthStore?.();
+      if (authStore) {
+        authStore.isAuthenticated = false;
+        authStore.currentUser = null;
+      }
       
       // Clear chores store data
       const choresStore = window.useChoresStore?.();
@@ -1667,15 +1678,21 @@ const app = createApp({
         choresStore.selectedQuicklistChore = null;
       }
       
-      // Clear family data
-      this.people = [];
+      // Clear family store data
+      const familyStore = window.useFamilyStore?.();
+      if (familyStore) {
+        familyStore.members = [];
+        familyStore.spendingRequests = [];
+      }
       
       // if an invite token is present, guide to signup instead of login
       try {
         const url = new URL(window.location.href);
-        const inviteToken = this.pendingInviteToken || url.searchParams.get('invite');
+        const inviteToken = (authStore?.pendingInviteToken) || url.searchParams.get('invite');
         if (inviteToken) {
-          this.pendingInviteToken = inviteToken;
+          if (authStore) {
+            authStore.pendingInviteToken = inviteToken;
+          }
           this.showSignupForm();
           return;
         }
@@ -1683,256 +1700,85 @@ const app = createApp({
         // ignore url parsing errors
       }
       // default to login modal
-      this.showLoginModal = true;
+      this.showLoginForm();
     },
 
     async handleLogin() {
-      try {
-        this.authLoading = true;
-        this.authError = null;
-        
-        const username = this.authForm.mode === 'parent' ? this.authForm.email : this.authForm.username;
-        const result = await authService.signIn(username, this.authForm.password);
-        
-        if (result.success) {
-          this.isAuthenticated = true;
-          this.currentUser = result.user;
-          this.closeAuthModals();
-          this.clearAuthForm();
-          
-          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Login successful, loading user data...');
-          
-          // Refresh current user (to include role & accountId)
-          await this.refreshCurrentUser();
-          // Load user theme first to prevent flash of wrong theme
-          await this.loadUserTheme();
-          
-          // Load all data for the newly authenticated user
-          await this.loadAllData();
-
-          // if invite token present, prompt to accept now that user is authenticated
-          try {
-            const url = new URL(window.location.href);
-            const inviteToken = this.pendingInviteToken || url.searchParams.get('invite');
-            if (inviteToken) {
-              const accept = confirm('You have been invited to join a family account. Accept invitation?');
-          if (accept) {
-            // ensure valid auth before attempting accept to avoid immediate 401 popup
-            if (!authService.getAuthHeader()) {
-              this.pendingInviteToken = inviteToken;
-              this.showSignupForm();
-            } else {
-              await this.acceptParentInvite(inviteToken);
-              this.pendingInviteToken = null;
-            }
-            url.searchParams.delete('invite');
-            window.history.replaceState({}, document.title, url.toString());
-          }
-            }
-          } catch (e) {
-            console.warn('failed to process invite token post-login', e);
-          }
-        } else {
-          this.authError = 'Login failed. Please check your credentials.';
-        }
-      } catch (error) {
-        console.error('Login error:', error);
-        this.authError = error.message || 'Login failed. Please try again.';
-      } finally {
-        this.authLoading = false;
+      // Delegate to authStore
+      // _Requirements: 3.3, 3.5_
+      const authStore = window.useAuthStore?.();
+      if (authStore) {
+        await authStore.handleLogin();
       }
     },
 
     async handleSignup() {
-      try {
-        this.authLoading = true;
-        this.authError = null;
-        
-        const result = await authService.signUp(
-          this.authForm.email, 
-          this.authForm.password, 
-          this.authForm.name
-        );
-        
-        if (result.success) {
-          // Close signup modal and show confirmation modal
-          this.showSignupModal = false;
-          this.showConfirmModal = true;
-          this.authError = null;
-          this.authForm.username = result.username;
-          // preserve pending invite token across confirmation
-          try {
-            const url = new URL(window.location.href);
-            const inviteToken = url.searchParams.get('invite');
-            if (inviteToken) this.pendingInviteToken = inviteToken;
-          } catch { /* ignore URL parse errors */ }
-        } else {
-          this.authError = 'Signup failed. Please try again.';
-        }
-      } catch (error) {
-        console.error('Signup error:', error);
-        this.authError = error.message || 'Signup failed. Please try again.';
-      } finally {
-        this.authLoading = false;
+      // Delegate to authStore
+      // _Requirements: 3.3, 3.5_
+      const authStore = window.useAuthStore?.();
+      if (authStore) {
+        await authStore.handleSignup();
       }
     },
 
     async handleConfirmSignup() {
-      try {
-        this.authLoading = true;
-        this.authError = null;
-        
-        const result = await authService.confirmSignUp(
-          this.authForm.username || this.authForm.email, 
-          this.authForm.confirmationCode
-        );
-        
-        if (result.success) {
-          // Account confirmed, now sign them in automatically
-          const signInResult = await authService.signIn(this.authForm.email, this.authForm.password);
-          
-          if (signInResult.success) {
-            this.isAuthenticated = true;
-            this.currentUser = signInResult.user;
-            this.closeAuthModals();
-            this.clearAuthForm();
-            
-            if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Account confirmed and logged in, loading user data...');
-            
-            // Refresh current user (to include role & accountId)
-            await this.refreshCurrentUser();
-            // Load user theme first to prevent flash of wrong theme
-            await this.loadUserTheme();
-            
-            // Load all data for the newly authenticated user
-            await this.loadAllData();
-
-            // if invite token present, prompt to accept now that user is authenticated
-            try {
-              const url = new URL(window.location.href);
-              const inviteToken = this.pendingInviteToken || url.searchParams.get('invite');
-              if (inviteToken) {
-                const accept = confirm('You have been invited to join a family account. Accept invitation?');
-                if (accept) {
-                  await this.acceptParentInvite(inviteToken);
-                  url.searchParams.delete('invite');
-                  window.history.replaceState({}, document.title, url.toString());
-                  this.pendingInviteToken = null;
-                }
-              }
-            } catch (e) {
-              console.warn('failed to process invite token post-signup', e);
-            }
-          } else {
-            this.authError = 'Account confirmed but auto-login failed. Please log in manually.';
-            this.showConfirmModal = false;
-            this.showLoginModal = true;
-          }
-        } else {
-          this.authError = 'Confirmation failed. Please check the code and try again.';
-        }
-      } catch (error) {
-        console.error('Confirmation error:', error);
-        this.authError = error.message || 'Confirmation failed. Please try again.';
-      } finally {
-        this.authLoading = false;
+      // Delegate to authStore
+      // _Requirements: 3.3, 3.5_
+      const authStore = window.useAuthStore?.();
+      if (authStore) {
+        await authStore.handleConfirmSignup();
       }
     },
 
     async handleLogout() {
-      try {
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🚪 Logging out user...');
-        
-        // Stop midnight scheduler
-        if (window.MidnightScheduler) {
-          window.MidnightScheduler.stop();
-        }
-        
-        await authService.signOut();
-        
-        // Clear authentication state
-        this.isAuthenticated = false;
-        this.currentUser = null;
-        
-        // Clear cached API responses to prevent stale data on re-login
-        this._authMeCache = null;
-        this.accountSettings = null;
-        this.accountId = null;
-        
-        // Clear chores store data
-        const choresStore = window.useChoresStore?.();
-        if (choresStore) {
-          choresStore.chores = [];
-          choresStore.quicklistChores = [];
-          choresStore.selectedChoreId = null;
-          choresStore.selectedQuicklistChore = null;
-        }
-        
-        // Clear family data
-        this.people = [];
-        
-        // Reset to default theme on logout
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎨 Resetting to default theme on logout');
-        ThemeManager.applyTheme('default');
-        localStorage.setItem('selectedTheme', 'default');
-        
-        // Reset to chores page
-        this.currentPage = 'chores';
-        
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Logout successful');
-      } catch (error) {
-        console.error('Logout error:', error);
-        // Still clear local state even if server logout fails
-        this.isAuthenticated = false;
-        this.currentUser = null;
-        
-        // Still reset theme on error
-        ThemeManager.applyTheme('default');
-        localStorage.setItem('selectedTheme', 'default');
+      // Delegate to authStore
+      // _Requirements: 3.3, 3.5_
+      const authStore = window.useAuthStore?.();
+      if (authStore) {
+        await authStore.handleLogout();
       }
     },
 
     showLoginForm() {
-      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🔐 showLoginForm() called');
-      this.showSignupModal = false;
-      this.showConfirmModal = false;
-      this.showLoginModal = true;
-      this.clearAuthForm();
-      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🔐 Login modal should now be visible:', this.showLoginModal);
+      // Delegate to authStore
+      // _Requirements: 3.3, 3.5_
+      const authStore = window.useAuthStore?.();
+      if (authStore) {
+        authStore.showLoginForm();
+      }
     },
 
     showSignupForm() {
-      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('📝 showSignupForm() called');
-      this.showLoginModal = false;
-      this.showConfirmModal = false;
-      this.showSignupModal = true;
-      this.clearAuthForm();
-      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('📝 Signup modal should now be visible:', this.showSignupModal);
+      // Delegate to authStore
+      // _Requirements: 3.3, 3.5_
+      const authStore = window.useAuthStore?.();
+      if (authStore) {
+        authStore.showSignupForm();
+      }
     },
 
     closeAuthModals() {
-      this.showLoginModal = false;
-      this.showSignupModal = false;
-      this.showConfirmModal = false;
-      this.clearAuthForm();
+      // Delegate to authStore
+      // _Requirements: 3.3, 3.5_
+      const authStore = window.useAuthStore?.();
+      if (authStore) {
+        authStore.closeAuthModals();
+      }
     },
 
     clearAuthForm() {
-      this.authForm = {
-        mode: 'parent',
-        email: '',
-        password: '',
-        name: '',
-        confirmationCode: ''
-      };
-      this.authError = null;
+      // Delegate to authStore
+      // _Requirements: 3.3, 3.5_
+      const authStore = window.useAuthStore?.();
+      if (authStore) {
+        authStore.clearAuthForm();
+      }
     },
     
     async removeFromQuicklist(quicklistId) {
       try {
-        await this.apiCall(`${CONFIG.API.ENDPOINTS.QUICKLIST}/${quicklistId}`, {
-          method: 'DELETE'
-        });
+        const api = window.useApi();
+        await api.delete(`${CONFIG.API.ENDPOINTS.QUICKLIST}/${quicklistId}`);
         await this.loadQuicklistChores();
       } catch (error) {
         console.error('Failed to remove from quicklist:', error);
@@ -2035,6 +1881,9 @@ const app = createApp({
       const originalChores = [...choresStore.chores];
       const selectedChoreCopy = { ...selectedChore };
       
+      // Get API service
+      const api = window.useApi();
+      
       try {
         if (selectedChore.isNewFromQuicklist) {
           // Check if this quicklist chore requires details
@@ -2067,12 +1916,15 @@ const app = createApp({
           
           // OPTIMISTIC ELECTRONICS STATUS UPDATE: Update electronics status if this is an electronics chore
           if (newChore.category === 'game') {
-            this.updateElectronicsStatusOptimistically(assignTo);
+            const familyStore = window.useFamilyStore?.();
+            if (familyStore) {
+              familyStore.updateElectronicsStatusOptimistically(assignTo);
+            }
           }
           
           if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✨ Optimistic UI updated - new chore added');
           
-          // Now make API call in background
+          // Now make API call in background using useApi composable
           const choreData = {
             name: newChore.name,
             amount: newChore.amount,
@@ -2081,10 +1933,7 @@ const app = createApp({
             completed: false
           };
           
-          const response = await this.apiCall(CONFIG.API.ENDPOINTS.CHORES, {
-            method: 'POST',
-            body: JSON.stringify(choreData)
-          });
+          const response = await api.post(CONFIG.API.ENDPOINTS.CHORES, choreData);
           
           // Update the temporary chore with real data from server
           const choreIndex = choresStore.chores.findIndex(c => c.id === newChore.id);
@@ -2111,11 +1960,14 @@ const app = createApp({
             
             // OPTIMISTIC ELECTRONICS STATUS UPDATE: Update electronics status for both old and new assignees if this is an electronics chore
             if (choresStore.chores[choreIndex].category === 'game') {
-              if (oldAssignedTo && oldAssignedTo !== 'unassigned') {
-                this.updateElectronicsStatusOptimistically(oldAssignedTo);
-              }
-              if (assignTo && assignTo !== 'unassigned') {
-                this.updateElectronicsStatusOptimistically(assignTo);
+              const familyStore = window.useFamilyStore?.();
+              if (familyStore) {
+                if (oldAssignedTo && oldAssignedTo !== 'unassigned') {
+                  familyStore.updateElectronicsStatusOptimistically(oldAssignedTo);
+                }
+                if (assignTo && assignTo !== 'unassigned') {
+                  familyStore.updateElectronicsStatusOptimistically(assignTo);
+                }
               }
             }
           }
@@ -2126,11 +1978,8 @@ const app = createApp({
           
           if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✨ Optimistic UI updated - chore moved');
           
-          // Now make API call in background
-          const response = await this.apiCall(`${CONFIG.API.ENDPOINTS.CHORES}/${selectedChoreCopy.id}/assign`, {
-            method: 'PUT',
-            body: JSON.stringify({ assignedTo: assignTo })
-          });
+          // Now make API call in background using useApi composable
+          const response = await api.put(`${CONFIG.API.ENDPOINTS.CHORES}/${selectedChoreCopy.id}/assign`, { assignedTo: assignTo });
           
           // Update with server response
           if (choreIndex !== -1) {
@@ -2144,13 +1993,16 @@ const app = createApp({
         }
         
         // Reload earnings and electronics status in background (non-blocking)
-        Promise.all([
-          this.loadEarnings(),
-          this.loadElectronicsStatus(),
-          this.loadFamilyMembers()
-        ]).catch(error => {
-          console.warn('Background data refresh failed:', error);
-        });
+        const familyStore = window.useFamilyStore?.();
+        if (familyStore) {
+          Promise.all([
+            familyStore.loadEarnings(),
+            familyStore.loadElectronicsStatus(),
+            familyStore.loadMembers()
+          ]).catch(error => {
+            console.warn('Background data refresh failed:', error);
+          });
+        }
         
       } catch (error) {
         console.error('❌ Assignment failed, rolling back optimistic update:', error);
@@ -2201,20 +2053,17 @@ const app = createApp({
     },
 
     // Spending modal methods
+    // _Requirements: 4.2, 4.3, 4.5_
     openSpendingModal(person) {
-      // Capture scroll position for flyout-panel (may already be set by EarningsCard click)
-      if (typeof window.__flyoutScrollY !== 'number' || window.__flyoutScrollY === 0) {
-        window.__flyoutScrollY = window.scrollY;
-        console.log('🎯 openSpendingModal - captured scroll:', window.__flyoutScrollY);
-      }
       this.selectedPerson = person;
       this.spendAmount = 0;
       this.spendAmountString = '0';
-      this.showSpendingModal = true;
+      this.$uiStore?.openModal('spending');
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎯 openSpendingModal via uiStore');
     },
 
     closeSpendingModal() {
-      this.showSpendingModal = false;
+      this.$uiStore?.closeModal('spending');
       this.selectedPerson = null;
       this.spendAmount = 0;
       this.spendAmountString = '0';
@@ -2256,23 +2105,23 @@ const app = createApp({
         const spentAmount = this.spendAmount;
 
         if (requireApproval && isChild && canSpend) {
-          // create spend request instead of immediate deduction
-          await this.apiCall(`${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${encodeURIComponent(personName)}/spend-requests`, {
-            method: 'POST',
-            body: JSON.stringify({ amount: Number(spentAmount) })
-          });
+          // create spend request instead of immediate deduction using useApi composable
+          const api = window.useApi();
+          await api.post(`${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${encodeURIComponent(personName)}/spend-requests`, { amount: Number(spentAmount) });
           alert('Spend request submitted for approval.');
           this.closeSpendingModal();
           return;
         }
 
-        // immediate deduction (parent or approval disabled)
-        await this.apiCall(`${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${encodeURIComponent(personName)}/earnings`, {
-          method: 'PUT',
-          body: JSON.stringify({ amount: Number(spentAmount), operation: 'subtract' })
-        });
+        // immediate deduction (parent or approval disabled) using useApi composable
+        const api = window.useApi();
+        await api.put(`${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${encodeURIComponent(personName)}/earnings`, { amount: Number(spentAmount), operation: 'subtract' });
 
-        await this.loadEarnings();
+        // Reload earnings from familyStore
+        const familyStore = window.useFamilyStore?.();
+        if (familyStore) {
+          await familyStore.loadEarnings();
+        }
         this.triggerConfetti();
         this.showSuccessMessageFlag = true;
         this.completedChoreMessage = `${personName} spent $${spentAmount.toFixed(2)}!`;
@@ -2322,39 +2171,12 @@ const app = createApp({
     // NOTE: Chores bridge watchers removed - chore state now lives exclusively in choresStore
     // Components should use useChoresStore() directly
     
-    // Bridge: Sync familyStore.members → this.people
-    '$familyStore.members': {
-      deep: true,
-      handler(newMembers) {
-        if (Array.isArray(newMembers)) {
-          this.people = newMembers;
-          if (CONFIG.ENV.IS_DEVELOPMENT) {
-            console.log('🔄 [Bridge] familyStore.members → app.people synced:', newMembers.length, 'members');
-          }
-        }
-      }
-    },
+    // NOTE: Family bridge watchers removed - family state now lives exclusively in familyStore
+    // Components should use useFamilyStore() directly
     
-    // Bridge: Sync authStore.isAuthenticated → this.isAuthenticated
-    '$authStore.isAuthenticated': {
-      handler(newVal) {
-        this.isAuthenticated = newVal;
-        if (CONFIG.ENV.IS_DEVELOPMENT) {
-          console.log('🔄 [Bridge] authStore.isAuthenticated → app.isAuthenticated synced:', newVal);
-        }
-      }
-    },
-    
-    // Bridge: Sync authStore.currentUser → this.currentUser
-    '$authStore.currentUser': {
-      deep: true,
-      handler(newUser) {
-        this.currentUser = newUser;
-        if (CONFIG.ENV.IS_DEVELOPMENT) {
-          console.log('🔄 [Bridge] authStore.currentUser → app.currentUser synced:', newUser?.displayName || newUser?.name || 'null');
-        }
-      }
-    },
+    // NOTE: Auth bridge watchers removed - auth state now accessed via computed properties
+    // that delegate to authStore. Components should use useAuthStore() directly.
+    // _Requirements: 3.5_
     
     // Bridge: Sync uiStore.currentPage → this.currentPage
     // **Feature: app-js-refactoring**
@@ -2365,26 +2187,6 @@ const app = createApp({
           this.currentPage = newPage;
           if (CONFIG.ENV.IS_DEVELOPMENT) {
             console.log('🔄 [Bridge] uiStore.currentPage → app.currentPage synced:', newPage);
-          }
-        }
-      }
-    },
-    
-    // Reverse Bridge: Sync this.people → familyStore.members
-    // This ensures the family store is populated when app.js loads data from API
-    // **Feature: app-js-refactoring**
-    // **Validates: Requirements 8.1, 8.2**
-    people: {
-      deep: true,
-      handler(newPeople) {
-        if (Array.isArray(newPeople) && window.useFamilyStore) {
-          const familyStore = window.useFamilyStore();
-          // Only sync if the store has different data (avoid infinite loops)
-          if (JSON.stringify(familyStore.members) !== JSON.stringify(newPeople)) {
-            familyStore.members = newPeople;
-            if (CONFIG.ENV.IS_DEVELOPMENT) {
-              console.log('🔄 [Bridge] app.people → familyStore.members synced:', newPeople.length, 'members');
-            }
           }
         }
       }
@@ -2417,7 +2219,10 @@ const app = createApp({
       // check if authService exists
       if (typeof authService === 'undefined') {
         console.error('❌ authService not found! Check if auth.js loaded properly.');
-        this.isAuthenticated = false;
+        const authStore = window.useAuthStore?.();
+        if (authStore) {
+          authStore.isAuthenticated = false;
+        }
         this.loading = false;
         return;
       }
@@ -2433,10 +2238,14 @@ const app = createApp({
       
       // PHASE 1: Authentication
       const isAuthenticated = await authService.initializeAuth();
+      const authStore = window.useAuthStore?.();
       
       if (isAuthenticated) {
-        this.isAuthenticated = true;
-        this.currentUser = authService.currentUser;
+        // Update authStore with authentication state
+        if (authStore) {
+          authStore.isAuthenticated = true;
+          authStore.currentUser = authService.currentUser;
+        }
         if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ [Phase 1] User is authenticated:', this.currentUser);
         
         // Complete auth phase: fetch user/memberships to prime X-Account-Id
@@ -2471,14 +2280,18 @@ const app = createApp({
       if (inviteToken) {
         // if auth was cleared during load due to 401s, pivot to signup flow instead of prompting accept
         if (!this.isAuthenticated || !authService.getAuthHeader()) {
-          this.pendingInviteToken = inviteToken;
+          if (authStore) {
+            authStore.pendingInviteToken = inviteToken;
+          }
           this.showSignupForm();
         } else {
           const accept = confirm('You have been invited to join a family account. Accept invitation?');
           if (accept) {
             // prevent auth-required popup by deferring accept until after data loads and ensuring auth header exists
             if (!authService.getAuthHeader()) {
-              this.pendingInviteToken = inviteToken;
+              if (authStore) {
+                authStore.pendingInviteToken = inviteToken;
+              }
               this.showSignupForm();
             } else {
               await this.acceptParentInvite(inviteToken);
@@ -2490,7 +2303,9 @@ const app = createApp({
       }
       } else {
         if (CONFIG.ENV.IS_DEVELOPMENT) console.log('❌ [Phase 1] User not authenticated - ready for login');
-        this.isAuthenticated = false;
+        if (authStore) {
+          authStore.isAuthenticated = false;
+        }
         this.loading = false;
 
         // PHASE 2: Theme for unauthenticated users (login page)
@@ -2503,7 +2318,9 @@ const app = createApp({
           const url = new URL(window.location.href);
           const inviteToken = url.searchParams.get('invite');
           if (inviteToken) {
-            this.pendingInviteToken = inviteToken;
+            if (authStore) {
+              authStore.pendingInviteToken = inviteToken;
+            }
             // default to signup flow for invited users
             this.showSignupForm();
           }
@@ -2513,7 +2330,10 @@ const app = createApp({
       }
     } catch (error) {
       console.error('❌ Error during app initialization:', error);
-      this.isAuthenticated = false;
+      const authStore = window.useAuthStore?.();
+      if (authStore) {
+        authStore.isAuthenticated = false;
+      }
       this.loading = false;
     }
   },
@@ -2584,10 +2404,17 @@ const app = createApp({
         return store?.choresByPerson || {};
       }),
       // expose only members enabled for chores on chores page by default; family page iterates over same array but includes toggle to change flag
-      // filtered list for boards (Chores page)
-      people: Vue.computed(() => (this.people || []).filter(p => p.enabledForChores !== false)),
-      // unfiltered list for Family page management
-      allPeople: Vue.computed(() => this.people || []),
+      // filtered list for boards (Chores page) - now uses familyStore
+      people: Vue.computed(() => {
+        const familyStore = window.useFamilyStore?.();
+        const members = familyStore?.members || [];
+        return members.filter(p => p.showOnChoreBoard !== false);
+      }),
+      // unfiltered list for Family page management - now uses familyStore
+      allPeople: Vue.computed(() => {
+        const familyStore = window.useFamilyStore?.();
+        return familyStore?.members || [];
+      }),
       personToDelete: Vue.computed(() => this.personToDelete),
       
       // Shopping page data - provided from Pinia store (single source of truth)
@@ -2607,7 +2434,11 @@ const app = createApp({
       // Preloaded account page data
       accountSettings: Vue.computed(() => this.accountSettings),
       accountId: Vue.computed(() => this.accountId),
-      spendingRequests: Vue.computed(() => this.spendingRequests || []),
+      // spendingRequests now uses familyStore
+      spendingRequests: Vue.computed(() => {
+        const familyStore = window.useFamilyStore?.();
+        return familyStore?.spendingRequests || [];
+      }),
       
       // Modal state computed values (readonly)
       showAddToQuicklistModal: Vue.computed(() => this.showAddToQuicklistModal),
@@ -2645,18 +2476,16 @@ const app = createApp({
       spendAmountString: Vue.computed(() => this.spendAmountString),
       currentPage: Vue.computed(() => this.currentPage),
       
-      // Authentication modal state
-      showLoginModal: Vue.computed(() => this.showLoginModal),
-      showSignupModal: Vue.computed(() => this.showSignupModal),
-      showConfirmModal: Vue.computed(() => this.showConfirmModal),
-      authError: Vue.computed(() => this.authError),
-      authLoading: Vue.computed(() => this.authLoading),
+      // NOTE: Authentication modal state now accessed via computed properties
+      // that delegate to uiStore and authStore. Components should use
+      // useAuthStore() and useUIStore() directly.
+      // _Requirements: 3.5_
       
       // Form data as reactive refs
       newQuicklistChore: Vue.toRef(this, 'newQuicklistChore'),
       newPerson: Vue.toRef(this, 'newPerson'),
       newChore: Vue.toRef(this, 'newChore'),
-      authForm: Vue.toRef(this, 'authForm'),
+      // NOTE: authForm now accessed via authStore.authForm
       choreDetailsForm: Vue.toRef(this, 'choreDetailsForm'),
       
       // Provide methods that child components need
@@ -2704,7 +2533,8 @@ const app = createApp({
       executeDeletePerson: this.executeDeletePerson,
       cancelDeletePerson: this.cancelDeletePerson,
       triggerConfetti: this.triggerConfetti,
-      loadEarnings: this.loadEarnings,
+      // NOTE: loadEarnings moved to familyStore.loadEarnings()
+      // Components should use useFamilyStore().loadEarnings() instead
       showSuccessMessage: this.showSuccessMessage,
       
       // Data reload methods for child components
@@ -2724,7 +2554,10 @@ const app = createApp({
       // User data
       currentUser: Vue.computed(() => this.currentUser),
       
-      // Authentication methods
+      // NOTE: Authentication methods now delegate to authStore
+      // Components should use useAuthStore() directly for auth operations
+      // These are kept for backward compatibility during migration
+      // _Requirements: 3.5_
       handleLogin: this.handleLogin,
       handleSignup: this.handleSignup,
       handleConfirmSignup: this.handleConfirmSignup,
@@ -2739,8 +2572,9 @@ const app = createApp({
       loadSpendingRequests: this.loadSpendingRequests,
       approveSpendingRequest: this.approveSpendingRequest
       ,
-      // shared api helper
-      apiCall: this.apiCall,
+      // NOTE: apiCall removed - use window.useApi() composable instead
+      // Components should call: const api = window.useApi(); api.call(endpoint, options)
+      // _Requirements: 5.5_
       
       // Categories store for category management
       categoriesStore: Vue.computed(() => window.useCategoriesStore?.())

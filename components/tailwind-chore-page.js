@@ -686,8 +686,8 @@ const PersonCard = {
 
         <!-- Electronics status -->
         <div class="flex items-center gap-2">
-          <div :style="getElectronicsStatusStyle(person.electronicsStatus.status)" class="px-2 py-1 rounded-full text-xs font-medium">
-            {{ getElectronicsStatusText(person.electronicsStatus.status) }}
+          <div :style="getElectronicsStatusStyle(person.electronicsStatus?.status)" class="px-2 py-1 rounded-full text-xs font-medium">
+            {{ getElectronicsStatusText(person.electronicsStatus?.status) }}
           </div>
         </div>
       </div>

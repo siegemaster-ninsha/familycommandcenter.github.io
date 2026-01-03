@@ -894,7 +894,8 @@ const AppModals = Vue.defineComponent({
     'showAddChoreModal', 'newChore', 'showNewDayModal', 'newDayLoading',
     'showChoreDetailsModal', 'choreDetailsForm',
     'showSpendingModal', 'selectedPerson', 'spendAmount', 'spendAmountString',
-    'showLoginModal', 'showSignupModal', 'showConfirmModal', 'authForm', 'authError', 'authLoading',
+    // NOTE: Auth modal state (showLoginModal, showSignupModal, showConfirmModal, authForm, authError, authLoading)
+    // now accessed via authStore directly - see setup() and computed properties
     'showMultiAssignModal', 'selectedQuicklistChore', 'multiAssignSelectedMembers',
     // **Feature: habit-tracking** - Habit flyout
     'showHabitFlyout', 'habitFlyoutMemberId', 'editingHabit', 'habitForm', 'habitFormError', 'habitFormSubmitting',
@@ -903,7 +904,8 @@ const AppModals = Vue.defineComponent({
     'executeDeletePerson', 'cancelDeletePerson',
     'confirmChoreDetails', 'cancelChoreDetails',
     'closeSpendingModal', 'addDigit', 'addDecimal', 'clearSpendAmount', 'confirmSpending',
-    'handleLogin', 'handleSignup', 'handleConfirmSignup', 'showLoginForm', 'showSignupForm', 'closeAuthModals',
+    // NOTE: Auth methods (handleLogin, handleSignup, handleConfirmSignup, showLoginForm, showSignupForm, closeAuthModals)
+    // now accessed via authStore directly - see setup() and computed properties
     'confirmMultiAssignment', 'cancelMultiAssignment',
     // add child / invite parent modals
     'showCreateChildModal', 'showInviteModal', 'closeCreateChildModal', 'closeInviteModal',
@@ -945,6 +947,26 @@ const AppModals = Vue.defineComponent({
     },
     accountSettings() {
       return this.authStore.accountSettings;
+    },
+    // Auth modal state - now from authStore
+    // _Requirements: 3.1, 3.2, 3.5_
+    showLoginModal() {
+      return this.uiStore.isModalOpen('login');
+    },
+    showSignupModal() {
+      return this.uiStore.isModalOpen('signup');
+    },
+    showConfirmModal() {
+      return this.uiStore.isModalOpen('confirm');
+    },
+    authForm() {
+      return this.authStore.authForm;
+    },
+    authError() {
+      return this.authStore.authError;
+    },
+    authLoading() {
+      return this.authStore.authLoading;
     }
   },
   methods: {
@@ -953,6 +975,54 @@ const AppModals = Vue.defineComponent({
     // These methods delegate to stores instead of $parent
     // _Requirements: 4.2, 4.3, 7.1, 7.2_
     // =============================================
+
+    // =============================================
+    // AUTH STORE DELEGATION METHODS
+    // These methods delegate to authStore instead of app.js
+    // _Requirements: 3.2, 3.3, 3.5_
+    // =============================================
+
+    /**
+     * Handle login - delegates to authStore
+     */
+    async handleLogin() {
+      await this.authStore.handleLogin();
+    },
+
+    /**
+     * Handle signup - delegates to authStore
+     */
+    async handleSignup() {
+      await this.authStore.handleSignup();
+    },
+
+    /**
+     * Handle signup confirmation - delegates to authStore
+     */
+    async handleConfirmSignup() {
+      await this.authStore.handleConfirmSignup();
+    },
+
+    /**
+     * Show login form - delegates to authStore
+     */
+    showLoginForm() {
+      this.authStore.showLoginForm();
+    },
+
+    /**
+     * Show signup form - delegates to authStore
+     */
+    showSignupForm() {
+      this.authStore.showSignupForm();
+    },
+
+    /**
+     * Close auth modals - delegates to authStore
+     */
+    closeAuthModals() {
+      this.authStore.closeAuthModals();
+    },
 
     /**
      * Close the habit flyout
