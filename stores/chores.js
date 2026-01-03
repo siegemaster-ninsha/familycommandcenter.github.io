@@ -912,6 +912,73 @@ const useChoresStore = Pinia.defineStore('chores', {
       }
     },
     
+    /**
+     * Update the category for a quicklist chore
+     * Uses optimistic update with rollback on error
+     * 
+     * **Feature: quicklist-categories**
+     * **Validates: Requirements 1.4**
+     * 
+     * @param {Object} chore - The quicklist chore to update
+     * @param {string} categoryId - New category ID
+     * @param {string} categoryName - New category name
+     * @returns {Promise<{success: boolean, error?: string}>}
+     */
+    async updateQuicklistCategory(chore, categoryId, categoryName) {
+      if (!chore || !chore.id) {
+        console.error('[updateQuicklistCategory] Invalid chore');
+        return { success: false, error: 'Invalid chore' };
+      }
+      
+      // Find the quicklist chore in state
+      const quicklistChore = this.quicklistChores.find(c => c.id === chore.id);
+      if (!quicklistChore) {
+        console.error('[updateQuicklistCategory] Quicklist chore not found:', chore.id);
+        return { success: false, error: 'Quicklist chore not found' };
+      }
+      
+      // Store original values for rollback
+      const originalCategoryId = quicklistChore.categoryId;
+      const originalCategoryName = quicklistChore.categoryName;
+      
+      // Optimistic update
+      quicklistChore.categoryId = categoryId || null;
+      quicklistChore.categoryName = categoryName || null;
+      
+      try {
+        // Use serverId if available (for optimistically created items)
+        const apiId = quicklistChore.serverId || quicklistChore.id;
+        
+        await apiService.put(`${CONFIG.API.ENDPOINTS.QUICKLIST}/${apiId}`, {
+          categoryId: categoryId || null,
+          categoryName: categoryName || null
+        });
+        
+        // Show success message
+        const uiStore = window.useUIStore?.();
+        if (uiStore) {
+          const displayName = categoryName || 'Uncategorized';
+          uiStore.showSuccess(`Moved to "${displayName}"`);
+        }
+        
+        console.log('[OK] Quicklist category updated:', chore.id, '->', categoryName);
+        return { success: true };
+      } catch (error) {
+        // Rollback on error
+        quicklistChore.categoryId = originalCategoryId;
+        quicklistChore.categoryName = originalCategoryName;
+        
+        console.error('[updateQuicklistCategory] Failed:', error);
+        
+        const uiStore = window.useUIStore?.();
+        if (uiStore) {
+          uiStore.showError('Failed to update category');
+        }
+        
+        return { success: false, error: error.message };
+      }
+    },
+    
     // form helpers
     resetNewChoreForm() {
       this.newChore = {

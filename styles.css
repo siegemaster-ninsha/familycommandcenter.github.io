@@ -4990,6 +4990,89 @@ html {
   color: var(--color-primary-700);
 }
 
+/* ===========================================
+   QUICKLIST CATEGORY DROPDOWN STYLES
+   Feature: quicklist-categories
+   =========================================== */
+
+/* Dropdown wrapper in quicklist cards */
+.chore-card-actions-row .dropdown-wrapper {
+  display: inline-flex;
+}
+
+/* Category dropdown button styling */
+.chore-category-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-2);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.chore-category-btn:hover {
+  background: var(--color-primary-100);
+  color: var(--color-primary-600);
+}
+
+/* Dropdown panel styling - no scrollbar, show all items */
+.chore-card-actions-row sl-dropdown::part(panel) {
+  z-index: 9999;
+  background: var(--color-surface-3);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  min-width: 160px;
+  max-height: none;
+  overflow: visible;
+  border: 1px solid var(--color-border-card);
+}
+
+/* Menu styling - no scroll, show all categories */
+.chore-card-actions-row sl-dropdown sl-menu {
+  background: transparent;
+  padding: var(--space-2) 0;
+  max-height: none;
+  overflow: visible;
+}
+
+.chore-card-actions-row sl-dropdown sl-menu::part(base) {
+  max-height: none;
+  overflow: visible;
+}
+
+/* Menu item styling */
+.chore-card-actions-row sl-dropdown sl-menu-item::part(base) {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  transition: background 150ms ease;
+}
+
+.chore-card-actions-row sl-dropdown sl-menu-item::part(base):hover {
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+}
+
+/* Hide check icon on menu items */
+.chore-card-actions-row sl-dropdown sl-menu-item::part(checked-icon) {
+  display: none;
+}
+
+/* Hide menu when dropdown is closed */
+.chore-card-actions-row sl-dropdown:not([open]) sl-menu {
+  display: none !important;
+}
+
+/* Ensure menu is visible when open */
+.chore-card-actions-row sl-dropdown[open] sl-menu {
+  display: block;
+}
+
 /* Selected chore card state */
 .quicklist-accordion sl-card.chore-card--selected::part(base) {
   background: var(--color-primary-600);
