@@ -6,7 +6,8 @@
  * 
  * Features:
  * - Multiple calendars with color coding
- * - Week view with upcoming events
+ * - List view with upcoming events
+ * - Full month grid view with day selection
  * - All-day vs timed events
  * - Event details on hover/click
  * - Configurable date range
@@ -71,6 +72,17 @@ CalendarWidgetMetadata.settings = {
       required: false,
       default: false,
       toggleLabel: 'Compact view'
+    },
+    defaultView: {
+      type: 'select',
+      label: 'Default View',
+      description: 'Which view to show by default',
+      required: false,
+      default: 'list',
+      options: [
+        { value: 'list', label: 'List View' },
+        { value: 'month', label: 'Month View' }
+      ]
     }
   }
 };
@@ -105,6 +117,9 @@ const CalendarWidget = {
       newCalendarUrl: '',
       configError: null,
       selectedEvent: null,
+      selectedDate: null,
+      viewMode: 'list', // 'list' or 'month'
+      currentMonth: new Date(),
       _hasFetched: false
     };
   },
@@ -120,6 +135,10 @@ const CalendarWidget = {
     
     compactView() {
       return this.config?.settings?.compactView === true;
+    },
+    
+    defaultView() {
+      return this.config?.settings?.defaultView || 'list';
     },
     
     filteredEvents() {
@@ -165,6 +184,67 @@ const CalendarWidget = {
     // Watch for accountId from root app
     rootAccountId() {
       return this.$root?.accountId;
+    },
+    
+    // Month view computed properties
+    currentMonthLabel() {
+      return this.currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    },
+    
+    calendarDays() {
+      const year = this.currentMonth.getFullYear();
+      const month = this.currentMonth.getMonth();
+      
+      // First day of the month
+      const firstDay = new Date(year, month, 1);
+      // Last day of the month
+      const lastDay = new Date(year, month + 1, 0);
+      
+      // Start from Sunday of the week containing the first day
+      const startDate = new Date(firstDay);
+      startDate.setDate(startDate.getDate() - firstDay.getDay());
+      
+      // End on Saturday of the week containing the last day
+      const endDate = new Date(lastDay);
+      endDate.setDate(endDate.getDate() + (6 - lastDay.getDay()));
+      
+      const days = [];
+      const current = new Date(startDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      while (current <= endDate) {
+        const dateKey = current.toISOString().split('T')[0];
+        const dayEvents = this.getEventsForDate(current);
+        
+        days.push({
+          date: new Date(current),
+          day: current.getDate(),
+          isCurrentMonth: current.getMonth() === month,
+          isToday: current.getTime() === today.getTime(),
+          hasEvents: dayEvents.length > 0,
+          eventCount: dayEvents.length,
+          events: dayEvents.slice(0, 3) // Show max 3 event indicators
+        });
+        
+        current.setDate(current.getDate() + 1);
+      }
+      
+      return days;
+    },
+    
+    selectedDateEvents() {
+      if (!this.selectedDate) return [];
+      return this.getEventsForDate(this.selectedDate);
+    },
+    
+    selectedDateLabel() {
+      if (!this.selectedDate) return '';
+      return this.selectedDate.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        month: 'long', 
+        day: 'numeric' 
+      });
     }
   },
   
@@ -177,6 +257,17 @@ const CalendarWidget = {
           console.log('CalendarWidget: accountId now available, fetching data...');
           this._hasFetched = true;
           this.onRefresh();
+        }
+      }
+    },
+    
+    // Set initial view mode from settings
+    defaultView: {
+      immediate: true,
+      handler(newVal) {
+        if (newVal && !this._viewModeSet) {
+          this.viewMode = newVal;
+          this._viewModeSet = true;
         }
       }
     }
@@ -203,9 +294,14 @@ const CalendarWidget = {
           return;
         }
         
+        // Fetch events for a wider range to support month view
         const startDate = new Date();
+        startDate.setDate(1);
+        startDate.setMonth(startDate.getMonth() - 1); // Include previous month
+        
         const endDate = new Date();
-        endDate.setDate(endDate.getDate() + this.daysToShow);
+        endDate.setMonth(endDate.getMonth() + 2); // Include next month
+        endDate.setDate(0); // Last day of next month
         
         const eventsResponse = await this.fetchApi(
           `/calendar/events?start=${startDate.toISOString()}&end=${endDate.toISOString()}`
@@ -309,6 +405,53 @@ const CalendarWidget = {
     
     closeEventDetails() {
       this.selectedEvent = null;
+    },
+    
+    // View toggle methods
+    toggleView() {
+      this.viewMode = this.viewMode === 'list' ? 'month' : 'list';
+      this.selectedDate = null;
+    },
+    
+    // Month navigation
+    previousMonth() {
+      const newMonth = new Date(this.currentMonth);
+      newMonth.setMonth(newMonth.getMonth() - 1);
+      this.currentMonth = newMonth;
+      this.selectedDate = null;
+    },
+    
+    nextMonth() {
+      const newMonth = new Date(this.currentMonth);
+      newMonth.setMonth(newMonth.getMonth() + 1);
+      this.currentMonth = newMonth;
+      this.selectedDate = null;
+    },
+    
+    goToToday() {
+      this.currentMonth = new Date();
+      this.selectedDate = new Date();
+      this.selectedDate.setHours(0, 0, 0, 0);
+    },
+    
+    // Day selection
+    selectDay(day) {
+      if (day.isCurrentMonth) {
+        this.selectedDate = new Date(day.date);
+      }
+    },
+    
+    // Get events for a specific date
+    getEventsForDate(date) {
+      const dateKey = date.toISOString().split('T')[0];
+      return this.filteredEvents.filter(event => {
+        const eventDate = new Date(event.start);
+        return eventDate.toISOString().split('T')[0] === dateKey;
+      });
+    },
+    
+    closeDayEvents() {
+      this.selectedDate = null;
     }
   },
   
@@ -321,6 +464,10 @@ const CalendarWidget = {
           <span v-if="calendars.length > 0" class="text-xs text-gray-500 ml-2">({{ calendars.length }})</span>
         </h3>
         <div class="widget-actions">
+          <!-- View Toggle -->
+          <button v-if="configured" @click="toggleView" class="widget-action-btn view-toggle-btn" :title="viewMode === 'list' ? 'Month View' : 'List View'">
+            <span v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon(viewMode === 'list' ? 'calendar-days' : 'list', 'lucide', 16) : ''"></span>
+          </button>
           <button v-if="configured && isParent" @click="configuring = !configuring" class="widget-action-btn" title="Manage Calendars">
             <span v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('settings', 'lucide', 16) : ''"></span>
           </button>
@@ -381,7 +528,85 @@ const CalendarWidget = {
           <p v-else class="text-sm text-gray-500 mt-2">Ask a parent to set up calendars</p>
         </div>
         
-        <!-- Events List -->
+        <!-- Month View -->
+        <div v-else-if="viewMode === 'month'" class="calendar-month-view">
+          <!-- Month Navigation -->
+          <div class="month-nav">
+            <button @click="previousMonth" class="month-nav-btn" title="Previous Month">
+              <span v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('chevron-left', 'lucide', 18) : ''"></span>
+            </button>
+            <span class="month-label">{{ currentMonthLabel }}</span>
+            <button @click="nextMonth" class="month-nav-btn" title="Next Month">
+              <span v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('chevron-right', 'lucide', 18) : ''"></span>
+            </button>
+            <button @click="goToToday" class="today-btn" title="Go to Today">Today</button>
+          </div>
+          
+          <!-- Day Headers -->
+          <div class="calendar-grid-header">
+            <div class="day-header">Sun</div>
+            <div class="day-header">Mon</div>
+            <div class="day-header">Tue</div>
+            <div class="day-header">Wed</div>
+            <div class="day-header">Thu</div>
+            <div class="day-header">Fri</div>
+            <div class="day-header">Sat</div>
+          </div>
+          
+          <!-- Calendar Grid -->
+          <div class="calendar-grid">
+            <div 
+              v-for="(day, index) in calendarDays" 
+              :key="index"
+              class="calendar-day"
+              :class="{
+                'other-month': !day.isCurrentMonth,
+                'today': day.isToday,
+                'has-events': day.hasEvents,
+                'selected': selectedDate && day.date.getTime() === selectedDate.getTime()
+              }"
+              @click="selectDay(day)"
+            >
+              <span class="day-number">{{ day.day }}</span>
+              <div v-if="day.hasEvents" class="event-dots">
+                <span 
+                  v-for="(event, i) in day.events" 
+                  :key="i" 
+                  class="event-dot"
+                  :style="{ background: getCalendarColor(event.calendarId) }"
+                ></span>
+                <span v-if="day.eventCount > 3" class="more-events">+{{ day.eventCount - 3 }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Selected Day Events Panel -->
+          <div v-if="selectedDate" class="day-events-panel">
+            <div class="day-events-header">
+              <h4>{{ selectedDateLabel }}</h4>
+              <button @click="closeDayEvents" class="btn-close">×</button>
+            </div>
+            <div class="day-events-list">
+              <div v-if="selectedDateEvents.length === 0" class="no-events">
+                <span v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('calendar-check', 'lucide', 24, 'text-gray-400') : ''"></span>
+                <p>No events</p>
+              </div>
+              <div 
+                v-for="event in selectedDateEvents" 
+                :key="event.id" 
+                class="event-item"
+                :class="{ 'all-day': event.allDay }"
+                @click="showEventDetails(event)"
+              >
+                <span class="calendar-color-dot" :style="{ background: getCalendarColor(event.calendarId) }"></span>
+                <span class="event-time">{{ formatEventTime(event) }}</span>
+                <span class="event-title">{{ event.title }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- List View (existing) -->
         <div v-else-if="hasEvents" class="calendar-events" :class="{ 'compact': compactView }">
           <div v-for="group in groupedEvents" :key="group.date.toISOString()" class="event-group">
             <div class="event-date-header">{{ group.label }}</div>
