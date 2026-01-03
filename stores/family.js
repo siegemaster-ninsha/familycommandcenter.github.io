@@ -57,10 +57,16 @@ const useFamilyStore = Pinia.defineStore('family', {
     isUsingCachedData: false,
     
     // form states
+    // _Requirements: 1.4_
     childForm: {
       username: '',
       password: '',
       displayName: ''
+    },
+    
+    // _Requirements: 1.5_
+    newPerson: {
+      name: ''
     },
     
     inviteData: {
@@ -70,8 +76,18 @@ const useFamilyStore = Pinia.defineStore('family', {
     
     pendingInviteToken: null,
     
+    // Spending modal state
+    // _Requirements: 3.1, 3.2_
+    selectedPerson: null,
     spendAmount: 0,
-    spendAmountString: '0'
+    spendAmountString: '0',
+    
+    // Modal state
+    // _Requirements: 4.2_
+    // Default order modal data
+    defaultOrderMember: null,
+    // Person delete modal data
+    personToDelete: null
   }),
   
   getters: {
@@ -1002,11 +1018,19 @@ const useFamilyStore = Pinia.defineStore('family', {
     },
     
     // form helpers
+    // _Requirements: 1.4_
     resetChildForm() {
       this.childForm = {
         username: '',
         password: '',
         displayName: ''
+      };
+    },
+    
+    // _Requirements: 1.5_
+    resetNewPersonForm() {
+      this.newPerson = {
+        name: ''
       };
     },
     
@@ -1020,6 +1044,360 @@ const useFamilyStore = Pinia.defineStore('family', {
     setSpendAmount(amount) {
       this.spendAmount = amount;
       this.spendAmountString = amount.toString();
+    },
+    
+    // =============================================
+    // SPENDING MODAL ACTIONS
+    // _Requirements: 3.3_
+    // =============================================
+    
+    /**
+     * Open the spending modal for a person
+     * @param {Object} person - The person to spend money for
+     */
+    openSpendingModal(person) {
+      this.selectedPerson = person;
+      this.spendAmount = 0;
+      this.spendAmountString = '0';
+      const uiStore = window.useUIStore?.();
+      uiStore?.openModal('spending');
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎯 openSpendingModal via familyStore');
+    },
+    
+    /**
+     * Close the spending modal and reset state
+     */
+    closeSpendingModal() {
+      const uiStore = window.useUIStore?.();
+      uiStore?.closeModal('spending');
+      this.selectedPerson = null;
+      this.spendAmount = 0;
+      this.spendAmountString = '0';
+    },
+    
+    /**
+     * Add a digit to the spend amount string
+     * Handles leading zero removal
+     * @param {number} digit - The digit to add (0-9)
+     * 
+     * **Feature: app-js-cleanup, Property 2: Spending Amount Digit Accumulation**
+     * **Validates: Requirements 3.2, 3.3**
+     */
+    addDigit(digit) {
+      if (this.spendAmountString === '0') {
+        this.spendAmountString = digit.toString();
+      } else {
+        this.spendAmountString += digit.toString();
+      }
+      this.updateSpendAmount();
+    },
+    
+    /**
+     * Add a decimal point to the spend amount string
+     * Only adds if no decimal exists
+     * 
+     * **Feature: app-js-cleanup, Property 3: Spending Amount Decimal Handling**
+     * **Validates: Requirements 3.2, 3.3**
+     */
+    addDecimal() {
+      if (!this.spendAmountString.includes('.')) {
+        this.spendAmountString += '.';
+        this.updateSpendAmount();
+      }
+    },
+    
+    /**
+     * Clear the spend amount to zero
+     */
+    clearSpendAmount() {
+      this.spendAmountString = '0';
+      this.spendAmount = 0;
+    },
+    
+    /**
+     * Update the numeric spendAmount from the string representation
+     */
+    updateSpendAmount() {
+      const amount = parseFloat(this.spendAmountString);
+      this.spendAmount = isNaN(amount) ? 0 : Number(amount);
+    },
+    
+    // =============================================
+    // DEFAULT ORDER MODAL ACTIONS
+    // _Requirements: 4.2_
+    // =============================================
+    
+    /**
+     * Open the default order modal for a family member
+     * @param {Object} member - The family member to set default order for
+     */
+    openDefaultOrderModal(member) {
+      this.defaultOrderMember = member;
+      const uiStore = window.useUIStore?.();
+      uiStore?.openModal('defaultOrder');
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎯 openDefaultOrderModal via familyStore');
+    },
+    
+    /**
+     * Close the default order modal and reset state
+     */
+    closeDefaultOrderModal() {
+      const uiStore = window.useUIStore?.();
+      uiStore?.closeModal('defaultOrder');
+      this.defaultOrderMember = null;
+    },
+    
+    // =============================================
+    // DELETE PERSON MODAL ACTIONS
+    // _Requirements: 4.2_
+    // =============================================
+    
+    /**
+     * Open the delete person confirmation modal
+     * @param {Object} person - The person to delete
+     */
+    openDeletePersonModal(person) {
+      this.personToDelete = person;
+      const uiStore = window.useUIStore?.();
+      uiStore?.openModal('deletePerson');
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎯 openDeletePersonModal via familyStore');
+    },
+    
+    /**
+     * Close the delete person modal and reset state
+     */
+    closeDeletePersonModal() {
+      const uiStore = window.useUIStore?.();
+      uiStore?.closeModal('deletePerson');
+      this.personToDelete = null;
+    },
+    
+    // =============================================
+    // SPENDING CONFIRMATION
+    // _Requirements: 5.7_
+    // =============================================
+    
+    /**
+     * Confirm spending for the selected person
+     * Deducts the spend amount from the person's earnings
+     * 
+     * @returns {Promise<{success: boolean, error?: string}>}
+     * 
+     * **Feature: app-js-cleanup, Property 6: Spending Deduction Correctness**
+     * **Validates: Requirements 5.7**
+     */
+    async confirmSpending() {
+      if (!this.selectedPerson) {
+        return { success: false, error: 'No person selected' };
+      }
+      
+      const spendAmount = this.spendAmount;
+      const maxAmount = this.selectedPerson.earnings || 0;
+      
+      if (spendAmount <= 0) {
+        return { success: false, error: 'Spend amount must be greater than zero' };
+      }
+      
+      if (spendAmount > maxAmount) {
+        return { success: false, error: 'Spend amount exceeds available earnings' };
+      }
+      
+      // Check if feature is available offline
+      const offlineStore = window.useOfflineStore ? window.useOfflineStore() : null;
+      if (offlineStore && !offlineStore.isFeatureAvailable('spending')) {
+        const message = offlineStore.getDisabledFeatureMessage('spending') || 'Spending requires network connectivity';
+        console.warn('[WARN] Cannot process spending while offline');
+        const uiStore = window.useUIStore?.();
+        uiStore?.showError(message);
+        return { success: false, error: message, offlineBlocked: true };
+      }
+      
+      const personName = this.selectedPerson.displayName || this.selectedPerson.name;
+      
+      try {
+        // Make API call to deduct earnings
+        const encodedName = encodeURIComponent(personName);
+        await apiService.put(
+          `${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${encodedName}/earnings`,
+          { amount: Number(spendAmount), operation: 'subtract' }
+        );
+        
+        // Optimistically update earnings instead of reloading all members
+        // This avoids showing skeleton loading state
+        this.updateMemberEarnings(personName, -spendAmount, 0);
+        
+        // Show success
+        const uiStore = window.useUIStore?.();
+        uiStore?.showSuccess(`${personName} spent $${spendAmount.toFixed(2)}!`);
+        
+        // Close the modal
+        this.closeSpendingModal();
+        
+        console.log('[OK] Spending confirmed:', personName, spendAmount);
+        return { success: true };
+      } catch (error) {
+        console.error('Failed to process spending:', error);
+        const uiStore = window.useUIStore?.();
+        uiStore?.showError('Failed to process spending');
+        return { success: false, error: error.message };
+      }
+    },
+    
+    // =============================================
+    // FAMILY MEMBER DISPLAY NAME UPDATE
+    // _Requirements: 5.8_
+    // =============================================
+    
+    /**
+     * Update a family member's display name
+     * Only works for user-linked members (not legacy/manual rows)
+     * 
+     * @param {Object} person - The person to update
+     * @returns {Promise<{success: boolean, error?: string}>}
+     */
+    async updateFamilyMemberDisplayName(person) {
+      // Require user-linked member to update profile; disallow for legacy/manual rows
+      if (!person?.userId) {
+        return { success: false, error: 'Cannot update display name for non-user-linked members' };
+      }
+      
+      // Check if feature is available offline
+      const offlineStore = window.useOfflineStore ? window.useOfflineStore() : null;
+      if (offlineStore && !offlineStore.isFeatureAvailable('updateMember')) {
+        const message = offlineStore.getDisabledFeatureMessage('updateMember') || 'Updating members requires network connectivity';
+        console.warn('[WARN] Cannot update display name while offline');
+        const uiStore = window.useUIStore?.();
+        uiStore?.showError(message);
+        return { success: false, error: message, offlineBlocked: true };
+      }
+      
+      try {
+        await apiService.post(CONFIG.API.ENDPOINTS.FAMILY_MEMBERS, {
+          userId: person.userId,
+          displayName: person.displayName || person.name,
+          name: person.displayName || person.name
+        });
+        
+        // Reload family members
+        await this.loadMembers(false);
+        
+        console.log('[OK] Display name updated:', person.displayName || person.name);
+        return { success: true };
+      } catch (error) {
+        console.warn('Failed to update display name:', error);
+        return { success: false, error: error.message };
+      }
+    },
+    
+    // =============================================
+    // MEMBER CHORES ENABLED (VISIBILITY) UPDATE
+    // _Requirements: 5.9_
+    // =============================================
+    
+    /**
+     * Update whether a member is enabled for chores (visible on chore board)
+     * Persists the setting to account preferences
+     * 
+     * @param {Object} person - The person to update (must have enabledForChores property set)
+     * @returns {Promise<{success: boolean, error?: string}>}
+     */
+    async updateMemberChoresEnabledSetting(person) {
+      const authStore = window.useAuthStore?.();
+      const uiStore = window.useUIStore?.();
+      
+      // Check if feature is available offline
+      const offlineStore = window.useOfflineStore ? window.useOfflineStore() : null;
+      if (offlineStore && !offlineStore.isFeatureAvailable('settings')) {
+        const message = offlineStore.getDisabledFeatureMessage('settings') || 'Settings changes require network connectivity';
+        console.warn('[WARN] Cannot update member visibility while offline');
+        uiStore?.showError(message);
+        return { success: false, error: message, offlineBlocked: true };
+      }
+      
+      try {
+        // Ensure we know the account first
+        const accountId = authStore?.accountId || authStore?.accountSettings?.accountId;
+        if (!accountId) {
+          try {
+            await authStore?.loadAccountSettings?.();
+          } catch {
+            /* ignore - will use defaults */
+          }
+        }
+        
+        const finalAccountId = authStore?.accountId || authStore?.accountSettings?.accountId;
+        if (!finalAccountId) {
+          console.warn('Cannot persist member visibility: missing accountId');
+          return { success: false, error: 'Missing account ID' };
+        }
+        
+        // Optimistically update local state via authStore
+        const prefs = authStore?.accountSettings?.preferences || {};
+        const current = { ...(prefs.membersChoresEnabled || {}) };
+        const enabled = !!person.enabledForChores;
+        
+        // Write both userId and name keys for stability across backfills
+        if (person.userId) current[person.userId] = enabled;
+        if (person.name) current[person.name] = enabled;
+        
+        if (authStore) {
+          authStore.accountSettings = {
+            ...(authStore.accountSettings || {}),
+            preferences: { ...prefs, membersChoresEnabled: current }
+          };
+        }
+        
+        // Prefer granular endpoint with optional OCC
+        const memberKey = person.userId || person.name;
+        if (CONFIG.ENV.IS_DEVELOPMENT) {
+          console.debug('[Visibility] persist start', {
+            accountId: finalAccountId,
+            memberKey,
+            enabled,
+            before: { ...(authStore?.accountSettings?.preferences?.membersChoresEnabled || {}) }
+          });
+        }
+        
+        let res;
+        try {
+          res = await window.SettingsClient.updateMemberVisibility(
+            finalAccountId,
+            memberKey,
+            enabled,
+            { ifMatch: authStore?.accountSettings?.updatedAt }
+          );
+        } catch (e) {
+          console.warn('[Visibility] granular failed; falling back to bulk', e?.message || e);
+          // Fallback to bulk partial update
+          res = await window.SettingsClient.updatePreferences(
+            finalAccountId,
+            { membersChoresEnabled: current },
+            { ifMatch: authStore?.accountSettings?.updatedAt }
+          );
+        }
+        
+        // Sync local cache with server echo via authStore
+        if (res && res.preferences && authStore) {
+          authStore.accountSettings = {
+            ...authStore.accountSettings,
+            preferences: res.preferences,
+            updatedAt: res.updatedAt || authStore.accountSettings?.updatedAt
+          };
+          if (CONFIG.ENV.IS_DEVELOPMENT) {
+            console.debug('[Visibility] persist done', {
+              updatedAt: authStore.accountSettings.updatedAt,
+              after: res.preferences?.membersChoresEnabled || {}
+            });
+          }
+        }
+        
+        console.log('[OK] Member chores enabled updated:', memberKey, enabled);
+        return { success: true };
+      } catch (error) {
+        console.warn('Failed to persist member chores enabled:', error);
+        uiStore?.showError('Failed to save board visibility.');
+        return { success: false, error: error.message };
+      }
     }
   }
 });

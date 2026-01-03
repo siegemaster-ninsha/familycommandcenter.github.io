@@ -76,6 +76,11 @@ const useUIStore = Pinia.defineStore('ui', {
       this.modals[modalName].isOpen = true;
       this.modals[modalName].data = data;
       
+      // Add body scroll lock when any modal opens
+      if (typeof document !== 'undefined') {
+        document.body.classList.add('modal-open');
+      }
+      
       console.log('[UI] Modal opened:', modalName, data ? 'with data' : '');
     },
     
@@ -84,6 +89,11 @@ const useUIStore = Pinia.defineStore('ui', {
         this.modals[modalName].isOpen = false;
         this.modals[modalName].data = null;
         console.log('[UI] Modal closed:', modalName);
+        
+        // Remove body scroll lock if no modals are open
+        if (typeof document !== 'undefined' && !this.hasAnyModalOpen) {
+          document.body.classList.remove('modal-open');
+        }
       }
     },
     
@@ -92,6 +102,12 @@ const useUIStore = Pinia.defineStore('ui', {
         this.modals[name].isOpen = false;
         this.modals[name].data = null;
       });
+      
+      // Remove body scroll lock
+      if (typeof document !== 'undefined') {
+        document.body.classList.remove('modal-open');
+      }
+      
       console.log('[UI] All modals closed');
     },
     

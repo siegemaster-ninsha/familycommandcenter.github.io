@@ -1435,21 +1435,25 @@ const TailwindChorePage = Vue.defineComponent({
       </div>
     </div>
   `,
-  inject: [
-    'Helpers', 'CONFIG'
-  ],
   setup() {
     // Access stores directly instead of using $parent
+    // _Requirements: 7.1, 7.2_
     const choresStore = window.useChoresStore();
     const familyStore = window.useFamilyStore();
     const authStore = window.useAuthStore();
     const uiStore = window.useUIStore();
     
+    // Access global utilities - these are not state, just helper functions
+    const Helpers = window.Helpers;
+    const CONFIG = window.CONFIG;
+    
     return {
       choresStore,
       familyStore,
       authStore,
-      uiStore
+      uiStore,
+      Helpers,
+      CONFIG
     };
   },
   mixins: [window.TouchAwareMixin || {}],
@@ -1526,26 +1530,28 @@ const TailwindChorePage = Vue.defineComponent({
     },
     /**
      * Open habit flyout for creating a new habit
-     * Calls parent app.js method which renders the flyout in app-modals.js
-     * **Feature: habit-tracking**
-     * **Validates: Requirements 1.1**
+     * Uses habitsStore directly
+     * **Feature: habit-tracking, app-js-cleanup**
+     * **Validates: Requirements 1.1, 2.5**
      */
     handleHabitAdd(memberId) {
-      // Call parent app method to open the habit flyout
-      if (this.$root?.openHabitFlyout) {
-        this.$root.openHabitFlyout(memberId, null);
+      // Use habitsStore directly instead of $root
+      const habitsStore = window.useHabitsStore?.();
+      if (habitsStore?.openHabitFlyout) {
+        habitsStore.openHabitFlyout(memberId, null);
       }
     },
     /**
      * Open habit flyout for editing an existing habit
-     * Calls parent app.js method which renders the flyout in app-modals.js
-     * **Feature: habit-tracking**
-     * **Validates: Requirements 5.1**
+     * Uses habitsStore directly
+     * **Feature: habit-tracking, app-js-cleanup**
+     * **Validates: Requirements 5.1, 2.5**
      */
     handleHabitEdit(habit) {
-      // Call parent app method to open the habit flyout in edit mode
-      if (this.$root?.openHabitFlyout) {
-        this.$root.openHabitFlyout(habit.memberId, habit);
+      // Use habitsStore directly instead of $root
+      const habitsStore = window.useHabitsStore?.();
+      if (habitsStore?.openHabitFlyout) {
+        habitsStore.openHabitFlyout(habit.memberId, habit);
       }
     },
     /**
@@ -1616,12 +1622,15 @@ const TailwindChorePage = Vue.defineComponent({
     },
     showMultiAssignModal(quicklistChore) {
       console.log('🚀 showMultiAssignModal called with:', quicklistChore?.name);
-      // Delegate to parent's openMultiAssignModal which properly sets up the chores store
-      // and opens the modal. This ensures consistent state management.
-      if (this.$parent?.openMultiAssignModal) {
-        this.$parent.openMultiAssignModal(quicklistChore);
+      // Set up the chores store state and open the modal using stores directly
+      // _Requirements: 7.1, 7.2_
+      if (quicklistChore) {
+        this.choresStore.selectQuicklistChore({ ...quicklistChore, isNewFromQuicklist: true });
+        this.choresStore.clearMemberSelection();
+        this.uiStore.openModal('multiAssign');
+        console.log('✅ Multi-assign modal opened via stores');
       } else {
-        console.error('❌ $parent.openMultiAssignModal not available');
+        console.error('❌ No quicklist chore provided');
       }
     },
     // Open category management modal - Requirements 1.1

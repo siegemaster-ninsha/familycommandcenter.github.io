@@ -282,7 +282,7 @@ const useAuthStore = Pinia.defineStore('auth', {
         this.currentUser = null;
         this._authMeCache = null;
         this.accountSettings = null;
-        this.accountId = null;
+        this._setAccountId(null);
         this.pendingInviteToken = null;
         
         // Reset auth form
@@ -321,7 +321,7 @@ const useAuthStore = Pinia.defineStore('auth', {
         this.currentUser = null;
         this._authMeCache = null;
         this.accountSettings = null;
-        this.accountId = null;
+        this._setAccountId(null);
         
         // Still reset theme on error
         if (window.ThemeManager) {
@@ -367,14 +367,14 @@ const useAuthStore = Pinia.defineStore('auth', {
                 role: res.role || this.currentUser?.role, 
                 memberships: res.memberships 
               };
-              this.accountId = res.accountId || this.accountId;
+              this._setAccountId(res.accountId || this.accountId);
             }
           } catch (e) {
             // Ignore if /auth/me unavailable
             console.warn('[AuthStore] Failed to fetch /auth/me:', e.message);
           }
         } else {
-          this.accountId = this.currentUser.accountId || this.accountId;
+          this._setAccountId(this.currentUser.accountId || this.accountId);
         }
       } catch (e) {
         console.warn('[AuthStore] Failed to refresh current user:', e);
@@ -404,7 +404,7 @@ const useAuthStore = Pinia.defineStore('auth', {
         if (api) {
           const response = await api.get(CONFIG.API.ENDPOINTS.ACCOUNT_SETTINGS);
           this.accountSettings = response;
-          this.accountId = response?.accountId || null;
+          this._setAccountId(response?.accountId || null);
           
           if (CONFIG?.ENV?.IS_DEVELOPMENT) {
             console.log('✅ [AuthStore] Account settings loaded:', this.accountSettings);
@@ -413,7 +413,7 @@ const useAuthStore = Pinia.defineStore('auth', {
       } catch (error) {
         console.error('[AuthStore] Failed to load account settings:', error);
         this.accountSettings = null;
-        this.accountId = null;
+        this._setAccountId(null);
       }
     },
 
@@ -460,7 +460,9 @@ const useAuthStore = Pinia.defineStore('auth', {
         // Cache the account settings
         if (response) {
           this.accountSettings = response;
-          this.accountId = response.accountId || this.accountId;
+          if (response.accountId) {
+            this._setAccountId(response.accountId);
+          }
         }
         
         // NOTE: We do NOT overwrite localStorage theme with backend theme
@@ -596,6 +598,21 @@ const useAuthStore = Pinia.defineStore('auth', {
     },
 
     // ============ Private Helper Methods ============
+
+    /**
+     * Set accountId and sync to apiService
+     * @private
+     */
+    _setAccountId(newAccountId) {
+      this.accountId = newAccountId;
+      // Sync to apiService for API calls
+      if (window.apiService && newAccountId) {
+        window.apiService.setAccountId(newAccountId);
+        if (CONFIG?.ENV?.IS_DEVELOPMENT) {
+          console.log('🔗 [AuthStore] apiService.accountId synced:', newAccountId);
+        }
+      }
+    },
 
     /**
      * Capture invite token from URL if present

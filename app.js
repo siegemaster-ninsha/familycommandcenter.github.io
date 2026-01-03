@@ -19,94 +19,17 @@ if (window.initializeApiService) {
 const app = createApp({
   data() {
     return {
-      // NOTE: Authentication state moved to authStore
-      // Components should use useAuthStore() instead
-      // - isAuthenticated, currentUser, accountId, accountSettings
-      // - authForm, authError, authLoading
-      // - showLoginModal, showSignupModal, showConfirmModal (now in uiStore modal registry)
+      // ============================================
+      // MINIMAL APP STATE - All other state lives in Pinia stores
+      // _Requirements: 8.4_
+      // ============================================
       
-      // NOTE: Modal boolean flags moved to uiStore modal registry
-      // Components should use useUIStore().openModal(name) / closeModal(name) instead
-      // Modal state is now accessed via computed properties that delegate to uiStore
-      // _Requirements: 4.5_
+      // Page navigation
+      currentPage: 'chores', // Default to chores page
       
-      newChore: {
-        name: '',
-        amount: 0,
-        category: 'regular',
-        addToQuicklist: false,
-        isDetailed: false
-      },
-      // **Feature: habit-tracking** - Habit flyout state
-      // NOTE: showHabitFlyout moved to uiStore modal registry
-      habitFlyoutMemberId: '',
-      editingHabit: null,
-      habitForm: {
-        name: ''
-      },
-      habitFormError: '',
-      habitFormSubmitting: false,
-      newQuicklistChore: {
-        name: '',
-        amount: 0,
-        category: 'regular',
-        categoryId: '',  // Category ID for grouping (empty = Uncategorized)
-        isDetailed: false,
-        defaultDetails: ''
-      },
-      // Chore details form data (modal state in uiStore)
-      choreDetailsForm: {
-        name: '',
-        details: '',
-        amount: 0,
-        category: 'regular',
-        assignedTo: '',
-        isNewFromQuicklist: false,
-      },
-      // selectedQuicklistChore and multiAssignSelectedMembers moved to chores store
-      // Schedule modal data - **Feature: weekly-chore-scheduling**
-      scheduleModalChore: null,
-      // Default order modal data
-      defaultOrderMember: null,
-      // Assign category modal data
-      assignCategoryChore: null,
-      assignCategorySelectedId: '',
-      // Person management - NOTE: people array moved to familyStore.members
-      // Components should use useFamilyStore().members instead
-      newPerson: { name: '' },
-      personToDelete: null,
-      // Child creation & parent invites
-      childForm: { username: '', password: '', displayName: '' },
-      inviteData: { token: '', expiresAt: null },
-      // NOTE: pendingInviteToken moved to authStore.pendingInviteToken
-      // Spending requests - NOTE: moved to familyStore.spendingRequests
-      // Components should use useFamilyStore().spendingRequests instead
-      // NOTE: newDayLoading removed - now managed locally in new-day-modal.js
-      // Spending modal data
-      selectedPerson: null,
-      spendAmount: 0,
-      spendAmountString: '0',
-    // Page navigation
-    currentPage: 'chores', // Default to chores page
-
-    // Helper methods
-    getIcon(iconName, library = 'lucide', size = 16, className = '') {
-      if (typeof window.Helpers !== 'undefined' && window.Helpers.IconLibrary) {
-        return window.Helpers.IconLibrary.getIcon(iconName, library, size, className);
-      }
-      console.warn(`Icon "${iconName}" requested but Helpers not available yet`);
-      return '';
-    },
-
-    // Existing data
-      // NOTE: chores, quicklistChores, selectedChoreId moved to choresStore
-      // Components should use useChoresStore() instead of $parent references
-      showConfetti: false,
-      confettiPieces: [],
-      showSuccessMessageFlag: false,
-      completedChoreMessage: '',
       // Mobile nav state
       mobileNavOpen: false,
+      
       // Nav items (extensible)
       navItems: [
         { key: 'chores', label: 'Chores' },
@@ -118,381 +41,15 @@ const app = createApp({
         { key: 'account', label: 'Account' }
       ],
       
-      // Shopping page data now managed by Pinia store (stores/shopping.js)
-      // These are kept for backward compatibility but delegate to the store
-      // shoppingItems, shoppingQuickItems, stores - accessed via computed properties
-      
-      // NOTE: accountSettings and accountId moved to authStore
-      // Components should use useAuthStore().accountSettings and useAuthStore().accountId instead
-      
+      // App-level loading and error state
       loading: true,
       error: null
     }
   },
   computed: {
-    // NOTE: choresByPerson moved to choresStore.choresByPerson
-    // Components should use useChoresStore().choresByPerson instead
-    
-    // NOTE: earnings and electronicsStatus moved to familyStore
-    // Components should use useFamilyStore().earnings and useFamilyStore().electronicsStatus instead
-    
-    // NOTE: selectedChore moved to choresStore.selectedChore
-    // Components should use useChoresStore().selectedChore instead
-    
-    // ============================================
-    // AUTH STATE COMPUTED PROPERTIES
-    // These delegate to authStore for backward compatibility
-    // _Requirements: 3.1, 3.2, 3.5_
-    // ============================================
-    isAuthenticated() {
-      return this.$authStore?.isAuthenticated || false;
-    },
-    currentUser() {
-      return this.$authStore?.currentUser || null;
-    },
-    accountId() {
-      return this.$authStore?.accountId || null;
-    },
-    accountSettings() {
-      return this.$authStore?.accountSettings || null;
-    },
-    authForm() {
-      return this.$authStore?.authForm || {
-        mode: 'parent',
-        email: '',
-        username: '',
-        password: '',
-        name: '',
-        confirmationCode: ''
-      };
-    },
-    authError() {
-      return this.$authStore?.authError || null;
-    },
-    authLoading() {
-      return this.$authStore?.authLoading || false;
-    },
-    pendingInviteToken: {
-      get() {
-        return this.$authStore?.pendingInviteToken || null;
-      },
-      set(value) {
-        if (this.$authStore) {
-          this.$authStore.pendingInviteToken = value;
-        }
-      }
-    },
-    // Auth modal state - now from uiStore modal registry
-    showLoginModal: {
-      get() {
-        return this.$uiStore?.isModalOpen?.('login') || false;
-      },
-      set(value) {
-        if (this.$uiStore) {
-          if (value) {
-            this.$uiStore.openModal('login');
-          } else {
-            this.$uiStore.closeModal('login');
-          }
-        }
-      }
-    },
-    showSignupModal: {
-      get() {
-        return this.$uiStore?.isModalOpen?.('signup') || false;
-      },
-      set(value) {
-        if (this.$uiStore) {
-          if (value) {
-            this.$uiStore.openModal('signup');
-          } else {
-            this.$uiStore.closeModal('signup');
-          }
-        }
-      }
-    },
-    showConfirmModal: {
-      get() {
-        return this.$uiStore?.isModalOpen?.('confirm') || false;
-      },
-      set(value) {
-        if (this.$uiStore) {
-          if (value) {
-            this.$uiStore.openModal('confirm');
-          } else {
-            this.$uiStore.closeModal('confirm');
-          }
-        }
-      }
-    },
-    
-    // ============================================
-    // MODAL STATE COMPUTED PROPERTIES
-    // These delegate to uiStore modal registry for backward compatibility
-    // _Requirements: 4.1, 4.2, 4.3, 4.5_
-    // ============================================
-    showAddChoreModal: {
-      get() {
-        return this.$uiStore?.isModalOpen?.('addChore') || false;
-      },
-      set(value) {
-        if (this.$uiStore) {
-          if (value) {
-            this.$uiStore.openModal('addChore');
-          } else {
-            this.$uiStore.closeModal('addChore');
-          }
-        }
-      }
-    },
-    showAddToQuicklistModal: {
-      get() {
-        return this.$uiStore?.isModalOpen?.('addToQuicklist') || false;
-      },
-      set(value) {
-        if (this.$uiStore) {
-          if (value) {
-            this.$uiStore.openModal('addToQuicklist');
-          } else {
-            this.$uiStore.closeModal('addToQuicklist');
-          }
-        }
-      }
-    },
-    showChoreDetailsModal: {
-      get() {
-        return this.$uiStore?.isModalOpen?.('choreDetails') || false;
-      },
-      set(value) {
-        if (this.$uiStore) {
-          if (value) {
-            this.$uiStore.openModal('choreDetails');
-          } else {
-            this.$uiStore.closeModal('choreDetails');
-          }
-        }
-      }
-    },
-    showMultiAssignModal: {
-      get() {
-        return this.$uiStore?.isModalOpen?.('multiAssign') || false;
-      },
-      set(value) {
-        if (this.$uiStore) {
-          if (value) {
-            this.$uiStore.openModal('multiAssign');
-          } else {
-            this.$uiStore.closeModal('multiAssign');
-          }
-        }
-      }
-    },
-    showCategoryManagementModal: {
-      get() {
-        return this.$uiStore?.isModalOpen?.('categoryManagement') || false;
-      },
-      set(value) {
-        if (this.$uiStore) {
-          if (value) {
-            this.$uiStore.openModal('categoryManagement');
-          } else {
-            this.$uiStore.closeModal('categoryManagement');
-          }
-        }
-      }
-    },
-    showScheduleModal: {
-      get() {
-        return this.$uiStore?.isModalOpen?.('schedule') || false;
-      },
-      set(value) {
-        if (this.$uiStore) {
-          if (value) {
-            this.$uiStore.openModal('schedule');
-          } else {
-            this.$uiStore.closeModal('schedule');
-          }
-        }
-      }
-    },
-    showDefaultOrderModal: {
-      get() {
-        return this.$uiStore?.isModalOpen?.('defaultOrder') || false;
-      },
-      set(value) {
-        if (this.$uiStore) {
-          if (value) {
-            this.$uiStore.openModal('defaultOrder');
-          } else {
-            this.$uiStore.closeModal('defaultOrder');
-          }
-        }
-      }
-    },
-    showAssignCategoryModal: {
-      get() {
-        return this.$uiStore?.isModalOpen?.('assignCategory') || false;
-      },
-      set(value) {
-        if (this.$uiStore) {
-          if (value) {
-            this.$uiStore.openModal('assignCategory');
-          } else {
-            this.$uiStore.closeModal('assignCategory');
-          }
-        }
-      }
-    },
-    showAddPersonModal: {
-      get() {
-        return this.$uiStore?.isModalOpen?.('addPerson') || false;
-      },
-      set(value) {
-        if (this.$uiStore) {
-          if (value) {
-            this.$uiStore.openModal('addPerson');
-          } else {
-            this.$uiStore.closeModal('addPerson');
-          }
-        }
-      }
-    },
-    showDeletePersonModal: {
-      get() {
-        return this.$uiStore?.isModalOpen?.('deletePerson') || false;
-      },
-      set(value) {
-        if (this.$uiStore) {
-          if (value) {
-            this.$uiStore.openModal('deletePerson');
-          } else {
-            this.$uiStore.closeModal('deletePerson');
-          }
-        }
-      }
-    },
-    showCreateChildModal: {
-      get() {
-        return this.$uiStore?.isModalOpen?.('createChild') || false;
-      },
-      set(value) {
-        if (this.$uiStore) {
-          if (value) {
-            this.$uiStore.openModal('createChild');
-          } else {
-            this.$uiStore.closeModal('createChild');
-          }
-        }
-      }
-    },
-    showInviteModal: {
-      get() {
-        return this.$uiStore?.isModalOpen?.('invite') || false;
-      },
-      set(value) {
-        if (this.$uiStore) {
-          if (value) {
-            this.$uiStore.openModal('invite');
-          } else {
-            this.$uiStore.closeModal('invite');
-          }
-        }
-      }
-    },
-    showNewDayModal: {
-      get() {
-        return this.$uiStore?.isModalOpen?.('newDay') || false;
-      },
-      set(value) {
-        if (this.$uiStore) {
-          if (value) {
-            this.$uiStore.openModal('newDay');
-          } else {
-            this.$uiStore.closeModal('newDay');
-          }
-        }
-      }
-    },
-    showSpendingModal: {
-      get() {
-        return this.$uiStore?.isModalOpen?.('spending') || false;
-      },
-      set(value) {
-        if (this.$uiStore) {
-          if (value) {
-            this.$uiStore.openModal('spending');
-          } else {
-            this.$uiStore.closeModal('spending');
-          }
-        }
-      }
-    },
-    // **Feature: habit-tracking** - Habit flyout modal state
-    showHabitFlyout: {
-      get() {
-        return this.$uiStore?.isModalOpen?.('habitFlyout') || false;
-      },
-      set(value) {
-        if (this.$uiStore) {
-          if (value) {
-            this.$uiStore.openModal('habitFlyout');
-          } else {
-            this.$uiStore.closeModal('habitFlyout');
-          }
-        }
-      }
-    },
-    
-    // whether any modal is currently open (used to lock/unlock body scroll on mobile)
-    // Now delegates to uiStore.hasAnyModalOpen
-    // _Requirements: 4.4, 4.5_
-    isAnyModalOpen() {
-      return this.$uiStore?.hasAnyModalOpen || false;
-    },
-    // Offline store for checking network status
-    // _Requirements: 4.4_
-    offlineStore() {
-      if (typeof window !== 'undefined' && window.useOfflineStore) {
-        return window.useOfflineStore();
-      }
-      // Return a default object if store is not available
-      return { isOnline: true };
-    },
-    
-    // ============================================
-    // BRIDGE COMPUTED PROPERTIES: Expose stores for watchers
-    // These computed properties allow the bridge watchers to observe
-    // store state changes and sync them to legacy app.js properties.
-    // 
-    // **Feature: app-js-refactoring**
-    // **Validates: Requirements 8.1, 8.2**
-    // ============================================
-    
-    // NOTE: $choresStore bridge removed - chore state now lives exclusively in choresStore
-    // Components should use useChoresStore() directly
-    
-    // NOTE: $familyStore bridge removed - family state now lives exclusively in familyStore
-    // Components should use useFamilyStore() directly
-    
-    // Expose auth store for bridge watchers
-    $authStore() {
-      if (typeof window !== 'undefined' && window.useAuthStore) {
-        return window.useAuthStore();
-      }
-      // Return a default object if store is not available
-      return { isAuthenticated: false, currentUser: null };
-    },
-    
-    // Expose UI store for bridge watchers
-    // **Feature: app-js-refactoring**
-    // **Validates: Requirements 8.1, 8.2**
-    $uiStore() {
-      if (typeof window !== 'undefined' && window.useUIStore) {
-        return window.useUIStore();
-      }
-      // Return a default object if store is not available
-      return { currentPage: 'chores' };
-    }
+    // NOTE: All computed property bridges removed - components now use stores directly
+    // Components should use useChoresStore(), useFamilyStore(), useAuthStore(), useUIStore() directly
+    // _Requirements: 8.6_
   },
   methods: {
     // WebSocket initialization - delegates to composable
@@ -530,89 +87,37 @@ const app = createApp({
     // Each open method uses uiStore.openModal() which captures scroll position
     // _Requirements: 4.2, 4.3, 4.5_
     openAddChoreModal() {
-      this.$uiStore?.openModal('addChore');
+      const uiStore = window.useUIStore?.();
+      uiStore?.openModal('addChore');
       if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎯 openAddChoreModal via uiStore');
     },
     closeAddChoreModal() {
-      this.$uiStore?.closeModal('addChore');
+      const uiStore = window.useUIStore?.();
+      uiStore?.closeModal('addChore');
     },
-    // **Feature: habit-tracking** - Habit flyout methods
-    openHabitFlyout(memberId, habit = null) {
-      this.habitFlyoutMemberId = memberId;
-      this.editingHabit = habit;
-      this.habitForm.name = habit ? habit.name : '';
-      this.habitFormError = '';
-      this.habitFormSubmitting = false;
-      this.$uiStore?.openModal('habitFlyout');
-      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎯 openHabitFlyout via uiStore');
-    },
-    closeHabitFlyout() {
-      this.$uiStore?.closeModal('habitFlyout');
-      this.habitFlyoutMemberId = '';
-      this.editingHabit = null;
-      this.habitForm.name = '';
-      this.habitFormError = '';
-      this.habitFormSubmitting = false;
-    },
-    async submitHabitForm() {
-      const trimmedName = this.habitForm.name.trim();
-      if (!trimmedName) {
-        this.habitFormError = 'Habit name is required';
-        return;
-      }
-      
-      this.habitFormSubmitting = true;
-      this.habitFormError = '';
-      
-      const habitsStore = window.useHabitsStore?.();
-      if (!habitsStore) {
-        this.habitFormError = 'Store not available';
-        this.habitFormSubmitting = false;
-        return;
-      }
-      
-      let result;
-      if (this.editingHabit) {
-        result = await habitsStore.updateHabit(this.editingHabit.id, { name: trimmedName });
-      } else {
-        result = await habitsStore.createHabit(this.habitFlyoutMemberId, trimmedName);
-      }
-      
-      this.habitFormSubmitting = false;
-      
-      if (result.success) {
-        this.closeHabitFlyout();
-      } else {
-        this.habitFormError = result.error || 'Failed to save habit';
-      }
-    },
+    // NOTE: Habit flyout methods migrated to habitsStore
+    // Components should use useHabitsStore().openHabitFlyout(), closeHabitFlyout(), submitHabitForm()
+    // _Requirements: 2.5, 2.6_
     openAddToQuicklistModal() {
-      this.$uiStore?.openModal('addToQuicklist');
+      const uiStore = window.useUIStore?.();
+      uiStore?.openModal('addToQuicklist');
       if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎯 openAddToQuicklistModal via uiStore');
     },
     closeAddToQuicklistModal() {
-      this.$uiStore?.closeModal('addToQuicklist');
+      const uiStore = window.useUIStore?.();
+      uiStore?.closeModal('addToQuicklist');
     },
     closeCreateChildModal() {
-      this.$uiStore?.closeModal('createChild');
+      const uiStore = window.useUIStore?.();
+      uiStore?.closeModal('createChild');
     },
     closeInviteModal() {
-      this.$uiStore?.closeModal('invite');
-    },
-
-    // Cache for /auth/me response to avoid duplicate API calls
-    // NOTE: _authMeCache moved to authStore._authMeCache
-    
-    async refreshCurrentUser() {
-      // Delegate to authStore
-      // _Requirements: 3.3, 3.5_
-      const authStore = window.useAuthStore?.();
-      if (authStore) {
-        await authStore.refreshCurrentUser();
-      }
+      const uiStore = window.useUIStore?.();
+      uiStore?.closeModal('invite');
     },
     
   // Data loading methods
+  // _Requirements: 5.2, 8.5_ - Pure orchestration, calls store methods directly
   async loadAllData() {
     try {
       this.loading = true;
@@ -622,8 +127,9 @@ const app = createApp({
         console.log('🌐 API Base URL:', CONFIG.API.BASE_URL);
       }
       
-      // check authentication first
-      if (!this.isAuthenticated) {
+      // check authentication first - use authStore directly
+      const authStore = window.useAuthStore?.();
+      if (!authStore?.isAuthenticated) {
         if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🔒 User not authenticated, skipping data load');
         this.loading = false;
         return;
@@ -632,9 +138,9 @@ const app = createApp({
       // Note: refreshCurrentUser() is already called in mounted() before loadAllData()
       // No need to call it again here - the accountId/role is already primed
 
-      // load account settings first so X-Account-Id header is available for all subsequent calls (children/coparents see the same list)
+      // load account settings first so X-Account-Id header is available for all subsequent calls
       try {
-        await this.loadAccountSettings();
+        await authStore.loadAccountSettings();
       } catch (e) {
         console.warn('account settings load failed; proceeding with defaults', e);
       }
@@ -642,23 +148,24 @@ const app = createApp({
       // Get stores for loading data
       const choresStore = window.useChoresStore?.();
       const familyStore = window.useFamilyStore?.();
+      const shoppingStore = window.useShoppingStore?.();
+      const categoriesStore = window.useCategoriesStore?.();
       
       // Load family members first (electronics status depends on members being loaded)
       await familyStore?.loadMembers();
       
-      // Load remaining data in parallel
-      // Note: loadEarnings just reloads members, so we skip it since members are already loaded
+      // Load remaining data in parallel - call store methods directly
       await Promise.all([
-        // Core chore page data - now uses choresStore
+        // Core chore page data
         choresStore?.loadChores(),
         familyStore?.loadElectronicsStatus(),
         choresStore?.loadQuicklistChores(),
-        this.loadCategories(),
+        categoriesStore?.loadCategories(),
         
         // Shopping page data
-        this.loadShoppingItems(),
-        this.loadShoppingQuickItems(),
-        this.loadStores()
+        shoppingStore?.loadItems(),
+        shoppingStore?.loadQuickItems(),
+        shoppingStore?.loadStores()
       ]);
       if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ All application data loaded successfully');
       } catch (error) {
@@ -670,75 +177,21 @@ const app = createApp({
       }
     },
     
-    // NOTE: loadChores moved to choresStore.loadChores()
-    // Components should use useChoresStore().loadChores() instead
-    
-    // NOTE: loadFamilyMembers moved to familyStore.loadMembers()
-    // Components should use useFamilyStore().loadMembers() instead
-    
-    // NOTE: loadEarnings moved to familyStore.loadEarnings()
-    // Components should use useFamilyStore().loadEarnings() instead
-    
-    // NOTE: loadElectronicsStatus moved to familyStore.loadElectronicsStatus()
-    // Components should use useFamilyStore().loadElectronicsStatus() instead
-
-    // NOTE: updateElectronicsStatusOptimistically moved to familyStore.updateElectronicsStatusOptimistically()
-    // Components should use useFamilyStore().updateElectronicsStatusOptimistically() instead
-    
-    // NOTE: loadQuicklistChores moved to choresStore.loadQuicklistChores()
-    // Components should use useChoresStore().loadQuicklistChores() instead
-
-    async loadCategories() {
-      try {
-        const categoriesStore = window.useCategoriesStore ? window.useCategoriesStore() : null;
-        if (categoriesStore) {
-          await categoriesStore.loadCategories();
-          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('📁 Categories loaded:', categoriesStore.categories.length);
-        }
-      } catch (error) {
-        console.error('Failed to load categories:', error);
+    // _Requirements: 8.5_ - Kept for mounted() hook orchestration
+    async refreshCurrentUser() {
+      const authStore = window.useAuthStore?.();
+      if (authStore) {
+        await authStore.refreshCurrentUser();
       }
     },
-
+    
+    // _Requirements: 8.5_ - Kept for mounted() hook orchestration
     async loadUserTheme() {
-      // Delegate to authStore
-      // _Requirements: 3.3, 3.5_
       const authStore = window.useAuthStore?.();
       if (authStore) {
         await authStore.loadUserTheme();
       }
     },
-
-    // Shopping page data loading methods
-    async loadShoppingItems() {
-      // Delegate to Pinia store - single source of truth
-      const shoppingStore = window.useShoppingStore();
-      await shoppingStore.loadItems();
-    },
-
-    async loadShoppingQuickItems() {
-      // Delegate to Pinia store - single source of truth
-      const shoppingStore = window.useShoppingStore();
-      await shoppingStore.loadQuickItems();
-    },
-
-    async loadStores() {
-      // Delegate to Pinia store - single source of truth
-      const shoppingStore = window.useShoppingStore();
-      await shoppingStore.loadStores();
-    },
-
-    // Account page data loading methods
-    async loadAccountSettings() {
-      // Delegate to authStore
-      // _Requirements: 3.3, 3.5_
-      const authStore = window.useAuthStore?.();
-      if (authStore) {
-        await authStore.loadAccountSettings();
-      }
-    },
-    
-
     
     // Chore selection methods - now delegate to chores store
     handleChoreClick(chore) {
@@ -788,85 +241,30 @@ const app = createApp({
     
     cancelAddPerson() {
       this.$uiStore?.closeModal('addPerson');
-      this.newPerson = { name: '', displayName: '' };
+      // Use familyStore for newPerson state
+      // _Requirements: 1.5, 1.6_
+      const familyStore = window.useFamilyStore?.();
+      if (familyStore) {
+        familyStore.resetNewPersonForm();
+      }
     },
 
     openAddPersonModal() {
       alert('Manual people are no longer supported. Use "Add Child" or "Invite Parent".');
     },
-    async updateFamilyMemberDisplayName(person) {
-      try {
-        // require user-linked member to update profile; disallow for legacy/manual rows
-        if (!person?.userId) return;
-        const api = window.useApi();
-        await api.post(CONFIG.API.ENDPOINTS.FAMILY_MEMBERS, { userId: person.userId, displayName: person.displayName || person.name, name: person.displayName || person.name });
-        // Reload family members from familyStore
-        const familyStore = window.useFamilyStore?.();
-        if (familyStore) {
-          await familyStore.loadMembers(false);
-        }
-      } catch (e) {
-        console.warn('failed to update display name', e);
-      }
-    },
-    async updateMemberChoresEnabled(person) {
-      try {
-        const authStore = window.useAuthStore?.();
-        
-        // Ensure we know the account first
-        if (!this.accountId && !this.accountSettings?.accountId) {
-          try { await this.loadAccountSettings(); } catch { /* ignore - will use defaults */ }
-        }
-
-        // Optimistically update local state via authStore
-        const prefs = this.accountSettings?.preferences || {};
-        const current = { ...(prefs.membersChoresEnabled || {}) };
-        const enabled = !!person.enabledForChores;
-        // Write both userId and name keys for stability across backfills
-        if (person.userId) current[person.userId] = enabled;
-        if (person.name) current[person.name] = enabled;
-        
-        if (authStore) {
-          authStore.accountSettings = {
-            ...(authStore.accountSettings || {}),
-            preferences: { ...prefs, membersChoresEnabled: current }
-          };
-        }
-
-        const accountId = this.accountId || this.accountSettings?.accountId;
-        if (!accountId) {
-          console.warn('Cannot persist member visibility: missing accountId');
-          return;
-        }
-
-        // Prefer granular endpoint with optional OCC
-        const memberKey = person.userId || person.name;
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.debug('[Visibility] persist start', { accountId, memberKey, enabled, before: { ...(this.accountSettings?.preferences?.membersChoresEnabled || {}) } });
-        let res;
-        try {
-          res = await window.SettingsClient.updateMemberVisibility(accountId, memberKey, enabled, { ifMatch: this.accountSettings?.updatedAt });
-        } catch (e) {
-          console.warn('[Visibility] granular failed; falling back to bulk', e?.message || e);
-          // fallback to bulk partial update
-          res = await window.SettingsClient.updatePreferences(accountId, { membersChoresEnabled: current }, { ifMatch: this.accountSettings?.updatedAt });
-        }
-        // Sync local cache with server echo via authStore
-        if (res && res.preferences && authStore) {
-          authStore.accountSettings = {
-            ...authStore.accountSettings,
-            preferences: res.preferences,
-            updatedAt: res.updatedAt || authStore.accountSettings?.updatedAt
-          };
-          if (CONFIG.ENV.IS_DEVELOPMENT) console.debug('[Visibility] persist done', { updatedAt: authStore.accountSettings.updatedAt, after: res.preferences?.membersChoresEnabled || {} });
-        }
-      } catch (e) {
-        console.warn('failed to persist member chores enabled', e);
-        this.showSuccessMessage('❌ Failed to save board visibility.');
-      }
-    },
+    // NOTE: updateFamilyMemberDisplayName migrated to familyStore.updateFamilyMemberDisplayName()
+    // Components should use useFamilyStore().updateFamilyMemberDisplayName(person) instead
+    // _Requirements: 5.8_
+    
+    // NOTE: updateMemberChoresEnabled migrated to familyStore.updateMemberChoresEnabledSetting()
+    // Components should use useFamilyStore().updateMemberChoresEnabledSetting(person) instead
+    // _Requirements: 5.9_
+    
     canRemoveMember(person) {
       // cannot remove account creator (owner)
-      const ownerUserId = this.accountSettings?.userId;
+      // Use authStore directly instead of computed property
+      const authStore = window.useAuthStore?.();
+      const ownerUserId = authStore?.accountSettings?.userId;
       return person?.userId ? person.userId !== ownerUserId : true;
     },
     // NOTE: removeMember now delegates to familyStore.removeMember()
@@ -886,34 +284,37 @@ const app = createApp({
     },
     
     // Child management
-    // _Requirements: 4.2, 4.3, 4.5_
+    // _Requirements: 1.4, 1.6, 4.2, 4.3, 4.5_
     openCreateChildModal() {
       const familyStore = window.useFamilyStore?.();
       if (familyStore) {
         familyStore.resetChildForm();
       }
-      this.childForm = { username: '', password: '', displayName: '' };
-      this.$uiStore?.openModal('createChild');
+      const uiStore = window.useUIStore?.();
+      uiStore?.openModal('createChild');
     },
     // NOTE: createChild now delegates to familyStore.createChild()
     async createChild() {
-      if (!this.childForm.username || !this.childForm.password) return;
-      
       const familyStore = window.useFamilyStore?.();
       if (!familyStore) {
         console.error('Family store not available');
         return;
       }
       
+      // Use familyStore.childForm instead of this.childForm
+      // _Requirements: 1.4, 1.6_
+      if (!familyStore.childForm.username || !familyStore.childForm.password) return;
+      
       const result = await familyStore.createChild({
-        username: this.childForm.username,
-        password: this.childForm.password,
-        displayName: this.childForm.displayName
+        username: familyStore.childForm.username,
+        password: familyStore.childForm.password,
+        displayName: familyStore.childForm.displayName
       });
       
       if (result.success) {
-        this.$uiStore?.closeModal('createChild');
-        this.childForm = { username: '', password: '', displayName: '' };
+        const uiStore = window.useUIStore?.();
+        uiStore?.closeModal('createChild');
+        familyStore.resetChildForm();
         alert('Child account created. Share the username and password with your child.');
       } else {
         console.error('Failed to create child', result.error);
@@ -923,20 +324,24 @@ const app = createApp({
     
     // Parent invites
     // _Requirements: 4.2, 4.3, 4.5_
+    // _Requirements: 8.4_ - Now uses familyStore.inviteData instead of app.js data
     async createParentInvite() {
       try {
         // lock scroll for iOS safari during modal
         document.body.classList.add('modal-open');
-        const api = window.useApi();
-        const res = await api.post(CONFIG.API.ENDPOINTS.PARENT_INVITE, {});
-        this.inviteData = res;
-        this.$uiStore?.openModal('invite');
+        const familyStore = window.useFamilyStore?.();
+        if (familyStore) {
+          await familyStore.createParentInvite();
+        }
+        const uiStore = window.useUIStore?.();
+        uiStore?.openModal('invite');
       } catch (e) {
         console.error('Failed to create invite', e);
         alert('Failed to create invite');
       } finally {
         // ensure lock only remains if modal actually opened
-        if (!this.showInviteModal) {
+        const uiStore = window.useUIStore?.();
+        if (!uiStore?.isModalOpen?.('invite')) {
           document.body.classList.remove('modal-open');
         }
       }
@@ -945,7 +350,10 @@ const app = createApp({
       try {
         // ensure we have a valid auth header at accept time; if not, route to signup
         if (!authService.getAuthHeader()) {
-          this.pendingInviteToken = token;
+          const authStore = window.useAuthStore?.();
+          if (authStore) {
+            authStore.pendingInviteToken = token;
+          }
           this.showSignupForm();
           return;
         }
@@ -979,20 +387,23 @@ const app = createApp({
     },
     
     // _Requirements: 4.2, 4.3, 4.5_
+    // NOTE: Now delegates to familyStore
     confirmDeletePerson(person) {
-      this.personToDelete = person;
-      this.$uiStore?.openModal('deletePerson');
+      const familyStore = window.useFamilyStore?.();
+      if (familyStore) {
+        familyStore.openDeletePersonModal(person);
+      }
     },
     
     async performDeletePerson() {
-      if (this.personToDelete) {
-        const familyStore = window.useFamilyStore?.();
+      const familyStore = window.useFamilyStore?.();
+      if (familyStore?.personToDelete) {
         const api = window.useApi();
         
         try {
-          const name = this.personToDelete.name;
-          const userId = this.personToDelete.userId;
-          const memberId = this.personToDelete.id;
+          const name = familyStore.personToDelete.name;
+          const userId = familyStore.personToDelete.userId;
+          const memberId = familyStore.personToDelete.id;
           if (CONFIG.ENV.IS_DEVELOPMENT) console.log(`🗑️ Removing person via modal: name=${name}, userId=${userId || 'none'}`);
 
           // if we know the Cognito userId, remove the account membership first to prevent auto re-creation
@@ -1006,19 +417,16 @@ const app = createApp({
           if (CONFIG.ENV.IS_DEVELOPMENT) console.log(`✅ Removal complete for: ${name}`);
 
           // Remove person from familyStore
-          if (familyStore) {
-            familyStore.members = familyStore.members.filter(p => p.id !== memberId);
-          }
+          familyStore.members = familyStore.members.filter(p => p.id !== memberId);
 
           // Reload data to ensure both pages reflect removal
           await this.loadAllData();
         } catch (error) {
           console.error('Failed to delete person:', error);
-          this.showSuccessMessage(`❌ Failed to delete ${this.personToDelete.name}: ${error.message}`);
+          this.showSuccessMessage(`❌ Failed to delete ${familyStore.personToDelete.name}: ${error.message}`);
         }
 
-        this.personToDelete = null;
-        this.$uiStore?.closeModal('deletePerson');
+        familyStore.closeDeletePersonModal();
       }
     },
     
@@ -1029,21 +437,28 @@ const app = createApp({
     },
     
     cancelDeletePerson() {
-      this.personToDelete = null;
-      this.$uiStore?.closeModal('deletePerson');
+      const familyStore = window.useFamilyStore?.();
+      if (familyStore) {
+        familyStore.closeDeletePersonModal();
+      }
     },
     
     showDeletePersonModalFor(person) {
-      this.personToDelete = person;
-      this.$uiStore?.openModal('deletePerson');
+      const familyStore = window.useFamilyStore?.();
+      if (familyStore) {
+        familyStore.openDeletePersonModal(person);
+      }
     },
     
     // NOTE: addChore moved to choresStore.createChore()
     // Components should use useChoresStore().createChore() instead
     
     cancelAddChore() {
-      this.$uiStore?.closeModal('addChore');
-      this.newChore = { name: '', amount: 0, category: 'regular', addToQuicklist: false, isDetailed: false };
+      const uiStore = window.useUIStore?.();
+      uiStore?.closeModal('addChore');
+      // Reset form via choresStore
+      const choresStore = window.useChoresStore?.();
+      choresStore?.resetNewChoreForm();
     },
     
     // NOTE: addToQuicklist now delegates to choresStore.createQuicklistChore()
@@ -1054,17 +469,18 @@ const app = createApp({
         return;
       }
       
-      if (!this.newQuicklistChore.name.trim() || this.newQuicklistChore.amount < 0) {
+      const formData = choresStore.newQuicklistChore;
+      if (!formData.name.trim() || formData.amount < 0) {
         return;
       }
       
       const quicklistData = {
-        name: this.newQuicklistChore.name.trim(),
-        amount: this.newQuicklistChore.amount,
-        category: this.newQuicklistChore.category,
-        categoryId: this.newQuicklistChore.categoryId || null,
-        isDetailed: this.newQuicklistChore.isDetailed || false,
-        defaultDetails: this.newQuicklistChore.defaultDetails || ''
+        name: formData.name.trim(),
+        amount: formData.amount,
+        category: formData.category,
+        categoryId: formData.categoryId || null,
+        isDetailed: formData.isDetailed || false,
+        defaultDetails: formData.defaultDetails || ''
       };
       
       // Close modal immediately for instant feedback
@@ -1074,25 +490,30 @@ const app = createApp({
       
       if (!result.success) {
         // Reopen modal with original data on failure
-        this.newQuicklistChore = quicklistData;
-        this.$uiStore?.openModal('addToQuicklist');
+        Object.assign(choresStore.newQuicklistChore, quicklistData);
+        const uiStore = window.useUIStore?.();
+        uiStore?.openModal('addToQuicklist');
         this.showSuccessMessage(`❌ Failed to add "${quicklistData.name}" to quicklist. Please try again.`);
       }
     },
     
     cancelAddToQuicklist() {
-      this.$uiStore?.closeModal('addToQuicklist');
-      this.newQuicklistChore = { name: '', amount: 0, category: 'regular', categoryId: '', isDetailed: false, defaultDetails: '' };
+      const uiStore = window.useUIStore?.();
+      uiStore?.closeModal('addToQuicklist');
+      // Reset form via choresStore
+      const choresStore = window.useChoresStore?.();
+      choresStore?.resetNewQuicklistChoreForm();
     },
 
     // Multi-assignment modal methods for quicklist chores
     // _Requirements: 4.2, 4.3, 4.5_
     openMultiAssignModal(quicklistChore) {
       const choresStore = window.useChoresStore?.();
+      const uiStore = window.useUIStore?.();
       if (CONFIG.ENV.IS_DEVELOPMENT) {
         console.log('🎯 Parent openMultiAssignModal called with:', quicklistChore?.name);
         console.log('📊 Current modal state before:', {
-          showMultiAssignModal: this.showMultiAssignModal,
+          showMultiAssignModal: uiStore?.isModalOpen?.('multiAssign'),
           selectedQuicklistChore: choresStore?.selectedQuicklistChore?.name || 'none'
         });
       }
@@ -1101,17 +522,18 @@ const app = createApp({
         choresStore.selectQuicklistChore(quicklistChore);
         choresStore.clearMemberSelection();
       }
-      this.$uiStore?.openModal('multiAssign');
+      uiStore?.openModal('multiAssign');
 
       if (CONFIG.ENV.IS_DEVELOPMENT) console.log('📊 Modal state after:', {
-        showMultiAssignModal: this.showMultiAssignModal,
+        showMultiAssignModal: uiStore?.isModalOpen?.('multiAssign'),
         selectedQuicklistChore: choresStore?.selectedQuicklistChore?.name || 'none',
         multiAssignSelectedMembers: choresStore?.multiAssignSelectedMembers || []
       });
     },
 
     cancelMultiAssignment() {
-      this.$uiStore?.closeModal('multiAssign');
+      const uiStore = window.useUIStore?.();
+      uiStore?.closeModal('multiAssign');
       const choresStore = window.useChoresStore?.();
       if (choresStore) {
         choresStore.clearSelection();
@@ -1121,36 +543,48 @@ const app = createApp({
     // Category management modal methods
     // _Requirements: 1.1, 4.2, 4.3, 4.5_
     openCategoryManagementModal() {
-      this.$uiStore?.openModal('categoryManagement');
+      const uiStore = window.useUIStore?.();
+      uiStore?.openModal('categoryManagement');
     },
     
     closeCategoryManagementModal() {
-      this.$uiStore?.closeModal('categoryManagement');
+      const uiStore = window.useUIStore?.();
+      uiStore?.closeModal('categoryManagement');
     },
     
     // Schedule modal methods
     // **Feature: weekly-chore-scheduling**
     // **Validates: Requirements 1.2, 1.3, 1.5, 4.2, 4.3, 4.5**
+    // NOTE: Now delegates to choresStore
     openScheduleModal(quicklistChore) {
-      this.scheduleModalChore = quicklistChore;
-      this.$uiStore?.openModal('schedule');
+      const choresStore = window.useChoresStore?.();
+      if (choresStore) {
+        choresStore.openScheduleModal(quicklistChore);
+      }
     },
     
     closeScheduleModal() {
-      this.$uiStore?.closeModal('schedule');
-      this.scheduleModalChore = null;
+      const choresStore = window.useChoresStore?.();
+      if (choresStore) {
+        choresStore.closeScheduleModal();
+      }
     },
     
     // Default order modal methods
     // _Requirements: 4.2, 4.3, 4.5_
+    // NOTE: Now delegates to familyStore
     openDefaultOrderModal(member) {
-      this.defaultOrderMember = member;
-      this.$uiStore?.openModal('defaultOrder');
+      const familyStore = window.useFamilyStore?.();
+      if (familyStore) {
+        familyStore.openDefaultOrderModal(member);
+      }
     },
     
     closeDefaultOrderModal() {
-      this.$uiStore?.closeModal('defaultOrder');
-      this.defaultOrderMember = null;
+      const familyStore = window.useFamilyStore?.();
+      if (familyStore) {
+        familyStore.closeDefaultOrderModal();
+      }
     },
     
     // Handle default order save from modal
@@ -1263,285 +697,45 @@ const app = createApp({
       }
     },
 
-    async confirmMultiAssignment() {
-      const choresStore = window.useChoresStore?.();
-      const familyStore = window.useFamilyStore?.();
-      
-      if (!choresStore || !choresStore.selectedQuicklistChore || choresStore.multiAssignSelectedMembers.length === 0) {
-        return;
-      }
+    // NOTE: confirmMultiAssignment moved to choresStore.confirmMultiAssignment()
+    // Components should use useChoresStore().confirmMultiAssignment() directly
+    // _Requirements: 5.5_
 
-      // Set loading state on the modal component if available
-      if (this.$refs.appModalsComponent) {
-        this.$refs.appModalsComponent.multiAssignLoading = true;
-      }
+    // NOTE: assignQuicklistChoreToMember moved to choresStore.assignQuicklistChoreToMember()
+    // Components should use useChoresStore().assignQuicklistChoreToMember() directly
+    // _Requirements: 5.5_
 
-      const selectedMembers = choresStore.multiAssignSelectedMembers;
-      const quicklistChore = choresStore.selectedQuicklistChore;
-      const people = familyStore?.members || [];
-      const results = [];
+    // NOTE: openChoreDetailsModal moved to choresStore.openChoreDetailsModal()
+    // Components should use useChoresStore().openChoreDetailsModal() directly
+    // _Requirements: 5.6_
 
-      try {
-        // Create all assignments in parallel for better performance
-        const assignmentPromises = selectedMembers.map(async (memberId) => {
-          const member = people.find(p => p.id === memberId);
-          if (!member) return { memberId, success: false, error: 'Member not found' };
+    // NOTE: confirmChoreDetails moved to choresStore.confirmChoreDetails()
+    // Components should use useChoresStore().confirmChoreDetails() directly
+    // _Requirements: 5.6_
 
-          // Use displayName with fallback to name for backward compatibility
-          const memberDisplayName = member.displayName || member.name;
-
-          try {
-            // Check if quicklist chore requires details
-            if (quicklistChore.isDetailed) {
-              // For detailed chores, we'll need to handle this differently
-              // For now, assign without details (could be enhanced later)
-              await this.assignQuicklistChoreToMember(quicklistChore, memberDisplayName);
-              return { memberId, memberName: memberDisplayName, success: true };
-            } else {
-              await this.assignQuicklistChoreToMember(quicklistChore, memberDisplayName);
-              return { memberId, memberName: memberDisplayName, success: true };
-            }
-          } catch (error) {
-            console.error(`Failed to assign chore to ${memberDisplayName}:`, error);
-            return { memberId, memberName: memberDisplayName, success: false, error: error.message };
-          }
-        });
-
-        // Wait for all assignments to complete (success or failure)
-        const assignmentResults = await Promise.allSettled(assignmentPromises);
-
-        // Process results
-        const successful = assignmentResults.filter(result =>
-          result.status === 'fulfilled' && result.value.success
-        ).map(result => result.value);
-
-        const failed = assignmentResults.filter(result =>
-          result.status === 'rejected' ||
-          (result.status === 'fulfilled' && !result.value.success)
-        ).map(result => result.status === 'rejected' ? result.reason : result.value);
-
-        results.push(...successful, ...failed);
-
-        // Show appropriate message based on results
-        if (successful.length > 0) {
-          const memberNames = successful.map(s => s.memberName).join(', ');
-          this.showSuccessMessage(`✅ Assigned "${quicklistChore.name}" to ${successful.length} member${successful.length !== 1 ? 's' : ''}: ${memberNames}`);
-        }
-
-        if (failed.length > 0) {
-          console.error('Some assignments failed:', failed);
-          if (successful.length === 0) {
-            this.showSuccessMessage(`❌ Failed to assign "${quicklistChore.name}" to any family members`);
-          } else {
-            this.showSuccessMessage(`⚠️ Assigned to ${successful.length} members, but ${failed.length} assignment${failed.length !== 1 ? 's' : ''} failed`);
-          }
-        }
-
-        // Close modal and reset state
-        this.cancelMultiAssignment();
-
-      } catch (error) {
-        console.error('Unexpected error in confirmMultiAssignment:', error);
-        this.showSuccessMessage('❌ An unexpected error occurred while assigning chores');
-      } finally {
-        // Reset loading state on the modal component if available
-        if (this.$refs.appModalsComponent) {
-          this.$refs.appModalsComponent.multiAssignLoading = false;
-        }
-      }
-    },
-
-    async assignQuicklistChoreToMember(quicklistChore, memberName) {
-      // Use chores store for state management
-      const choresStore = window.useChoresStore?.();
-      if (!choresStore) {
-        console.error('Chores store not available');
-        throw new Error('Chores store not available');
-      }
-
-      // Create optimistic chore with temp ID
-      const tempId = `temp-${Date.now()}-${Math.random()}`;
-      const newChore = {
-        id: tempId,
-        name: quicklistChore.name,
-        amount: quicklistChore.amount || 0,
-        category: quicklistChore.category || 'regular',
-        details: '',
-        assignedTo: memberName,
-        completed: false,
-        isPendingApproval: false,
-        isOptimistic: true
-      };
-
-      // Add optimistic chore to store immediately
-      choresStore.chores.push(newChore);
-      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✨ Optimistic UI updated - quicklist chore added for', memberName);
-
-      // Update electronics status optimistically if needed
-      if (newChore.category === 'game') {
-        const familyStore = window.useFamilyStore?.();
-        if (familyStore) {
-          familyStore.updateElectronicsStatusOptimistically(memberName);
-        }
-      }
-
-      try {
-        // Make API call to create the chore using useApi composable
-        const choreData = {
-          name: newChore.name,
-          amount: newChore.amount,
-          category: newChore.category,
-          assignedTo: memberName,
-          completed: false
-        };
-
-        const api = window.useApi();
-        const response = await api.post(CONFIG.API.ENDPOINTS.CHORES, choreData);
-
-        // Update the optimistic chore with real data from server
-        const choreIndex = choresStore.chores.findIndex(c => c.id === tempId);
-        if (choreIndex !== -1) {
-          choresStore.chores[choreIndex] = {
-            ...response.chore,
-            isOptimistic: false
-          };
-        }
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Server confirmed quicklist chore creation for', memberName);
-      } catch (error) {
-        // Rollback optimistic update on error
-        const choreIndex = choresStore.chores.findIndex(c => c.id === tempId);
-        if (choreIndex !== -1) {
-          choresStore.chores.splice(choreIndex, 1);
-        }
-        console.error('Failed to create quicklist chore:', error);
-        throw error;
-      }
-    },
-
-    // Chore details modal methods
-    // _Requirements: 4.2, 4.3, 4.5_
-    openChoreDetailsModal(choreData, assignedTo = '', isNewFromQuicklist = false) {
-      this.choreDetailsForm = {
-        name: choreData.name,
-        details: '',
-        amount: choreData.amount,
-        category: choreData.category,
-        assignedTo: assignedTo,
-        isNewFromQuicklist: isNewFromQuicklist,
-        quicklistChoreId: choreData.id
-      };
-      this.$uiStore?.openModal('choreDetails');
-    },
-
-    async confirmChoreDetails() {
-      if (!this.choreDetailsForm.details.trim()) {
-        // Allow empty details, but at least ensure it's not just whitespace
-        this.choreDetailsForm.details = '';
-      }
-
-      // Get stores
-      const choresStore = window.useChoresStore?.();
-      if (!choresStore) {
-        console.error('Chores store not available');
-        this.showSuccessMessage(`❌ Failed to create chore. Please try again.`);
-        return;
-      }
-
-      // Get API service
-      const api = window.useApi();
-
-      try {
-        if (this.choreDetailsForm.isNewFromQuicklist) {
-          // Create new chore from quicklist with details
-          const choreData = {
-            name: this.choreDetailsForm.name,
-            amount: this.choreDetailsForm.amount,
-            category: this.choreDetailsForm.category,
-            assignedTo: this.choreDetailsForm.assignedTo,
-            completed: false,
-            details: this.choreDetailsForm.details.trim(),
-            isDetailed: true
-          };
-          
-          // Create the chore with details using useApi composable
-          const response = await api.post(CONFIG.API.ENDPOINTS.CHORES, choreData);
-          
-          // Add to chores store
-          choresStore.chores.push(response.chore);
-          
-          // Clear selections
-          choresStore.selectedChoreId = null;
-          choresStore.selectedQuicklistChore = null;
-          
-        } else {
-          // Handle regular chore creation with details
-          const choreData = {
-            name: this.choreDetailsForm.name,
-            amount: this.choreDetailsForm.amount,
-            category: this.choreDetailsForm.category,
-            assignedTo: this.choreDetailsForm.assignedTo || 'unassigned',
-            completed: false,
-            details: this.choreDetailsForm.details.trim(),
-            isDetailed: true
-          };
-          
-          const response = await api.post(CONFIG.API.ENDPOINTS.CHORES, choreData);
-          
-          // Add to chores store
-          choresStore.chores.push(response.chore);
-          
-          // Also add to quicklist if requested
-          if (this.newChore.addToQuicklist) {
-            const quicklistData = {
-              name: choreData.name,
-              amount: choreData.amount,
-              category: choreData.category,
-              isDetailed: true
-            };
-            
-            const quicklistResponse = await api.post(CONFIG.API.ENDPOINTS.QUICKLIST, quicklistData);
-            
-            choresStore.quicklistChores.push(quicklistResponse.quicklistChore);
-          }
-        }
-        
-        this.cancelChoreDetails();
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Chore with details created successfully');
-        
-      } catch (error) {
-        console.error('❌ Failed to create chore with details:', error);
-        this.showSuccessMessage(`❌ Failed to create chore. Please try again.`);
-      }
-    },
-
-    cancelChoreDetails() {
-      this.$uiStore?.closeModal('choreDetails');
-      this.choreDetailsForm = {
-        name: '',
-        details: '',
-        amount: 0,
-        category: 'regular',
-        assignedTo: '',
-        isNewFromQuicklist: false,
-        quicklistChoreId: null
-      };
-    },
+    // NOTE: cancelChoreDetails moved to choresStore.cancelChoreDetails()
+    // Components should use useChoresStore().cancelChoreDetails() directly
+    // _Requirements: 5.6_
 
     // NOTE: startNewDay moved to choresStore.startNewDay()
     // The new-day-modal now calls choresStore directly
     // _Requirements: 4.1, 4.2, 6.3_
 
     cancelNewDay() {
-      this.$uiStore?.closeModal('newDay');
+      const uiStore = window.useUIStore?.();
+      uiStore?.closeModal('newDay');
     },
 
     // Open New Day modal with scroll position capture
     // _Requirements: 4.2, 4.3, 4.5_
     openNewDayModal() {
-      if (!this.offlineStore.isOnline) {
+      // Use offlineStore directly instead of computed property
+      const offlineStore = window.useOfflineStore?.();
+      if (offlineStore && !offlineStore.isOnline) {
         return;
       }
-      this.$uiStore?.openModal('newDay');
+      const uiStore = window.useUIStore?.();
+      uiStore?.openModal('newDay');
     },
 
     // Page navigation
@@ -1694,9 +888,11 @@ const app = createApp({
     
     triggerConfetti(chore = null) {
       // Delegate to celebrations composable
+      // Use authStore directly instead of computed property
       const celebrations = window.useCelebrations?.();
+      const authStore = window.useAuthStore?.();
       if (celebrations) {
-        celebrations.celebrate({ chore, accountSettings: this.accountSettings });
+        celebrations.celebrate({ chore, accountSettings: authStore?.accountSettings });
       } else {
         console.warn('[app.js] useCelebrations not available');
       }
@@ -1714,7 +910,9 @@ const app = createApp({
       });
 
       const handleVisibilityChange = () => {
-        if (document.visibilityState === 'visible' && this.isAuthenticated && authService.isAuthenticated()) {
+        // Use authStore directly instead of computed property
+        const authStore = window.useAuthStore?.();
+        if (document.visibilityState === 'visible' && authStore?.isAuthenticated && authService.isAuthenticated()) {
           if (CONFIG.ENV.IS_DEVELOPMENT) console.log('📱 App became visible, checking token refresh...');
           // Force a token refresh check when app becomes visible
           authService.refreshAccessToken().catch(error => {
@@ -1727,7 +925,9 @@ const app = createApp({
 
       // Also handle page focus for additional reliability
       window.addEventListener('focus', () => {
-        if (this.isAuthenticated && authService.isAuthenticated()) {
+        // Use authStore directly instead of computed property
+        const authStore = window.useAuthStore?.();
+        if (authStore?.isAuthenticated && authService.isAuthenticated()) {
           if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🔍 App gained focus, checking token refresh...');
           authService.refreshAccessToken().catch(error => {
             console.warn('Token refresh on focus failed:', error);
@@ -1744,7 +944,9 @@ const app = createApp({
           // Only refresh if the document is actually hidden (app went to background)
           // or if activeElement is null/body (focus left the window entirely)
           const focusLeftWindow = !document.hasFocus();
-          if (focusLeftWindow && this.isAuthenticated && authService.isAuthenticated()) {
+          // Use authStore directly instead of computed property
+          const authStore = window.useAuthStore?.();
+          if (focusLeftWindow && authStore?.isAuthenticated && authService.isAuthenticated()) {
             if (CONFIG.ENV.IS_DEVELOPMENT) console.log('📱 App going to background, refreshing tokens proactively...');
             // Proactively refresh tokens before app goes to background
             authService.refreshAccessToken().catch(error => {
@@ -1755,168 +957,9 @@ const app = createApp({
       });
     },
 
-    // Add method for click-to-assign functionality with optimistic updates
-    async assignSelectedChore(assignTo) {
-      // Get chores store
-      const choresStore = window.useChoresStore?.();
-      if (!choresStore) {
-        console.error('Chores store not available');
-        return;
-      }
-      
-      const selectedChore = choresStore.selectedChore;
-      
-      if (!selectedChore) {
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.warn('No chore selected for assignment');
-        return;
-      }
-      
-      if (!assignTo) {
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.warn('No assignee specified');
-        return;
-      }
-      
-      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🚀 Optimistically assigning chore:', selectedChore.name, 'to:', assignTo);
-      
-      // Store original state for potential rollback
-      const originalChores = [...choresStore.chores];
-      const selectedChoreCopy = { ...selectedChore };
-      
-      // Get API service
-      const api = window.useApi();
-      
-      try {
-        if (selectedChore.isNewFromQuicklist) {
-          // Check if this quicklist chore requires details
-          const quicklistChore = choresStore.quicklistChores.find(qc => qc.name === selectedChore.name);
-          if (quicklistChore && quicklistChore.isDetailed) {
-            // Open details modal for detailed quicklist chore
-            this.openChoreDetailsModal(selectedChore, assignTo, true);
-            return;
-          }
-          
-          // OPTIMISTIC UPDATE: Add new chore immediately to UI
-          const newChore = {
-            id: `temp-${Date.now()}`, // Temporary ID
-            name: selectedChore.name,
-            amount: selectedChore.amount || 0,
-            category: selectedChore.category || 'regular',
-            assignedTo: assignTo,
-            completed: false,
-            isDetailed: false,
-            details: '',
-            isOptimistic: true // Flag to identify optimistic updates
-          };
-          
-          // Add to chores store immediately for instant UI update
-          choresStore.chores.push(newChore);
-          
-          // Clear selection immediately for instant feedback
-          choresStore.selectedChoreId = null;
-          choresStore.selectedQuicklistChore = null;
-          
-          // OPTIMISTIC ELECTRONICS STATUS UPDATE: Update electronics status if this is an electronics chore
-          if (newChore.category === 'game') {
-            const familyStore = window.useFamilyStore?.();
-            if (familyStore) {
-              familyStore.updateElectronicsStatusOptimistically(assignTo);
-            }
-          }
-          
-          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✨ Optimistic UI updated - new chore added');
-          
-          // Now make API call in background using useApi composable
-          const choreData = {
-            name: newChore.name,
-            amount: newChore.amount,
-            category: newChore.category,
-            assignedTo: assignTo,
-            completed: false
-          };
-          
-          const response = await api.post(CONFIG.API.ENDPOINTS.CHORES, choreData);
-          
-          // Update the temporary chore with real data from server
-          const choreIndex = choresStore.chores.findIndex(c => c.id === newChore.id);
-          if (choreIndex !== -1) {
-            choresStore.chores[choreIndex] = {
-              ...response.chore,
-              isOptimistic: false
-            };
-          }
-          
-          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Server confirmed new chore creation');
-          
-        } else {
-          // OPTIMISTIC UPDATE: Move existing chore immediately
-          const choreIndex = choresStore.chores.findIndex(c => c.id === selectedChore.id);
-          const oldAssignedTo = choresStore.chores[choreIndex]?.assignedTo;
-          if (choreIndex !== -1) {
-            // Update assignment immediately for instant UI feedback
-            choresStore.chores[choreIndex] = {
-              ...choresStore.chores[choreIndex],
-              assignedTo: assignTo,
-              isOptimistic: true
-            };
-            
-            // OPTIMISTIC ELECTRONICS STATUS UPDATE: Update electronics status for both old and new assignees if this is an electronics chore
-            if (choresStore.chores[choreIndex].category === 'game') {
-              const familyStore = window.useFamilyStore?.();
-              if (familyStore) {
-                if (oldAssignedTo && oldAssignedTo !== 'unassigned') {
-                  familyStore.updateElectronicsStatusOptimistically(oldAssignedTo);
-                }
-                if (assignTo && assignTo !== 'unassigned') {
-                  familyStore.updateElectronicsStatusOptimistically(assignTo);
-                }
-              }
-            }
-          }
-          
-          // Clear selection immediately for instant feedback
-          choresStore.selectedChoreId = null;
-          choresStore.selectedQuicklistChore = null;
-          
-          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✨ Optimistic UI updated - chore moved');
-          
-          // Now make API call in background using useApi composable
-          const response = await api.put(`${CONFIG.API.ENDPOINTS.CHORES}/${selectedChoreCopy.id}/assign`, { assignedTo: assignTo });
-          
-          // Update with server response
-          if (choreIndex !== -1) {
-            choresStore.chores[choreIndex] = {
-              ...response.chore,
-              isOptimistic: false
-            };
-          }
-          
-          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Server confirmed chore assignment');
-        }
-        
-        // Reload earnings and electronics status in background (non-blocking)
-        const familyStore = window.useFamilyStore?.();
-        if (familyStore) {
-          Promise.all([
-            familyStore.loadEarnings(),
-            familyStore.loadElectronicsStatus(),
-            familyStore.loadMembers()
-          ]).catch(error => {
-            console.warn('Background data refresh failed:', error);
-          });
-        }
-        
-      } catch (error) {
-        console.error('❌ Assignment failed, rolling back optimistic update:', error);
-        
-        // ROLLBACK: Restore original state
-        choresStore.chores = originalChores;
-        choresStore.selectedChoreId = selectedChoreCopy.isNewFromQuicklist ? null : selectedChoreCopy.id;
-        choresStore.selectedQuicklistChore = selectedChoreCopy.isNewFromQuicklist ? selectedChoreCopy : null;
-        
-        // Show user-friendly error message
-        this.showSuccessMessage(`❌ Failed to assign "${selectedChoreCopy.name}". Please try again.`);
-      }
-    },
+    // NOTE: assignSelectedChore moved to choresStore.assignSelectedChore()
+    // Components should use useChoresStore().assignSelectedChore() directly
+    // _Requirements: 5.3_
 
     // User display helper methods
     getUserDisplayName(user) {
@@ -1930,169 +973,31 @@ const app = createApp({
       return name.charAt(0).toUpperCase();
     },
 
+    // _Requirements: 8.4_ - Now delegates to uiStore
     showSuccessMessage(message) {
       if (CONFIG.ENV.IS_DEVELOPMENT) {
         console.log('🎉 showSuccessMessage called with:', message);
-        console.trace('showSuccessMessage call stack:');
       }
       // suppress generic auth-required notices when signup modal is already being shown for invite flow
-      if (this.showSignupModal && typeof message === 'string' && /authentication required/i.test(message)) {
+      const uiStore = window.useUIStore?.();
+      const authStore = window.useAuthStore?.();
+      if (uiStore?.isModalOpen?.('signup') && typeof message === 'string' && /authentication required/i.test(message)) {
         return;
       }
-      this.completedChoreMessage = message;
-      this.showSuccessMessageFlag = true;
-      setTimeout(() => {
-        this.showSuccessMessageFlag = false;
-        this.completedChoreMessage = '';
-      }, 3000);
-    },
-    
-    clearSuccessMessage() {
-      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🧹 Manually clearing success message');
-      this.showSuccessMessageFlag = false;
-      this.completedChoreMessage = '';
+      // Delegate to uiStore
+      uiStore?.showSuccess(message, 3000);
     },
 
-    // Spending modal methods
-    // _Requirements: 4.2, 4.3, 4.5_
-    openSpendingModal(person) {
-      this.selectedPerson = person;
-      this.spendAmount = 0;
-      this.spendAmountString = '0';
-      this.$uiStore?.openModal('spending');
-      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎯 openSpendingModal via uiStore');
-    },
-
-    closeSpendingModal() {
-      this.$uiStore?.closeModal('spending');
-      this.selectedPerson = null;
-      this.spendAmount = 0;
-      this.spendAmountString = '0';
-    },
-
-    addDigit(digit) {
-      if (this.spendAmountString === '0') {
-        this.spendAmountString = digit.toString();
-      } else {
-        this.spendAmountString += digit.toString();
-      }
-      this.updateSpendAmount();
-    },
-
-    addDecimal() {
-      if (!this.spendAmountString.includes('.')) {
-        this.spendAmountString += '.';
-        this.updateSpendAmount();
-      }
-    },
-
-    clearSpendAmount() {
-      this.spendAmountString = '0';
-      this.spendAmount = 0;
-    },
-
-    updateSpendAmount() {
-      const amount = parseFloat(this.spendAmountString);
-      this.spendAmount = isNaN(amount) ? 0 : Number(amount);
-    },
-
-    async confirmSpending() {
-      if (this.spendAmount <= 0 || this.spendAmount > this.selectedPerson.earnings) return;
-      try {
-        const requireApproval = !!this.accountSettings?.preferences?.requireApproval;
-        const isChild = this.currentUser?.role === 'child';
-        const canSpend = !!this.accountSettings?.preferences?.childPermissions?.canSpendMoney;
-        const personName = this.selectedPerson.name;
-        const spentAmount = this.spendAmount;
-
-        if (requireApproval && isChild && canSpend) {
-          // create spend request instead of immediate deduction using useApi composable
-          const api = window.useApi();
-          await api.post(`${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${encodeURIComponent(personName)}/spend-requests`, { amount: Number(spentAmount) });
-          alert('Spend request submitted for approval.');
-          this.closeSpendingModal();
-          return;
-        }
-
-        // immediate deduction (parent or approval disabled) using useApi composable
-        const api = window.useApi();
-        await api.put(`${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${encodeURIComponent(personName)}/earnings`, { amount: Number(spentAmount), operation: 'subtract' });
-
-        // Reload earnings from familyStore
-        const familyStore = window.useFamilyStore?.();
-        if (familyStore) {
-          await familyStore.loadEarnings();
-        }
-        this.triggerConfetti();
-        this.showSuccessMessageFlag = true;
-        this.completedChoreMessage = `${personName} spent $${spentAmount.toFixed(2)}!`;
-        setTimeout(() => { this.showSuccessMessageFlag = false; }, 3000);
-        this.closeSpendingModal();
-      } catch (error) {
-        console.error('Error spending money:', error);
-        alert('Failed to spend money. Please try again.');
-      }
-    }
+    // NOTE: Spending modal methods migrated to familyStore
+    // Components should use useFamilyStore() directly
+    // - openSpendingModal(), closeSpendingModal(), addDigit(), addDecimal(), clearSpendAmount()
+    // confirmSpending() is now handled by the spending-modal component directly
+    // _Requirements: 3.3, 3.4_
   },
   
-  watch: {
-    // Sync accountId to apiService when it changes
-    accountId: {
-      immediate: true,
-      handler(newVal) {
-        if (window.apiService && newVal) {
-          window.apiService.setAccountId(newVal);
-          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🔗 apiService.accountId synced:', newVal);
-        }
-      }
-    },
-    // toggle body scroll lock whenever any modal opens/closes
-    isAnyModalOpen(newVal) {
-      if (newVal) {
-        document.body.classList.add('modal-open');
-      } else {
-        document.body.classList.remove('modal-open');
-      }
-    },
-    
-    showSuccessMessageFlag() {
-      // Verbose flag tracking removed - use browser DevTools if needed
-    },
-    
-    // ============================================
-    // BRIDGE WATCHERS: Sync store state to legacy app.js properties
-    // These watchers maintain backward compatibility during migration
-    // by syncing Pinia store state to app.js data properties.
-    // Components not yet migrated can continue using $parent references.
-    // 
-    // **Feature: app-js-refactoring**
-    // **Validates: Requirements 8.1, 8.2**
-    // ============================================
-    
-    // NOTE: Chores bridge watchers removed - chore state now lives exclusively in choresStore
-    // Components should use useChoresStore() directly
-    
-    // NOTE: Family bridge watchers removed - family state now lives exclusively in familyStore
-    // Components should use useFamilyStore() directly
-    
-    // NOTE: Auth bridge watchers removed - auth state now accessed via computed properties
-    // that delegate to authStore. Components should use useAuthStore() directly.
-    // _Requirements: 3.5_
-    
-    // Bridge: Sync uiStore.currentPage → this.currentPage
-    // **Feature: app-js-refactoring**
-    // **Validates: Requirements 8.1, 8.2**
-    '$uiStore.currentPage': {
-      handler(newPage) {
-        if (newPage && newPage !== this.currentPage) {
-          this.currentPage = newPage;
-          if (CONFIG.ENV.IS_DEVELOPMENT) {
-            console.log('🔄 [Bridge] uiStore.currentPage → app.currentPage synced:', newPage);
-          }
-        }
-      }
-    }
-  },
+  // NOTE: Watch handlers for store sync removed - all components now use stores directly
+  // The body scroll lock is now handled by uiStore directly
+  // _Requirements: 8.8_
   
   async mounted() {
     try {
@@ -2102,17 +1007,6 @@ const app = createApp({
           if (!e.target.closest('.mobile-nav')) this.mobileNavOpen = false;
         } catch { /* ignore DOM errors */ }
       });
-      // Debug initial success message state
-      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🔍 Initial success message state:', {
-        showSuccessMessageFlag: this.showSuccessMessageFlag,
-        completedChoreMessage: this.completedChoreMessage
-      });
-      
-      // Clear any stray success messages on app start
-      if (this.showSuccessMessageFlag && !this.completedChoreMessage) {
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🧹 Clearing stray success message on app start');
-        this.clearSuccessMessage();
-      }
       
       // check authentication first
       if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🚀 App starting - checking authentication...');
@@ -2239,249 +1133,11 @@ const app = createApp({
       // Ensure loading screen is hidden even on error
       ThemeManager.initializeTheme();
     }
-  },
-
-  provide() {
-    return {
-      // Global utilities and helpers
-      Helpers: window.Helpers,
-      CONFIG: window.CONFIG,
-
-      // Provide reactive data to child components
-      // Readonly computed values for display data
-      loading: Vue.computed(() => this.loading),
-      error: Vue.computed(() => this.error),
-      selectedChore: Vue.computed(() => {
-        // Use chores store for selection state
-        const store = window.useChoresStore?.();
-        return store?.selectedChore || null;
-      }),
-      selectedChoreId: Vue.computed(() => {
-        const store = window.useChoresStore?.();
-        return store?.selectedChoreId || null;
-      }),
-      selectedQuicklistChore: Vue.computed(() => {
-        const store = window.useChoresStore?.();
-        return store?.selectedQuicklistChore || null;
-      }),
-      // lightweight selection store for centralized selection handling
-      selectionStore: {
-        state: {
-          selectedChore: Vue.computed(() => {
-            const store = window.useChoresStore?.();
-            return store?.selectedChore || null;
-          }),
-          selectedChoreId: Vue.computed(() => {
-            const store = window.useChoresStore?.();
-            return store?.selectedChoreId || null;
-          }),
-          selectedQuicklistChore: Vue.computed(() => {
-            const store = window.useChoresStore?.();
-            return store?.selectedQuicklistChore || null;
-          })
-        },
-        selectChore: (chore) => this.handleChoreClick(chore),
-        selectQuicklist: (quickChore) => this.handleQuicklistChoreClick(quickChore),
-        clear: () => {
-          const store = window.useChoresStore?.();
-          if (store) {
-            store.selectedChoreId = null;
-            store.selectedQuicklistChore = null;
-          }
-        }
-      },
-      showSuccessMessageFlag: Vue.computed(() => this.showSuccessMessageFlag),
-      completedChoreMessage: Vue.computed(() => this.completedChoreMessage),
-      showConfetti: Vue.computed(() => this.showConfetti),
-      confettiPieces: Vue.computed(() => this.confettiPieces),
-      quicklistChores: Vue.computed(() => {
-        const store = window.useChoresStore?.();
-        return store?.quicklistChores || [];
-      }),
-      categories: Vue.computed(() => {
-        const categoriesStore = window.useCategoriesStore ? window.useCategoriesStore() : null;
-        return categoriesStore ? categoriesStore.sortedCategories : [];
-      }),
-      choresByPerson: Vue.computed(() => {
-        const store = window.useChoresStore?.();
-        return store?.choresByPerson || {};
-      }),
-      // expose only members enabled for chores on chores page by default; family page iterates over same array but includes toggle to change flag
-      // filtered list for boards (Chores page) - now uses familyStore
-      people: Vue.computed(() => {
-        const familyStore = window.useFamilyStore?.();
-        const members = familyStore?.members || [];
-        return members.filter(p => p.showOnChoreBoard !== false);
-      }),
-      // unfiltered list for Family page management - now uses familyStore
-      allPeople: Vue.computed(() => {
-        const familyStore = window.useFamilyStore?.();
-        return familyStore?.members || [];
-      }),
-      personToDelete: Vue.computed(() => this.personToDelete),
-      
-      // Shopping page data - provided from Pinia store (single source of truth)
-      shoppingItems: Vue.computed(() => {
-        const store = window.useShoppingStore();
-        return store.items || [];
-      }),
-      shoppingQuickItems: Vue.computed(() => {
-        const store = window.useShoppingStore();
-        return store.quickItems || [];
-      }),
-      stores: Vue.computed(() => {
-        const store = window.useShoppingStore();
-        return store.stores || [];
-      }),
-      
-      // Preloaded account page data
-      accountSettings: Vue.computed(() => this.accountSettings),
-      accountId: Vue.computed(() => this.accountId),
-      // spendingRequests now uses familyStore
-      spendingRequests: Vue.computed(() => {
-        const familyStore = window.useFamilyStore?.();
-        return familyStore?.spendingRequests || [];
-      }),
-      
-      // Modal state computed values (readonly)
-      showAddToQuicklistModal: Vue.computed(() => this.showAddToQuicklistModal),
-      showAddChoreModal: Vue.computed(() => this.showAddChoreModal),
-      // **Feature: habit-tracking** - Habit flyout state
-      showHabitFlyout: Vue.computed(() => this.showHabitFlyout),
-      habitFlyoutMemberId: Vue.computed(() => this.habitFlyoutMemberId),
-      editingHabit: Vue.computed(() => this.editingHabit),
-      habitForm: Vue.toRef(this, 'habitForm'),
-      habitFormError: Vue.computed(() => this.habitFormError),
-      habitFormSubmitting: Vue.computed(() => this.habitFormSubmitting),
-      showAddPersonModal: Vue.computed(() => this.showAddPersonModal),
-      showDeletePersonModal: Vue.computed(() => this.showDeletePersonModal),
-      // NOTE: showNewDayModal and newDayLoading removed - new-day-modal now uses stores directly
-      showSpendingModal: Vue.computed(() => this.showSpendingModal),
-      showChoreDetailsModal: Vue.computed(() => this.showChoreDetailsModal),
-      showMultiAssignModal: Vue.computed(() => this.showMultiAssignModal),
-      multiAssignSelectedMembers: Vue.computed(() => {
-        const store = window.useChoresStore?.();
-        return store?.multiAssignSelectedMembers || [];
-      }),
-      showCategoryManagementModal: Vue.computed(() => this.showCategoryManagementModal),
-      // Schedule modal state - **Feature: weekly-chore-scheduling**
-      showScheduleModal: Vue.computed(() => this.showScheduleModal),
-      scheduleModalChore: Vue.computed(() => this.scheduleModalChore),
-      // Default order modal state
-      showDefaultOrderModal: Vue.computed(() => this.showDefaultOrderModal),
-      defaultOrderMember: Vue.computed(() => this.defaultOrderMember),
-      // add child / invite parent modal flags
-      showCreateChildModal: Vue.computed(() => this.showCreateChildModal),
-      showInviteModal: Vue.computed(() => this.showInviteModal),
-      selectedPerson: Vue.computed(() => this.selectedPerson),
-      spendAmount: Vue.computed(() => this.spendAmount),
-      spendAmountString: Vue.computed(() => this.spendAmountString),
-      currentPage: Vue.computed(() => this.currentPage),
-      
-      // NOTE: Authentication modal state now accessed via computed properties
-      // that delegate to uiStore and authStore. Components should use
-      // useAuthStore() and useUIStore() directly.
-      // _Requirements: 3.5_
-      
-      // Form data as reactive refs
-      newQuicklistChore: Vue.toRef(this, 'newQuicklistChore'),
-      newPerson: Vue.toRef(this, 'newPerson'),
-      newChore: Vue.toRef(this, 'newChore'),
-      // NOTE: authForm now accessed via authStore.authForm
-      choreDetailsForm: Vue.toRef(this, 'choreDetailsForm'),
-      
-      // Provide methods that child components need
-      loadAllData: this.loadAllData,
-      assignSelectedChore: this.assignSelectedChore,
-      handleChoreClick: this.handleChoreClick,
-      handleQuicklistChoreClick: this.handleQuicklistChoreClick,
-      setCurrentPage: this.setCurrentPage,
-      confirmDeletePerson: this.confirmDeletePerson,
-      addChore: this.addChore,
-      cancelAddChore: this.cancelAddChore,
-      addPerson: this.addPerson,
-      cancelAddPerson: this.cancelAddPerson,
-      openAddPersonModal: this.openAddPersonModal,
-      addToQuicklist: this.addToQuicklist,
-      cancelAddToQuicklist: this.cancelAddToQuicklist,
-      openChoreDetailsModal: this.openChoreDetailsModal,
-      openAddChoreModal: this.openAddChoreModal,
-      closeAddChoreModal: this.closeAddChoreModal,
-      openAddToQuicklistModal: this.openAddToQuicklistModal,
-      closeAddToQuicklistModal: this.closeAddToQuicklistModal,
-      closeCreateChildModal: this.closeCreateChildModal,
-      closeInviteModal: this.closeInviteModal,
-      confirmChoreDetails: this.confirmChoreDetails,
-      cancelChoreDetails: this.cancelChoreDetails,
-      // NOTE: startNewDay removed - new-day-modal now calls choresStore.startNewDay() directly
-      cancelNewDay: this.cancelNewDay,
-      openMultiAssignModal: this.openMultiAssignModal,
-      confirmMultiAssignment: this.confirmMultiAssignment,
-      cancelMultiAssignment: this.cancelMultiAssignment,
-      openCategoryManagementModal: this.openCategoryManagementModal,
-      closeCategoryManagementModal: this.closeCategoryManagementModal,
-      // Schedule modal methods - **Feature: weekly-chore-scheduling**
-      openScheduleModal: this.openScheduleModal,
-      closeScheduleModal: this.closeScheduleModal,
-      handleScheduleSave: this.handleScheduleSave,
-      // Default order modal methods
-      openDefaultOrderModal: this.openDefaultOrderModal,
-      closeDefaultOrderModal: this.closeDefaultOrderModal,
-      handleDefaultOrderSave: this.handleDefaultOrderSave,
-      updateQuicklistCategory: this.updateQuicklistCategory,
-      deleteChore: this.deleteChore,
-      reassignChore: this.reassignChore,
-      deletePerson: this.performDeletePerson,
-      executeDeletePerson: this.executeDeletePerson,
-      cancelDeletePerson: this.cancelDeletePerson,
-      triggerConfetti: this.triggerConfetti,
-      // NOTE: loadEarnings moved to familyStore.loadEarnings()
-      // Components should use useFamilyStore().loadEarnings() instead
-      showSuccessMessage: this.showSuccessMessage,
-      
-      // Data reload methods for child components
-      loadShoppingItems: this.loadShoppingItems,
-      loadShoppingQuickItems: this.loadShoppingQuickItems,
-      loadStores: this.loadStores,
-      loadAccountSettings: this.loadAccountSettings,
-      
-      // Spending modal methods (also used by children like EarningsWidget)
-      openSpendingModal: this.openSpendingModal,
-      closeSpendingModal: this.closeSpendingModal,
-      addDigit: this.addDigit,
-      addDecimal: this.addDecimal,
-      clearSpendAmount: this.clearSpendAmount,
-      confirmSpending: this.confirmSpending,
-      
-      // User data
-      currentUser: Vue.computed(() => this.currentUser),
-      
-      // NOTE: Authentication methods now delegate to authStore
-      // Components should use useAuthStore() directly for auth operations
-      // These are kept for backward compatibility during migration
-      // _Requirements: 3.5_
-      handleLogin: this.handleLogin,
-      handleSignup: this.handleSignup,
-      handleConfirmSignup: this.handleConfirmSignup,
-      handleLogout: this.handleLogout,
-      showLoginForm: this.showLoginForm,
-      showSignupForm: this.showSignupForm,
-      closeAuthModals: this.closeAuthModals,
-      // Child/Parent invites
-      openCreateChildModal: this.openCreateChildModal,
-      createParentInvite: this.createParentInvite,
-      // Spending approvals
-      loadSpendingRequests: this.loadSpendingRequests,
-      approveSpendingRequest: this.approveSpendingRequest
-      ,
-      // NOTE: apiCall removed - use window.useApi() composable instead
-      // Components should call: const api = window.useApi(); api.call(endpoint, options)
-      // _Requirements: 5.5_
-      
-      // Categories store for category management
-      categoriesStore: Vue.computed(() => window.useCategoriesStore?.())
-    };
   }
+  
+  // NOTE: provide() function removed - all components now use stores directly
+  // Components should use useChoresStore(), useFamilyStore(), useAuthStore(), useUIStore(), etc.
+  // _Requirements: 7.6_
 });
 
 // Configure Vue compiler options for Shoelace custom elements

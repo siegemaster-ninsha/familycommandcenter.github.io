@@ -573,3 +573,1134 @@ describe('Chores Store', () => {
     });
   });
 });
+
+
+/**
+ * Property-Based Tests for Form Reset Actions
+ * 
+ * **Feature: app-js-cleanup, Property: Form reset returns to default state**
+ * **Validates: Requirements 1.1, 1.2, 1.3**
+ * 
+ * Property: For any form state with arbitrary values, calling the reset action
+ * SHALL return the form to its default state with all properties set to their
+ * initial values.
+ */
+
+import fc from 'fast-check';
+
+describe('Form Reset Actions Property Tests', () => {
+  /**
+   * Creates a mock chores store with form state and reset actions
+   */
+  const createFormStore = () => {
+    // Default form states
+    const defaultNewChore = {
+      name: '',
+      amount: 0,
+      category: 'regular',
+      addToQuicklist: false,
+      isDetailed: false
+    };
+    
+    const defaultNewQuicklistChore = {
+      name: '',
+      amount: 0,
+      category: 'regular',
+      categoryId: '',
+      isDetailed: false,
+      defaultDetails: ''
+    };
+    
+    const defaultChoreDetailsForm = {
+      name: '',
+      details: '',
+      amount: 0,
+      category: 'regular',
+      assignedTo: '',
+      isNewFromQuicklist: false,
+      quicklistChoreId: null
+    };
+    
+    return {
+      // Form state
+      newChore: { ...defaultNewChore },
+      newQuicklistChore: { ...defaultNewQuicklistChore },
+      choreDetailsForm: { ...defaultChoreDetailsForm },
+      
+      // Default values for comparison
+      _defaults: {
+        newChore: defaultNewChore,
+        newQuicklistChore: defaultNewQuicklistChore,
+        choreDetailsForm: defaultChoreDetailsForm
+      },
+      
+      // Reset actions
+      resetNewChoreForm() {
+        this.newChore = {
+          name: '',
+          amount: 0,
+          category: 'regular',
+          addToQuicklist: false,
+          isDetailed: false
+        };
+      },
+      
+      resetNewQuicklistChoreForm() {
+        this.newQuicklistChore = {
+          name: '',
+          amount: 0,
+          category: 'regular',
+          categoryId: '',
+          isDetailed: false,
+          defaultDetails: ''
+        };
+      },
+      
+      resetChoreDetailsForm() {
+        this.choreDetailsForm = {
+          name: '',
+          details: '',
+          amount: 0,
+          category: 'regular',
+          assignedTo: '',
+          isNewFromQuicklist: false,
+          quicklistChoreId: null
+        };
+      }
+    };
+  };
+
+  /**
+   * Arbitrary for generating newChore form state with arbitrary values
+   */
+  const newChoreArbitrary = fc.record({
+    name: fc.string({ minLength: 0, maxLength: 100 }),
+    amount: fc.integer({ min: -1000, max: 1000 }),
+    category: fc.constantFrom('regular', 'game', 'bonus', 'invalid'),
+    addToQuicklist: fc.boolean(),
+    isDetailed: fc.boolean()
+  });
+
+  /**
+   * Arbitrary for generating newQuicklistChore form state with arbitrary values
+   */
+  const newQuicklistChoreArbitrary = fc.record({
+    name: fc.string({ minLength: 0, maxLength: 100 }),
+    amount: fc.integer({ min: -1000, max: 1000 }),
+    category: fc.constantFrom('regular', 'game', 'bonus', 'invalid'),
+    categoryId: fc.string({ minLength: 0, maxLength: 50 }),
+    isDetailed: fc.boolean(),
+    defaultDetails: fc.string({ minLength: 0, maxLength: 500 })
+  });
+
+  /**
+   * Arbitrary for generating choreDetailsForm state with arbitrary values
+   */
+  const choreDetailsFormArbitrary = fc.record({
+    name: fc.string({ minLength: 0, maxLength: 100 }),
+    details: fc.string({ minLength: 0, maxLength: 500 }),
+    amount: fc.integer({ min: -1000, max: 1000 }),
+    category: fc.constantFrom('regular', 'game', 'bonus', 'invalid'),
+    assignedTo: fc.string({ minLength: 0, maxLength: 50 }),
+    isNewFromQuicklist: fc.boolean(),
+    quicklistChoreId: fc.option(fc.uuid(), { nil: null })
+  });
+
+  /**
+   * **Feature: app-js-cleanup, Property: Form reset returns to default state**
+   * **Validates: Requirements 1.1**
+   * 
+   * For any newChore form state, resetNewChoreForm() returns to default state
+   */
+  it('Property: resetNewChoreForm returns form to default state', async () => {
+    await fc.assert(
+      fc.property(
+        newChoreArbitrary,
+        (arbitraryFormState) => {
+          const store = createFormStore();
+          
+          // Set arbitrary form state
+          store.newChore = { ...arbitraryFormState };
+          
+          // Reset the form
+          store.resetNewChoreForm();
+          
+          // Property: Form matches default state
+          expect(store.newChore).toEqual(store._defaults.newChore);
+          expect(store.newChore.name).toBe('');
+          expect(store.newChore.amount).toBe(0);
+          expect(store.newChore.category).toBe('regular');
+          expect(store.newChore.addToQuicklist).toBe(false);
+          expect(store.newChore.isDetailed).toBe(false);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  /**
+   * **Feature: app-js-cleanup, Property: Form reset returns to default state**
+   * **Validates: Requirements 1.2**
+   * 
+   * For any newQuicklistChore form state, resetNewQuicklistChoreForm() returns to default state
+   */
+  it('Property: resetNewQuicklistChoreForm returns form to default state', async () => {
+    await fc.assert(
+      fc.property(
+        newQuicklistChoreArbitrary,
+        (arbitraryFormState) => {
+          const store = createFormStore();
+          
+          // Set arbitrary form state
+          store.newQuicklistChore = { ...arbitraryFormState };
+          
+          // Reset the form
+          store.resetNewQuicklistChoreForm();
+          
+          // Property: Form matches default state
+          expect(store.newQuicklistChore).toEqual(store._defaults.newQuicklistChore);
+          expect(store.newQuicklistChore.name).toBe('');
+          expect(store.newQuicklistChore.amount).toBe(0);
+          expect(store.newQuicklistChore.category).toBe('regular');
+          expect(store.newQuicklistChore.categoryId).toBe('');
+          expect(store.newQuicklistChore.isDetailed).toBe(false);
+          expect(store.newQuicklistChore.defaultDetails).toBe('');
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  /**
+   * **Feature: app-js-cleanup, Property: Form reset returns to default state**
+   * **Validates: Requirements 1.3**
+   * 
+   * For any choreDetailsForm state, resetChoreDetailsForm() returns to default state
+   */
+  it('Property: resetChoreDetailsForm returns form to default state', async () => {
+    await fc.assert(
+      fc.property(
+        choreDetailsFormArbitrary,
+        (arbitraryFormState) => {
+          const store = createFormStore();
+          
+          // Set arbitrary form state
+          store.choreDetailsForm = { ...arbitraryFormState };
+          
+          // Reset the form
+          store.resetChoreDetailsForm();
+          
+          // Property: Form matches default state
+          expect(store.choreDetailsForm).toEqual(store._defaults.choreDetailsForm);
+          expect(store.choreDetailsForm.name).toBe('');
+          expect(store.choreDetailsForm.details).toBe('');
+          expect(store.choreDetailsForm.amount).toBe(0);
+          expect(store.choreDetailsForm.category).toBe('regular');
+          expect(store.choreDetailsForm.assignedTo).toBe('');
+          expect(store.choreDetailsForm.isNewFromQuicklist).toBe(false);
+          expect(store.choreDetailsForm.quicklistChoreId).toBeNull();
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  /**
+   * **Feature: app-js-cleanup, Property: Form reset returns to default state**
+   * **Validates: Requirements 1.1, 1.2, 1.3**
+   * 
+   * Multiple sequential resets maintain idempotency
+   */
+  it('Property: Form reset is idempotent', async () => {
+    await fc.assert(
+      fc.property(
+        newChoreArbitrary,
+        newQuicklistChoreArbitrary,
+        choreDetailsFormArbitrary,
+        fc.integer({ min: 1, max: 5 }),
+        (newChoreState, quicklistState, detailsState, resetCount) => {
+          const store = createFormStore();
+          
+          // Set arbitrary form states
+          store.newChore = { ...newChoreState };
+          store.newQuicklistChore = { ...quicklistState };
+          store.choreDetailsForm = { ...detailsState };
+          
+          // Reset multiple times
+          for (let i = 0; i < resetCount; i++) {
+            store.resetNewChoreForm();
+            store.resetNewQuicklistChoreForm();
+            store.resetChoreDetailsForm();
+          }
+          
+          // Property: All forms match default state after any number of resets
+          expect(store.newChore).toEqual(store._defaults.newChore);
+          expect(store.newQuicklistChore).toEqual(store._defaults.newQuicklistChore);
+          expect(store.choreDetailsForm).toEqual(store._defaults.choreDetailsForm);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  /**
+   * **Feature: app-js-cleanup, Property: Form reset returns to default state**
+   * **Validates: Requirements 1.1, 1.2, 1.3**
+   * 
+   * Resetting one form does not affect other forms
+   */
+  it('Property: Form resets are independent', async () => {
+    await fc.assert(
+      fc.property(
+        newChoreArbitrary,
+        newQuicklistChoreArbitrary,
+        choreDetailsFormArbitrary,
+        (newChoreState, quicklistState, detailsState) => {
+          const store = createFormStore();
+          
+          // Set arbitrary form states
+          store.newChore = { ...newChoreState };
+          store.newQuicklistChore = { ...quicklistState };
+          store.choreDetailsForm = { ...detailsState };
+          
+          // Reset only newChore
+          store.resetNewChoreForm();
+          
+          // Property: Only newChore is reset, others unchanged
+          expect(store.newChore).toEqual(store._defaults.newChore);
+          expect(store.newQuicklistChore).toEqual(quicklistState);
+          expect(store.choreDetailsForm).toEqual(detailsState);
+          
+          // Reset only newQuicklistChore
+          store.resetNewQuicklistChoreForm();
+          
+          // Property: newQuicklistChore is now reset, choreDetailsForm unchanged
+          expect(store.newQuicklistChore).toEqual(store._defaults.newQuicklistChore);
+          expect(store.choreDetailsForm).toEqual(detailsState);
+          
+          // Reset choreDetailsForm
+          store.resetChoreDetailsForm();
+          
+          // Property: All forms now reset
+          expect(store.choreDetailsForm).toEqual(store._defaults.choreDetailsForm);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+});
+
+
+/**
+ * Property-Based Tests for Chore Assignment Optimistic Update
+ * 
+ * **Feature: app-js-cleanup, Property 4: Chore Assignment Optimistic Update**
+ * **Validates: Requirements 5.3**
+ * 
+ * Property: For any selected chore and target assignee, when assignSelectedChore is called,
+ * the chore SHALL immediately appear in the target person's list (optimistic update),
+ * and if the API call fails, the chore SHALL be rolled back to its original state.
+ */
+
+describe('Chore Assignment Optimistic Update Property Tests', () => {
+  let mockApiService;
+  
+  beforeEach(() => {
+    vi.clearAllMocks();
+    
+    mockApiService = {
+      get: vi.fn(),
+      post: vi.fn(),
+      put: vi.fn(),
+      delete: vi.fn()
+    };
+    
+    global.window = {
+      ...global.window,
+      apiService: mockApiService,
+      offlineStorage: null,
+      useUIStore: () => ({
+        showSuccess: vi.fn(),
+        showError: vi.fn()
+      }),
+      useFamilyStore: () => ({
+        members: [
+          { id: '1', displayName: 'Alice' },
+          { id: '2', displayName: 'Bob' },
+          { id: '3', displayName: 'Charlie' }
+        ],
+        loadMembers: vi.fn().mockResolvedValue(),
+        loadEarnings: vi.fn().mockResolvedValue(),
+        loadElectronicsStatus: vi.fn().mockResolvedValue(),
+        updateElectronicsStatusOptimistically: vi.fn()
+      }),
+      useOfflineStore: () => ({
+        isFeatureAvailable: () => true,
+        getDisabledFeatureMessage: () => ''
+      }),
+      accountSettings: { preferences: { requireApproval: false } }
+    };
+    
+    // Mock global apiService
+    global.apiService = mockApiService;
+  });
+
+  /**
+   * Creates a mock chores store with assignSelectedChore action
+   */
+  const createAssignmentStore = () => {
+    const state = {
+      chores: [],
+      quicklistChores: [],
+      selectedChoreId: null,
+      selectedQuicklistChore: null,
+      multiAssignSelectedMembers: [],
+      loading: false,
+      error: null
+    };
+
+    return {
+      ...state,
+      
+      get selectedChore() {
+        if (this.selectedQuicklistChore) {
+          return this.selectedQuicklistChore;
+        }
+        if (this.selectedChoreId) {
+          return this.chores.find(c => c.id === this.selectedChoreId) || null;
+        }
+        return null;
+      },
+      
+      async assignSelectedChore(assignTo) {
+        const selectedChore = this.selectedChore;
+        
+        if (!selectedChore) {
+          return { success: false, error: 'No chore selected' };
+        }
+        
+        if (!assignTo) {
+          return { success: false, error: 'No assignee specified' };
+        }
+        
+        // Store original state for potential rollback
+        const originalChores = [...this.chores];
+        const selectedChoreCopy = { ...selectedChore };
+        const originalSelectedChoreId = this.selectedChoreId;
+        const originalSelectedQuicklistChore = this.selectedQuicklistChore;
+        
+        try {
+          if (selectedChore.isNewFromQuicklist) {
+            // Check if this quicklist chore requires details
+            const quicklistChore = this.quicklistChores.find(qc => qc.name === selectedChore.name);
+            if (quicklistChore && quicklistChore.isDetailed) {
+              return { success: false, needsDetails: true, quicklistChore, assignTo };
+            }
+            
+            // OPTIMISTIC UPDATE: Add new chore immediately
+            const newChore = {
+              id: `temp-${Date.now()}`,
+              name: selectedChore.name,
+              amount: selectedChore.amount || 0,
+              category: selectedChore.category || 'regular',
+              assignedTo: assignTo,
+              completed: false,
+              isDetailed: false,
+              details: '',
+              isOptimistic: true
+            };
+            
+            this.chores.push(newChore);
+            this.selectedChoreId = null;
+            this.selectedQuicklistChore = null;
+            
+            // Make API call
+            const response = await mockApiService.post(CONFIG.API.ENDPOINTS.CHORES, {
+              name: newChore.name,
+              amount: newChore.amount,
+              category: newChore.category,
+              assignedTo: assignTo,
+              completed: false
+            });
+            
+            // Update with server response
+            const choreIndex = this.chores.findIndex(c => c.id === newChore.id);
+            if (choreIndex !== -1) {
+              this.chores[choreIndex] = {
+                ...response.chore,
+                isOptimistic: false
+              };
+            }
+            
+          } else {
+            // OPTIMISTIC UPDATE: Move existing chore
+            const choreIndex = this.chores.findIndex(c => c.id === selectedChore.id);
+            
+            if (choreIndex !== -1) {
+              this.chores[choreIndex] = {
+                ...this.chores[choreIndex],
+                assignedTo: assignTo,
+                isOptimistic: true
+              };
+            }
+            
+            this.selectedChoreId = null;
+            this.selectedQuicklistChore = null;
+            
+            // Make API call
+            const response = await mockApiService.put(
+              `${CONFIG.API.ENDPOINTS.CHORES}/${selectedChoreCopy.id}/assign`,
+              { assignedTo: assignTo }
+            );
+            
+            if (choreIndex !== -1) {
+              this.chores[choreIndex] = {
+                ...response.chore,
+                isOptimistic: false
+              };
+            }
+          }
+          
+          return { success: true };
+          
+        } catch (error) {
+          // ROLLBACK: Restore original state
+          this.chores = originalChores;
+          this.selectedChoreId = selectedChoreCopy.isNewFromQuicklist ? null : originalSelectedChoreId;
+          this.selectedQuicklistChore = selectedChoreCopy.isNewFromQuicklist ? originalSelectedQuicklistChore : null;
+          
+          return { success: false, error: error.message };
+        }
+      }
+    };
+  };
+
+  /**
+   * Arbitrary for generating chore data
+   */
+  const choreArbitrary = fc.record({
+    id: fc.uuid(),
+    name: fc.string({ minLength: 1, maxLength: 50 }),
+    amount: fc.integer({ min: 0, max: 100 }),
+    category: fc.constantFrom('regular', 'game', 'bonus'),
+    assignedTo: fc.option(fc.constantFrom('Alice', 'Bob', 'Charlie', 'unassigned'), { nil: null }),
+    completed: fc.boolean()
+  });
+
+  /**
+   * Arbitrary for generating quicklist chore selection
+   */
+  const quicklistChoreArbitrary = fc.record({
+    id: fc.uuid(),
+    name: fc.string({ minLength: 1, maxLength: 50 }),
+    amount: fc.integer({ min: 0, max: 100 }),
+    category: fc.constantFrom('regular', 'game', 'bonus'),
+    isNewFromQuicklist: fc.constant(true),
+    isDetailed: fc.constant(false)
+  });
+
+  /**
+   * Arbitrary for generating assignee names
+   */
+  const assigneeArbitrary = fc.constantFrom('Alice', 'Bob', 'Charlie', 'unassigned');
+
+  /**
+   * **Feature: app-js-cleanup, Property 4: Chore Assignment Optimistic Update**
+   * **Validates: Requirements 5.3**
+   * 
+   * For any existing chore and assignee, the chore appears in target person's list immediately
+   */
+  it('Property: Existing chore assignment updates UI immediately (optimistic)', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        choreArbitrary,
+        assigneeArbitrary,
+        async (chore, assignTo) => {
+          const store = createAssignmentStore();
+          store.chores = [{ ...chore }];
+          store.selectedChoreId = chore.id;
+          
+          // Mock successful API response
+          mockApiService.put.mockResolvedValue({
+            chore: { ...chore, assignedTo: assignTo }
+          });
+          
+          // Capture state before API resolves
+          let immediateAssignedTo = null;
+          const originalPut = mockApiService.put;
+          mockApiService.put = vi.fn().mockImplementation(async (...args) => {
+            // Capture the optimistic state
+            immediateAssignedTo = store.chores.find(c => c.id === chore.id)?.assignedTo;
+            return originalPut(...args);
+          });
+          
+          await store.assignSelectedChore(assignTo);
+          
+          // Property: Chore was assigned to target immediately (optimistic update)
+          expect(immediateAssignedTo).toBe(assignTo);
+          
+          // Property: Final state has correct assignment
+          const finalChore = store.chores.find(c => c.id === chore.id);
+          expect(finalChore?.assignedTo).toBe(assignTo);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  /**
+   * **Feature: app-js-cleanup, Property 4: Chore Assignment Optimistic Update**
+   * **Validates: Requirements 5.3**
+   * 
+   * For any quicklist chore and assignee, a new chore is created immediately
+   */
+  it('Property: Quicklist chore assignment creates new chore immediately (optimistic)', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        quicklistChoreArbitrary,
+        assigneeArbitrary,
+        async (quicklistChore, assignTo) => {
+          const store = createAssignmentStore();
+          store.selectedQuicklistChore = { ...quicklistChore };
+          const initialChoreCount = store.chores.length;
+          
+          // Mock successful API response
+          mockApiService.post.mockResolvedValue({
+            chore: { 
+              id: 'server-id-123',
+              name: quicklistChore.name,
+              amount: quicklistChore.amount,
+              category: quicklistChore.category,
+              assignedTo: assignTo,
+              completed: false
+            }
+          });
+          
+          await store.assignSelectedChore(assignTo);
+          
+          // Property: A new chore was added
+          expect(store.chores.length).toBe(initialChoreCount + 1);
+          
+          // Property: New chore has correct assignment
+          const newChore = store.chores.find(c => c.name === quicklistChore.name);
+          expect(newChore?.assignedTo).toBe(assignTo);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  /**
+   * **Feature: app-js-cleanup, Property 4: Chore Assignment Optimistic Update**
+   * **Validates: Requirements 5.3**
+   * 
+   * For any chore and API failure, the state is rolled back to original
+   */
+  it('Property: Failed assignment rolls back to original state', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        choreArbitrary,
+        assigneeArbitrary,
+        async (chore, assignTo) => {
+          const store = createAssignmentStore();
+          const originalChore = { ...chore };
+          store.chores = [{ ...chore }];
+          store.selectedChoreId = chore.id;
+          
+          // Mock API failure
+          mockApiService.put.mockRejectedValue(new Error('API Error'));
+          
+          const result = await store.assignSelectedChore(assignTo);
+          
+          // Property: Operation failed
+          expect(result.success).toBe(false);
+          
+          // Property: Chore is restored to original state
+          const restoredChore = store.chores.find(c => c.id === chore.id);
+          expect(restoredChore?.assignedTo).toBe(originalChore.assignedTo);
+          
+          // Property: Chore count unchanged
+          expect(store.chores.length).toBe(1);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  /**
+   * **Feature: app-js-cleanup, Property 4: Chore Assignment Optimistic Update**
+   * **Validates: Requirements 5.3**
+   * 
+   * For any quicklist chore and API failure, the optimistic chore is removed
+   */
+  it('Property: Failed quicklist assignment removes optimistic chore', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        quicklistChoreArbitrary,
+        assigneeArbitrary,
+        async (quicklistChore, assignTo) => {
+          const store = createAssignmentStore();
+          store.selectedQuicklistChore = { ...quicklistChore };
+          const initialChoreCount = store.chores.length;
+          
+          // Mock API failure
+          mockApiService.post.mockRejectedValue(new Error('API Error'));
+          
+          const result = await store.assignSelectedChore(assignTo);
+          
+          // Property: Operation failed
+          expect(result.success).toBe(false);
+          
+          // Property: Chore count is back to original (optimistic chore removed)
+          expect(store.chores.length).toBe(initialChoreCount);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  /**
+   * **Feature: app-js-cleanup, Property 4: Chore Assignment Optimistic Update**
+   * **Validates: Requirements 5.3**
+   * 
+   * Selection is cleared immediately after assignment starts
+   */
+  it('Property: Selection is cleared immediately on assignment', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        choreArbitrary,
+        assigneeArbitrary,
+        async (chore, assignTo) => {
+          const store = createAssignmentStore();
+          store.chores = [{ ...chore }];
+          store.selectedChoreId = chore.id;
+          
+          // Mock slow API response
+          mockApiService.put.mockImplementation(() => new Promise(resolve => {
+            // Check selection state during API call
+            expect(store.selectedChoreId).toBeNull();
+            resolve({ chore: { ...chore, assignedTo: assignTo } });
+          }));
+          
+          await store.assignSelectedChore(assignTo);
+          
+          // Property: Selection remains cleared after completion
+          expect(store.selectedChoreId).toBeNull();
+          expect(store.selectedQuicklistChore).toBeNull();
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+});
+
+
+/**
+ * Property-Based Tests for Multi-Assignment Count
+ * 
+ * **Feature: app-js-cleanup, Property 5: Multi-Assignment Creates Correct Number of Chores**
+ * **Validates: Requirements 5.5**
+ * 
+ * Property: For any quicklist chore and set of N selected members, when confirmMultiAssignment
+ * is called, exactly N new chores SHALL be created (one per member), each assigned to the
+ * corresponding member.
+ */
+
+describe('Multi-Assignment Count Property Tests', () => {
+  let mockApiService;
+  let mockUIStore;
+  
+  beforeEach(() => {
+    vi.clearAllMocks();
+    
+    mockApiService = {
+      get: vi.fn(),
+      post: vi.fn(),
+      put: vi.fn(),
+      delete: vi.fn()
+    };
+    
+    mockUIStore = {
+      showSuccess: vi.fn(),
+      showError: vi.fn(),
+      openModal: vi.fn(),
+      closeModal: vi.fn()
+    };
+    
+    global.window = {
+      ...global.window,
+      apiService: mockApiService,
+      offlineStorage: null,
+      useUIStore: () => mockUIStore,
+      useFamilyStore: () => ({
+        members: [
+          { id: 'member-1', displayName: 'Alice' },
+          { id: 'member-2', displayName: 'Bob' },
+          { id: 'member-3', displayName: 'Charlie' },
+          { id: 'member-4', displayName: 'Diana' },
+          { id: 'member-5', displayName: 'Eve' }
+        ],
+        loadMembers: vi.fn().mockResolvedValue(),
+        loadEarnings: vi.fn().mockResolvedValue(),
+        loadElectronicsStatus: vi.fn().mockResolvedValue(),
+        updateElectronicsStatusOptimistically: vi.fn()
+      }),
+      useOfflineStore: () => ({
+        isFeatureAvailable: () => true,
+        getDisabledFeatureMessage: () => ''
+      }),
+      accountSettings: { preferences: { requireApproval: false } }
+    };
+    
+    global.apiService = mockApiService;
+  });
+
+  /**
+   * Creates a mock chores store with multi-assignment actions
+   */
+  const createMultiAssignStore = () => {
+    const state = {
+      chores: [],
+      quicklistChores: [],
+      selectedChoreId: null,
+      selectedQuicklistChore: null,
+      multiAssignSelectedMembers: [],
+      loading: false,
+      error: null
+    };
+
+    return {
+      ...state,
+      
+      async assignQuicklistChoreToMember(quicklistChore, memberName) {
+        const tempId = `temp-${Date.now()}-${Math.random()}`;
+        const newChore = {
+          id: tempId,
+          name: quicklistChore.name,
+          amount: quicklistChore.amount || 0,
+          category: quicklistChore.category || 'regular',
+          details: '',
+          assignedTo: memberName,
+          completed: false,
+          isPendingApproval: false,
+          isOptimistic: true
+        };
+
+        this.chores.push(newChore);
+
+        try {
+          const choreData = {
+            name: newChore.name,
+            amount: newChore.amount,
+            category: newChore.category,
+            assignedTo: memberName,
+            completed: false
+          };
+
+          const response = await mockApiService.post(CONFIG.API.ENDPOINTS.CHORES, choreData);
+
+          const choreIndex = this.chores.findIndex(c => c.id === tempId);
+          if (choreIndex !== -1) {
+            this.chores[choreIndex] = {
+              ...response.chore,
+              isOptimistic: false
+            };
+          }
+          
+          return { success: true, chore: response.chore };
+        } catch (error) {
+          const choreIndex = this.chores.findIndex(c => c.id === tempId);
+          if (choreIndex !== -1) {
+            this.chores.splice(choreIndex, 1);
+          }
+          return { success: false, error: error.message };
+        }
+      },
+      
+      async confirmMultiAssignment() {
+        const familyStore = window.useFamilyStore?.();
+        const uiStore = window.useUIStore?.();
+        
+        if (!this.selectedQuicklistChore || this.multiAssignSelectedMembers.length === 0) {
+          return { success: false, successful: [], failed: [], error: 'No chore or members selected' };
+        }
+
+        const selectedMembers = this.multiAssignSelectedMembers;
+        const quicklistChore = this.selectedQuicklistChore;
+        const people = familyStore?.members || [];
+
+        try {
+          const assignmentPromises = selectedMembers.map(async (memberId) => {
+            const member = people.find(p => p.id === memberId);
+            if (!member) return { memberId, success: false, error: 'Member not found' };
+
+            const memberDisplayName = member.displayName || member.name;
+
+            try {
+              const result = await this.assignQuicklistChoreToMember(quicklistChore, memberDisplayName);
+              return { memberId, memberName: memberDisplayName, success: result.success, error: result.error };
+            } catch (error) {
+              return { memberId, memberName: memberDisplayName, success: false, error: error.message };
+            }
+          });
+
+          const assignmentResults = await Promise.allSettled(assignmentPromises);
+
+          const successful = assignmentResults.filter(result =>
+            result.status === 'fulfilled' && result.value.success
+          ).map(result => result.value);
+
+          const failed = assignmentResults.filter(result =>
+            result.status === 'rejected' ||
+            (result.status === 'fulfilled' && !result.value.success)
+          ).map(result => result.status === 'rejected' ? { error: result.reason } : result.value);
+
+          this.cancelMultiAssignment();
+
+          return { success: successful.length > 0, successful, failed };
+
+        } catch (error) {
+          return { success: false, successful: [], failed: [], error: error.message };
+        }
+      },
+      
+      cancelMultiAssignment() {
+        this.selectedQuicklistChore = null;
+        this.multiAssignSelectedMembers = [];
+      }
+    };
+  };
+
+  /**
+   * Arbitrary for generating quicklist chore data
+   */
+  const quicklistChoreArbitrary = fc.record({
+    id: fc.uuid(),
+    name: fc.string({ minLength: 1, maxLength: 50 }),
+    amount: fc.integer({ min: 0, max: 100 }),
+    category: fc.constantFrom('regular', 'game', 'bonus'),
+    isDetailed: fc.constant(false)
+  });
+
+  /**
+   * Arbitrary for generating member selection (1-5 members)
+   */
+  const memberSelectionArbitrary = fc.uniqueArray(
+    fc.constantFrom('member-1', 'member-2', 'member-3', 'member-4', 'member-5'),
+    { minLength: 1, maxLength: 5 }
+  );
+
+  /**
+   * **Feature: app-js-cleanup, Property 5: Multi-Assignment Creates Correct Number of Chores**
+   * **Validates: Requirements 5.5**
+   * 
+   * For any quicklist chore and N selected members, exactly N chores are created
+   */
+  it('Property: Multi-assignment creates exactly N chores for N members', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        quicklistChoreArbitrary,
+        memberSelectionArbitrary,
+        async (quicklistChore, selectedMembers) => {
+          const store = createMultiAssignStore();
+          store.selectedQuicklistChore = { ...quicklistChore };
+          store.multiAssignSelectedMembers = [...selectedMembers];
+          const initialChoreCount = store.chores.length;
+          const expectedNewChores = selectedMembers.length;
+          
+          // Mock successful API responses for each member
+          let callCount = 0;
+          mockApiService.post.mockImplementation(async (endpoint, data) => {
+            callCount++;
+            return {
+              chore: {
+                id: `server-chore-${callCount}`,
+                name: data.name,
+                amount: data.amount,
+                category: data.category,
+                assignedTo: data.assignedTo,
+                completed: false
+              }
+            };
+          });
+          
+          const result = await store.confirmMultiAssignment();
+          
+          // Property: Exactly N chores were created
+          expect(store.chores.length).toBe(initialChoreCount + expectedNewChores);
+          
+          // Property: All assignments were successful
+          expect(result.successful.length).toBe(expectedNewChores);
+          expect(result.failed.length).toBe(0);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  /**
+   * **Feature: app-js-cleanup, Property 5: Multi-Assignment Creates Correct Number of Chores**
+   * **Validates: Requirements 5.5**
+   * 
+   * Each created chore is assigned to the corresponding member
+   */
+  it('Property: Each chore is assigned to the correct member', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        quicklistChoreArbitrary,
+        memberSelectionArbitrary,
+        async (quicklistChore, selectedMembers) => {
+          const store = createMultiAssignStore();
+          store.selectedQuicklistChore = { ...quicklistChore };
+          store.multiAssignSelectedMembers = [...selectedMembers];
+          
+          const familyStore = window.useFamilyStore();
+          const expectedMemberNames = selectedMembers.map(memberId => {
+            const member = familyStore.members.find(m => m.id === memberId);
+            return member?.displayName;
+          }).filter(Boolean);
+          
+          // Mock successful API responses
+          mockApiService.post.mockImplementation(async (endpoint, data) => ({
+            chore: {
+              id: `server-chore-${Date.now()}`,
+              name: data.name,
+              amount: data.amount,
+              category: data.category,
+              assignedTo: data.assignedTo,
+              completed: false
+            }
+          }));
+          
+          await store.confirmMultiAssignment();
+          
+          // Property: Each expected member has a chore assigned to them
+          const assignedMembers = store.chores.map(c => c.assignedTo);
+          expectedMemberNames.forEach(memberName => {
+            expect(assignedMembers).toContain(memberName);
+          });
+          
+          // Property: All chores have the same name as the quicklist chore
+          store.chores.forEach(chore => {
+            expect(chore.name).toBe(quicklistChore.name);
+          });
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  /**
+   * **Feature: app-js-cleanup, Property 5: Multi-Assignment Creates Correct Number of Chores**
+   * **Validates: Requirements 5.5**
+   * 
+   * Partial failures still create chores for successful members
+   */
+  it('Property: Partial failures create chores only for successful members', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        quicklistChoreArbitrary,
+        fc.uniqueArray(
+          fc.constantFrom('member-1', 'member-2', 'member-3'),
+          { minLength: 2, maxLength: 3 }
+        ),
+        async (quicklistChore, selectedMembers) => {
+          const store = createMultiAssignStore();
+          store.selectedQuicklistChore = { ...quicklistChore };
+          store.multiAssignSelectedMembers = [...selectedMembers];
+          
+          // Mock: first member fails, rest succeed
+          let callCount = 0;
+          mockApiService.post.mockImplementation(async (endpoint, data) => {
+            callCount++;
+            if (callCount === 1) {
+              throw new Error('API Error');
+            }
+            return {
+              chore: {
+                id: `server-chore-${callCount}`,
+                name: data.name,
+                amount: data.amount,
+                category: data.category,
+                assignedTo: data.assignedTo,
+                completed: false
+              }
+            };
+          });
+          
+          const result = await store.confirmMultiAssignment();
+          
+          // Property: Number of chores equals successful assignments
+          expect(store.chores.length).toBe(result.successful.length);
+          
+          // Property: Failed count is 1 (first member)
+          expect(result.failed.length).toBe(1);
+          
+          // Property: Successful count is N-1
+          expect(result.successful.length).toBe(selectedMembers.length - 1);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  /**
+   * **Feature: app-js-cleanup, Property 5: Multi-Assignment Creates Correct Number of Chores**
+   * **Validates: Requirements 5.5**
+   * 
+   * Selection is cleared after multi-assignment
+   */
+  it('Property: Selection is cleared after multi-assignment', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        quicklistChoreArbitrary,
+        memberSelectionArbitrary,
+        async (quicklistChore, selectedMembers) => {
+          const store = createMultiAssignStore();
+          store.selectedQuicklistChore = { ...quicklistChore };
+          store.multiAssignSelectedMembers = [...selectedMembers];
+          
+          mockApiService.post.mockResolvedValue({
+            chore: { id: 'test', name: quicklistChore.name, assignedTo: 'Alice' }
+          });
+          
+          await store.confirmMultiAssignment();
+          
+          // Property: Selection is cleared
+          expect(store.selectedQuicklistChore).toBeNull();
+          expect(store.multiAssignSelectedMembers).toEqual([]);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  /**
+   * **Feature: app-js-cleanup, Property 5: Multi-Assignment Creates Correct Number of Chores**
+   * **Validates: Requirements 5.5**
+   * 
+   * Empty selection returns early without creating chores
+   */
+  it('Property: Empty selection returns early without creating chores', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        quicklistChoreArbitrary,
+        async (quicklistChore) => {
+          const store = createMultiAssignStore();
+          store.selectedQuicklistChore = { ...quicklistChore };
+          store.multiAssignSelectedMembers = []; // Empty selection
+          
+          const result = await store.confirmMultiAssignment();
+          
+          // Property: No chores created
+          expect(store.chores.length).toBe(0);
+          
+          // Property: Returns failure
+          expect(result.success).toBe(false);
+          expect(result.successful.length).toBe(0);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+});

@@ -585,8 +585,13 @@ const ShoppingPage = Vue.defineComponent({
   `,
   setup() {
     // Use Pinia store as single source of truth for shopping data
+    // _Requirements: 7.5_
     const shoppingStore = window.useShoppingStore();
-    return { shoppingStore };
+    
+    // Access global utilities - these are not state, just helper functions
+    const Helpers = window.Helpers;
+    
+    return { shoppingStore, Helpers };
   },
   data() {
     return {
@@ -643,6 +648,11 @@ const ShoppingPage = Vue.defineComponent({
     },
     stores() {
       return this.shoppingStore.stores;
+    },
+    // App-level loading state from store
+    // _Requirements: 7.5_
+    loading() {
+      return this.shoppingStore.loading || false;
     },
     
     completedItems() {
@@ -805,14 +815,7 @@ const ShoppingPage = Vue.defineComponent({
       return order;
     }
   },
-  inject: [
-    // Shopping data now comes from Pinia store via setup()
-    // NOTE: apiCall removed - use window.useApi() composable instead
-    // app loading state for top-level loading gate
-    'loading',
-    // global utilities and helpers
-    'Helpers'
-  ],
+  // NOTE: Data is now preloaded by parent component - no need to load on mount!
   async mounted() {
     // Data is now preloaded by parent component - no need to load on mount!
     console.log('🛒 Shopping page mounted with preloaded data:');

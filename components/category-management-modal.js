@@ -1,10 +1,27 @@
 // Category Management Modal Component
 // Modal to list, add, rename, and delete categories
-// **Feature: quicklist-categories**
+// **Feature: quicklist-categories, app-js-cleanup**
 // **Validates: Requirements 1.1, 1.2, 1.3, 1.4, 1.5**
+// _Requirements: 6.1, 6.4_
 
 const CategoryManagementModal = Vue.defineComponent({
   name: 'CategoryManagementModal',
+  
+  setup() {
+    // Use stores directly instead of inject
+    // **Feature: app-js-cleanup**
+    // _Requirements: 6.1, 6.4_
+    const categoriesStore = window.useCategoriesStore?.();
+    const choresStore = window.useChoresStore?.();
+    const uiStore = window.useUIStore?.();
+    
+    return {
+      categoriesStore,
+      choresStore,
+      uiStore
+    };
+  },
+  
   template: `
     <flyout-panel
       :open="open"
@@ -188,9 +205,6 @@ const CategoryManagementModal = Vue.defineComponent({
     };
   },
   computed: {
-    categoriesStore() {
-      return window.useCategoriesStore?.();
-    },
     categories() {
       return this.categoriesStore?.categories || [];
     },
@@ -205,9 +219,6 @@ const CategoryManagementModal = Vue.defineComponent({
           if (orderDiff !== 0) return orderDiff;
           return a.name.localeCompare(b.name);
         });
-    },
-    choresStore() {
-      return window.useChoresStore?.();
     },
     quicklistChores() {
       return this.choresStore?.quicklistChores || [];

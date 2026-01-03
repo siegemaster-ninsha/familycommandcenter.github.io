@@ -19,7 +19,16 @@ const useHabitsStore = Pinia.defineStore('habits', {
     loading: false,
     
     // Error state
-    error: null
+    error: null,
+    
+    // Habit flyout state (migrated from app.js)
+    // **Feature: app-js-cleanup**
+    // _Requirements: 2.1, 2.2, 2.3, 2.4_
+    habitFlyoutMemberId: '',
+    editingHabit: null,
+    habitForm: { name: '' },
+    habitFormError: '',
+    habitFormSubmitting: false
   }),
   
   getters: {
@@ -404,6 +413,80 @@ const useHabitsStore = Pinia.defineStore('habits', {
      */
     getHabitById(habitId) {
       return this.habits.find(h => h.id === habitId) || null;
+    },
+    
+    // ============================================
+    // HABIT FLYOUT ACTIONS (migrated from app.js)
+    // **Feature: app-js-cleanup**
+    // _Requirements: 2.5_
+    // ============================================
+    
+    /**
+     * Open the habit flyout for creating or editing a habit
+     * 
+     * @param {string} memberId - Family member ID
+     * @param {object|null} habit - Habit to edit, or null for new habit
+     */
+    openHabitFlyout(memberId, habit = null) {
+      this.habitFlyoutMemberId = memberId;
+      this.editingHabit = habit;
+      this.habitForm.name = habit ? habit.name : '';
+      this.habitFormError = '';
+      this.habitFormSubmitting = false;
+      
+      const uiStore = window.useUIStore?.();
+      uiStore?.openModal('habitFlyout');
+      
+      if (typeof CONFIG !== 'undefined' && CONFIG.ENV?.IS_DEVELOPMENT) {
+        console.log('🎯 openHabitFlyout via habitsStore');
+      }
+    },
+    
+    /**
+     * Close the habit flyout and reset form state
+     */
+    closeHabitFlyout() {
+      const uiStore = window.useUIStore?.();
+      uiStore?.closeModal('habitFlyout');
+      
+      this.habitFlyoutMemberId = '';
+      this.editingHabit = null;
+      this.habitForm.name = '';
+      this.habitFormError = '';
+      this.habitFormSubmitting = false;
+    },
+    
+    /**
+     * Submit the habit form (create or update)
+     * 
+     * @returns {Promise<{success: boolean, error?: string}>}
+     */
+    async submitHabitForm() {
+      const trimmedName = this.habitForm.name.trim();
+      if (!trimmedName) {
+        this.habitFormError = 'Habit name is required';
+        return { success: false, error: 'Habit name is required' };
+      }
+      
+      this.habitFormSubmitting = true;
+      this.habitFormError = '';
+      
+      let result;
+      if (this.editingHabit) {
+        result = await this.updateHabit(this.editingHabit.id, { name: trimmedName });
+      } else {
+        result = await this.createHabit(this.habitFlyoutMemberId, trimmedName);
+      }
+      
+      this.habitFormSubmitting = false;
+      
+      if (result.success) {
+        this.closeHabitFlyout();
+      } else {
+        this.habitFormError = result.error || 'Failed to save habit';
+      }
+      
+      return result;
     }
   }
 });

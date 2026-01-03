@@ -1,9 +1,13 @@
 // Spending Modal Component
-// _Requirements: 10.1, 10.2, 10.3, 10.4_
+// **Feature: app-js-cleanup**
+// _Requirements: 6.4, 10.1, 10.2, 10.3, 10.4_
 const SpendingModal = Vue.defineComponent({
   name: 'SpendingModal',
 
   setup() {
+    // Use stores directly instead of inject
+    // **Feature: app-js-cleanup**
+    // _Requirements: 6.4_
     const uiStore = window.useUIStore();
     const familyStore = window.useFamilyStore();
     return { uiStore, familyStore };
@@ -150,24 +154,19 @@ const SpendingModal = Vue.defineComponent({
       this.isSubmitting = true;
 
       try {
-        const personName = this.selectedPerson.displayName || this.selectedPerson.name;
-        const spentAmount = this.spendAmount;
-
-        // Make API call to deduct earnings
-        const api = window.useApi();
-        await api.put(
-          `${CONFIG.API.ENDPOINTS.FAMILY_MEMBERS}/${encodeURIComponent(personName)}/earnings`,
-          { amount: Number(spentAmount), operation: 'subtract' }
-        );
-
-        // Optimistically update earnings instead of reloading all members
-        // This avoids showing skeleton loading state
-        this.familyStore?.updateMemberEarnings(personName, -spentAmount, 0);
-
-        // Show success
-        this.uiStore?.showSuccess(`${personName} spent $${spentAmount.toFixed(2)}!`);
-
-        this.handleClose();
+        // Set the spend amount in the store before calling confirmSpending
+        this.familyStore.spendAmount = this.spendAmount;
+        this.familyStore.spendAmountString = this.spendAmountString;
+        
+        // Use familyStore's confirmSpending action
+        // _Requirements: 5.7_
+        const result = await this.familyStore.confirmSpending();
+        
+        if (!result.success) {
+          console.error('Failed to process spending:', result.error);
+          this.uiStore?.showError(result.error || 'Failed to process spending');
+        }
+        // Note: confirmSpending handles success message and closing the modal
       } catch (error) {
         console.error('Failed to process spending:', error);
         this.uiStore?.showError('Failed to process spending');

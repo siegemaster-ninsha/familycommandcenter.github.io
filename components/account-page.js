@@ -540,12 +540,8 @@ const AccountPage = Vue.defineComponent({
       </div>
     </div>
   `,
-  inject: [
-    // Preloaded data from parent
-    'accountSettings',
-    'accountId',
-    'currentUser'
-  ],
+  // Removed inject - now using authStore directly
+  // _Requirements: 7.3, 7.4_ - Uses authStore instead of inject
   data() {
     return {
       
@@ -645,6 +641,21 @@ const AccountPage = Vue.defineComponent({
     }
   },
   computed: {
+    // Get currentUser from authStore instead of inject
+    // _Requirements: 7.3, 7.4_
+    currentUser() {
+      return this.authStore?.currentUser || null;
+    },
+    // Get accountId from authStore instead of inject
+    // _Requirements: 7.3, 7.4_
+    accountId() {
+      return this.authStore?.accountId || null;
+    },
+    // Get accountSettings from authStore instead of inject
+    // _Requirements: 7.3, 7.4_
+    accountSettings() {
+      return this.authStore?.accountSettings || null;
+    },
     isChild() {
       return this.currentUser?.role === 'child';
     },

@@ -1,18 +1,42 @@
 // Habit Modal Component
-// _Requirements: 12.1, 12.2, 12.3, 12.4_
-// **Feature: habit-tracking**
+// _Requirements: 6.4, 12.1, 12.2, 12.3, 12.4_
+// **Feature: habit-tracking, app-js-cleanup**
+// **Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5, 2.6**
 const HabitModal = Vue.defineComponent({
   name: 'HabitModal',
   
-  // Inject props from parent (preserves existing contracts)
-  // _Requirements: 12.2, 12.3_
-  inject: [
-    'showHabitFlyout',
-    'editingHabit',
-    'habitForm',
-    'habitFormError',
-    'habitFormSubmitting'
-  ],
+  setup() {
+    // Use habitsStore directly instead of inject
+    // **Feature: app-js-cleanup**
+    // _Requirements: 2.5, 2.6, 6.4_
+    const habitsStore = window.useHabitsStore?.();
+    const uiStore = window.useUIStore?.();
+    
+    return {
+      habitsStore,
+      uiStore
+    };
+  },
+  
+  computed: {
+    // Computed properties that delegate to habitsStore
+    // _Requirements: 2.1, 2.2, 2.3, 2.4_
+    showHabitFlyout() {
+      return this.uiStore?.isModalOpen?.('habitFlyout') || false;
+    },
+    editingHabit() {
+      return this.habitsStore?.editingHabit || null;
+    },
+    habitForm() {
+      return this.habitsStore?.habitForm || { name: '' };
+    },
+    habitFormError() {
+      return this.habitsStore?.habitFormError || '';
+    },
+    habitFormSubmitting() {
+      return this.habitsStore?.habitFormSubmitting || false;
+    }
+  },
   
   template: `
     <!-- Habit Flyout for create/edit -->
@@ -68,15 +92,16 @@ const HabitModal = Vue.defineComponent({
   `,
   
   methods: {
-    // Methods delegating to $root
-    // _Requirements: 12.4_
+    // Methods delegating to habitsStore
+    // **Feature: app-js-cleanup**
+    // _Requirements: 2.5, 2.6_
     
     /**
      * Close the habit flyout
      */
     closeHabitFlyout() {
-      if (this.$root?.closeHabitFlyout) {
-        this.$root.closeHabitFlyout();
+      if (this.habitsStore?.closeHabitFlyout) {
+        this.habitsStore.closeHabitFlyout();
       }
     },
     
@@ -84,8 +109,8 @@ const HabitModal = Vue.defineComponent({
      * Submit the habit form
      */
     submitHabitForm() {
-      if (this.$root?.submitHabitForm) {
-        this.$root.submitHabitForm();
+      if (this.habitsStore?.submitHabitForm) {
+        this.habitsStore.submitHabitForm();
       }
     }
   }

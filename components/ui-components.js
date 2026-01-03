@@ -19,6 +19,7 @@ window.SkeletonRegistry = window.SkeletonRegistry || {
 
 // Loading State Component
 // Shows spinner only for pages that don't have their own skeleton loading
+// _Requirements: 8.4_ - Uses app.js data directly via $parent since loading/currentPage remain in app.js
 const AppLoadingState = Vue.defineComponent({
   name: 'AppLoadingState',
   template: `
@@ -29,8 +30,15 @@ const AppLoadingState = Vue.defineComponent({
       </div>
     </div>
   `,
-  inject: ['loading', 'currentPage'],
   computed: {
+    loading() {
+      // Access loading from $parent (app.js) - this is one of the few properties that remains in app.js
+      return this.$parent?.loading ?? false;
+    },
+    currentPage() {
+      // Access currentPage from $parent (app.js) - this is one of the few properties that remains in app.js
+      return this.$parent?.currentPage ?? 'chores';
+    },
     shouldShowSpinner() {
       // Don't show spinner if not loading
       if (!this.loading) return false;
@@ -42,6 +50,7 @@ const AppLoadingState = Vue.defineComponent({
 });
 
 // Error State Component
+// _Requirements: 8.4_ - Uses app.js data directly via $parent since error/loadAllData remain in app.js
 const AppErrorState = Vue.defineComponent({
   name: 'AppErrorState',
   template: `
@@ -52,14 +61,25 @@ const AppErrorState = Vue.defineComponent({
       </div>
       <p class="text-sm mt-1" style="color: var(--color-error-700);">{{ error }}</p>
         <button 
-          @click="loadAllData" 
+          @click="retryLoad" 
           class="mt-3 btn-error text-sm"
       >
         Retry
       </button>
     </div>
   `,
-  inject: ['error', 'loadAllData']
+  computed: {
+    error() {
+      // Access error from $parent (app.js) - this is one of the few properties that remains in app.js
+      return this.$parent?.error ?? null;
+    }
+  },
+  methods: {
+    retryLoad() {
+      // Call loadAllData on $parent (app.js) - this is the orchestrator method that remains in app.js
+      this.$parent?.loadAllData?.();
+    }
+  }
 });
 
 // Selection Info Component (disabled per UX request)
@@ -67,11 +87,21 @@ const AppErrorState = Vue.defineComponent({
 const AppSelectionInfo = Vue.defineComponent({
   name: 'AppSelectionInfo',
   template: `<div></div>`,
-  inject: ['loading', 'error', 'selectedChore'],
   setup() {
     // Access chores store directly instead of using $parent
     const choresStore = window.useChoresStore?.();
     return { choresStore };
+  },
+  computed: {
+    loading() {
+      return this.$parent?.loading ?? false;
+    },
+    error() {
+      return this.$parent?.error ?? null;
+    },
+    selectedChore() {
+      return this.choresStore?.selectedChore ?? null;
+    }
   },
   methods: {
     clearSelection() {
@@ -137,16 +167,28 @@ window.ToastService = window.ToastService || {
   }
 };
 
-// Success Message Component - now uses Shoelace toast
+// Success Message Component - now uses uiStore and Shoelace toast
+// _Requirements: 8.4_ - Uses uiStore instead of inject from app.js
 const AppSuccessMessage = Vue.defineComponent({
   name: 'AppSuccessMessage',
   template: `<div></div>`,
-  inject: ['showSuccessMessageFlag', 'completedChoreMessage'],
+  setup() {
+    const uiStore = window.useUIStore?.();
+    return { uiStore };
+  },
+  computed: {
+    showSuccessMessage() {
+      return this.uiStore?.showSuccessMessage ?? false;
+    },
+    successMessage() {
+      return this.uiStore?.successMessage ?? '';
+    }
+  },
   watch: {
-    showSuccessMessageFlag(newVal) {
-      if (newVal && this.completedChoreMessage) {
+    showSuccessMessage(newVal) {
+      if (newVal && this.successMessage) {
         // Determine variant based on message content
-        const message = this.completedChoreMessage;
+        const message = this.successMessage;
         let variant = 'success';
         let cleanMessage = message;
         

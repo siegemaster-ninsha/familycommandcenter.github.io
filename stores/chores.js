@@ -29,7 +29,9 @@ const useChoresStore = Pinia.defineStore('chores', {
       name: '',
       amount: 0,
       category: 'regular',
-      isDetailed: false
+      categoryId: '',
+      isDetailed: false,
+      defaultDetails: ''
     },
     
     choreDetailsForm: {
@@ -38,8 +40,17 @@ const useChoresStore = Pinia.defineStore('chores', {
       amount: 0,
       category: 'regular',
       assignedTo: '',
-      isNewFromQuicklist: false
-    }
+      isNewFromQuicklist: false,
+      quicklistChoreId: null
+    },
+    
+    // Modal state
+    // _Requirements: 4.1, 4.3_
+    // Schedule modal data - **Feature: weekly-chore-scheduling**
+    scheduleModalChore: null,
+    // Assign category modal data
+    assignCategoryChore: null,
+    assignCategorySelectedId: ''
   }),
   
   getters: {
@@ -1126,8 +1137,15 @@ const useChoresStore = Pinia.defineStore('chores', {
         name: '',
         amount: 0,
         category: 'regular',
-        isDetailed: false
+        categoryId: '',
+        isDetailed: false,
+        defaultDetails: ''
       };
+    },
+    
+    // Alias for consistency with naming convention
+    resetNewQuicklistChoreForm() {
+      this.resetQuicklistChoreForm();
     },
     
     resetChoreDetailsForm() {
@@ -1137,8 +1155,526 @@ const useChoresStore = Pinia.defineStore('chores', {
         amount: 0,
         category: 'regular',
         assignedTo: '',
-        isNewFromQuicklist: false
+        isNewFromQuicklist: false,
+        quicklistChoreId: null
       };
+    },
+    
+    // =============================================
+    // SCHEDULE MODAL ACTIONS
+    // _Requirements: 4.1, 4.3_
+    // **Feature: weekly-chore-scheduling**
+    // =============================================
+    
+    /**
+     * Open the schedule modal for a quicklist chore
+     * @param {Object} quicklistChore - The quicklist chore to schedule
+     */
+    openScheduleModal(quicklistChore) {
+      this.scheduleModalChore = quicklistChore;
+      const uiStore = window.useUIStore?.();
+      uiStore?.openModal('schedule');
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎯 openScheduleModal via choresStore');
+    },
+    
+    /**
+     * Close the schedule modal and reset state
+     */
+    closeScheduleModal() {
+      const uiStore = window.useUIStore?.();
+      uiStore?.closeModal('schedule');
+      this.scheduleModalChore = null;
+    },
+    
+    // =============================================
+    // ASSIGN CATEGORY MODAL ACTIONS
+    // _Requirements: 4.3_
+    // =============================================
+    
+    /**
+     * Open the assign category modal for a quicklist chore
+     * @param {Object} chore - The quicklist chore to assign a category to
+     */
+    openAssignCategoryModal(chore) {
+      this.assignCategoryChore = chore;
+      this.assignCategorySelectedId = chore?.categoryId || '';
+      const uiStore = window.useUIStore?.();
+      uiStore?.openModal('assignCategory');
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎯 openAssignCategoryModal via choresStore');
+    },
+    
+    /**
+     * Close the assign category modal and reset state
+     */
+    closeAssignCategoryModal() {
+      const uiStore = window.useUIStore?.();
+      uiStore?.closeModal('assignCategory');
+      this.assignCategoryChore = null;
+      this.assignCategorySelectedId = '';
+    },
+    
+    // =============================================
+    // CHORE ASSIGNMENT ACTIONS
+    // _Requirements: 5.3_
+    // **Feature: app-js-cleanup**
+    // =============================================
+    
+    /**
+     * Assign the currently selected chore to a person with optimistic updates
+     * Handles both existing chores (reassignment) and quicklist chores (new creation)
+     * 
+     * @param {string} assignTo - The display name of the person to assign to
+     * @returns {Promise<{success: boolean, error?: string}>}
+     */
+    async assignSelectedChore(assignTo) {
+      const selectedChore = this.selectedChore;
+      
+      if (!selectedChore) {
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.warn('No chore selected for assignment');
+        return { success: false, error: 'No chore selected' };
+      }
+      
+      if (!assignTo) {
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.warn('No assignee specified');
+        return { success: false, error: 'No assignee specified' };
+      }
+      
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🚀 Optimistically assigning chore:', selectedChore.name, 'to:', assignTo);
+      
+      // Store original state for potential rollback
+      const originalChores = [...this.chores];
+      const selectedChoreCopy = { ...selectedChore };
+      const originalSelectedChoreId = this.selectedChoreId;
+      const originalSelectedQuicklistChore = this.selectedQuicklistChore;
+      
+      try {
+        if (selectedChore.isNewFromQuicklist) {
+          // Check if this quicklist chore requires details
+          const quicklistChore = this.quicklistChores.find(qc => qc.name === selectedChore.name);
+          if (quicklistChore && quicklistChore.isDetailed) {
+            // Return signal to open details modal - caller should handle this
+            return { success: false, needsDetails: true, quicklistChore, assignTo };
+          }
+          
+          // OPTIMISTIC UPDATE: Add new chore immediately to UI
+          const newChore = {
+            id: `temp-${Date.now()}`,
+            name: selectedChore.name,
+            amount: selectedChore.amount || 0,
+            category: selectedChore.category || 'regular',
+            assignedTo: assignTo,
+            completed: false,
+            isDetailed: false,
+            details: '',
+            isOptimistic: true
+          };
+          
+          // Add to chores immediately for instant UI update
+          this.chores.push(newChore);
+          
+          // Clear selection immediately for instant feedback
+          this.selectedChoreId = null;
+          this.selectedQuicklistChore = null;
+          
+          // OPTIMISTIC ELECTRONICS STATUS UPDATE
+          if (newChore.category === 'game') {
+            const familyStore = window.useFamilyStore?.();
+            if (familyStore) {
+              familyStore.updateElectronicsStatusOptimistically(assignTo);
+            }
+          }
+          
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✨ Optimistic UI updated - new chore added');
+          
+          // Make API call in background
+          const choreData = {
+            name: newChore.name,
+            amount: newChore.amount,
+            category: newChore.category,
+            assignedTo: assignTo,
+            completed: false
+          };
+          
+          const response = await apiService.post(CONFIG.API.ENDPOINTS.CHORES, choreData);
+          
+          // Update the temporary chore with real data from server
+          const choreIndex = this.chores.findIndex(c => c.id === newChore.id);
+          if (choreIndex !== -1) {
+            this.chores[choreIndex] = {
+              ...response.chore,
+              isOptimistic: false
+            };
+          }
+          
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Server confirmed new chore creation');
+          
+        } else {
+          // OPTIMISTIC UPDATE: Move existing chore immediately
+          const choreIndex = this.chores.findIndex(c => c.id === selectedChore.id);
+          const oldAssignedTo = this.chores[choreIndex]?.assignedTo;
+          
+          if (choreIndex !== -1) {
+            // Update assignment immediately for instant UI feedback
+            this.chores[choreIndex] = {
+              ...this.chores[choreIndex],
+              assignedTo: assignTo,
+              isOptimistic: true
+            };
+            
+            // OPTIMISTIC ELECTRONICS STATUS UPDATE
+            if (this.chores[choreIndex].category === 'game') {
+              const familyStore = window.useFamilyStore?.();
+              if (familyStore) {
+                if (oldAssignedTo && oldAssignedTo !== 'unassigned') {
+                  familyStore.updateElectronicsStatusOptimistically(oldAssignedTo);
+                }
+                if (assignTo && assignTo !== 'unassigned') {
+                  familyStore.updateElectronicsStatusOptimistically(assignTo);
+                }
+              }
+            }
+          }
+          
+          // Clear selection immediately for instant feedback
+          this.selectedChoreId = null;
+          this.selectedQuicklistChore = null;
+          
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✨ Optimistic UI updated - chore moved');
+          
+          // Make API call in background
+          const response = await apiService.put(
+            `${CONFIG.API.ENDPOINTS.CHORES}/${selectedChoreCopy.id}/assign`,
+            { assignedTo: assignTo }
+          );
+          
+          // Update with server response
+          if (choreIndex !== -1) {
+            this.chores[choreIndex] = {
+              ...response.chore,
+              isOptimistic: false
+            };
+          }
+          
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Server confirmed chore assignment');
+        }
+        
+        // Reload earnings and electronics status in background (non-blocking)
+        const familyStore = window.useFamilyStore?.();
+        if (familyStore) {
+          Promise.all([
+            familyStore.loadEarnings(),
+            familyStore.loadElectronicsStatus(),
+            familyStore.loadMembers()
+          ]).catch(error => {
+            console.warn('Background data refresh failed:', error);
+          });
+        }
+        
+        return { success: true };
+        
+      } catch (error) {
+        console.error('❌ Assignment failed, rolling back optimistic update:', error);
+        
+        // ROLLBACK: Restore original state
+        this.chores = originalChores;
+        this.selectedChoreId = selectedChoreCopy.isNewFromQuicklist ? null : originalSelectedChoreId;
+        this.selectedQuicklistChore = selectedChoreCopy.isNewFromQuicklist ? originalSelectedQuicklistChore : null;
+        
+        // Show user-friendly error message
+        const uiStore = window.useUIStore?.();
+        if (uiStore) {
+          uiStore.showError(`Failed to assign "${selectedChoreCopy.name}". Please try again.`);
+        }
+        
+        return { success: false, error: error.message };
+      }
+    },
+    
+    // =============================================
+    // MULTI-ASSIGNMENT ACTIONS
+    // _Requirements: 5.5_
+    // **Feature: app-js-cleanup**
+    // =============================================
+    
+    /**
+     * Assign a quicklist chore to a specific member with optimistic update
+     * Helper method used by confirmMultiAssignment
+     * 
+     * @param {Object} quicklistChore - The quicklist chore to assign
+     * @param {string} memberName - The display name of the member to assign to
+     * @returns {Promise<{success: boolean, chore?: Object, error?: string}>}
+     */
+    async assignQuicklistChoreToMember(quicklistChore, memberName) {
+      // Create optimistic chore with temp ID
+      const tempId = `temp-${Date.now()}-${Math.random()}`;
+      const newChore = {
+        id: tempId,
+        name: quicklistChore.name,
+        amount: quicklistChore.amount || 0,
+        category: quicklistChore.category || 'regular',
+        details: '',
+        assignedTo: memberName,
+        completed: false,
+        isPendingApproval: false,
+        isOptimistic: true
+      };
+
+      // Add optimistic chore to store immediately
+      this.chores.push(newChore);
+      if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✨ Optimistic UI updated - quicklist chore added for', memberName);
+
+      // Update electronics status optimistically if needed
+      if (newChore.category === 'game') {
+        const familyStore = window.useFamilyStore?.();
+        if (familyStore) {
+          familyStore.updateElectronicsStatusOptimistically(memberName);
+        }
+      }
+
+      try {
+        // Make API call to create the chore
+        const choreData = {
+          name: newChore.name,
+          amount: newChore.amount,
+          category: newChore.category,
+          assignedTo: memberName,
+          completed: false
+        };
+
+        const response = await apiService.post(CONFIG.API.ENDPOINTS.CHORES, choreData);
+
+        // Update the optimistic chore with real data from server
+        const choreIndex = this.chores.findIndex(c => c.id === tempId);
+        if (choreIndex !== -1) {
+          this.chores[choreIndex] = {
+            ...response.chore,
+            isOptimistic: false
+          };
+        }
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Server confirmed quicklist chore creation for', memberName);
+        
+        return { success: true, chore: response.chore };
+      } catch (error) {
+        // Rollback optimistic update on error
+        const choreIndex = this.chores.findIndex(c => c.id === tempId);
+        if (choreIndex !== -1) {
+          this.chores.splice(choreIndex, 1);
+        }
+        console.error('Failed to create quicklist chore:', error);
+        return { success: false, error: error.message };
+      }
+    },
+    
+    /**
+     * Confirm multi-assignment of a quicklist chore to multiple members
+     * Creates chores in parallel for all selected members
+     * 
+     * @returns {Promise<{success: boolean, successful: Array, failed: Array}>}
+     */
+    async confirmMultiAssignment() {
+      const familyStore = window.useFamilyStore?.();
+      const uiStore = window.useUIStore?.();
+      
+      if (!this.selectedQuicklistChore || this.multiAssignSelectedMembers.length === 0) {
+        return { success: false, successful: [], failed: [], error: 'No chore or members selected' };
+      }
+
+      const selectedMembers = this.multiAssignSelectedMembers;
+      const quicklistChore = this.selectedQuicklistChore;
+      const people = familyStore?.members || [];
+
+      try {
+        // Create all assignments in parallel for better performance
+        const assignmentPromises = selectedMembers.map(async (memberId) => {
+          const member = people.find(p => p.id === memberId);
+          if (!member) return { memberId, success: false, error: 'Member not found' };
+
+          // Use displayName with fallback to name for backward compatibility
+          const memberDisplayName = member.displayName || member.name;
+
+          try {
+            const result = await this.assignQuicklistChoreToMember(quicklistChore, memberDisplayName);
+            return { memberId, memberName: memberDisplayName, success: result.success, error: result.error };
+          } catch (error) {
+            console.error(`Failed to assign chore to ${memberDisplayName}:`, error);
+            return { memberId, memberName: memberDisplayName, success: false, error: error.message };
+          }
+        });
+
+        // Wait for all assignments to complete (success or failure)
+        const assignmentResults = await Promise.allSettled(assignmentPromises);
+
+        // Process results
+        const successful = assignmentResults.filter(result =>
+          result.status === 'fulfilled' && result.value.success
+        ).map(result => result.value);
+
+        const failed = assignmentResults.filter(result =>
+          result.status === 'rejected' ||
+          (result.status === 'fulfilled' && !result.value.success)
+        ).map(result => result.status === 'rejected' ? { error: result.reason } : result.value);
+
+        // Show appropriate message based on results
+        if (successful.length > 0 && uiStore) {
+          const memberNames = successful.map(s => s.memberName).join(', ');
+          uiStore.showSuccess(`Assigned "${quicklistChore.name}" to ${successful.length} member${successful.length !== 1 ? 's' : ''}: ${memberNames}`);
+        }
+
+        if (failed.length > 0) {
+          console.error('Some assignments failed:', failed);
+          if (successful.length === 0 && uiStore) {
+            uiStore.showError(`Failed to assign "${quicklistChore.name}" to any family members`);
+          } else if (uiStore) {
+            uiStore.showError(`Assigned to ${successful.length} members, but ${failed.length} assignment${failed.length !== 1 ? 's' : ''} failed`);
+          }
+        }
+
+        // Close modal and reset state
+        this.cancelMultiAssignment();
+
+        return { success: successful.length > 0, successful, failed };
+
+      } catch (error) {
+        console.error('Unexpected error in confirmMultiAssignment:', error);
+        if (uiStore) {
+          uiStore.showError('An unexpected error occurred while assigning chores');
+        }
+        return { success: false, successful: [], failed: [], error: error.message };
+      }
+    },
+    
+    /**
+     * Cancel multi-assignment and reset state
+     */
+    cancelMultiAssignment() {
+      const uiStore = window.useUIStore?.();
+      uiStore?.closeModal('multiAssign');
+      this.selectedQuicklistChore = null;
+      this.multiAssignSelectedMembers = [];
+    },
+    
+    // =============================================
+    // CHORE DETAILS ACTIONS
+    // _Requirements: 5.6_
+    // **Feature: app-js-cleanup**
+    // =============================================
+    
+    /**
+     * Open the chore details modal with pre-filled data
+     * 
+     * @param {Object} choreData - The chore data to pre-fill
+     * @param {string} assignedTo - The person to assign to
+     * @param {boolean} isNewFromQuicklist - Whether this is from a quicklist chore
+     */
+    openChoreDetailsModal(choreData, assignedTo = '', isNewFromQuicklist = false) {
+      Object.assign(this.choreDetailsForm, {
+        name: choreData.name,
+        details: '',
+        amount: choreData.amount,
+        category: choreData.category,
+        assignedTo: assignedTo,
+        isNewFromQuicklist: isNewFromQuicklist,
+        quicklistChoreId: choreData.id
+      });
+      const uiStore = window.useUIStore?.();
+      uiStore?.openModal('choreDetails');
+    },
+    
+    /**
+     * Confirm and create a chore with details
+     * Handles both new chores from quicklist and regular chores with details
+     * 
+     * @returns {Promise<{success: boolean, chore?: Object, error?: string}>}
+     */
+    async confirmChoreDetails() {
+      const uiStore = window.useUIStore?.();
+      const formData = this.choreDetailsForm;
+      
+      if (!formData.details.trim()) {
+        // Allow empty details, but at least ensure it's not just whitespace
+        formData.details = '';
+      }
+
+      try {
+        if (formData.isNewFromQuicklist) {
+          // Create new chore from quicklist with details
+          const choreData = {
+            name: formData.name,
+            amount: formData.amount,
+            category: formData.category,
+            assignedTo: formData.assignedTo,
+            completed: false,
+            details: formData.details.trim(),
+            isDetailed: true
+          };
+          
+          const response = await apiService.post(CONFIG.API.ENDPOINTS.CHORES, choreData);
+          
+          // Add to chores
+          this.chores.push(response.chore);
+          
+          // Clear selections
+          this.selectedChoreId = null;
+          this.selectedQuicklistChore = null;
+          
+          this.cancelChoreDetails();
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Chore with details created successfully');
+          
+          return { success: true, chore: response.chore };
+          
+        } else {
+          // Handle regular chore creation with details
+          const choreData = {
+            name: formData.name,
+            amount: formData.amount,
+            category: formData.category,
+            assignedTo: formData.assignedTo || 'unassigned',
+            completed: false,
+            details: formData.details.trim(),
+            isDetailed: true
+          };
+          
+          const response = await apiService.post(CONFIG.API.ENDPOINTS.CHORES, choreData);
+          
+          // Add to chores
+          this.chores.push(response.chore);
+          
+          // Also add to quicklist if requested
+          if (this.newChore.addToQuicklist) {
+            const quicklistData = {
+              name: choreData.name,
+              amount: choreData.amount,
+              category: choreData.category,
+              isDetailed: true
+            };
+            
+            const quicklistResponse = await apiService.post(CONFIG.API.ENDPOINTS.QUICKLIST, quicklistData);
+            
+            this.quicklistChores.push(quicklistResponse.quicklistChore);
+          }
+          
+          this.cancelChoreDetails();
+          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Chore with details created successfully');
+          
+          return { success: true, chore: response.chore };
+        }
+        
+      } catch (error) {
+        console.error('❌ Failed to create chore with details:', error);
+        if (uiStore) {
+          uiStore.showError('Failed to create chore. Please try again.');
+        }
+        return { success: false, error: error.message };
+      }
+    },
+    
+    /**
+     * Cancel chore details modal and reset form
+     */
+    cancelChoreDetails() {
+      const uiStore = window.useUIStore?.();
+      uiStore?.closeModal('choreDetails');
+      this.resetChoreDetailsForm();
     }
   }
 });

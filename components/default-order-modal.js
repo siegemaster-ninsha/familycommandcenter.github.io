@@ -1,12 +1,30 @@
 // Default Order Modal Component
 // Modal for managing the default chore order for a family member
 // This order is used when New Day creates chores from scheduled quicklist items
+// **Feature: app-js-cleanup**
+// _Requirements: 6.3, 6.4_
 
 const DefaultOrderModal = Vue.defineComponent({
   name: 'DefaultOrderModal',
+  
+  setup() {
+    // Use stores directly instead of inject
+    // **Feature: app-js-cleanup**
+    // _Requirements: 6.3, 6.4_
+    const familyStore = window.useFamilyStore?.();
+    const choresStore = window.useChoresStore?.();
+    const uiStore = window.useUIStore?.();
+    
+    return {
+      familyStore,
+      choresStore,
+      uiStore
+    };
+  },
+  
   template: `
     <flyout-panel
-      :open="open"
+      :open="isOpen"
       @close="handleClose"
       :title="modalTitle"
       :show-footer="true"
@@ -92,6 +110,7 @@ const DefaultOrderModal = Vue.defineComponent({
   `,
   
   props: {
+    // Props kept for backward compatibility but stores are preferred
     open: {
       type: Boolean,
       default: false
@@ -118,19 +137,42 @@ const DefaultOrderModal = Vue.defineComponent({
   },
   
   computed: {
+    // Get open state from uiStore if not provided via prop
+    // _Requirements: 6.3, 6.4_
+    isOpen() {
+      // Prefer prop if explicitly set, otherwise use store
+      if (this.open !== undefined && this.open !== false) {
+        return this.open;
+      }
+      return this.uiStore?.isModalOpen?.('defaultOrder') || false;
+    },
+    // Get member from familyStore if not provided via prop
+    // _Requirements: 6.3_
+    orderMember() {
+      return this.member || this.familyStore?.defaultOrderMember || null;
+    },
+    // Get quicklist chores from choresStore if not provided via prop
+    // _Requirements: 6.3_
+    allQuicklistChores() {
+      if (this.quicklistChores && this.quicklistChores.length > 0) {
+        return this.quicklistChores;
+      }
+      return this.choresStore?.quicklistChores || [];
+    },
     modalTitle() {
-      const memberName = this.member?.displayName || this.member?.name || 'Member';
+      const memberName = this.orderMember?.displayName || this.orderMember?.name || 'Member';
       return `Default Chore Order: ${memberName}`;
     },
     
     /**
      * Get all quicklist chores scheduled for this member
+     * _Requirements: 6.3_
      */
     scheduledChoresForMember() {
-      if (!this.member || !this.quicklistChores) return [];
+      if (!this.orderMember || !this.allQuicklistChores) return [];
       
-      const memberId = this.member.id;
-      return this.quicklistChores.filter(chore => {
+      const memberId = this.orderMember.id;
+      return this.allQuicklistChores.filter(chore => {
         const schedule = chore.schedule || {};
         const memberDays = schedule[memberId];
         return memberDays && Array.isArray(memberDays) && memberDays.length > 0;
@@ -139,7 +181,8 @@ const DefaultOrderModal = Vue.defineComponent({
   },
   
   watch: {
-    open: {
+    // _Requirements: 6.3, 6.4_
+    isOpen: {
       immediate: true,
       handler(isOpen) {
         if (isOpen) {
@@ -147,10 +190,10 @@ const DefaultOrderModal = Vue.defineComponent({
         }
       }
     },
-    member: {
+    orderMember: {
       deep: true,
       handler() {
-        if (this.open) {
+        if (this.isOpen) {
           this.initializeOrder();
         }
       }
@@ -168,10 +211,11 @@ const DefaultOrderModal = Vue.defineComponent({
     
     /**
      * Initialize the ordered chores list from member's defaultChoreOrder
+     * _Requirements: 6.3_
      */
     initializeOrder() {
       const scheduled = this.scheduledChoresForMember;
-      const defaultOrder = this.member?.defaultChoreOrder || {};
+      const defaultOrder = this.orderMember?.defaultChoreOrder || {};
       
       // Sort by existing default order, then by name for unordered items
       this.orderedChores = [...scheduled].sort((a, b) => {
@@ -228,10 +272,11 @@ const DefaultOrderModal = Vue.defineComponent({
     
     /**
      * Handle save button click
+     * _Requirements: 6.3_
      */
-    handleSave() {
+    async handleSave() {
       // Guard against saving without a member
-      if (!this.member?.id) {
+      if (!this.orderMember?.id) {
         console.warn('[DefaultOrderModal] No member ID, skipping save');
         return;
       }
@@ -242,14 +287,47 @@ const DefaultOrderModal = Vue.defineComponent({
         defaultOrderMap[chore.id] = index;
       });
       
-      this.$emit('save', {
-        memberId: this.member.id,
-        defaultOrderMap
-      });
+      // If using stores directly, save via familyStore
+      if (this.familyStore?.updateDefaultOrder) {
+        this.saving = true;
+        try {
+          const result = await this.familyStore.updateDefaultOrder(
+            this.orderMember.id,
+            defaultOrderMap
+          );
+          
+          if (result.success) {
+            this.uiStore?.showSuccess('Default order saved');
+            this.handleClose();
+          } else {
+            this.uiStore?.showError(result.error || 'Failed to save default order');
+          }
+        } catch (error) {
+          console.error('Failed to save default order:', error);
+          this.uiStore?.showError('Failed to save default order');
+        } finally {
+          this.saving = false;
+        }
+      } else {
+        // Fallback to emit for backward compatibility
+        this.$emit('save', {
+          memberId: this.orderMember.id,
+          defaultOrderMap
+        });
+      }
     },
     
+    /**
+     * Handle close/cancel
+     * _Requirements: 6.3, 6.4_
+     */
     handleClose() {
-      this.$emit('close');
+      // Close via store if available
+      if (this.familyStore?.closeDefaultOrderModal) {
+        this.familyStore.closeDefaultOrderModal();
+      } else {
+        this.$emit('close');
+      }
     },
     
     setSaving(value) {

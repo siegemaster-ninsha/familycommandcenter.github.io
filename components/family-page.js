@@ -9,11 +9,15 @@ const FamilyPage = Vue.defineComponent({
     const authStore = window.useAuthStore();
     const uiStore = window.useUIStore();
     
+    // Access global utilities - these are not state, just helper functions
+    const Helpers = window.Helpers;
+    
     return {
       familyStore,
       choresStore,
       authStore,
-      uiStore
+      uiStore,
+      Helpers
     };
   },
   data() {
@@ -25,7 +29,6 @@ const FamilyPage = Vue.defineComponent({
       dailyChoreLoading: {} // { [memberId]: boolean } - tracks loading state per member
     };
   },
-  inject: ['allPeople', 'confirmDeletePerson'],
   computed: {
     // Map store data to component properties for template access
     // _Requirements: 7.1, 7.2_
@@ -37,6 +40,11 @@ const FamilyPage = Vue.defineComponent({
     },
     quicklistChores() {
       return this.choresStore.quicklistChores;
+    },
+    // All family members from store - replaces inject['allPeople']
+    // _Requirements: 7.2_
+    allPeople() {
+      return this.familyStore.members || [];
     }
   },
   template: `
@@ -523,7 +531,9 @@ const FamilyPage = Vue.defineComponent({
     },
     handleChoreToggle(person, event) {
       person.enabledForChores = event.target.checked;
-      this.familyStore.updateMemberChoresEnabled(person);
+      // Use the settings persistence method from familyStore
+      // _Requirements: 5.9_
+      this.familyStore.updateMemberChoresEnabledSetting(person);
     },
 
     // =============================================
@@ -558,10 +568,16 @@ const FamilyPage = Vue.defineComponent({
 
     /**
      * Update family member display name
+     * Now delegates to familyStore.updateFamilyMemberDisplayName
+     * _Requirements: 5.8_
      */
     async updateFamilyMemberDisplayName(person) {
       try {
-        await this.familyStore.updateMember(person.id, { displayName: person.displayName });
+        const result = await this.familyStore.updateFamilyMemberDisplayName(person);
+        if (!result.success && result.error) {
+          console.error('Failed to update display name:', result.error);
+          this.uiStore.showError(result.error);
+        }
       } catch (error) {
         console.error('Failed to update display name:', error);
         this.uiStore.showError('Failed to update display name');

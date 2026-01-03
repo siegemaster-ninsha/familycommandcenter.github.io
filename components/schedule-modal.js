@@ -1,13 +1,30 @@
 // Schedule Modal Component
 // Modal for managing day-of-week schedules for quicklist chores
-// **Feature: weekly-chore-scheduling**
+// **Feature: weekly-chore-scheduling, app-js-cleanup**
 // **Validates: Requirements 1.2, 1.4, 2.1, 2.2, 2.3, 2.4, 8.1, 8.2, 8.3, 8.4**
+// _Requirements: 6.2, 6.4_
 
 const ScheduleModal = Vue.defineComponent({
   name: 'ScheduleModal',
+  
+  setup() {
+    // Use stores directly instead of inject
+    // **Feature: app-js-cleanup**
+    // _Requirements: 6.2, 6.4_
+    const choresStore = window.useChoresStore?.();
+    const familyStore = window.useFamilyStore?.();
+    const uiStore = window.useUIStore?.();
+    
+    return {
+      choresStore,
+      familyStore,
+      uiStore
+    };
+  },
+  
   template: `
     <flyout-panel
-      :open="open"
+      :open="isOpen"
       @close="handleClose"
       :title="modalTitle"
       :show-footer="true"
@@ -39,7 +56,7 @@ const ScheduleModal = Vue.defineComponent({
           <!-- Family Members with Day Toggles - Requirements 1.2 -->
           <div class="schedule-members-list">
             <div 
-              v-for="member in familyMembers" 
+              v-for="member in members" 
               :key="member.id"
               class="schedule-member-row"
             >
@@ -100,7 +117,7 @@ const ScheduleModal = Vue.defineComponent({
           </div>
           
           <!-- Empty state if no family members -->
-          <div v-if="!familyMembers || familyMembers.length === 0" class="schedule-empty-state">
+          <div v-if="!members || members.length === 0" class="schedule-empty-state">
             <div v-html="getIcon('users', 32)" style="color: var(--color-neutral-400);"></div>
             <p class="text-sm text-secondary-custom mt-2">No family members found</p>
           </div>
@@ -132,6 +149,7 @@ const ScheduleModal = Vue.defineComponent({
   `,
   
   props: {
+    // Props kept for backward compatibility but stores are preferred
     open: {
       type: Boolean,
       default: false
@@ -171,15 +189,38 @@ const ScheduleModal = Vue.defineComponent({
   },
   
   computed: {
+    // Get open state from uiStore if not provided via prop
+    // _Requirements: 6.2, 6.4_
+    isOpen() {
+      // Prefer prop if explicitly set, otherwise use store
+      if (this.open !== undefined && this.open !== false) {
+        return this.open;
+      }
+      return this.uiStore?.isModalOpen?.('schedule') || false;
+    },
+    // Get quicklist chore from choresStore if not provided via prop
+    // _Requirements: 6.2_
+    scheduleChore() {
+      return this.quicklistChore || this.choresStore?.scheduleModalChore || null;
+    },
+    // Get family members from familyStore if not provided via prop
+    // _Requirements: 6.2_
+    members() {
+      if (this.familyMembers && this.familyMembers.length > 0) {
+        return this.familyMembers;
+      }
+      return this.familyStore?.enabledMembers || [];
+    },
     modalTitle() {
-      const choreName = this.quicklistChore?.name || 'Chore';
+      const choreName = this.scheduleChore?.name || 'Chore';
       return `Schedule: ${choreName}`;
     }
   },
   
   watch: {
     // Reset local schedule when modal opens or chore changes
-    open: {
+    // _Requirements: 6.2, 6.4_
+    isOpen: {
       immediate: true,
       handler(isOpen) {
         if (isOpen) {
@@ -187,10 +228,10 @@ const ScheduleModal = Vue.defineComponent({
         }
       }
     },
-    quicklistChore: {
+    scheduleChore: {
       deep: true,
       handler() {
-        if (this.open) {
+        if (this.isOpen) {
           this.initializeSchedule();
         }
       }
@@ -207,15 +248,16 @@ const ScheduleModal = Vue.defineComponent({
     },
     
     /**
-     * Initialize local schedule from quicklistChore prop
+     * Initialize local schedule from scheduleChore
+     * _Requirements: 6.2_
      */
     initializeSchedule() {
-      const schedule = this.quicklistChore?.schedule || {};
-      // Deep copy to avoid mutating prop
+      const schedule = this.scheduleChore?.schedule || {};
+      // Deep copy to avoid mutating store data
       this.localSchedule = {};
       
       // Initialize schedule for each family member
-      (this.familyMembers || []).forEach(member => {
+      (this.members || []).forEach(member => {
         const memberId = member.id;
         const memberDays = schedule[memberId] || [];
         this.localSchedule[memberId] = [...memberDays];
@@ -278,9 +320,10 @@ const ScheduleModal = Vue.defineComponent({
     
     /**
      * Handle save button click - Requirements 1.5
+     * _Requirements: 6.2_
      */
-    handleSave() {
-      // Build the schedule object to emit
+    async handleSave() {
+      // Build the schedule object
       const schedule = {};
       
       Object.entries(this.localSchedule).forEach(([memberId, days]) => {
@@ -290,17 +333,47 @@ const ScheduleModal = Vue.defineComponent({
         }
       });
       
-      this.$emit('save', {
-        quicklistId: this.quicklistChore?.id,
-        schedule
-      });
+      // If using stores directly, save via choresStore
+      if (this.choresStore && this.scheduleChore?.id) {
+        this.saving = true;
+        try {
+          const result = await this.choresStore.updateQuicklistFullSchedule(
+            this.scheduleChore.id,
+            schedule
+          );
+          
+          if (result.success) {
+            this.uiStore?.showSuccess('Schedule saved');
+            this.handleClose();
+          } else {
+            this.uiStore?.showError(result.error || 'Failed to save schedule');
+          }
+        } catch (error) {
+          console.error('Failed to save schedule:', error);
+          this.uiStore?.showError('Failed to save schedule');
+        } finally {
+          this.saving = false;
+        }
+      } else {
+        // Fallback to emit for backward compatibility
+        this.$emit('save', {
+          quicklistId: this.scheduleChore?.id,
+          schedule
+        });
+      }
     },
     
     /**
      * Handle close/cancel
+     * _Requirements: 6.2, 6.4_
      */
     handleClose() {
-      this.$emit('close');
+      // Close via store if available
+      if (this.choresStore?.closeScheduleModal) {
+        this.choresStore.closeScheduleModal();
+      } else {
+        this.$emit('close');
+      }
     },
     
     /**
