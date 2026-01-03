@@ -136,40 +136,6 @@ const QuicklistSection = Vue.defineComponent({
                         </sl-badge>
                       </button>
 
-                      <!-- Assign Category dropdown - only for Uncategorized chores -->
-                      <!-- Wrapper div stops all event propagation to prevent accordion toggle -->
-                      <div 
-                        v-if="isUncategorized(chore)" 
-                        @click.stop 
-                        @touchstart.stop
-                        @touchend.stop
-                        class="dropdown-wrapper"
-                      >
-                        <sl-dropdown 
-                          hoist
-                          placement="bottom-start"
-                          distance="4"
-                          stay-open-on-select="false"
-                        >
-                          <button
-                            slot="trigger"
-                            class="chore-category-btn"
-                            title="Assign category"
-                          >
-                            <div v-html="getIcon('folderPlus', 16)"></div>
-                          </button>
-                          <sl-menu @sl-select="(e) => onCategorySelect(chore, e)">
-                            <sl-menu-item
-                              v-for="cat in categories"
-                              :key="cat.id"
-                              :value="cat.id"
-                            >
-                              {{ cat.name }}
-                            </sl-menu-item>
-                          </sl-menu>
-                        </sl-dropdown>
-                      </div>
-
                       <!-- Delete button -->
                       <button
                         @click.stop="$emit('delete-chore', chore.id)"
@@ -222,7 +188,7 @@ const QuicklistSection = Vue.defineComponent({
       default: null
     }
   },
-  emits: ['chore-click', 'delete-chore', 'add-chore', 'retry', 'manage-categories', 'category-changed', 'open-schedule'],
+  emits: ['chore-click', 'delete-chore', 'add-chore', 'retry', 'manage-categories', 'open-schedule'],
   data() {
     return {
       searchQuery: '',
@@ -350,13 +316,6 @@ const QuicklistSection = Vue.defineComponent({
     },
     
     /**
-     * Check if a chore is uncategorized
-     */
-    isUncategorized(chore) {
-      return !chore.categoryName || chore.categoryName === 'Uncategorized';
-    },
-    
-    /**
      * Get the schedule count for a quicklist chore
      * Returns the total number of member-day combinations
      * **Feature: weekly-chore-scheduling**
@@ -368,26 +327,6 @@ const QuicklistSection = Vue.defineComponent({
       }
       return Object.values(chore.schedule)
         .reduce((sum, days) => sum + (Array.isArray(days) ? days.length : 0), 0);
-    },
-    
-    /**
-     * Handle category selection from dropdown
-     * Stops propagation to prevent accordion toggle
-     */
-    onCategorySelect(chore, event) {
-      // Stop propagation to prevent accordion from toggling
-      if (event) {
-        event.stopPropagation();
-        event.preventDefault?.();
-      }
-      
-      const categoryId = event.detail?.item?.value;
-      if (categoryId) {
-        const category = (this.categories || []).find(c => c.id === categoryId);
-        if (category) {
-          this.$emit('category-changed', { chore, categoryId, categoryName: category.name });
-        }
-      }
     },
     
     /**

@@ -2938,8 +2938,11 @@ function checkAndRegisterComponents() {
     console.error('❌ Store initialization error:', error);
   }
 
-  // Mount the app
-  app.mount('#app');
+  // Mount the app and expose instance globally for bridge pattern
+  // This allows auth.js and other modules to call loadAllData() after sign-in
+  const mountedApp = app.mount('#app');
+  window.vueApp = mountedApp;
+  if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Vue app mounted and exposed as window.vueApp');
 }
 
 // Wait for DOM to be ready and Helpers to be available, then start checking for components
