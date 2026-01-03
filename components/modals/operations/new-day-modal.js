@@ -3,20 +3,30 @@
 const NewDayModal = Vue.defineComponent({
   name: 'NewDayModal',
   
-  // Inject props from parent (preserves existing contracts)
-  // _Requirements: 13.2, 13.3_
-  inject: [
-    'showNewDayModal',
-    'newDayLoading',
-    'startNewDay',
-    'cancelNewDay'
-  ],
+  setup() {
+    const uiStore = window.useUIStore?.();
+    const choresStore = window.useChoresStore?.();
+    return { uiStore, choresStore };
+  },
+  
+  data() {
+    return {
+      loading: false
+    };
+  },
+  
+  computed: {
+    // Modal visibility from uiStore
+    isOpen() {
+      return this.uiStore?.isModalOpen?.('newDay') || false;
+    }
+  },
   
   template: `
     <!-- New Day Confirmation Flyout -->
     <!-- _Requirements: 13.1, 13.2, 13.3, 13.4_ -->
     <flyout-panel
-      :open="showNewDayModal"
+      :open="isOpen"
       @close="handleCancelNewDay"
       title="Start New Day"
       :show-footer="true"
@@ -65,16 +75,16 @@ const NewDayModal = Vue.defineComponent({
           <button 
             @click="handleStartNewDay"
             @touchend.prevent="handleStartNewDay"
-            :disabled="newDayLoading"
+            :disabled="loading"
             class="flex-1 btn-warning btn-compact flex items-center justify-center gap-2"
           >
-            <div v-if="newDayLoading" class="new-day-spinner" v-html="Helpers.IconLibrary.getIcon('loader', 'lucide', 16, 'text-white')"></div>
-            {{ newDayLoading ? 'Starting...' : 'Start New Day' }}
+            <div v-if="loading" class="new-day-spinner" v-html="Helpers.IconLibrary.getIcon('loader', 'lucide', 16, 'text-white')"></div>
+            {{ loading ? 'Starting...' : 'Start New Day' }}
           </button>
           <button 
             @click="handleCancelNewDay"
             @touchend.prevent="handleCancelNewDay"
-            :disabled="newDayLoading"
+            :disabled="loading"
             class="btn-secondary btn-compact"
           >
             Cancel
@@ -85,13 +95,29 @@ const NewDayModal = Vue.defineComponent({
   `,
   
   methods: {
-    // Wrapper methods for touchend handlers
+    // Start new day using choresStore action
     // _Requirements: 13.4_
-    handleStartNewDay() {
-      this.startNewDay?.();
+    async handleStartNewDay() {
+      if (!this.choresStore) {
+        console.error('[NewDayModal] Chores store not available');
+        return;
+      }
+      
+      this.loading = true;
+      try {
+        const result = await this.choresStore.startNewDay();
+        
+        if (result.success) {
+          this.uiStore?.closeModal('newDay');
+        }
+        // Error handling is done inside choresStore.startNewDay()
+      } finally {
+        this.loading = false;
+      }
     },
+    
     handleCancelNewDay() {
-      this.cancelNewDay?.();
+      this.uiStore?.closeModal('newDay');
     }
   }
 });

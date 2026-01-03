@@ -9,7 +9,9 @@ const useChoresStore = Pinia.defineStore('chores', {
     selectedChoreId: null,
     selectedQuicklistChore: null,
     multiAssignSelectedMembers: [],
-    loading: false,
+    // Start with loading: true so skeletons show immediately on page load
+    // Stores will set to false once data is fetched
+    loading: true,
     error: null,
     // Offline state tracking
     isUsingCachedData: false,
@@ -1005,6 +1007,105 @@ const useChoresStore = Pinia.defineStore('chores', {
           uiStore.showError('Failed to update category');
         }
         
+        return { success: false, error: error.message };
+      }
+    },
+    
+    /**
+     * Remove a quicklist chore with optimistic update
+     * 
+     * @param {string} quicklistId - ID of the quicklist chore to remove
+     * @returns {Promise<{success: boolean, error?: string}>}
+     */
+    async removeQuicklistChore(quicklistId) {
+      // Find the chore to get the real server ID if it was optimistically created
+      const chore = this.quicklistChores.find(c => c.id === quicklistId);
+      if (!chore) {
+        console.warn('[removeQuicklistChore] Chore not found:', quicklistId);
+        return { success: false, error: 'Quicklist chore not found' };
+      }
+      
+      const apiId = chore.serverId || quicklistId; // Use serverId if available (optimistic items)
+      
+      // Store original state for rollback
+      const originalQuicklistChores = [...this.quicklistChores];
+      
+      // OPTIMISTIC UPDATE: Remove immediately from UI
+      const index = this.quicklistChores.findIndex(c => c.id === quicklistId);
+      if (index !== -1) {
+        this.quicklistChores.splice(index, 1);
+      }
+      
+      try {
+        await apiService.delete(`${CONFIG.API.ENDPOINTS.QUICKLIST}/${apiId}`);
+        console.log('[OK] Quicklist chore removed:', quicklistId);
+        return { success: true };
+      } catch (error) {
+        console.error('[removeQuicklistChore] Failed:', error);
+        // ROLLBACK: Restore original state on failure
+        this.quicklistChores.splice(0, this.quicklistChores.length, ...originalQuicklistChores);
+        return { success: false, error: error.message };
+      }
+    },
+    
+    /**
+     * Create a new quicklist chore with optimistic update
+     * 
+     * @param {Object} quicklistData - Quicklist chore data
+     * @param {string} quicklistData.name - Chore name
+     * @param {number} quicklistData.amount - Chore amount
+     * @param {string} quicklistData.category - Chore category
+     * @param {string} [quicklistData.categoryId] - Category ID for grouping
+     * @param {boolean} [quicklistData.isDetailed] - Whether chore requires details
+     * @param {string} [quicklistData.defaultDetails] - Default details text
+     * @returns {Promise<{success: boolean, quicklistChore?: Object, error?: string}>}
+     */
+    async createQuicklistChore(quicklistData) {
+      if (!quicklistData.name?.trim()) {
+        return { success: false, error: 'Name is required' };
+      }
+      
+      // Store original state for potential rollback
+      const originalQuicklistChores = [...this.quicklistChores];
+      
+      // OPTIMISTIC UPDATE: Add to quicklist immediately
+      const tempQuicklistChore = {
+        id: `temp-quicklist-${Date.now()}`,
+        name: quicklistData.name.trim(),
+        amount: quicklistData.amount || 0,
+        category: quicklistData.category || 'regular',
+        categoryId: quicklistData.categoryId || null,
+        isDetailed: quicklistData.isDetailed || false,
+        defaultDetails: quicklistData.defaultDetails || '',
+        isOptimistic: true
+      };
+      this.quicklistChores.push(tempQuicklistChore);
+      
+      console.log('[INFO] Optimistic quicklist item added:', tempQuicklistChore.name);
+      
+      try {
+        const response = await apiService.post(CONFIG.API.ENDPOINTS.QUICKLIST, {
+          name: tempQuicklistChore.name,
+          amount: tempQuicklistChore.amount,
+          category: tempQuicklistChore.category,
+          categoryId: tempQuicklistChore.categoryId,
+          isDetailed: tempQuicklistChore.isDetailed,
+          defaultDetails: tempQuicklistChore.defaultDetails
+        });
+        
+        // Store the real server ID for future API calls, but keep temp ID as Vue key to avoid re-render
+        const quicklistIndex = this.quicklistChores.findIndex(c => c.id === tempQuicklistChore.id);
+        if (quicklistIndex !== -1) {
+          this.quicklistChores[quicklistIndex].serverId = response.quicklistChore.id;
+          this.quicklistChores[quicklistIndex].isOptimistic = false;
+        }
+        
+        console.log('[OK] Quicklist chore created:', tempQuicklistChore.name);
+        return { success: true, quicklistChore: response.quicklistChore };
+      } catch (error) {
+        console.error('[createQuicklistChore] Failed:', error);
+        // ROLLBACK: Restore original state
+        this.quicklistChores.splice(0, this.quicklistChores.length, ...originalQuicklistChores);
         return { success: false, error: error.message };
       }
     },

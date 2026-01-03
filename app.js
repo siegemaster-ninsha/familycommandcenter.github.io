@@ -81,8 +81,7 @@ const app = createApp({
       // NOTE: pendingInviteToken moved to authStore.pendingInviteToken
       // Spending requests - NOTE: moved to familyStore.spendingRequests
       // Components should use useFamilyStore().spendingRequests instead
-      // New Day functionality
-      newDayLoading: false,
+      // NOTE: newDayLoading removed - now managed locally in new-day-modal.js
       // Spending modal data
       selectedPerson: null,
       spendAmount: 0,
@@ -1047,6 +1046,7 @@ const app = createApp({
       this.newChore = { name: '', amount: 0, category: 'regular', addToQuicklist: false, isDetailed: false };
     },
     
+    // NOTE: addToQuicklist now delegates to choresStore.createQuicklistChore()
     async addToQuicklist() {
       const choresStore = window.useChoresStore?.();
       if (!choresStore) {
@@ -1054,60 +1054,29 @@ const app = createApp({
         return;
       }
       
-      if (this.newQuicklistChore.name.trim() && this.newQuicklistChore.amount >= 0) {
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🚀 Optimistically adding to quicklist:', this.newQuicklistChore.name);
-        
-        // Store original state for potential rollback
-        const originalQuicklistChores = [...choresStore.quicklistChores];
-        const quicklistData = {
-          name: this.newQuicklistChore.name.trim(),
-          amount: this.newQuicklistChore.amount,
-          category: this.newQuicklistChore.category,
-          categoryId: this.newQuicklistChore.categoryId || null,  // Category ID for grouping
-          isDetailed: this.newQuicklistChore.isDetailed || false,
-          defaultDetails: this.newQuicklistChore.defaultDetails || ''
-        };
-        
-        try {
-          // OPTIMISTIC UPDATE: Add to quicklist immediately
-          const tempQuicklistChore = {
-            id: `temp-quicklist-${Date.now()}`,
-            ...quicklistData,
-            isOptimistic: true
-          };
-          choresStore.quicklistChores.push(tempQuicklistChore);
-          
-          // Close modal immediately for instant feedback
-          this.cancelAddToQuicklist();
-          
-          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✨ Optimistic UI updated - quicklist item added');
-          
-          // Make API call in background using useApi composable
-          const api = window.useApi();
-          const response = await api.post(CONFIG.API.ENDPOINTS.QUICKLIST, quicklistData);
-          
-          // Store the real server ID for future API calls, but keep temp ID as Vue key to avoid re-render
-          const quicklistIndex = choresStore.quicklistChores.findIndex(c => c.id === tempQuicklistChore.id);
-          if (quicklistIndex !== -1) {
-            const existing = choresStore.quicklistChores[quicklistIndex];
-            existing.serverId = response.quicklistChore.id; // Real ID for API calls
-            existing.isOptimistic = false;
-          }
-          
-          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Server confirmed quicklist creation');
-          
-        } catch (error) {
-          console.error('❌ Quicklist creation failed, rolling back optimistic update:', error);
-          
-          // ROLLBACK: Restore original state
-          choresStore.quicklistChores.splice(0, choresStore.quicklistChores.length, ...originalQuicklistChores);
-          
-          // Reopen modal with original data
-          this.$uiStore?.openModal('addToQuicklist');
-          
-          // Show error message
-          this.showSuccessMessage(`❌ Failed to add "${quicklistData.name}" to quicklist. Please try again.`);
-        }
+      if (!this.newQuicklistChore.name.trim() || this.newQuicklistChore.amount < 0) {
+        return;
+      }
+      
+      const quicklistData = {
+        name: this.newQuicklistChore.name.trim(),
+        amount: this.newQuicklistChore.amount,
+        category: this.newQuicklistChore.category,
+        categoryId: this.newQuicklistChore.categoryId || null,
+        isDetailed: this.newQuicklistChore.isDetailed || false,
+        defaultDetails: this.newQuicklistChore.defaultDetails || ''
+      };
+      
+      // Close modal immediately for instant feedback
+      this.cancelAddToQuicklist();
+      
+      const result = await choresStore.createQuicklistChore(quicklistData);
+      
+      if (!result.success) {
+        // Reopen modal with original data on failure
+        this.newQuicklistChore = quicklistData;
+        this.$uiStore?.openModal('addToQuicklist');
+        this.showSuccessMessage(`❌ Failed to add "${quicklistData.name}" to quicklist. Please try again.`);
       }
     },
     
@@ -1558,85 +1527,9 @@ const app = createApp({
       };
     },
 
-    // New Day functionality
+    // NOTE: startNewDay moved to choresStore.startNewDay()
+    // The new-day-modal now calls choresStore directly
     // _Requirements: 4.1, 4.2, 6.3_
-    async startNewDay() {
-      // Get chores store for state access
-      const choresStore = window.useChoresStore?.();
-      const familyStore = window.useFamilyStore?.();
-      
-      try {
-        this.newDayLoading = true;
-        if (CONFIG.ENV.IS_DEVELOPMENT) {
-          const chores = choresStore?.chores || [];
-          const members = familyStore?.members || [];
-          console.log('🌅 Starting new day...');
-          console.log('📊 Current state before new day:');
-          console.log('  - Chores count:', chores.length);
-          console.log('  - Chores:', chores.map(c => `${c.name} (${c.assignedTo})`));
-          console.log('  - People completed chores:', members.map(p => `${p.name}: ${p.completedChores}`));
-        }
-        
-        // Use useApi composable for API call
-        const api = window.useApi();
-        const response = await api.post(CONFIG.API.ENDPOINTS.CHORES_NEW_DAY, {
-          dailyChores: [] // Could be extended later to include predefined daily chores
-        });
-        
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ New day API response:', response);
-        
-        // Reload all data to reflect changes
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🔄 Reloading all data after new day...');
-        await this.loadAllData();
-        
-        if (CONFIG.ENV.IS_DEVELOPMENT) {
-          const choresAfter = choresStore?.chores || [];
-          const membersAfter = familyStore?.members || [];
-          console.log('📊 State after reload:');
-          console.log('  - Chores count:', choresAfter.length);
-          console.log('  - Chores:', choresAfter.map(c => `${c.name} (${c.assignedTo})`));
-          console.log('  - People completed chores:', membersAfter.map(p => `${p.name}: ${p.completedChores}`));
-        }
-        
-        // Parse summary from enhanced response format
-        const summary = response?.summary || {};
-        const {
-          choresRemoved = 0,
-          completedChoresCleared = 0,
-          dailyChoresCleared = 0,
-          dailyChoresCreated = 0,
-          duplicatesSkipped = 0
-        } = summary;
-        
-        // Build detailed success message with counts
-        const messageParts = [];
-        if (choresRemoved > 0) {
-          const details = [];
-          if (completedChoresCleared > 0) details.push(`${completedChoresCleared} completed`);
-          if (dailyChoresCleared > 0) details.push(`${dailyChoresCleared} daily`);
-          messageParts.push(`${choresRemoved} chore${choresRemoved !== 1 ? 's' : ''} cleared${details.length > 0 ? ` (${details.join(', ')})` : ''}`);
-        }
-        if (dailyChoresCreated > 0) {
-          messageParts.push(`${dailyChoresCreated} daily chore${dailyChoresCreated !== 1 ? 's' : ''} created`);
-        }
-        if (duplicatesSkipped > 0) {
-          messageParts.push(`${duplicatesSkipped} duplicate${duplicatesSkipped !== 1 ? 's' : ''} skipped`);
-        }
-        
-        const detailMessage = messageParts.length > 0 
-          ? messageParts.join(', ')
-          : 'Board ready for new day';
-        
-        this.showSuccessMessage(`🌅 New day started! ${detailMessage}. Earnings preserved.`);
-        
-        this.$uiStore?.closeModal('newDay');
-      } catch (error) {
-        console.error('❌ Failed to start new day:', error);
-        this.showSuccessMessage(`❌ Failed to start new day: ${error.message}`);
-      } finally {
-        this.newDayLoading = false;
-      }
-    },
 
     cancelNewDay() {
       this.$uiStore?.closeModal('newDay');
@@ -1775,36 +1668,14 @@ const app = createApp({
       }
     },
     
+    // NOTE: removeFromQuicklist now delegates to choresStore.removeQuicklistChore()
     async removeFromQuicklist(quicklistId) {
       const choresStore = window.useChoresStore?.();
       if (!choresStore) {
         console.error('Chores store not available');
         return;
       }
-      
-      // Find the chore to get the real server ID if it was optimistically created
-      const chore = choresStore.quicklistChores.find(c => c.id === quicklistId);
-      const apiId = chore?.serverId || quicklistId; // Use serverId if available (optimistic items)
-      
-      // Store original state for rollback
-      const originalQuicklistChores = [...choresStore.quicklistChores];
-      
-      // OPTIMISTIC UPDATE: Remove immediately from UI
-      const index = choresStore.quicklistChores.findIndex(c => c.id === quicklistId);
-      if (index !== -1) {
-        choresStore.quicklistChores.splice(index, 1);
-      }
-      
-      try {
-        const api = window.useApi();
-        await api.delete(`${CONFIG.API.ENDPOINTS.QUICKLIST}/${apiId}`);
-        // No need to reload - optimistic update already removed it
-        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Server confirmed quicklist deletion');
-      } catch (error) {
-        console.error('Failed to remove from quicklist:', error);
-        // ROLLBACK: Restore original state on failure
-        choresStore.quicklistChores.splice(0, choresStore.quicklistChores.length, ...originalQuicklistChores);
-      }
+      await choresStore.removeQuicklistChore(quicklistId);
     },
     
 
@@ -2482,8 +2353,7 @@ const app = createApp({
       habitFormSubmitting: Vue.computed(() => this.habitFormSubmitting),
       showAddPersonModal: Vue.computed(() => this.showAddPersonModal),
       showDeletePersonModal: Vue.computed(() => this.showDeletePersonModal),
-      showNewDayModal: Vue.computed(() => this.showNewDayModal),
-      newDayLoading: Vue.computed(() => this.newDayLoading),
+      // NOTE: showNewDayModal and newDayLoading removed - new-day-modal now uses stores directly
       showSpendingModal: Vue.computed(() => this.showSpendingModal),
       showChoreDetailsModal: Vue.computed(() => this.showChoreDetailsModal),
       showMultiAssignModal: Vue.computed(() => this.showMultiAssignModal),
@@ -2541,7 +2411,7 @@ const app = createApp({
       closeInviteModal: this.closeInviteModal,
       confirmChoreDetails: this.confirmChoreDetails,
       cancelChoreDetails: this.cancelChoreDetails,
-      startNewDay: this.startNewDay,
+      // NOTE: startNewDay removed - new-day-modal now calls choresStore.startNewDay() directly
       cancelNewDay: this.cancelNewDay,
       openMultiAssignModal: this.openMultiAssignModal,
       confirmMultiAssignment: this.confirmMultiAssignment,

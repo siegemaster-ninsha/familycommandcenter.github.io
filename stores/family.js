@@ -49,7 +49,9 @@ const useFamilyStore = Pinia.defineStore('family', {
   state: () => ({
     members: [],
     spendingRequests: [],
-    loading: false,
+    // Start with loading: true so skeletons show immediately on page load
+    // Stores will set to false once data is fetched
+    loading: true,
     error: null,
     // Offline state tracking
     isUsingCachedData: false,
