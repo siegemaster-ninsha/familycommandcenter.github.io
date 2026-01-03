@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.182 - Tremendous Penguin (Jan 2, 2026)',
+    VERSION: '1.0.183 - Zesty Toucan (Jan 2, 2026)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
