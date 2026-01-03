@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.196 - Noble Dolphin (Jan 2, 2026)',
+    VERSION: '1.0.197 - Gleaming Quokka (Jan 2, 2026)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {

@@ -1663,12 +1663,30 @@ const TailwindChorePage = Vue.defineComponent({
     },
 
     async removeFromQuicklist(quicklistId) {
+      const choresStore = window.useChoresStore?.();
+      if (!choresStore) {
+        console.error('Chores store not available');
+        return;
+      }
+      
+      // Store original state for rollback
+      const originalQuicklistChores = [...choresStore.quicklistChores];
+      
+      // OPTIMISTIC UPDATE: Remove immediately from UI
+      const index = choresStore.quicklistChores.findIndex(c => c.id === quicklistId);
+      if (index !== -1) {
+        choresStore.quicklistChores.splice(index, 1);
+      }
+      
       try {
         // Use API service directly instead of $parent.apiCall
         await apiService.delete(`${this.CONFIG.API.ENDPOINTS.QUICKLIST}/${quicklistId}`);
-        await this.loadQuicklistChores();
+        // No need to reload - optimistic update already removed it
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Server confirmed quicklist deletion');
       } catch (error) {
         console.error('Failed to remove from quicklist:', error);
+        // ROLLBACK: Restore original state on failure
+        choresStore.quicklistChores.splice(0, choresStore.quicklistChores.length, ...originalQuicklistChores);
       }
     },
 

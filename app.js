@@ -1086,13 +1086,13 @@ const app = createApp({
           const api = window.useApi();
           const response = await api.post(CONFIG.API.ENDPOINTS.QUICKLIST, quicklistData);
           
-          // Update the temporary quicklist chore with real data from server
+          // Update only the ID and optimistic flag - avoid full object replacement to prevent flash
           const quicklistIndex = choresStore.quicklistChores.findIndex(c => c.id === tempQuicklistChore.id);
           if (quicklistIndex !== -1) {
-            choresStore.quicklistChores[quicklistIndex] = {
-              ...response.quicklistChore,
-              isOptimistic: false
-            };
+            const existing = choresStore.quicklistChores[quicklistIndex];
+            // Only update the ID from server response, keep other properties to avoid re-render flash
+            existing.id = response.quicklistChore.id;
+            existing.isOptimistic = false;
           }
           
           if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Server confirmed quicklist creation');
@@ -1777,12 +1777,30 @@ const app = createApp({
     },
     
     async removeFromQuicklist(quicklistId) {
+      const choresStore = window.useChoresStore?.();
+      if (!choresStore) {
+        console.error('Chores store not available');
+        return;
+      }
+      
+      // Store original state for rollback
+      const originalQuicklistChores = [...choresStore.quicklistChores];
+      
+      // OPTIMISTIC UPDATE: Remove immediately from UI
+      const index = choresStore.quicklistChores.findIndex(c => c.id === quicklistId);
+      if (index !== -1) {
+        choresStore.quicklistChores.splice(index, 1);
+      }
+      
       try {
         const api = window.useApi();
         await api.delete(`${CONFIG.API.ENDPOINTS.QUICKLIST}/${quicklistId}`);
-        await this.loadQuicklistChores();
+        // No need to reload - optimistic update already removed it
+        if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Server confirmed quicklist deletion');
       } catch (error) {
         console.error('Failed to remove from quicklist:', error);
+        // ROLLBACK: Restore original state on failure
+        choresStore.quicklistChores.splice(0, choresStore.quicklistChores.length, ...originalQuicklistChores);
       }
     },
     
