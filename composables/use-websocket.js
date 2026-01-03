@@ -281,8 +281,19 @@ const useWebSocket = () => {
     if (!created) return;
 
     const choresStore = window.useChoresStore?.();
-    if (choresStore && !choresStore.quicklistChores.some(q => q.id === created.id)) {
-      choresStore.quicklistChores.push(created);
+    if (choresStore) {
+      // Check if item already exists by ID
+      const existsById = choresStore.quicklistChores.some(q => q.id === created.id);
+      
+      // Also check for optimistic items (temp IDs) that match by name
+      // This prevents duplicates when WebSocket event arrives before/after API response
+      const existsAsOptimistic = choresStore.quicklistChores.some(
+        q => q.isOptimistic && q.name === created.name
+      );
+      
+      if (!existsById && !existsAsOptimistic) {
+        choresStore.quicklistChores.push(created);
+      }
     }
   };
 

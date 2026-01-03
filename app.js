@@ -2704,6 +2704,27 @@ function checkAndRegisterComponents() {
     app.component('delete-person-modal', window.DeletePersonModalComponent);
   }
   
+  // Spending Modal Component - must be registered before app-modals
+  // _Requirements: 10.5, 16.3, 16.4_
+  console.log('📦 Registering spending-modal');
+  if (window.SpendingModalComponent) {
+    app.component('spending-modal', window.SpendingModalComponent);
+  }
+  
+  // Habit Modal Component - must be registered before app-modals
+  // _Requirements: 12.5, 16.3, 16.4_
+  console.log('📦 Registering habit-modal');
+  if (window.HabitModalComponent) {
+    app.component('habit-modal', window.HabitModalComponent);
+  }
+  
+  // New Day Modal Component - must be registered before app-modals
+  // _Requirements: 13.5, 16.3, 16.4_
+  console.log('📦 Registering new-day-modal');
+  if (window.NewDayModalComponent) {
+    app.component('new-day-modal', window.NewDayModalComponent);
+  }
+  
   console.log('📦 Registering app-modals');
   app.component('app-modals', window.AppModalsComponent);
   
