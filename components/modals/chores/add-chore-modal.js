@@ -1,41 +1,135 @@
 /**
  * Add Chore Modal Component
- * Encapsulated add chore flyout with inject-based state management
+ * Encapsulated add chore flyout with store-based state management
  * 
  * _Requirements: 4.1, 4.2, 4.3, 4.4_
  * - 4.1: Located at components/modals/chores/add-chore-modal.js
- * - 4.2: Access visibility state via injected prop (showAddChoreModal)
- * - 4.3: Access form data via injected prop (newChore)
- * - 4.4: Delegate actions to injected methods (addChore, cancelAddChore)
+ * - 4.2: Access visibility state via UI store
+ * - 4.3: Access form data via chores store
+ * - 4.4: Use chores store createChore method
  */
 const AddChoreModal = Vue.defineComponent({
   name: 'AddChoreModal',
   
-  inject: ['showAddChoreModal', 'newChore', 'addChore', 'cancelAddChore'],
+  setup() {
+    const choresStore = window.useChoresStore();
+    const uiStore = window.useUIStore();
+    return { choresStore, uiStore };
+  },
+  
+  data() {
+    return {
+      newChore: {
+        name: '',
+        amount: 0,
+        category: 'regular',
+        addToQuicklist: false,
+        isDetailed: false
+      },
+      isSubmitting: false
+    };
+  },
+  
+  computed: {
+    isOpen() {
+      return this.uiStore?.modals?.addChore || false;
+    }
+  },
   
   methods: {
     /**
-     * Handle add chore action with touchend support
-     * Wrapper method for Vue event modifiers
+     * Handle add chore action
+     * Creates chore via store and optionally adds to quicklist
      */
-    handleAddChore() {
-      this.addChore?.();
+    async handleAddChore() {
+      if (this.isSubmitting) return;
+      if (!this.newChore.name.trim()) return;
+      
+      this.isSubmitting = true;
+      
+      try {
+        const choreData = {
+          name: this.newChore.name.trim(),
+          amount: this.newChore.amount || 0,
+          category: this.newChore.category || 'regular',
+          isDetailed: this.newChore.isDetailed || false
+        };
+        
+        // If detailed chore, emit event to show details modal instead
+        if (this.newChore.isDetailed) {
+          this.$emit('show-details-modal', choreData, 'unassigned', this.newChore.addToQuicklist);
+          this.handleClose();
+          return;
+        }
+        
+        // Create the chore via store
+        const result = await this.choresStore.createChore(choreData);
+        
+        if (result.success) {
+          // Also add to quicklist if checkbox was checked
+          if (this.newChore.addToQuicklist) {
+            await this.addToQuicklist(choreData);
+          }
+          
+          this.uiStore?.showSuccess(`Added: ${choreData.name}`);
+        } else {
+          this.uiStore?.showError(result.error || 'Failed to create chore');
+        }
+        
+        this.handleClose();
+      } catch (error) {
+        console.error('Failed to add chore:', error);
+        this.uiStore?.showError('Failed to create chore');
+      } finally {
+        this.isSubmitting = false;
+      }
     },
     
     /**
-     * Handle cancel action with touchend support
-     * Wrapper method for Vue event modifiers
+     * Add chore to quicklist
      */
-    handleCancelAddChore() {
-      this.cancelAddChore?.();
+    async addToQuicklist(choreData) {
+      try {
+        const api = window.useApi();
+        await api.post(CONFIG.API.ENDPOINTS.QUICKLIST, {
+          name: choreData.name,
+          amount: choreData.amount,
+          category: choreData.category,
+          isDetailed: choreData.isDetailed
+        });
+      } catch (error) {
+        console.error('Failed to add to quicklist:', error);
+        // Don't fail the whole operation if quicklist add fails
+      }
+    },
+    
+    /**
+     * Handle close/cancel action
+     */
+    handleClose() {
+      this.uiStore?.closeModal('addChore');
+      this.resetForm();
+    },
+    
+    /**
+     * Reset form to initial state
+     */
+    resetForm() {
+      this.newChore = {
+        name: '',
+        amount: 0,
+        category: 'regular',
+        addToQuicklist: false,
+        isDetailed: false
+      };
     }
   },
 
   template: `
     <!-- Add Chore Flyout -->
     <flyout-panel
-      :open="showAddChoreModal"
-      @close="handleCancelAddChore"
+      :open="isOpen"
+      @close="handleClose"
       title="Add New Chore"
       :show-footer="true"
       :show-header-close="false"
@@ -92,13 +186,14 @@ const AddChoreModal = Vue.defineComponent({
           <button 
             @click="handleAddChore"
             @touchend.prevent="handleAddChore"
+            :disabled="isSubmitting || !newChore.name.trim()"
             class="flex-1 btn-primary btn-compact px-3 py-1.5 text-sm"
           >
-            Add Chore
+            {{ isSubmitting ? 'Adding...' : 'Add Chore' }}
           </button>
           <button 
-            @click="handleCancelAddChore"
-            @touchend.prevent="handleCancelAddChore"
+            @click="handleClose"
+            @touchend.prevent="handleClose"
             class="btn-secondary btn-compact px-3 py-1.5 text-sm"
           >
             Close
