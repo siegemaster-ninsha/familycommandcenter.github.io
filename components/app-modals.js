@@ -743,7 +743,7 @@ const AppModals = Vue.defineComponent({
     <!-- Multi-Assignment Flyout for Quicklist Chores -->
     <flyout-panel
       :open="showMultiAssignModal"
-      @close="cancelMultiAssignment"
+      @close="handleCancelMultiAssignment"
       :show-footer="true"
       :show-header-close="false"
       width="500px"
@@ -818,8 +818,8 @@ const AppModals = Vue.defineComponent({
       <template #footer>
         <div class="flyout-footer-buttons flex items-center gap-2">
           <button
-            @click="confirmMultiAssignment"
-            @touchend.prevent="confirmMultiAssignment"
+            @click="handleConfirmMultiAssignment"
+            @touchend.prevent="handleConfirmMultiAssignment"
             :disabled="multiAssignSelectedMembers.length === 0 || multiAssignLoading"
             class="flex-1 btn-primary btn-compact px-3 py-1.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
@@ -827,8 +827,8 @@ const AppModals = Vue.defineComponent({
             {{ multiAssignLoading ? 'Assigning...' : 'Assign to ' + multiAssignSelectedMembers.length + ' Member' + (multiAssignSelectedMembers.length !== 1 ? 's' : '') }}
           </button>
           <button
-            @click="cancelMultiAssignment"
-            @touchend.prevent="cancelMultiAssignment"
+            @click="handleCancelMultiAssignment"
+            @touchend.prevent="handleCancelMultiAssignment"
             :disabled="multiAssignLoading"
             class="btn-secondary btn-compact px-3 py-1.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -1179,6 +1179,30 @@ const AppModals = Vue.defineComponent({
     toggleMemberSelection(personId) {
       // Delegate to chores store - multiAssignSelectedMembers is managed there
       this.choresStore.toggleMemberSelection(personId);
+    },
+    /**
+     * Handle multi-assignment confirmation
+     * Wraps the injected confirmMultiAssignment to work with Vue event modifiers
+     * _Requirements: 4.2, 4.3_
+     */
+    handleConfirmMultiAssignment() {
+      if (typeof this.confirmMultiAssignment === 'function') {
+        this.confirmMultiAssignment();
+      } else {
+        console.error('[AppModals] confirmMultiAssignment is not a function:', this.confirmMultiAssignment);
+      }
+    },
+    /**
+     * Handle multi-assignment cancellation
+     * Wraps the injected cancelMultiAssignment to work with Vue event modifiers
+     * _Requirements: 4.2, 4.3_
+     */
+    handleCancelMultiAssignment() {
+      if (typeof this.cancelMultiAssignment === 'function') {
+        this.cancelMultiAssignment();
+      } else {
+        console.error('[AppModals] cancelMultiAssignment is not a function:', this.cancelMultiAssignment);
+      }
     }
   }
 });
