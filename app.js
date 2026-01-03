@@ -1844,14 +1844,22 @@ const app = createApp({
       });
 
       // Handle page blur for mobile optimization
+      // Only refresh tokens when actually going to background, not when focus moves to modals/drawers
       window.addEventListener('blur', () => {
-        if (this.isAuthenticated && authService.isAuthenticated()) {
-          if (CONFIG.ENV.IS_DEVELOPMENT) console.log('📱 App going to background, refreshing tokens proactively...');
-          // Proactively refresh tokens before app goes to background
-          authService.refreshAccessToken().catch(error => {
-            console.warn('Token refresh on blur failed:', error);
-          });
-        }
+        // Skip if focus is still within the document (e.g., moved to a modal/drawer)
+        // Use a small delay to let focus settle, then check if document is actually hidden
+        setTimeout(() => {
+          // Only refresh if the document is actually hidden (app went to background)
+          // or if activeElement is null/body (focus left the window entirely)
+          const focusLeftWindow = !document.hasFocus();
+          if (focusLeftWindow && this.isAuthenticated && authService.isAuthenticated()) {
+            if (CONFIG.ENV.IS_DEVELOPMENT) console.log('📱 App going to background, refreshing tokens proactively...');
+            // Proactively refresh tokens before app goes to background
+            authService.refreshAccessToken().catch(error => {
+              console.warn('Token refresh on blur failed:', error);
+            });
+          }
+        }, 100);
       });
     },
 
