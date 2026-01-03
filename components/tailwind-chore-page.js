@@ -1744,6 +1744,7 @@ const TailwindChorePage = Vue.defineComponent({
     },
 
     async handleChoreCompletionToggle(chore, event) {
+      console.log('[handleChoreCompletionToggle] START', { choreId: chore?.id, choreName: chore?.name, completed: chore?.completed });
       // Safely handle event object
       if (event && typeof event.preventDefault === 'function') {
         event.preventDefault();
@@ -1752,7 +1753,9 @@ const TailwindChorePage = Vue.defineComponent({
 
       // Don't set chore.completed here - the store's toggleComplete handles optimistic updates
       // Use chores store instead of $parent
+      console.log('[handleChoreCompletionToggle] Calling choresStore.toggleComplete');
       await this.choresStore.toggleComplete(chore);
+      console.log('[handleChoreCompletionToggle] END', { finalCompleted: chore?.completed });
     },
 
     async approveChore(chore) {

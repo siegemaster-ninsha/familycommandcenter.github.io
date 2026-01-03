@@ -576,6 +576,7 @@ const useChoresStore = Pinia.defineStore('chores', {
     
     // toggle chore completion
     async toggleComplete(chore) {
+      console.log('[toggleComplete] START', { choreId: chore?.id, choreName: chore?.name, currentCompleted: chore?.completed });
       if (!chore || !chore.id) return { success: false };
       
       const useUIStore = window.useUIStore;
@@ -585,6 +586,7 @@ const useChoresStore = Pinia.defineStore('chores', {
       const originalCompleted = chore.completed;
       const originalPendingApproval = chore.isPendingApproval;
       chore.completed = !chore.completed;
+      console.log('[toggleComplete] Optimistic update', { originalCompleted, newCompleted: chore.completed });
       
       // check if approval is required
       const accountSettings = window.accountSettings || {};
@@ -597,13 +599,17 @@ const useChoresStore = Pinia.defineStore('chores', {
       try {
         // Backend /complete endpoint toggles the state, so always use it
         const endpoint = `${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/complete`;
+        console.log('[toggleComplete] Calling API', { endpoint });
         
         await apiService.put(endpoint);
+        console.log('[toggleComplete] API call successful');
         
         // reload earnings if completed
         if (chore.completed && useFamilyStore) {
+          console.log('[toggleComplete] Reloading family members for earnings update');
           const familyStore = useFamilyStore();
           await familyStore.loadMembers();
+          console.log('[toggleComplete] Family members reloaded');
         }
         
         // show success message
@@ -617,13 +623,13 @@ const useChoresStore = Pinia.defineStore('chores', {
           }
         }
         
-        console.log('[OK] Chore completion toggled:', chore.name);
+        console.log('[toggleComplete] END - success', { choreName: chore.name, finalCompleted: chore.completed });
         return { success: true };
       } catch (error) {
         // rollback on error
         chore.completed = originalCompleted;
         chore.isPendingApproval = originalPendingApproval;
-        console.error('Failed to toggle completion:', error);
+        console.error('[toggleComplete] FAILED - rolling back', { error: error.message, rolledBackTo: originalCompleted });
         return { success: false, error: error.message };
       }
     },
