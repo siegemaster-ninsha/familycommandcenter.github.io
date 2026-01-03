@@ -1669,6 +1669,10 @@ const TailwindChorePage = Vue.defineComponent({
         return;
       }
       
+      // Find the chore to get the real server ID if it was optimistically created
+      const chore = choresStore.quicklistChores.find(c => c.id === quicklistId);
+      const apiId = chore?.serverId || quicklistId; // Use serverId if available (optimistic items)
+      
       // Store original state for rollback
       const originalQuicklistChores = [...choresStore.quicklistChores];
       
@@ -1680,7 +1684,7 @@ const TailwindChorePage = Vue.defineComponent({
       
       try {
         // Use API service directly instead of $parent.apiCall
-        await apiService.delete(`${this.CONFIG.API.ENDPOINTS.QUICKLIST}/${quicklistId}`);
+        await apiService.delete(`${this.CONFIG.API.ENDPOINTS.QUICKLIST}/${apiId}`);
         // No need to reload - optimistic update already removed it
         if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Server confirmed quicklist deletion');
       } catch (error) {

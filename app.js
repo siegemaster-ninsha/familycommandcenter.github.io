@@ -1086,12 +1086,11 @@ const app = createApp({
           const api = window.useApi();
           const response = await api.post(CONFIG.API.ENDPOINTS.QUICKLIST, quicklistData);
           
-          // Update only the ID and optimistic flag - avoid full object replacement to prevent flash
+          // Store the real server ID for future API calls, but keep temp ID as Vue key to avoid re-render
           const quicklistIndex = choresStore.quicklistChores.findIndex(c => c.id === tempQuicklistChore.id);
           if (quicklistIndex !== -1) {
             const existing = choresStore.quicklistChores[quicklistIndex];
-            // Only update the ID from server response, keep other properties to avoid re-render flash
-            existing.id = response.quicklistChore.id;
+            existing.serverId = response.quicklistChore.id; // Real ID for API calls
             existing.isOptimistic = false;
           }
           
@@ -1783,6 +1782,10 @@ const app = createApp({
         return;
       }
       
+      // Find the chore to get the real server ID if it was optimistically created
+      const chore = choresStore.quicklistChores.find(c => c.id === quicklistId);
+      const apiId = chore?.serverId || quicklistId; // Use serverId if available (optimistic items)
+      
       // Store original state for rollback
       const originalQuicklistChores = [...choresStore.quicklistChores];
       
@@ -1794,7 +1797,7 @@ const app = createApp({
       
       try {
         const api = window.useApi();
-        await api.delete(`${CONFIG.API.ENDPOINTS.QUICKLIST}/${quicklistId}`);
+        await api.delete(`${CONFIG.API.ENDPOINTS.QUICKLIST}/${apiId}`);
         // No need to reload - optimistic update already removed it
         if (CONFIG.ENV.IS_DEVELOPMENT) console.log('✅ Server confirmed quicklist deletion');
       } catch (error) {
