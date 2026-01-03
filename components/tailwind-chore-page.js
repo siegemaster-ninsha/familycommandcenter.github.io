@@ -1750,10 +1750,7 @@ const TailwindChorePage = Vue.defineComponent({
         event.stopPropagation();
       }
 
-      // Get the checked state safely
-      const newCompletedState = event && event.target ? event.target.checked : !chore.completed;
-      chore.completed = newCompletedState;
-
+      // Don't set chore.completed here - the store's toggleComplete handles optimistic updates
       // Use chores store instead of $parent
       await this.choresStore.toggleComplete(chore);
     },

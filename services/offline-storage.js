@@ -4,7 +4,7 @@
 class OfflineStorage {
   constructor() {
     this.dbName = 'FamilyCommandCenter';
-    this.dbVersion = 1;
+    this.dbVersion = 2; // Bumped to add missing object stores (chores, familyMembers, quicklist)
     this.db = null;
     this.initPromise = null;
     this.persistentStorageGranted = false;
