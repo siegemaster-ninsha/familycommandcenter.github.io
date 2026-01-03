@@ -184,16 +184,14 @@ const AddChoreModal = Vue.defineComponent({
       <template #footer>
         <div class="flyout-footer-buttons flex items-center gap-2">
           <button 
-            @click="handleAddChore"
-            @touchend.prevent="handleAddChore"
+            @click.stop="handleAddChore"
             :disabled="isSubmitting || !newChore.name.trim()"
             class="flex-1 btn-primary btn-compact px-3 py-1.5 text-sm"
           >
             {{ isSubmitting ? 'Adding...' : 'Add Chore' }}
           </button>
           <button 
-            @click="handleClose"
-            @touchend.prevent="handleClose"
+            @click.stop="handleClose"
             class="btn-secondary btn-compact px-3 py-1.5 text-sm"
           >
             Close

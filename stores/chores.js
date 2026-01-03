@@ -409,7 +409,14 @@ const useChoresStore = Pinia.defineStore('chores', {
         }
         
         if (data.chore) {
-          this.chores.push(data.chore);
+          // Check if chore already exists (WebSocket may have added it)
+          const existingIdx = this.chores.findIndex(c => c.id === data.chore.id);
+          if (existingIdx === -1) {
+            this.chores.push(data.chore);
+          } else {
+            // Update existing entry with server data
+            this.chores[existingIdx] = data.chore;
+          }
           console.log('[OK] Chore created:', data.chore.name);
           
           // Update cache after successful creation
