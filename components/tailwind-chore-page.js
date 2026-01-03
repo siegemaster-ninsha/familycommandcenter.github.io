@@ -1616,14 +1616,13 @@ const TailwindChorePage = Vue.defineComponent({
     },
     showMultiAssignModal(quicklistChore) {
       console.log('🚀 showMultiAssignModal called with:', quicklistChore?.name);
-      console.log('🔍 choresStore available:', !!this.choresStore);
-      console.log('🔍 selectQuicklistChore method:', typeof this.choresStore?.selectQuicklistChore);
-      // Set the selected quicklist chore in chores store (required for confirmMultiAssignment)
-      this.choresStore.selectQuicklistChore(quicklistChore);
-      console.log('🔍 After selectQuicklistChore, selectedQuicklistChore:', this.choresStore.selectedQuicklistChore?.name);
-      this.choresStore.clearMemberSelection();
-      // Use UI store to open modal
-      this.uiStore.openModal('multiAssign');
+      // Delegate to parent's openMultiAssignModal which properly sets up the chores store
+      // and opens the modal. This ensures consistent state management.
+      if (this.$parent?.openMultiAssignModal) {
+        this.$parent.openMultiAssignModal(quicklistChore);
+      } else {
+        console.error('❌ $parent.openMultiAssignModal not available');
+      }
     },
     // Open category management modal - Requirements 1.1
     openCategoryManagementModal() {
