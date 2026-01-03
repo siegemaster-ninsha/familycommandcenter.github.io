@@ -1,4 +1,5 @@
 // Heroicons are loaded via CDN in index.html
+// Cache bust: 2026-01-02-family-modals-registration
 
 // Configure Vue for Shoelace custom elements
 const { createApp } = Vue;
