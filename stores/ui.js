@@ -20,11 +20,7 @@ const useUIStore = Pinia.defineStore('ui', {
     
     // Success messages
     showSuccessMessage: false,
-    successMessage: '',
-    
-    // Confetti
-    showConfetti: false,
-    confettiPieces: []
+    successMessage: ''
   }),
   
   getters: {
@@ -179,41 +175,11 @@ const useUIStore = Pinia.defineStore('ui', {
       }, 300);
     },
     
-    // Confetti
-    triggerConfetti() {
-      this.showConfetti = true;
-      
-      // Generate confetti pieces
-      const pieces = [];
-      for (let i = 0; i < 50; i++) {
-        pieces.push({
-          id: i,
-          left: Math.random() * 100,
-          animationDuration: 2 + Math.random() * 2,
-          delay: Math.random() * 0.5
-        });
-      }
-      this.confettiPieces = pieces;
-      
-      // Auto-hide after animation
-      setTimeout(() => {
-        this.hideConfetti();
-      }, 4000);
-      
-      console.log('[SUCCESS] Confetti triggered');
-    },
-    
-    hideConfetti() {
-      this.showConfetti = false;
-      this.confettiPieces = [];
-    },
-    
     // Reset all UI state
     reset() {
       this.closeAllModals();
       this.clearError();
       this.hideSuccess();
-      this.hideConfetti();
       this.stopLoading();
     }
   }

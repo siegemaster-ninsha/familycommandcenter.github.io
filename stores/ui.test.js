@@ -26,9 +26,7 @@ describe('UI Store - Modal Registry', () => {
         loadingMessage: '',
         error: null,
         showSuccessMessage: false,
-        successMessage: '',
-        showConfetti: false,
-        confettiPieces: []
+        successMessage: ''
       };
 
       return {

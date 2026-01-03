@@ -35,8 +35,7 @@ describe('Chores Store', () => {
       offlineStorage: null,
       useUIStore: () => ({
         showSuccess: vi.fn(),
-        showError: vi.fn(),
-        triggerConfetti: vi.fn()
+        showError: vi.fn()
       }),
       useFamilyStore: () => ({
         members: [

@@ -579,6 +579,7 @@ const useChoresStore = Pinia.defineStore('chores', {
       if (!chore || !chore.id) return { success: false };
       
       const useUIStore = window.useUIStore;
+      const useCelebrations = window.useCelebrations;
       
       // optimistic update
       const originalCompleted = chore.completed;
@@ -603,14 +604,17 @@ const useChoresStore = Pinia.defineStore('chores', {
         // The backend updates earnings and WebSocket pushes chore updates.
         // Earnings will be refreshed on next natural data load.
         
-        // show success message
-        if (useUIStore) {
-          const uiStore = useUIStore();
-          if (chore.completed) {
+        // show success message and celebration
+        if (chore.completed) {
+          if (useUIStore) {
+            const uiStore = useUIStore();
             uiStore.showSuccess(`Completed: ${chore.name}`);
-            if (!requireApproval) {
-              uiStore.triggerConfetti();
-            }
+          }
+          
+          // Trigger celebration (unless approval is required)
+          if (!requireApproval && useCelebrations) {
+            const celebrations = useCelebrations();
+            celebrations.celebrate({ chore, accountSettings });
           }
         }
         
