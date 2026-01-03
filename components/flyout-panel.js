@@ -132,6 +132,11 @@ const FlyoutPanel = Vue.defineComponent({
       @sl-after-hide="handleAfterHide"
       @sl-initial-focus="handleInitialFocus"
     >
+      <!-- Custom title slot - replaces default label -->
+      <div slot="label" v-if="$slots.title">
+        <slot name="title"></slot>
+      </div>
+      
       <!-- Custom header with close button -->
       <div slot="header-actions" v-if="showHeaderClose">
         <sl-icon-button
