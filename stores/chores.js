@@ -595,9 +595,8 @@ const useChoresStore = Pinia.defineStore('chores', {
       }
       
       try {
-        const endpoint = chore.completed
-          ? `${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/complete`
-          : `${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/uncomplete`;
+        // Backend /complete endpoint toggles the state, so always use it
+        const endpoint = `${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/complete`;
         
         await apiService.put(endpoint);
         

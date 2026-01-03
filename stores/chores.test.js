@@ -168,9 +168,8 @@ describe('Chores Store', () => {
           chore.completed = !chore.completed;
           
           try {
-            const endpoint = chore.completed
-              ? `${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/complete`
-              : `${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/uncomplete`;
+            // Backend /complete endpoint toggles the state, so always use it
+            const endpoint = `${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/complete`;
             
             await mockApiService.put(endpoint);
             return { success: true };
@@ -408,7 +407,7 @@ describe('Chores Store', () => {
       );
     });
 
-    it('should call correct API endpoint for uncompleting', async () => {
+    it('should call /complete endpoint for uncompleting (backend handles toggle)', async () => {
       const store = createStore();
       const chore = { id: '123', name: 'Test', completed: true };
       store.chores = [chore];
@@ -417,8 +416,9 @@ describe('Chores Store', () => {
       
       await store.toggleComplete(chore);
       
+      // Backend /complete endpoint toggles state, so always use it
       expect(mockApiService.put).toHaveBeenCalledWith(
-        `${CONFIG.API.ENDPOINTS.CHORES}/123/uncomplete`
+        `${CONFIG.API.ENDPOINTS.CHORES}/123/complete`
       );
     });
 
