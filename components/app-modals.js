@@ -31,125 +31,14 @@ const AppModals = Vue.defineComponent({
     <!-- _Requirements: 4.5, 14.4_ -->
     <add-chore-modal></add-chore-modal>
 
-    <!-- Habit Flyout for create/edit -->
+    <!-- Habit Modal Component -->
+    <!-- _Requirements: 12.5, 14.4_ -->
     <!-- **Feature: habit-tracking** -->
-    <flyout-panel
-      :open="showHabitFlyout"
-      @close="closeHabitFlyout"
-      :title="editingHabit ? 'Edit Habit' : 'New Habit'"
-      :show-footer="true"
-      :show-header-close="false"
-    >
-      <template #default>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-primary-custom mb-1">Habit Name</label>
-            <input
-              v-model="habitForm.name"
-              @keydown.enter="submitHabitForm"
-              type="text"
-              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              style="border-color: var(--color-border-card)"
-              placeholder="e.g., Read 30 minutes"
-              maxlength="100"
-            />
-            <p class="text-xs text-secondary-custom mt-1">{{ habitForm.name.length }}/100 characters</p>
-          </div>
-          <div v-if="habitFormError" class="rounded-lg p-3" style="background: var(--color-error-50); border: 1px solid var(--color-error-600);">
-            <p class="text-sm" style="color: var(--color-error-700);">{{ habitFormError }}</p>
-          </div>
-        </div>
-      </template>
-      <template #footer>
-        <div class="flyout-footer-buttons flex items-center gap-2">
-          <button 
-            @click="submitHabitForm"
-            @touchend.prevent="submitHabitForm"
-            :disabled="habitFormSubmitting"
-            class="flex-1 btn-primary btn-compact px-3 py-1.5 text-sm"
-          >
-            {{ habitFormSubmitting ? 'Saving...' : (editingHabit ? 'Save' : 'Create Habit') }}
-          </button>
-          <button 
-            @click="closeHabitFlyout"
-            @touchend.prevent="closeHabitFlyout"
-            class="btn-secondary btn-compact px-3 py-1.5 text-sm"
-          >
-            Cancel
-          </button>
-        </div>
-      </template>
-    </flyout-panel>
+    <habit-modal></habit-modal>
 
-    <!-- New Day Confirmation Flyout -->
-    <!-- _Requirements: 4.1, 4.2_ -->
-    <flyout-panel
-      :open="showNewDayModal"
-      @close="handleCancelNewDay"
-      title="Start New Day"
-      :show-footer="true"
-      :show-header-close="false"
-      width="400px"
-    >
-      <template #default>
-        <div class="new-day-flyout-content">
-          <!-- What will be cleared -->
-          <div class="new-day-info-card new-day-info-card--error">
-            <h4 class="new-day-info-title new-day-info-title--error">
-              <span v-html="Helpers.IconLibrary.getIcon('trash2', 'lucide', 18, '')"></span> What will be cleared:
-            </h4>
-            <ul class="new-day-info-list new-day-info-list--error">
-              <li>• All <strong>completed</strong> chores will be removed</li>
-              <li>• All <strong>daily chores</strong> (configured per member) will be removed</li>
-            </ul>
-          </div>
-          <!-- What will be created -->
-          <div class="new-day-info-card new-day-info-card--success">
-            <h4 class="new-day-info-title new-day-info-title--success">
-              <span v-html="Helpers.IconLibrary.getIcon('plus', 'lucide', 18, '')"></span> What will be created:
-            </h4>
-            <ul class="new-day-info-list new-day-info-list--success">
-              <li>• Fresh daily chores from each member's configured list</li>
-              <li>• Duplicates will be automatically skipped</li>
-            </ul>
-          </div>
-          <!-- What will be preserved -->
-          <div class="new-day-info-card new-day-info-card--primary">
-            <h4 class="new-day-info-title new-day-info-title--primary">
-              <span v-html="Helpers.IconLibrary.getIcon('shield', 'lucide', 18, '')"></span> What will be preserved:
-            </h4>
-            <ul class="new-day-info-list new-day-info-list--primary">
-              <li>• All family members' <strong>earnings</strong></li>
-              <li>• Non-daily incomplete chores remain on the board</li>
-            </ul>
-          </div>
-          <p class="new-day-warning-text">
-            This action cannot be undone. Are you sure you want to start a new day?
-          </p>
-        </div>
-      </template>
-      <template #footer>
-        <div class="flyout-footer-buttons flex items-center gap-2">
-          <button 
-            @click="handleStartNewDay"
-            @touchend.prevent="handleStartNewDay"
-            :disabled="newDayLoading"
-            class="flex-1 btn-warning btn-compact flex items-center justify-center gap-2"
-          >
-            <div v-if="newDayLoading" class="new-day-spinner" v-html="Helpers.IconLibrary.getIcon('loader', 'lucide', 16, 'text-white')"></div>
-            {{ newDayLoading ? 'Starting...' : 'Start New Day' }}
-          </button>
-          <button 
-            @click="handleCancelNewDay"
-            @touchend.prevent="handleCancelNewDay"
-            :disabled="newDayLoading"
-            class="btn-secondary btn-compact"
-          >
-            Cancel
-          </button>
-        </div>
-      </template>
-    </flyout-panel>
+    <!-- New Day Modal Component -->
+    <!-- _Requirements: 13.5, 14.4_ -->
+    <new-day-modal></new-day-modal>
 
     <!-- Auth Modals (store-based, encapsulated components) -->
     <!-- _Requirements: 1.5, 2.5, 3.5, 14.4_ -->
@@ -161,80 +50,9 @@ const AppModals = Vue.defineComponent({
     <!-- _Requirements: 5.5, 14.4_ -->
     <chore-details-modal></chore-details-modal>
 
-    <!-- Spending Flyout -->
-    <flyout-panel
-      :open="showSpendingModal"
-      @close="handleCloseSpendingModal"
-      :show-footer="true"
-      :show-header-close="false"
-      width="380px"
-    >
-      <template #title>
-        <div>
-          <h2 class="text-lg font-bold text-primary-custom">Spend Money</h2>
-          <p class="text-sm text-secondary-custom">{{ selectedPerson?.displayName || selectedPerson?.name || '' }} - \${{ selectedPerson?.earnings?.toFixed(2) || '0.00' }} available</p>
-        </div>
-      </template>
-      <template #default>
-        <!-- Amount Display -->
-        <div class="mb-4">
-          <div class="text-center rounded-lg p-4 mb-4" style="background: var(--color-surface-1);">
-            <div class="text-2xl font-bold text-primary-custom">\${{ spendAmountString }}</div>
-            <div class="text-sm text-secondary-custom">Amount to spend</div>
-          </div>
-        </div>
-        
-        <!-- Number Pad -->
-        <div class="grid grid-cols-3 gap-2">
-          <button
-            v-for="number in [1,2,3,4,5,6,7,8,9]"
-            :key="number"
-            @click="addDigit(number)"
-            class="numpad-btn text-primary-custom font-bold py-3 px-4 rounded-lg transition-colors"
-          >
-            {{ number }}
-          </button>
-          <button
-            @click="addDecimal"
-            class="numpad-btn text-primary-custom font-bold py-3 px-4 rounded-lg transition-colors"
-          >
-            .
-          </button>
-          <button
-            @click="addDigit(0)"
-            class="numpad-btn text-primary-custom font-bold py-3 px-4 rounded-lg transition-colors"
-          >
-            0
-          </button>
-          <button
-            @click="clearSpendAmount"
-            class="font-bold py-3 px-4 rounded-lg transition-colors"
-            style="background: var(--color-error-50); color: var(--color-error-700);"
-          >
-            Clear
-          </button>
-        </div>
-      </template>
-      <template #footer>
-        <div class="flyout-footer-buttons flex items-center gap-2">
-          <button
-            @click="handleConfirmSpending"
-            @touchend.prevent="handleConfirmSpending"
-            :disabled="spendAmount <= 0 || spendAmount > selectedPerson?.earnings"
-            class="flex-1 btn-error btn-compact px-3 py-1.5 text-sm disabled:bg-[color:var(--color-neutral-300)] disabled:cursor-not-allowed"
-          >
-            Spend Money
-          </button>
-          <button
-            @click="handleCloseSpendingModal"
-            @touchend.prevent="handleCloseSpendingModal"
-            class="btn-secondary btn-compact px-3 py-1.5 text-sm"
-          >
-            Close
-          </button>
-        </div>
-      </template>
-    </flyout-panel>
+    <!-- Spending Modal Component -->
+    <!-- _Requirements: 10.5, 14.4_ -->
+    <spending-modal></spending-modal>
 
     <!-- Create Child Modal Component -->
     <!-- _Requirements: 7.5, 14.4_ -->
@@ -431,28 +249,13 @@ const AppModals = Vue.defineComponent({
       this.authStore.closeAuthModals();
     },
 
-    /**
-     * Close the habit flyout
-     * **Feature: habit-tracking**
-     */
-    closeHabitFlyout() {
-      // Call the injected method from parent (still needed for now)
-      // This will be fully migrated when habits store is complete
-      if (this.$root?.closeHabitFlyout) {
-        this.$root.closeHabitFlyout();
-      }
-    },
-
-    /**
-     * Submit the habit form
-     * **Feature: habit-tracking**
-     */
-    submitHabitForm() {
-      // Call the injected method from parent (still needed for now)
-      if (this.$root?.submitHabitForm) {
-        this.$root.submitHabitForm();
-      }
-    },
+    // NOTE: The following methods have been moved to individual modal components:
+    // - closeHabitFlyout -> habit-modal.js
+    // - submitHabitForm -> habit-modal.js
+    // - handleStartNewDay -> new-day-modal.js
+    // - handleCancelNewDay -> new-day-modal.js
+    // - handleConfirmSpending -> spending-modal.js
+    // - handleCloseSpendingModal -> spending-modal.js
 
     // NOTE: The following methods have been moved to individual chore modal components:
     // - getCategoryLabel -> chore-details-modal.js
