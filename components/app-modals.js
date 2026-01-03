@@ -850,7 +850,7 @@ const AppModals = Vue.defineComponent({
     <!-- **Validates: Requirements 1.2, 1.3, 1.5** -->
     <schedule-modal
       :open="showScheduleModal"
-      :quicklist-chore="scheduleModalChore"
+      :quicklist-chore="effectiveScheduleModalChore"
       :family-members="people"
       @save="handleScheduleSave"
       @close="closeScheduleModal"
@@ -929,6 +929,15 @@ const AppModals = Vue.defineComponent({
   computed: {
     // Map store data to component properties for template access
     // _Requirements: 4.2, 4.3, 7.1, 7.2_
+    
+    // Schedule modal chore - read from UI store modal data first, fall back to injected prop
+    // This allows both tailwind-chore-page (uses uiStore.openModal with data) and 
+    // app.js (sets scheduleModalChore directly) to work
+    effectiveScheduleModalChore() {
+      const modalData = this.uiStore.getModalData('schedule');
+      return modalData?.quicklistChore || this.scheduleModalChore;
+    },
+    
     childForm() {
       return this.familyStore.childForm;
     },
