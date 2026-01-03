@@ -86,15 +86,15 @@ const AppModals = Vue.defineComponent({
       <template #footer>
         <div class="flyout-footer-buttons flex items-center gap-2">
           <button 
-            @click="addToQuicklist"
-            @touchend.prevent="addToQuicklist"
+            @click="handleAddToQuicklist"
+            @touchend.prevent="handleAddToQuicklist"
             class="flex-1 btn-primary btn-compact px-3 py-1.5 text-sm"
           >
             Add to Quicklist
           </button>
           <button 
-            @click="cancelAddToQuicklist"
-            @touchend.prevent="cancelAddToQuicklist"
+            @click="handleCancelAddToQuicklist"
+            @touchend.prevent="handleCancelAddToQuicklist"
             class="btn-secondary btn-compact px-3 py-1.5 text-sm"
           >
             Close
@@ -193,15 +193,15 @@ const AppModals = Vue.defineComponent({
       <template #footer>
         <div class="flyout-footer-buttons flex items-center gap-2">
           <button 
-            @click="addChore"
-            @touchend.prevent="addChore"
+            @click="handleAddChore"
+            @touchend.prevent="handleAddChore"
             class="flex-1 btn-primary btn-compact px-3 py-1.5 text-sm"
           >
             Add Chore
           </button>
           <button 
-            @click="cancelAddChore"
-            @touchend.prevent="cancelAddChore"
+            @click="handleCancelAddChore"
+            @touchend.prevent="handleCancelAddChore"
             class="btn-secondary btn-compact px-3 py-1.5 text-sm"
           >
             Close
@@ -310,8 +310,8 @@ const AppModals = Vue.defineComponent({
       <template #footer>
         <div class="flyout-footer-buttons flex items-center gap-2">
           <button 
-            @click="startNewDay"
-            @touchend.prevent="startNewDay"
+            @click="handleStartNewDay"
+            @touchend.prevent="handleStartNewDay"
             :disabled="newDayLoading"
             class="flex-1 btn-warning btn-compact flex items-center justify-center gap-2"
           >
@@ -319,8 +319,8 @@ const AppModals = Vue.defineComponent({
             {{ newDayLoading ? 'Starting...' : 'Start New Day' }}
           </button>
           <button 
-            @click="cancelNewDay"
-            @touchend.prevent="cancelNewDay"
+            @click="handleCancelNewDay"
+            @touchend.prevent="handleCancelNewDay"
             :disabled="newDayLoading"
             class="btn-secondary btn-compact"
           >
@@ -592,15 +592,15 @@ const AppModals = Vue.defineComponent({
       <template #footer>
         <div class="flyout-footer-buttons flex items-center gap-2">
           <button 
-            @click="confirmChoreDetails"
-            @touchend.prevent="confirmChoreDetails"
+            @click="handleConfirmChoreDetails"
+            @touchend.prevent="handleConfirmChoreDetails"
             class="flex-1 btn-primary btn-compact px-3 py-1.5 text-sm"
           >
             Create Chore
           </button>
           <button 
-            @click="cancelChoreDetails"
-            @touchend.prevent="cancelChoreDetails"
+            @click="handleCancelChoreDetails"
+            @touchend.prevent="handleCancelChoreDetails"
             class="btn-secondary btn-compact px-3 py-1.5 text-sm"
           >
             Close
@@ -666,16 +666,16 @@ const AppModals = Vue.defineComponent({
       <template #footer>
         <div class="flyout-footer-buttons flex items-center gap-2">
           <button
-            @click="confirmSpending"
-            @touchend.prevent="confirmSpending"
+            @click="handleConfirmSpending"
+            @touchend.prevent="handleConfirmSpending"
             :disabled="spendAmount <= 0 || spendAmount > selectedPerson?.earnings"
             class="flex-1 btn-error btn-compact px-3 py-1.5 text-sm disabled:bg-[color:var(--color-neutral-300)] disabled:cursor-not-allowed"
           >
             Spend Money
           </button>
           <button
-            @click="closeSpendingModal"
-            @touchend.prevent="closeSpendingModal"
+            @click="handleCloseSpendingModal"
+            @touchend.prevent="handleCloseSpendingModal"
             class="btn-secondary btn-compact px-3 py-1.5 text-sm"
           >
             Close
@@ -1180,29 +1180,47 @@ const AppModals = Vue.defineComponent({
       // Delegate to chores store - multiAssignSelectedMembers is managed there
       this.choresStore.toggleMemberSelection(personId);
     },
-    /**
-     * Handle multi-assignment confirmation
-     * Wraps the injected confirmMultiAssignment to work with Vue event modifiers
-     * _Requirements: 4.2, 4.3_
-     */
-    handleConfirmMultiAssignment() {
-      if (typeof this.confirmMultiAssignment === 'function') {
-        this.confirmMultiAssignment();
-      } else {
-        console.error('[AppModals] confirmMultiAssignment is not a function:', this.confirmMultiAssignment);
-      }
+    // =============================================
+    // INJECTED FUNCTION WRAPPERS
+    // These wrap injected functions to work with Vue event modifiers
+    // Vue's template compiler needs local methods for .prevent modifier
+    // _Requirements: 4.2, 4.3_
+    // =============================================
+    handleAddToQuicklist() {
+      this.addToQuicklist?.();
     },
-    /**
-     * Handle multi-assignment cancellation
-     * Wraps the injected cancelMultiAssignment to work with Vue event modifiers
-     * _Requirements: 4.2, 4.3_
-     */
+    handleCancelAddToQuicklist() {
+      this.cancelAddToQuicklist?.();
+    },
+    handleAddChore() {
+      this.addChore?.();
+    },
+    handleCancelAddChore() {
+      this.cancelAddChore?.();
+    },
+    handleStartNewDay() {
+      this.startNewDay?.();
+    },
+    handleCancelNewDay() {
+      this.cancelNewDay?.();
+    },
+    handleConfirmChoreDetails() {
+      this.confirmChoreDetails?.();
+    },
+    handleCancelChoreDetails() {
+      this.cancelChoreDetails?.();
+    },
+    handleConfirmSpending() {
+      this.confirmSpending?.();
+    },
+    handleCloseSpendingModal() {
+      this.closeSpendingModal?.();
+    },
+    handleConfirmMultiAssignment() {
+      this.confirmMultiAssignment?.();
+    },
     handleCancelMultiAssignment() {
-      if (typeof this.cancelMultiAssignment === 'function') {
-        this.cancelMultiAssignment();
-      } else {
-        console.error('[AppModals] cancelMultiAssignment is not a function:', this.cancelMultiAssignment);
-      }
+      this.cancelMultiAssignment?.();
     }
   }
 });
