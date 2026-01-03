@@ -601,15 +601,29 @@ const useChoresStore = Pinia.defineStore('chores', {
         chore.isPendingApproval = true;
       }
       
+      // Track if we updated earnings for rollback
+      let earningsUpdated = false;
+      let earningsChange = 0;
+      let choresChange = 0;
+      
       try {
         // Backend /complete endpoint toggles the state, so always use it
         const endpoint = `${CONFIG.API.ENDPOINTS.CHORES}/${chore.id}/complete`;
         
         await apiService.put(endpoint);
         
-        // Note: We don't reload family members here to avoid showing skeleton.
-        // The backend updates earnings and WebSocket pushes chore updates.
-        // Earnings will be refreshed on next natural data load.
+        // Optimistically update earnings if chore has a monetary value and is assigned
+        // Skip if approval is required (earnings credited on approval, not completion)
+        if (chore.assignedTo && chore.amount > 0 && !requireApproval) {
+          const familyStore = window.useFamilyStore?.();
+          if (familyStore) {
+            // Add earnings if completing, subtract if uncompleting
+            earningsChange = chore.completed ? chore.amount : -chore.amount;
+            choresChange = chore.completed ? 1 : -1;
+            familyStore.updateMemberEarnings(chore.assignedTo, earningsChange, choresChange);
+            earningsUpdated = true;
+          }
+        }
         
         // show success message and celebration
         if (chore.completed) {
@@ -627,9 +641,18 @@ const useChoresStore = Pinia.defineStore('chores', {
         
         return { success: true };
       } catch (error) {
-        // rollback on error
+        // rollback chore state on error
         chore.completed = originalCompleted;
         chore.isPendingApproval = originalPendingApproval;
+        
+        // rollback earnings if we updated them
+        if (earningsUpdated && chore.assignedTo) {
+          const familyStore = window.useFamilyStore?.();
+          if (familyStore) {
+            familyStore.updateMemberEarnings(chore.assignedTo, -earningsChange, -choresChange);
+          }
+        }
+        
         console.error('Failed to toggle completion:', error);
         return { success: false, error: error.message };
       }
