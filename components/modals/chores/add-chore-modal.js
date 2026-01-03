@@ -32,7 +32,7 @@ const AddChoreModal = Vue.defineComponent({
   
   computed: {
     isOpen() {
-      return this.uiStore?.modals?.addChore || false;
+      return this.uiStore?.modals?.addChore?.isOpen || false;
     }
   },
   
