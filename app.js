@@ -915,6 +915,11 @@ const app = createApp({
 
     // Guaranteed fallback to hide loading screen - handles iOS Safari timing issues
     _ensureLoadingScreenHidden() {
+      // Cancel the HTML failsafe timer since we're handling it now
+      if (window._cancelLoadingFailsafe) {
+        window._cancelLoadingFailsafe();
+      }
+      
       // Always remove the body class first
       document.body.classList.remove('app-loading');
       

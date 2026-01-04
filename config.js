@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.231 - Dazzling Wolf (Jan 4, 2026)',
+    VERSION: '1.0.232 - Kinetic Quail (Jan 4, 2026)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
@@ -1121,6 +1121,11 @@ window.ThemeManager = {
 
   // Hide the pre-Vue loading screen after theme is applied
   _hideLoadingScreen() {
+    // Cancel the HTML failsafe timer since we're handling it now
+    if (window._cancelLoadingFailsafe) {
+      window._cancelLoadingFailsafe();
+    }
+    
     // Always remove the body class to ensure scrolling is enabled
     document.body.classList.remove('app-loading');
     

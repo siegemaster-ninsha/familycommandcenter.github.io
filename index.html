@@ -287,6 +287,33 @@
     </style>
     <script>document.body.classList.add('app-loading');</script>
     
+    <!-- FAILSAFE: Hide loading screen after 8 seconds regardless of app state -->
+    <!-- This catches cases where Vue fails to mount or JS errors prevent normal flow -->
+    <script>
+      (function() {
+        var failsafeTimeout = setTimeout(function() {
+          console.warn('[FAILSAFE] Loading screen timeout - forcing hide after 8s');
+          var loadingScreen = document.getElementById('app-loading-screen');
+          if (loadingScreen) {
+            loadingScreen.style.opacity = '0';
+            loadingScreen.style.pointerEvents = 'none';
+            setTimeout(function() {
+              if (loadingScreen.parentNode) {
+                loadingScreen.parentNode.removeChild(loadingScreen);
+              }
+            }, 300);
+          }
+          document.body.classList.remove('app-loading');
+        }, 8000);
+        
+        // Allow cancellation if app loads normally
+        window._cancelLoadingFailsafe = function() {
+          clearTimeout(failsafeTimeout);
+          console.log('[FAILSAFE] Loading failsafe cancelled - app loaded normally');
+        };
+      })();
+    </script>
+    
     <!-- Skip Link for Keyboard Navigation (WCAG 2.4.1) -->
     <a href="#main-content" class="skip-link">Skip to main content</a>
     
