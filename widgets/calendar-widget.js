@@ -184,7 +184,7 @@ const CalendarWidget = {
     // Watch for accountId from auth store (more reliable than $root)
     rootAccountId() {
       const authStore = window.useAuthStore?.();
-      return authStore?.accountId || this.$root?.accountId;
+      return authStore?.accountId || null;
     },
     
     // Month view computed properties
@@ -279,7 +279,7 @@ const CalendarWidget = {
       // Wait for auth to be ready before making API calls
       const authHeader = window.authService?.getAuthHeader?.();
       const authStore = window.useAuthStore?.();
-      const accountId = authStore?.accountId || this.$root?.accountId;
+      const accountId = authStore?.accountId;
       
       if (!authHeader || !accountId) {
         console.log('CalendarWidget: Waiting for auth...', { hasAuth: !!authHeader, hasAccountId: !!accountId });
@@ -326,7 +326,8 @@ const CalendarWidget = {
       // Fallback to manual fetch if apiService not available
       const baseUrl = window.CONFIG?.API?.BASE_URL || '';
       const authHeader = window.authService?.getAuthHeader?.();
-      const accountId = this.$root?.accountId;
+      const authStore = window.useAuthStore?.();
+      const accountId = authStore?.accountId;
       
       const headers = { 'Content-Type': 'application/json' };
       if (authHeader) headers['Authorization'] = authHeader;

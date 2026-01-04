@@ -34,9 +34,10 @@ const CalendarMixin = {
   },
   
   computed: {
-    // Watch for accountId from root app
+    // Watch for accountId from auth store (not $root - removed during app.js cleanup)
     rootAccountId() {
-      return this.$root?.accountId;
+      const authStore = window.useAuthStore?.();
+      return authStore?.accountId || null;
     }
   },
   
@@ -63,7 +64,8 @@ const CalendarMixin = {
     async fetchCalendarData(startDate, endDate) {
       // Wait for auth to be ready before making API calls
       const authHeader = window.authService?.getAuthHeader?.();
-      const accountId = this.$root?.accountId;
+      const authStore = window.useAuthStore?.();
+      const accountId = authStore?.accountId;
       
       if (!authHeader || !accountId) {
         console.log('Calendar: Waiting for auth...', { hasAuth: !!authHeader, hasAccountId: !!accountId });
@@ -107,7 +109,8 @@ const CalendarMixin = {
       // Fallback to manual fetch if apiService not available
       const baseUrl = window.CONFIG?.API?.BASE_URL || '';
       const authHeader = window.authService?.getAuthHeader?.();
-      const accountId = this.$root?.accountId;
+      const authStore = window.useAuthStore?.();
+      const accountId = authStore?.accountId;
       
       const headers = { 'Content-Type': 'application/json' };
       if (authHeader) headers['Authorization'] = authHeader;
@@ -261,9 +264,9 @@ const WeekCalendarPanel = {
           <div v-if="calendars.length > 1" class="calendar-legend">
             <span 
               v-for="cal in calendars" 
-              :key="cal.id" 
+              :key="cal?.id || Math.random()" 
               class="calendar-legend-item"
-              :title="cal.name"
+              :title="cal?.name || 'Calendar'"
             >
               <span class="calendar-color-dot" :style="{ background: getCalendarColor(cal.id) }"></span>
             </span>
@@ -301,7 +304,7 @@ const WeekCalendarPanel = {
                 :key="event.id"
                 class="calendar-event calendar-event--compact"
                 :class="{ 'calendar-event--allday': event.allDay }"
-                :title="event.title + (event.calendarName ? ' (' + event.calendarName + ')' : '')"
+                :title="(event?.title || '') + (event?.calendarName ? ' (' + event.calendarName + ')' : '')"
               >
                 <span class="calendar-event-dot" :style="{ background: getCalendarColor(event.calendarId) }"></span>
                 <span class="calendar-event-title">{{ event.title }}</span>
