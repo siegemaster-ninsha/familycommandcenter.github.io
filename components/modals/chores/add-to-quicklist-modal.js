@@ -1,33 +1,102 @@
 /**
  * Add to Quicklist Modal Component
- * Encapsulated add to quicklist flyout with inject-based state management
+ * Encapsulated add to quicklist flyout with store-based state management
  * 
  * _Requirements: 6.1, 6.2, 6.3, 6.4_
  * - 6.1: Located at components/modals/chores/add-to-quicklist-modal.js
- * - 6.2: Access visibility state via injected prop (showAddToQuicklistModal)
- * - 6.3: Access form data via injected prop (newQuicklistChore) and categoriesStore
- * - 6.4: Delegate actions to injected methods (addToQuicklist, cancelAddToQuicklist)
+ * - 6.2: Access visibility state via UI store
+ * - 6.3: Access form data via local state and categories store
+ * - 6.4: Use chores store addToQuicklist method
  */
 const AddToQuicklistModal = Vue.defineComponent({
   name: 'AddToQuicklistModal',
   
-  inject: ['showAddToQuicklistModal', 'newQuicklistChore', 'categoriesStore', 'addToQuicklist', 'cancelAddToQuicklist'],
+  setup() {
+    const choresStore = window.useChoresStore();
+    const uiStore = window.useUIStore();
+    const categoriesStore = window.useCategoriesStore?.() || null;
+    return { choresStore, uiStore, categoriesStore };
+  },
+  
+  data() {
+    return {
+      newQuicklistChore: {
+        name: '',
+        amount: 0,
+        categoryId: '',
+        isDetailed: false,
+        defaultDetails: ''
+      },
+      isSubmitting: false
+    };
+  },
+  
+  computed: {
+    isOpen() {
+      return this.uiStore?.modals?.addToQuicklist?.isOpen || false;
+    },
+    
+    categories() {
+      return this.categoriesStore?.categories || [];
+    }
+  },
   
   methods: {
     /**
-     * Handle add to quicklist action with touchend support
-     * Wrapper method for Vue event modifiers
+     * Handle add to quicklist action
      */
-    handleAddToQuicklist() {
-      this.addToQuicklist?.();
+    async handleAddToQuicklist() {
+      if (this.isSubmitting) return;
+      if (!this.newQuicklistChore.name.trim()) return;
+      
+      this.isSubmitting = true;
+      
+      try {
+        const quicklistData = {
+          name: this.newQuicklistChore.name.trim(),
+          amount: this.newQuicklistChore.amount || 0,
+          categoryId: this.newQuicklistChore.categoryId || '',
+          isDetailed: this.newQuicklistChore.isDetailed || false,
+          defaultDetails: this.newQuicklistChore.defaultDetails || ''
+        };
+        
+        // Use chores store to add to quicklist
+        const result = await this.choresStore.addToQuicklist(quicklistData);
+        
+        if (result?.success !== false) {
+          this.uiStore?.showSuccess?.(`Added to quicklist: ${quicklistData.name}`);
+        } else {
+          this.uiStore?.showError?.(result?.error || 'Failed to add to quicklist');
+        }
+        
+        this.handleClose();
+      } catch (error) {
+        console.error('Failed to add to quicklist:', error);
+        this.uiStore?.showError?.('Failed to add to quicklist');
+      } finally {
+        this.isSubmitting = false;
+      }
     },
     
     /**
-     * Handle cancel action with touchend support
-     * Wrapper method for Vue event modifiers
+     * Handle close/cancel action
      */
-    handleCancelAddToQuicklist() {
-      this.cancelAddToQuicklist?.();
+    handleClose() {
+      this.uiStore?.closeModal('addToQuicklist');
+      this.resetForm();
+    },
+    
+    /**
+     * Reset form to initial state
+     */
+    resetForm() {
+      this.newQuicklistChore = {
+        name: '',
+        amount: 0,
+        categoryId: '',
+        isDetailed: false,
+        defaultDetails: ''
+      };
     },
     
     /**
@@ -36,14 +105,15 @@ const AddToQuicklistModal = Vue.defineComponent({
      */
     onQuicklistCategoryCreated(category) {
       console.log('[OK] Category created inline:', category.name);
+      this.newQuicklistChore.categoryId = category.id;
     }
   },
 
   template: `
     <!-- Add to Quicklist Flyout -->
     <flyout-panel
-      :open="showAddToQuicklistModal"
-      @close="handleCancelAddToQuicklist"
+      :open="isOpen"
+      @close="handleClose"
       title="Add to Quicklist"
       :show-footer="true"
       :show-header-close="false"
@@ -72,10 +142,11 @@ const AddToQuicklistModal = Vue.defineComponent({
               placeholder="0.00"
             >
           </div>
-          <!-- Category Selector - Requirements 2.1, 2.2 -->
+          <!-- Category Selector -->
           <category-selector
+            v-if="categoriesStore"
             v-model="newQuicklistChore.categoryId"
-            :categories="categoriesStore?.categories || []"
+            :categories="categories"
             label="Category"
             @category-created="onQuicklistCategoryCreated"
           ></category-selector>
@@ -109,15 +180,14 @@ const AddToQuicklistModal = Vue.defineComponent({
       <template #footer>
         <div class="flyout-footer-buttons flex items-center gap-2">
           <button 
-            @click="handleAddToQuicklist"
-            @touchend.prevent="handleAddToQuicklist"
+            @click.stop="handleAddToQuicklist"
+            :disabled="isSubmitting || !newQuicklistChore.name.trim()"
             class="flex-1 btn-primary btn-compact px-3 py-1.5 text-sm"
           >
-            Add to Quicklist
+            {{ isSubmitting ? 'Adding...' : 'Add to Quicklist' }}
           </button>
           <button 
-            @click="handleCancelAddToQuicklist"
-            @touchend.prevent="handleCancelAddToQuicklist"
+            @click.stop="handleClose"
             class="btn-secondary btn-compact px-3 py-1.5 text-sm"
           >
             Close
