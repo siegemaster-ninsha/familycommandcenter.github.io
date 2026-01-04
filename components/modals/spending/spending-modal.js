@@ -68,10 +68,10 @@ const SpendingModal = Vue.defineComponent({
           </div>
         </div>
 
-        <!-- Number Pad -->
+        <!-- Number Pad (calculator style: 7-8-9 at top, 1-2-3 at bottom) -->
         <div class="grid grid-cols-3 gap-2">
           <button
-            v-for="number in [1,2,3,4,5,6,7,8,9]"
+            v-for="number in [7,8,9,4,5,6,1,2,3]"
             :key="number"
             @click="addDigit(number)"
             class="numpad-btn text-primary-custom font-bold py-3 px-4 rounded-lg transition-colors"
@@ -154,7 +154,9 @@ const SpendingModal = Vue.defineComponent({
       this.isSubmitting = true;
 
       try {
-        // Set the spend amount in the store before calling confirmSpending
+        // Set the selected person AND spend amount in the store before calling confirmSpending
+        // The confirmSpending method reads from familyStore.selectedPerson, not the modal data
+        this.familyStore.selectedPerson = this.selectedPerson;
         this.familyStore.spendAmount = this.spendAmount;
         this.familyStore.spendAmountString = this.spendAmountString;
         

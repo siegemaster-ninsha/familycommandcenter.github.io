@@ -1453,9 +1453,9 @@ const TailwindChorePage = Vue.defineComponent({
         </div>
       </div>
       
-      <!-- Camera Picture-in-Picture -->
+      <!-- Camera Picture-in-Picture (hidden on mobile) -->
       <camera-pip 
-        v-if="showCameraPip"
+        v-if="showCameraPip && !isMobile"
         @close="showCameraPip = false"
       />
     </div>
@@ -1536,6 +1536,10 @@ const TailwindChorePage = Vue.defineComponent({
     },
     currentUser() {
       return this.authStore.currentUser;
+    },
+    // Hide camera widget on mobile devices - screen real estate is limited
+    isMobile() {
+      return window.MobileLifecycleManager?.platform?.isMobile || false;
     }
   },
   // NOTE: Data is preloaded by parent app.js in loadAllData() - no need to load on mount
