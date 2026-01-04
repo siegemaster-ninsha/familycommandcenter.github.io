@@ -53,6 +53,7 @@ const CameraPip = {
           :src="streamUrl"
           class="camera-pip-iframe"
           frameborder="0"
+          scrolling="no"
           allow="autoplay"
         ></iframe>
       </div>

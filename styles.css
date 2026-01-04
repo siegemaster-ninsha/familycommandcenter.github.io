@@ -3836,12 +3836,14 @@ body.resizing-widget * {
 .camera-pip-body {
   background: #000;
   aspect-ratio: 16 / 9;
+  overflow: hidden;
 }
 
 .camera-pip-iframe {
   width: 100%;
   height: 100%;
   border: none;
+  display: block;
 }
 
 /* Mobile adjustments */

@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.224 - Dazzling Penguin (Jan 3, 2026)',
+    VERSION: '1.0.225 - Youthful Impala (Jan 3, 2026)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
