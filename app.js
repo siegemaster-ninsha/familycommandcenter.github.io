@@ -1084,33 +1084,34 @@ const app = createApp({
           window.MidnightScheduler.start();
           if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🌙 [Phase 5] Midnight scheduler started');
         }
-      // if invite token present, show accept prompt after load (only if still authenticated)
-      const url = new URL(window.location.href);
-      const inviteToken = url.searchParams.get('invite');
-      if (inviteToken) {
-        // if auth was cleared during load due to 401s, pivot to signup flow instead of prompting accept
-        if (!this.isAuthenticated || !authService.getAuthHeader()) {
-          if (authStore) {
-            authStore.pendingInviteToken = inviteToken;
-          }
-          this.showSignupForm();
-        } else {
-          const accept = confirm('You have been invited to join a family account. Accept invitation?');
-          if (accept) {
-            // prevent auth-required popup by deferring accept until after data loads and ensuring auth header exists
-            if (!authService.getAuthHeader()) {
-              if (authStore) {
-                authStore.pendingInviteToken = inviteToken;
-              }
-              this.showSignupForm();
-            } else {
-              await this.acceptParentInvite(inviteToken);
+        
+        // if invite token present, show accept prompt after load (only if still authenticated)
+        const url = new URL(window.location.href);
+        const inviteToken = url.searchParams.get('invite');
+        if (inviteToken) {
+          // if auth was cleared during load due to 401s, pivot to signup flow instead of prompting accept
+          if (!this.isAuthenticated || !authService.getAuthHeader()) {
+            if (authStore) {
+              authStore.pendingInviteToken = inviteToken;
             }
-            url.searchParams.delete('invite');
-            window.history.replaceState({}, document.title, url.toString());
+            this.showSignupForm();
+          } else {
+            const accept = confirm('You have been invited to join a family account. Accept invitation?');
+            if (accept) {
+              // prevent auth-required popup by deferring accept until after data loads and ensuring auth header exists
+              if (!authService.getAuthHeader()) {
+                if (authStore) {
+                  authStore.pendingInviteToken = inviteToken;
+                }
+                this.showSignupForm();
+              } else {
+                await this.acceptParentInvite(inviteToken);
+              }
+              url.searchParams.delete('invite');
+              window.history.replaceState({}, document.title, url.toString());
+            }
           }
         }
-      }
       } else {
         if (CONFIG.ENV.IS_DEVELOPMENT) console.log('❌ [Phase 1] User not authenticated - ready for login');
         if (authStore) {

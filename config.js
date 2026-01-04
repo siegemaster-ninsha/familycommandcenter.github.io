@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.229 - Swift Hedgehog (Jan 4, 2026)',
+    VERSION: '1.0.230 - Majestic Gorilla (Jan 4, 2026)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
