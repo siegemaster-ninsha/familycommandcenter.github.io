@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.221 - Optimistic Elephant (Jan 3, 2026)',
+    VERSION: '1.0.222 - Valiant Fox (Jan 3, 2026)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {

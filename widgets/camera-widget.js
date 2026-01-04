@@ -1,14 +1,12 @@
 /**
  * Camera Widget
  * 
- * Displays a live camera stream via go2rtc WebRTC/MSE.
- * Requires go2rtc running on a local server.
+ * Displays a live camera stream via go2rtc's built-in web player.
+ * Uses an iframe to embed go2rtc's stream.html page, which handles
+ * WebRTC/MSE negotiation internally and avoids CORS/mixed-content issues.
  * 
- * Features:
- * - WebRTC streaming (lowest latency)
- * - MSE fallback for broader compatibility
- * - Fullscreen toggle
- * - Connection status indicator
+ * Note: This widget only works when accessed from the same network as
+ * the go2rtc server, or when the browser allows mixed content.
  */
 
 // Widget Metadata
@@ -25,7 +23,7 @@ const CameraWidgetMetadata = window.WidgetTypes.createWidgetMetadata({
   
   configurable: true,
   refreshable: true,
-  refreshInterval: 0, // No auto-refresh needed for live stream
+  refreshInterval: 0,
   
   permissions: [],
   requiresAuth: false,
@@ -57,25 +55,6 @@ CameraWidgetMetadata.settings = {
       required: true,
       default: 'camera1',
       placeholder: 'camera1'
-    },
-    streamMode: {
-      type: 'select',
-      label: 'Stream Mode',
-      description: 'WebRTC has lowest latency, MSE is more compatible',
-      required: false,
-      default: 'webrtc',
-      options: [
-        { value: 'webrtc', label: 'WebRTC (Low Latency)' },
-        { value: 'mse', label: 'MSE (Compatible)' }
-      ]
-    },
-    showControls: {
-      type: 'boolean',
-      label: 'Show Video Controls',
-      description: 'Display play/pause and volume controls',
-      required: false,
-      default: false,
-      toggleLabel: 'Show controls'
     }
   }
 };
@@ -89,16 +68,9 @@ const CameraWidget = {
   data() {
     return {
       metadata: CameraWidgetMetadata,
-      
-      // Connection state
-      connected: false,
-      connectionError: null,
-      
-      // WebRTC
-      pc: null, // RTCPeerConnection
-      
-      // Fullscreen
-      isFullscreen: false
+      isFullscreen: false,
+      iframeLoaded: false,
+      loadError: false
     };
   },
   
@@ -111,149 +83,33 @@ const CameraWidget = {
       return this.config?.settings?.streamName || CameraWidgetMetadata.settings.schema.streamName.default;
     },
     
-    streamMode() {
-      return this.config?.settings?.streamMode || CameraWidgetMetadata.settings.schema.streamMode.default;
-    },
-    
-    showControls() {
-      return this.config?.settings?.showControls || false;
-    },
-    
-    // Build stream URL based on mode
-    streamUrl() {
+    // go2rtc's built-in player page
+    iframeUrl() {
       const base = this.serverUrl.replace(/\/$/, '');
-      if (this.streamMode === 'mse') {
-        return `${base}/api/stream.mp4?src=${this.streamName}`;
-      }
-      // WebRTC uses API endpoint
-      return `${base}/api/webrtc?src=${this.streamName}`;
+      return `${base}/stream.html?src=${this.streamName}`;
     }
   },
   
   methods: {
     async onRefresh() {
-      await this.connectStream();
-    },
-    
-    async connectStream() {
-      this.connectionError = null;
+      // Reload the iframe
+      this.iframeLoaded = false;
+      this.loadError = false;
       
-      try {
-        if (this.streamMode === 'webrtc') {
-          await this.connectWebRTC();
-        } else {
-          await this.connectMSE();
-        }
-      } catch (error) {
-        console.error('Camera connection failed:', error);
-        this.connectionError = error.message || 'Failed to connect to camera';
-        this.connected = false;
+      const iframe = this.$refs.iframe;
+      if (iframe) {
+        iframe.src = this.iframeUrl;
       }
     },
     
-    async connectWebRTC() {
-      // Clean up existing connection
-      this.disconnectStream();
-      
-      const video = this.$refs.video;
-      if (!video) return;
-      
-      // Create peer connection
-      this.pc = new RTCPeerConnection({
-        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-      });
-      
-      // Handle incoming tracks
-      this.pc.ontrack = (event) => {
-        video.srcObject = event.streams[0];
-        this.connected = true;
-      };
-      
-      // Handle connection state
-      this.pc.onconnectionstatechange = () => {
-        if (this.pc.connectionState === 'failed') {
-          this.connectionError = 'WebRTC connection failed';
-          this.connected = false;
-        }
-      };
-      
-      // Add transceivers for receiving
-      this.pc.addTransceiver('video', { direction: 'recvonly' });
-      this.pc.addTransceiver('audio', { direction: 'recvonly' });
-      
-      // Create offer
-      const offer = await this.pc.createOffer();
-      await this.pc.setLocalDescription(offer);
-      
-      // Wait for ICE gathering
-      await new Promise((resolve) => {
-        if (this.pc.iceGatheringState === 'complete') {
-          resolve();
-        } else {
-          this.pc.onicegatheringstatechange = () => {
-            if (this.pc.iceGatheringState === 'complete') resolve();
-          };
-        }
-      });
-      
-      // Send offer to go2rtc
-      const base = this.serverUrl.replace(/\/$/, '');
-      const response = await fetch(`${base}/api/webrtc?src=${this.streamName}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/sdp' },
-        body: this.pc.localDescription.sdp
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Server returned ${response.status}`);
-      }
-      
-      // Set remote description
-      const answer = await response.text();
-      await this.pc.setRemoteDescription({
-        type: 'answer',
-        sdp: answer
-      });
+    onIframeLoad() {
+      this.iframeLoaded = true;
+      this.loadError = false;
     },
     
-    async connectMSE() {
-      const video = this.$refs.video;
-      if (!video) return;
-      
-      // For MSE, just set the source directly
-      // go2rtc handles the streaming
-      video.src = this.streamUrl;
-      
-      video.onloadeddata = () => {
-        this.connected = true;
-      };
-      
-      video.onerror = () => {
-        this.connectionError = 'Failed to load video stream';
-        this.connected = false;
-      };
-      
-      try {
-        await video.play();
-      } catch (e) {
-        // Autoplay might be blocked, that's ok
-        console.log('Autoplay blocked, user interaction required');
-      }
-    },
-    
-    disconnectStream() {
-      if (this.pc) {
-        this.pc.close();
-        this.pc = null;
-      }
-      
-      const video = this.$refs.video;
-      if (video) {
-        video.srcObject = null;
-        video.src = '';
-      }
-      
-      this.connected = false;
+    onIframeError() {
+      this.loadError = true;
+      this.iframeLoaded = false;
     },
     
     toggleFullscreen() {
@@ -273,13 +129,15 @@ const CameraWidget = {
       }
     },
     
+    openInNewTab() {
+      window.open(this.iframeUrl, '_blank');
+    },
+    
     onMount() {
-      // Listen for fullscreen changes
       document.addEventListener('fullscreenchange', this.handleFullscreenChange);
     },
     
     onUnmount() {
-      this.disconnectStream();
       document.removeEventListener('fullscreenchange', this.handleFullscreenChange);
     },
     
@@ -295,18 +153,22 @@ const CameraWidget = {
         <h3 class="widget-title">
           <span v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon(metadata.icon, 'lucide', 20, 'mr-2') : ''"></span>
           {{ metadata.name }}
-          <span v-if="connected" class="camera-status camera-status--connected">
+          <span v-if="iframeLoaded" class="camera-status camera-status--connected">
             <span class="status-dot"></span>
             Live
           </span>
           <span v-else-if="loading" class="camera-status camera-status--connecting">
             Connecting...
           </span>
-          <span v-else class="camera-status camera-status--disconnected">
-            Offline
-          </span>
         </h3>
         <div class="widget-actions">
+          <button
+            @click="openInNewTab"
+            class="widget-action-btn"
+            title="Open in new tab"
+          >
+            <span v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('external-link', 'lucide', 16, '') : ''"></span>
+          </button>
           <button
             @click="toggleFullscreen"
             class="widget-action-btn"
@@ -335,31 +197,37 @@ const CameraWidget = {
       
       <!-- Widget Body -->
       <div class="widget-body camera-body">
-        <!-- Error State -->
-        <div v-if="connectionError && !loading" class="camera-error">
-          <span v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('video-off', 'lucide', 48, 'camera-error-icon') : ''"></span>
-          <p class="camera-error-text">{{ connectionError }}</p>
-          <button @click="refresh" class="btn btn-sm btn-primary">
-            Retry Connection
-          </button>
-        </div>
-        
-        <!-- Video Element -->
-        <video
-          ref="video"
-          class="camera-video"
-          :class="{ 'camera-video--hidden': connectionError && !loading }"
-          autoplay
-          muted
-          playsinline
-          :controls="showControls"
-        ></video>
-        
-        <!-- Loading Overlay -->
-        <div v-if="loading && !connected" class="camera-loading">
+        <!-- Loading State -->
+        <div v-if="loading && !iframeLoaded" class="camera-loading">
           <div class="loading-spinner"></div>
           <p>Connecting to camera...</p>
         </div>
+        
+        <!-- Error/Help Message -->
+        <div v-if="loadError" class="camera-error">
+          <span v-html="Helpers?.IconLibrary?.getIcon ? Helpers.IconLibrary.getIcon('video-off', 'lucide', 48, 'camera-error-icon') : ''"></span>
+          <p class="camera-error-text">Unable to load camera stream</p>
+          <p class="camera-error-hint">
+            Due to browser security, this widget works best when:<br>
+            • Accessed from the same network as the camera<br>
+            • Or opened directly in a new tab
+          </p>
+          <button @click="openInNewTab" class="btn btn-sm btn-primary">
+            Open in New Tab
+          </button>
+        </div>
+        
+        <!-- Iframe for go2rtc player -->
+        <iframe
+          ref="iframe"
+          :src="iframeUrl"
+          class="camera-iframe"
+          :class="{ 'camera-iframe--hidden': loadError }"
+          frameborder="0"
+          allow="autoplay; fullscreen"
+          @load="onIframeLoad"
+          @error="onIframeError"
+        ></iframe>
       </div>
     </div>
   `
