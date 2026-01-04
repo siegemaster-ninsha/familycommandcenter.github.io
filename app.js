@@ -913,6 +913,30 @@ const app = createApp({
       }
     },
 
+    // Guaranteed fallback to hide loading screen - handles iOS Safari timing issues
+    _ensureLoadingScreenHidden() {
+      // Always remove the body class first
+      document.body.classList.remove('app-loading');
+      
+      const loadingScreen = document.getElementById('app-loading-screen');
+      if (loadingScreen) {
+        // Force hide with inline style as fallback
+        loadingScreen.style.opacity = '0';
+        loadingScreen.style.pointerEvents = 'none';
+        loadingScreen.classList.add('fade-out');
+        
+        // Remove from DOM after a short delay
+        setTimeout(() => {
+          try {
+            loadingScreen.remove();
+            console.log('🎨 Loading screen force-hidden via fallback');
+          } catch (e) {
+            // Element may already be removed
+          }
+        }, 100);
+      }
+    },
+
     // Mobile optimization - refresh tokens when app becomes visible
     setupVisibilityChangeListener() {
       // Listen for messages from service worker
@@ -1125,14 +1149,12 @@ const app = createApp({
         try {
           ThemeManager.initializeTheme();
         } catch (themeError) {
-          console.warn('Theme initialization failed, forcing loading screen hide:', themeError);
-          // Direct fallback: hide loading screen manually
-          const loadingScreen = document.getElementById('app-loading-screen');
-          if (loadingScreen) {
-            loadingScreen.style.display = 'none';
-            document.body.classList.remove('app-loading');
-          }
+          console.warn('Theme initialization failed:', themeError);
         }
+        
+        // GUARANTEED FALLBACK: Ensure loading screen is hidden after theme init
+        // This handles iOS Safari timing issues where _hideLoadingScreen may not find the element
+        this._ensureLoadingScreenHidden();
 
         // if an invite is present and user is unauthenticated, guide them to create an account
         try {
@@ -1160,14 +1182,11 @@ const app = createApp({
       try {
         ThemeManager.initializeTheme();
       } catch (themeError) {
-        console.warn('Theme initialization failed, forcing loading screen hide:', themeError);
-        // Direct fallback: hide loading screen manually
-        const loadingScreen = document.getElementById('app-loading-screen');
-        if (loadingScreen) {
-          loadingScreen.style.display = 'none';
-          document.body.classList.remove('app-loading');
-        }
+        console.warn('Theme initialization failed:', themeError);
       }
+      
+      // GUARANTEED FALLBACK: Ensure loading screen is hidden
+      this._ensureLoadingScreenHidden();
     }
   }
   

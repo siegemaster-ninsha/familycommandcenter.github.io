@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.230 - Majestic Gorilla (Jan 4, 2026)',
+    VERSION: '1.0.231 - Dazzling Wolf (Jan 4, 2026)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
@@ -1121,15 +1121,26 @@ window.ThemeManager = {
 
   // Hide the pre-Vue loading screen after theme is applied
   _hideLoadingScreen() {
+    // Always remove the body class to ensure scrolling is enabled
+    document.body.classList.remove('app-loading');
+    
     const loadingScreen = document.getElementById('app-loading-screen');
     if (loadingScreen) {
       loadingScreen.classList.add('fade-out');
-      document.body.classList.remove('app-loading');
       // Remove from DOM after fade animation
       setTimeout(() => {
-        loadingScreen.remove();
+        try {
+          loadingScreen.remove();
+        } catch (e) {
+          // Element may already be removed
+          console.warn('🎨 Loading screen already removed');
+        }
       }, 300);
       console.log('🎨 Loading screen hidden');
+    } else {
+      // Element not found - may have been removed already or not yet in DOM
+      // This can happen on iOS Safari with timing issues
+      console.log('🎨 Loading screen element not found (may already be hidden)');
     }
   },
 
