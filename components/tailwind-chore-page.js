@@ -1452,6 +1452,12 @@ const TailwindChorePage = Vue.defineComponent({
           </div>
         </div>
       </div>
+      
+      <!-- Camera Picture-in-Picture -->
+      <camera-pip 
+        v-if="showCameraPip"
+        @close="showCameraPip = false"
+      />
     </div>
   `,
   setup() {
@@ -1480,7 +1486,8 @@ const TailwindChorePage = Vue.defineComponent({
     ChoreCard,
     PersonCard,
     EarningsCard,
-    'week-calendar-panel': window.WeekCalendarPanel
+    'week-calendar-panel': window.WeekCalendarPanel,
+    'camera-pip': window.CameraPip
   },
   data() {
     return {
@@ -1490,7 +1497,9 @@ const TailwindChorePage = Vue.defineComponent({
       // **Feature: habit-tracking** - Habit delete confirmation state
       showHabitDeleteConfirm: false,
       habitToDelete: null,
-      deletingHabit: false
+      deletingHabit: false,
+      // Camera PiP visibility
+      showCameraPip: true
     }
   },
   computed: {
