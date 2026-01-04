@@ -43,10 +43,10 @@ CameraWidgetMetadata.settings = {
     serverUrl: {
       type: 'text',
       label: 'go2rtc Server URL',
-      description: 'Base URL of your go2rtc server (e.g., http://192.168.0.75:1984)',
+      description: 'Base URL of your go2rtc server via HTTPS proxy',
       required: true,
-      default: 'http://192.168.0.75:1984',
-      placeholder: 'http://192.168.0.75:1984'
+      default: 'https://192.168.0.75:8443',
+      placeholder: 'https://192.168.0.75:8443'
     },
     streamName: {
       type: 'text',
