@@ -1121,7 +1121,17 @@ const app = createApp({
         // PHASE 2: Theme for unauthenticated users (login page)
         // This is the single initialization point for non-authenticated state
         if (CONFIG.ENV.IS_DEVELOPMENT) console.log('🎨 [Phase 2] Initializing default theme for login page...');
-        ThemeManager.initializeTheme();
+        try {
+          ThemeManager.initializeTheme();
+        } catch (themeError) {
+          console.warn('Theme initialization failed, forcing loading screen hide:', themeError);
+          // Direct fallback: hide loading screen manually
+          const loadingScreen = document.getElementById('app-loading-screen');
+          if (loadingScreen) {
+            loadingScreen.style.display = 'none';
+            document.body.classList.remove('app-loading');
+          }
+        }
 
         // if an invite is present and user is unauthenticated, guide them to create an account
         try {
@@ -1146,7 +1156,17 @@ const app = createApp({
       }
       this.loading = false;
       // Ensure loading screen is hidden even on error
-      ThemeManager.initializeTheme();
+      try {
+        ThemeManager.initializeTheme();
+      } catch (themeError) {
+        console.warn('Theme initialization failed, forcing loading screen hide:', themeError);
+        // Direct fallback: hide loading screen manually
+        const loadingScreen = document.getElementById('app-loading-screen');
+        if (loadingScreen) {
+          loadingScreen.style.display = 'none';
+          document.body.classList.remove('app-loading');
+        }
+      }
     }
   }
   

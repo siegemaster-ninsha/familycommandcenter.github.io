@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.228 - Ultimate Falcon (Jan 4, 2026)',
+    VERSION: '1.0.229 - Swift Hedgehog (Jan 4, 2026)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
@@ -1251,7 +1251,14 @@ window.ThemeManager = {
       return;
     }
     
-    const savedTheme = localStorage.getItem('selectedTheme') || 'default';
+    // Safari Private Browsing throws on localStorage access - handle gracefully
+    let savedTheme = 'default';
+    try {
+      savedTheme = localStorage.getItem('selectedTheme') || 'default';
+    } catch (e) {
+      console.warn('localStorage unavailable (private browsing?), using default theme');
+    }
+    
     console.log('🎨 ThemeManager.initializeTheme() - applying theme:', savedTheme);
     this.applyTheme(savedTheme);
     this._themeInitialized = true;
