@@ -1024,7 +1024,6 @@ const app = createApp({
       }
       // suppress generic auth-required notices when signup modal is already being shown for invite flow
       const uiStore = window.useUIStore?.();
-      const authStore = window.useAuthStore?.();
       if (uiStore?.isModalOpen?.('signup') && typeof message === 'string' && /authentication required/i.test(message)) {
         return;
       }

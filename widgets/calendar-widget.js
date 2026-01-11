@@ -215,7 +215,6 @@ const CalendarWidget = {
       today.setHours(0, 0, 0, 0);
       
       while (current <= endDate) {
-        const dateKey = current.toISOString().split('T')[0];
         const dayEvents = this.getEventsForDate(current);
         
         days.push({

@@ -6,7 +6,7 @@
  * - 6.1: Located at components/modals/chores/add-to-quicklist-modal.js
  * - 6.2: Access visibility state via UI store
  * - 6.3: Access form data via local state and categories store
- * - 6.4: Use chores store addToQuicklist method
+ * - 6.4: Use chores store createQuicklistChore method
  */
 const AddToQuicklistModal = Vue.defineComponent({
   name: 'AddToQuicklistModal',
@@ -61,7 +61,7 @@ const AddToQuicklistModal = Vue.defineComponent({
         };
         
         // Use chores store to add to quicklist
-        const result = await this.choresStore.addToQuicklist(quicklistData);
+        const result = await this.choresStore.createQuicklistChore(quicklistData);
         
         if (result?.success !== false) {
           this.uiStore?.showSuccess?.(`Added to quicklist: ${quicklistData.name}`);

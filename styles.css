@@ -3685,7 +3685,7 @@ body.resizing-widget * {
 .camera-widget .camera-body {
   padding: 0;
   position: relative;
-  background: #000;
+  background: var(--color-black, #000);
   min-height: 200px;
   display: flex;
   align-items: center;
@@ -3696,7 +3696,7 @@ body.resizing-widget * {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  background: #000;
+  background: var(--color-black, #000);
 }
 
 .camera-widget .camera-video--hidden {
@@ -3708,7 +3708,7 @@ body.resizing-widget * {
   height: 100%;
   min-height: 250px;
   border: none;
-  background: #000;
+  background: var(--color-black, #000);
 }
 
 .camera-widget .camera-iframe--hidden {
@@ -3723,7 +3723,7 @@ body.resizing-widget * {
   align-items: center;
   justify-content: center;
   gap: var(--space-3);
-  background: rgba(0, 0, 0, 0.8);
+  background: var(--color-overlay-dark, rgb(0 0 0 / 80%));
   color: white;
 }
 
@@ -3834,7 +3834,7 @@ body.resizing-widget * {
 }
 
 .camera-pip-body {
-  background: #000;
+  background: var(--color-black, #000);
   aspect-ratio: 16 / 9;
   overflow: hidden;
 }
@@ -3847,7 +3847,7 @@ body.resizing-widget * {
 }
 
 /* Mobile adjustments */
-@media (max-width: 480px) {
+@media (width <= 480px) {
   .camera-pip {
     width: 200px;
   }
@@ -3893,7 +3893,7 @@ body.resizing-widget * {
 
 /* Fullscreen mode */
 .camera-widget:fullscreen {
-  background: #000;
+  background: var(--color-black, #000);
 }
 
 .camera-widget:fullscreen .widget-header {
@@ -3901,7 +3901,7 @@ body.resizing-widget * {
   top: 0;
   left: 0;
   right: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--color-overlay-dark, rgb(0 0 0 / 70%));
   z-index: 10;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -4232,7 +4232,7 @@ body.resizing-widget * {
 .calendar-widget .calendar-grid-header {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 1px;
+  gap: var(--space-px, 1px);
   margin-bottom: var(--space-1);
 }
 
@@ -4247,7 +4247,7 @@ body.resizing-widget * {
 .calendar-widget .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
+  gap: var(--space-0-5, 2px);
 }
 
 .calendar-widget .calendar-day {
@@ -4307,8 +4307,8 @@ body.resizing-widget * {
 
 .calendar-widget .event-dots {
   display: flex;
-  gap: 2px;
-  margin-top: 2px;
+  gap: var(--space-0-5, 2px);
+  margin-top: var(--space-0-5, 2px);
   flex-wrap: wrap;
   justify-content: center;
   max-width: 100%;
@@ -4328,11 +4328,11 @@ body.resizing-widget * {
 }
 
 .calendar-widget .calendar-day.selected .event-dot {
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 1px var(--color-overlay-light, rgb(255 255 255 / 50%));
 }
 
 .calendar-widget .calendar-day.selected .more-events {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--color-text-on-dark, rgb(255 255 255 / 80%));
 }
 
 /* Day Events Panel */

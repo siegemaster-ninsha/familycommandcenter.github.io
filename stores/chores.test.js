@@ -1419,7 +1419,6 @@ describe('Multi-Assignment Count Property Tests', () => {
       
       async confirmMultiAssignment() {
         const familyStore = window.useFamilyStore?.();
-        const uiStore = window.useUIStore?.();
         
         if (!this.selectedQuicklistChore || this.multiAssignSelectedMembers.length === 0) {
           return { success: false, successful: [], failed: [], error: 'No chore or members selected' };

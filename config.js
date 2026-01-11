@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.234 - Cosmic Badger (Jan 4, 2026)',
+    VERSION: '1.0.235 - Unstoppable Badger (Jan 11, 2026)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {

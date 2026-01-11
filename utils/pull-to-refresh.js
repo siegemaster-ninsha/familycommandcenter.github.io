@@ -16,7 +16,6 @@
   let isPulling = false;
   let indicator = null;
   let indicatorText = null;
-  let indicatorIcon = null;
 
   function createIndicator() {
     if (indicator) return;
@@ -110,7 +109,6 @@
     document.body.appendChild(indicator);
     
     indicatorText = indicator.querySelector('.ptr-text');
-    indicatorIcon = indicator.querySelector('.ptr-icon');
   }
 
   function isAtTop() {
