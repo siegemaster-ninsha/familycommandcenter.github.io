@@ -78,7 +78,7 @@ const CONFIG = {
   // Application Settings
   APP: {
     NAME: 'Family Command Center',
-    VERSION: '1.0.237 - Jubilant Panther (Jan 11, 2026)',
+    VERSION: '1.0.238 - Resilient Salamander (Jan 11, 2026)',
     
     // Chore Categories (safe to be public)
     CATEGORIES: {
