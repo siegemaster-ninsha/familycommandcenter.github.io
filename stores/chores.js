@@ -1079,6 +1079,14 @@ const useChoresStore = Pinia.defineStore('chores', {
       // Store original state for potential rollback
       const originalQuicklistChores = [...this.quicklistChores];
       
+      // Look up category name from categoryId for proper grouping
+      let categoryName = null;
+      if (quicklistData.categoryId) {
+        const categoriesStore = window.useCategoriesStore?.();
+        const category = categoriesStore?.categories?.find(c => c.id === quicklistData.categoryId);
+        categoryName = category?.name || null;
+      }
+      
       // OPTIMISTIC UPDATE: Add to quicklist immediately
       const tempQuicklistChore = {
         id: `temp-quicklist-${Date.now()}`,
@@ -1086,6 +1094,7 @@ const useChoresStore = Pinia.defineStore('chores', {
         amount: quicklistData.amount || 0,
         category: quicklistData.category || 'regular',
         categoryId: quicklistData.categoryId || null,
+        categoryName: categoryName,
         isDetailed: quicklistData.isDetailed || false,
         defaultDetails: quicklistData.defaultDetails || '',
         isOptimistic: true
@@ -1104,11 +1113,15 @@ const useChoresStore = Pinia.defineStore('chores', {
           defaultDetails: tempQuicklistChore.defaultDetails
         });
         
-        // Store the real server ID for future API calls, but keep temp ID as Vue key to avoid re-render
+        // Update with server response data, keeping temp ID as Vue key to avoid re-render
         const quicklistIndex = this.quicklistChores.findIndex(c => c.id === tempQuicklistChore.id);
         if (quicklistIndex !== -1) {
-          this.quicklistChores[quicklistIndex].serverId = response.quicklistChore.id;
-          this.quicklistChores[quicklistIndex].isOptimistic = false;
+          // Merge server response (includes categoryName from backend)
+          Object.assign(this.quicklistChores[quicklistIndex], response.quicklistChore, {
+            id: tempQuicklistChore.id, // Keep temp ID for Vue reactivity
+            serverId: response.quicklistChore.id,
+            isOptimistic: false
+          });
         }
         
         console.log('[OK] Quicklist chore created:', tempQuicklistChore.name);
