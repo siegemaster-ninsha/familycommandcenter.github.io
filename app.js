@@ -1460,6 +1460,11 @@ function checkAndRegisterComponents() {
     app.component('decision-wheel-panel', window.DecisionWheelPanel);
   }
 
+  console.log('📦 Registering scoundrel-game-panel');
+  if (window.ScoundrelGamePanel) {
+    app.component('scoundrel-game-panel', window.ScoundrelGamePanel);
+  }
+
   console.log('📦 Registering kids-center-page');
   if (window.KidsCenterPage) {
     app.component('kids-center-page', window.KidsCenterPage);

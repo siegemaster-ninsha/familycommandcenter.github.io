@@ -10385,8 +10385,239 @@ body.kids-center-menu-open {
     padding: var(--space-3);
     gap: var(--space-3);
   }
-  
+
   .new-day-info-card {
     padding: var(--space-3);
+  }
+}
+
+/* ===========================================
+   SCOUNDREL GAME PANEL STYLES
+   **Feature: scoundrel-game**
+   =========================================== */
+
+.scoundrel-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: var(--space-4);
+  background: var(--color-bg-primary);
+}
+
+.scoundrel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+  flex-shrink: 0;
+}
+
+.scoundrel-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.scoundrel-help-btn {
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+}
+
+.scoundrel-canvas-container {
+  flex: 1;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: var(--space-4);
+}
+
+.scoundrel-canvas {
+  cursor: pointer;
+  border-radius: var(--radius-md);
+}
+
+.scoundrel-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.scoundrel-start-btn {
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--font-size-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.scoundrel-action-buttons {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.scoundrel-action-buttons button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-4);
+}
+
+.scoundrel-skip-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-4);
+}
+
+.scoundrel-hint {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+/* Tutorial Overlay */
+.scoundrel-tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: var(--space-4);
+}
+
+.scoundrel-tutorial {
+  background: var(--color-bg-primary);
+  border-radius: var(--radius-lg);
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-xl);
+}
+
+.scoundrel-tutorial-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border-secondary);
+}
+
+.scoundrel-tutorial-header h3 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.scoundrel-tutorial-content {
+  padding: var(--space-4);
+}
+
+.scoundrel-tutorial-content h4 {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: var(--space-4) 0 var(--space-2);
+}
+
+.scoundrel-tutorial-content h4:first-child {
+  margin-top: 0;
+}
+
+.scoundrel-tutorial-content p {
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-2);
+  line-height: 1.5;
+}
+
+.scoundrel-tutorial-content ul {
+  margin: 0;
+  padding-left: var(--space-5);
+  color: var(--color-text-secondary);
+}
+
+.scoundrel-tutorial-content li {
+  margin-bottom: var(--space-2);
+  line-height: 1.5;
+}
+
+.scoundrel-tutorial-content strong {
+  color: var(--color-text-primary);
+}
+
+/* High Scores */
+.scoundrel-high-scores {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+  flex-shrink: 0;
+}
+
+.scoundrel-high-scores h4 {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.scoundrel-high-scores ol {
+  margin: 0;
+  padding-left: var(--space-5);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.scoundrel-high-scores li {
+  margin-bottom: var(--space-1);
+}
+
+.scoundrel-high-scores .text-success {
+  color: var(--color-success-500);
+}
+
+.scoundrel-high-scores .text-danger {
+  color: var(--color-error-500);
+}
+
+/* Responsive adjustments */
+@media (width <= 640px) {
+  .scoundrel-panel {
+    padding: var(--space-2);
+  }
+
+  .scoundrel-canvas-container {
+    min-height: 250px;
+  }
+
+  .scoundrel-controls {
+    gap: var(--space-2);
+  }
+
+  .scoundrel-action-buttons button {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--font-size-sm);
+  }
+
+  .scoundrel-start-btn {
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--font-size-base);
   }
 }

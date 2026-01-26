@@ -64,7 +64,10 @@ const KidsCenterPage = Vue.defineComponent({
         
         <!-- Decision Wheel Panel -->
         <decision-wheel-panel v-else-if="activeTab === 'decision-wheel'"></decision-wheel-panel>
-        
+
+        <!-- Scoundrel Game Panel -->
+        <scoundrel-game-panel v-else-if="activeTab === 'scoundrel-game'"></scoundrel-game-panel>
+
         <!-- Placeholder for future tabs -->
         <div v-else class="kids-center-placeholder">
           <div v-html="getIcon('construction', 'lucide', 48, 'text-secondary-custom')"></div>
@@ -86,7 +89,8 @@ const KidsCenterPage = Vue.defineComponent({
       // **Validates: Requirements 2.1, 2.3**
       tabs: [
         { key: 'ai-chat', label: 'AI Chat', icon: 'messageCircle' },
-        { key: 'decision-wheel', label: 'Decision Wheel', icon: 'target' }
+        { key: 'decision-wheel', label: 'Decision Wheel', icon: 'target' },
+        { key: 'scoundrel-game', label: 'Scoundrel', icon: 'swords' }
       ]
     };
   },
