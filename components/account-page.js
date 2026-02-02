@@ -187,6 +187,7 @@ const AccountPage = Vue.defineComponent({
                 <option value="fireworks">🎆 Fireworks</option>
                 <option value="nyancat">🌈 Nyan Cat</option>
                 <option value="coins">🪙 Mario Coins</option>
+                <option value="ffvictory">🎺 FF Victory Fanfare</option>
               </select>
             </div>
             

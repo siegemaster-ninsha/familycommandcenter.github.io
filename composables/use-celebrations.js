@@ -165,11 +165,55 @@ const useCelebrations = () => {
   };
 
   /**
+   * Trigger FF Victory fanfare with confetti burst
+   * The classic Final Fantasy battle victory music! 🎺
+   */
+  const triggerFFVictory = () => {
+    // Play the victory fanfare
+    if (window.FFVictory) {
+      window.FFVictory.play();
+    } else {
+      console.warn('[Celebrations] FFVictory not loaded');
+    }
+
+    // Accompany with a celebratory confetti burst
+    if (typeof confetti === 'function') {
+      const colors = ['#FFD700', '#FFA500', '#FF6347', '#4169E1', '#32CD32'];
+      
+      // Victory burst from center
+      confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.6 },
+        colors
+      });
+
+      // Delayed side bursts for dramatic effect
+      setTimeout(() => {
+        confetti({
+          particleCount: 75,
+          angle: 60,
+          spread: 60,
+          origin: { x: 0, y: 0.7 },
+          colors
+        });
+        confetti({
+          particleCount: 75,
+          angle: 120,
+          spread: 60,
+          origin: { x: 1, y: 0.7 },
+          colors
+        });
+      }, 300);
+    }
+  };
+
+  /**
    * Trigger a random celebration effect
    * @param {Object} chore - Optional chore object (for coin rain eligibility)
    */
   const triggerRandomCelebration = (chore = null) => {
-    const celebrations = ['confetti', 'nyancat', 'cannons', 'fireworks'];
+    const celebrations = ['confetti', 'nyancat', 'cannons', 'fireworks', 'ffvictory'];
 
     // Only include coin rain if chore has money
     if (chore?.amount > 0 && window.CoinRain) {
@@ -195,6 +239,9 @@ const useCelebrations = () => {
         break;
       case 'fireworks':
         triggerFireworks();
+        break;
+      case 'ffvictory':
+        triggerFFVictory();
         break;
       default:
         triggerConfettiBurst();
@@ -243,6 +290,9 @@ const useCelebrations = () => {
       case 'fireworks':
         triggerFireworks();
         break;
+      case 'ffvictory':
+        triggerFFVictory();
+        break;
       default:
         triggerConfettiBurst();
     }
@@ -256,6 +306,7 @@ const useCelebrations = () => {
     triggerFireworks,
     triggerCoinRain,
     triggerNyanCat,
+    triggerFFVictory,
     triggerRandomCelebration,
     getThemeColors
   };
