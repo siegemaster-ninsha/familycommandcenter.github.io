@@ -7,7 +7,7 @@
 
 const FFVictory = {
   // Local asset preferred, CDN fallback
-  soundUrl: './assets/sounds/ff-fanfare.m4a',
+  soundUrl: './assets/sounds/ff-fanfare.mp3',
   soundFallback: './assets/sounds/ff-victory.mp3',
   
   audio: null,
