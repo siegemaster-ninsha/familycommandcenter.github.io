@@ -701,6 +701,9 @@ const AccountPage = Vue.defineComponent({
           // Preview with a fake $1 chore
           celebrations.triggerCoinRain({ amount: 1 });
           break;
+        case 'ffvictory':
+          celebrations.triggerFFVictory();
+          break;
         case 'random':
           celebrations.triggerRandomCelebration({ amount: 1 });
           break;
