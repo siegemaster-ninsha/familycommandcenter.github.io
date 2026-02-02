@@ -7,9 +7,8 @@
 
 const FFVictory = {
   // Local asset preferred, CDN fallback
-  // Using a royalty-free recreation of the victory fanfare
-  soundUrl: './assets/sounds/ff-victory.mp3',
-  soundFallback: 'https://www.myinstants.com/media/sounds/final-fantasy-victory-fanfare-1.mp3',
+  soundUrl: './assets/sounds/ff-fanfare.m4a',
+  soundFallback: './assets/sounds/ff-victory.mp3',
   
   audio: null,
   
